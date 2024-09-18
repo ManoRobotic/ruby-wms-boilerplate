@@ -1,44 +1,46 @@
 require 'httparty'
 require 'nokogiri'
 
-url = 'https://bbv.infosel.com/bancomerindicators/indexV9.aspx'
-response = HTTParty.get(url)
-print "Conectando con BBVA"; 3.times { print "."; sleep(0.5) }; puts " Descarga completada."
+def obtener_precios(asset)
+  url = 'https://bbv.infosel.com/bancomerindicators/indexV9.aspx'
+  response = HTTParty.get(url)
+  puts "\nDescargado data del #{asset.upcase}"; 3.times { print "."; sleep(0.5) }; puts " ✅ Descarga completada"
 
+  if response.code == 200
+    doc = Nokogiri::HTML(response.body)
+    asset_link = asset.downcase == 'oro' ? "OroLibertadClosesCV.html" : asset.downcase == 'plata' ? "PlataLibertadClosesCV.html" : nil
+    return "Asset no soportado" unless asset_link    
 
-if response.code == 200
-  doc = Nokogiri::HTML(response.body)
+    asset_data = doc.at_css("a[href*='#{asset_link}']")&.ancestors('div.col-sm-4')
 
-  onza_oro_libertad = doc.at_css("a[href*='OroLibertadClosesCV.html']")&.ancestors('div.col-sm-4')
-  onza_plata_libertad = doc.at_css("a[href*='PlataLibertadClosesCV.html']")&.ancestors('div.col-sm-4')
+    if asset_data
+      compra = asset_data.at_css("div.d-flex > div.border-right .precio-c")&.text&.strip
+      venta = asset_data.at_css("div.d-flex > div:not(.border-right) .precio-c")&.text&.strip
 
-  if onza_oro_libertad
-    compra_oro = onza_oro_libertad.at_css("div.d-flex > div.border-right .precio-c")&.text&.strip
-    venta_oro = onza_oro_libertad.at_css("div.d-flex > div:not(.border-right) .precio-c")&.text&.strip
-
-    puts ""
-    puts "**************ORO*********************"
-    puts "Oro - Compra: #{compra_oro}" if compra_oro
-    puts "Oro - Venta: #{venta_oro}" if venta_oro
-    puts "**************************************"
-    puts ""
-    puts "Oro - No se pudo encontrar la información de precios en el contenedor." unless compra_oro && venta_oro
+      if compra && venta
+        puts "Fecha y hora: #{Time.now}"
+        puts "************ OZ #{asset.upcase} LIBERTAD *********************"
+        puts "- Compra: #{compra}"
+        puts "- Venta: #{venta}"
+        puts "**************************************************\n"
+      else
+        puts "#{asset.capitalize} - No se pudo encontrar la información de precios en el contenedor."
+      end
+    else
+      puts "#{asset.capitalize} - No se encontró la data de la Onza Libertad de #{asset.capitalize} en la página de BBVA."
+    end
   else
-    puts "Oro - No se encontró la data de la Onza Libertad de Oro en la página de bbva."
+    puts "Error al obtener la página: #{response.code}"
   end
+end
 
-  if onza_plata_libertad
-    compra_plata = onza_plata_libertad.at_css("div.d-flex > div.border-right .precio-c")&.text&.strip
-    venta_plata = onza_plata_libertad.at_css("div.d-flex > div:not(.border-right) .precio-c")&.text&.strip
 
-    puts "**************PLATA*******************"
-    puts "Plata - Compra: #{compra_plata}" if compra_plata
-    puts "Plata - Venta: #{venta_plata}" if venta_plata
-    puts "**************************************"
-    puts "Plata - No se pudo encontrar la información de precios en el contenedor." unless compra_plata && venta_plata
-  else
-    puts "Plata - No se encontró la data de la Onza Libertad de Plata en la páginan de bbva."
-  end
-else
-  puts "Error al obtener la página: #{response.code}"
+
+
+assets = ['Oro', 'Plata']
+
+puts "CONECTANDO CON BBVA"; 3.times { print "."; sleep(0.5) }; print " ✅ CONECTADO A BBVA CORRECTAMENTE \n"
+
+assets.each do |asset|
+  obtener_precios(asset)
 end
