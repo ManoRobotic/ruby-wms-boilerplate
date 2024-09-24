@@ -16,6 +16,10 @@ module CoinsEcommerceApp
     # Common ones are `templates`, `generators`, or `middleware`, for example.
     config.autoload_lib(ignore: %w[assets tasks])
 
+    # set both languages, set spanish :es as default language 
+    config.i18n.available_locales = [:en, :es]
+    config.i18n.default_locale = :es
+    
     # Configuration for the application, engines, and railties goes here.
     #
     # These settings can be overridden in specific environments using the files
