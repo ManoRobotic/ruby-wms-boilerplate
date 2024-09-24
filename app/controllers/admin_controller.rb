@@ -1,7 +1,10 @@
 class AdminController < ApplicationController
-    before_action :authenticate_admin!
+  
+  layout 'admin'
+  before_action :authenticate_admin!
 
-    def index
-        puts 'hola admin'
-    end
+  def index
+    puts 'hola admin'
+  end
+
 end
