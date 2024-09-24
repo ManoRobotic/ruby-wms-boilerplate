@@ -1,0 +1,10 @@
+<% if admin_signed_in? %>
+  <%= link_to 'Edit', '#', class: "mx-2 text-white hover:text-gray-200 font-bold text-xl" %>
+  <%#= link_to 'Log out', '#', class: "mx-2 text-white hover:text-gray-200 font-bold text-xl", method: :delete, data: {
+    turbo_method: :delete,
+    turbo_confirm: 'Are you sure?'
+  } %>
+<% else %>
+  <%= link_to 'Log in', '#', class: "mx-2 text-white hover:text-gray-200 font-bold text-xl" %>
+  <%= link_to 'Sign up', '#', class: "mx-2 bg-white text-blue-500 px-4 py-2 rounded-full hover:bg-blue-400 hover:text-white transition duration-300 font-bold" %>
+<% end %>

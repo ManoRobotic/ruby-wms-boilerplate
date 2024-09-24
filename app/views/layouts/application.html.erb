@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title><%= content_for(:title) || "Coins Ecommerce App" %></title>
+    <title><%= t('app_name') %><%= t('meta_title') %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <%= csrf_meta_tags %>
@@ -20,8 +20,8 @@
 
   <body>
     <%# <main class="container mx-auto mt-28 px-5 flex"> %>
-    <main>
-        <p>Pantalla Tienda</p>
+    <main class="flex flex-col">
+        <%= render 'shared/header_user' %>
       <%= yield %>
     </main>
   </body>
