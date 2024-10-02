@@ -1,27 +1,27 @@
-<nav class="w-64 p-4 h-screen bg-gray-600 sticky top-0">
-  <div class="flex">
+<nav class="w-64 p-4 min-h-screen bg-gray-600 sticky top-0">
+  <div class="flex items-center">
     <%= image_tag 'logo.png', class: 'w-16' %>
-    <h1 class='text-md py-2 text-white font-bold hidden md:block'>Ecommerce Admin</h1>
+    <h1 class='text-md py-2 text-white font-bold hidden md:block'>Ecommerce Monedas</h1>
   </div>
   <ul class="mt-2">
     <li>
       <%= link_to admin_path, class: 'block px-4 py-2 hover:rounded hover:bg-gray-700' do %>
-        <%= icon('fa-solid', 'gauge-high', class: 'mr-2') %> <span class="hidden md:inline-block">A</span>
+        <%= icon('fa-solid', 'gauge-high', class: 'mr-2') %> <span class="hidden md:inline-block">Ventas</span>
       <% end %>
     </li>
     <li>
       <%= link_to admin_path, class: 'block px-4 py-2 hover:rounded hover:bg-gray-700' do %>
-        <%= icon('fa-solid', 'cart-shopping', class: 'mr-2') %> <span class="hidden md:inline-block">B</span>
+        <%= icon('fa-solid', 'cart-shopping', class: 'mr-2') %> <span class="hidden md:inline-block">Ordenes</span>
       <% end %>
     </li>
     <li>
       <%= link_to admin_path, class: 'block px-4 py-2 hover:rounded hover:bg-gray-700' do %>
-        <%= icon('fa-solid', 'list', class: 'mr-2') %> <span class="hidden md:inline-block">C</span>
+        <%= icon('fa-solid', 'list', class: 'mr-2') %> <span class="hidden md:inline-block">Categorías</span>
       <% end %>
     </li>
     <li>
       <%= link_to admin_path, class: 'block px-4 py-2 hover:rounded hover:bg-gray-700' do %>
-        <%= icon('fa-solid', 'truck-fast', class: 'mr-2') %> <span class="hidden md:inline-block">D</span>
+        <%= icon('fa-solid', 'truck-fast', class: 'mr-2') %> <span class="hidden md:inline-block">Envíos</span>
       <% end %>
     </li>
     <li>

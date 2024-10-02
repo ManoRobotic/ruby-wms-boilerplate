@@ -1,3 +1,7 @@
 es:
   app_name: "coinMex"
   meta_title: 'coinMex - El mejor lugar para comprar monedas'
+  categories:
+    title: 'Tipos de Monedas'
+    show: 'Mostrar moneda'
+    description: 'Descripción de las categorías'

@@ -1,3 +1,7 @@
 en:
   app_name: "coinMex"
   meta_title: 'coinMex - The best place to buy coins'
+  categories:
+    title: 'Coins Categories'
+    show: 'Show this category'
+    description: 'Descripción de las categorías'
