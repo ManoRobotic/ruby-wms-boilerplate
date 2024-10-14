@@ -9,6 +9,12 @@
     <%= category.description %>
   </p>
 
+  <p class="my-5">
+    <strong class="block font-medium mb-1">Image:</strong>
+      <%= image_tag(category.image) if category.image.present? %>
+      <%= image_tag(category.image_url) if category.image_url.present? %>
+  </p>
+
 </div>
 
 
