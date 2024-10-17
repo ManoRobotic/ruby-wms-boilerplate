@@ -7,7 +7,7 @@
 
   <div class="flex justify-between items-center mb-8">
     <h1 class="font-bold text-4xl"><%= t('categories.title') %></h1>
-    <%= link_to "New category", new_category_path, class: "rounded-lg py-3 px-5 bg-blue-600 text-white block font-medium" %>
+    <%= link_to "New category", new_admin_category_path, class: "rounded-lg py-3 px-5 bg-blue-600 text-white block font-medium" %>
   </div>
 
   <section class="py-16 bg-muted flex flex-col w-full">
@@ -25,7 +25,7 @@
                 <%= category.name %>
               </h4>
               <p><%= category.description %></p>
-              <%= link_to t('categories.show'), category, class: "hover:bg-gray-400 rounded-lg py-2 px-4 bg-gray-200 inline-block font-medium mt-4" %>
+              <%= link_to t('categories.show'), admin_category_path(category), class: "hover:bg-gray-400 rounded-lg py-2 px-4 bg-gray-200 inline-block font-medium mt-4" %>
             </div>
           </div>
         <% end %>
