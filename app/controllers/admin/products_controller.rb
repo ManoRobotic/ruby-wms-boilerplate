@@ -35,6 +35,7 @@ class Admin::ProductsController < AdminController
   end
 
   # PATCH/PUT /admin/products/1 or /admin/products/1.json
+  #TODO: Refactorizar método
   def update
     respond_to do |format|
       if @admin_product.update(admin_product_params)
@@ -45,12 +46,21 @@ class Admin::ProductsController < AdminController
         format.json { render json: @admin_product.errors, status: :unprocessable_entity }
       end
     end
+    @admin_product = Product.find(params[:id])
+    if @admin_product.update(admin_product_params.reject { |k| k["images"] })
+      if admin_product_params[:images]
+        admin_product_params[:images].each do |image|
+          @admin_product.images.attach(image)
+        end
+      end
+      redirect_to admin_products_path(@admin_product), notice: "Product was successfully updated."
+    else
+      render :edit, status: :unprocessable_entity
+    end
   end
 
   # DELETE /admin/products/1 or /admin/products/1.json
   def destroy
-    binding.pry
-
     @admin_product.destroy!
 
     respond_to do |format|
