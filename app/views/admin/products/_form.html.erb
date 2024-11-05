@@ -32,6 +32,11 @@
       class: "block shadow rounded-md border border-gray-400 outline-none px-3 py-2 mt-2 w-full" %>
   </div>
 
+
+  <div class="my-5">
+    <%= link_to "Product Stock", admin_product_stocks_path(admin_product), class: "block shadow rounded-md border border-gray-400 outline-none px-3 py-2 mt-2 w-full" %>
+  </div>
+
   <div class="my-5">
     <% if admin_product.images.any? %>
       <% admin_product.images.each do |image| %>

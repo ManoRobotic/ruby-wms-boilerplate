@@ -7,9 +7,10 @@ Rails.application.routes.draw do
   end
 
   namespace :admin do
-    resources :stocks
     resources :categories 
-    resources :products
+      resources :products do 
+        resources :stocks
+      end
   end
   
   get "admin" => "admin#index"

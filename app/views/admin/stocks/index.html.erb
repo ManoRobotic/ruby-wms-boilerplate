@@ -7,14 +7,14 @@
 
   <div class="flex justify-between items-center">
     <h1 class="font-bold text-4xl">Stocks</h1>
-    <%= link_to "New stock", new_admin_stock_path, class: "rounded-lg py-3 px-5 bg-blue-600 text-white block font-medium" %>
+    <%= link_to "New stock", new_admin_product_stock_path, class: "rounded-lg py-3 px-5 bg-blue-600 text-white block font-medium" %>
   </div>
 
   <div id="admin_stocks" class="min-w-full">
     <% @admin_stocks.each do |admin_stock| %>
       <%= render admin_stock %>
       <p>
-        <%= link_to "Show this stock", admin_stock, class: "ml-2 rounded-lg py-3 px-5 bg-gray-100 inline-block font-medium" %>
+        <%= link_to "Show this stock", admin_product_stock_path(admin_stock.product_id, admin_stock.id), class: "ml-2 rounded-lg py-3 px-5 bg-gray-100 inline-block font-medium" %>
       </p>
     <% end %>
   </div>
