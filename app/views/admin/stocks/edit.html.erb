@@ -3,6 +3,6 @@
 
   <%= render "form", admin_stock: @admin_stock %>
 
-  <%= link_to "Show this stock :D", [:admin, @admin_stock.product, @admin_stock], class: "ml-2 rounded-lg py-3 px-5 bg-gray-100 inline-block font-medium" %>
+  <%= link_to "Show this stock", [:admin, @admin_stock.product, @admin_stock], class: "ml-2 rounded-lg py-3 px-5 bg-gray-100 inline-block font-medium" %>
   <%= link_to "Back to stocks", admin_product_stocks_path(@admin_stock.product, @admin_stock), class: "ml-2 rounded-lg py-3 px-5 bg-gray-100 inline-block font-medium" %>
 </div>
