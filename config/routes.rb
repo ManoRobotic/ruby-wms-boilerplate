@@ -2,7 +2,7 @@ Rails.application.routes.draw do
   root "home#index"
 
   devise_for :admins, controllers: {
-    registrations: "admin/registrations",
+    registrations: "admin/registrations"
   }
 
   authenticate :admin_user do
@@ -11,13 +11,11 @@ Rails.application.routes.draw do
 
   namespace :admin do
     resources :orders
-    resources :categories 
-      resources :products do 
+    resources :categories
+      resources :products do
         resources :stocks
       end
   end
-  
+
   get "admin" => "admin#index"
-
-
 end

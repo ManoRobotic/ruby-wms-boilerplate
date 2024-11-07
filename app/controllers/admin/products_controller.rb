@@ -1,6 +1,6 @@
 class Admin::ProductsController < AdminController
   before_action :set_admin_product, only: %i[ show edit update destroy ]
-  
+
   # GET /admin/products or /admin/products.json
   def index
     @admin_products = Product.all
@@ -35,7 +35,7 @@ class Admin::ProductsController < AdminController
   end
 
   # PATCH/PUT /admin/products/1 or /admin/products/1.json
-  #TODO: Refactorizar método
+  # TODO: Refactorizar método
   def update
     respond_to do |format|
       if @admin_product.update(admin_product_params)

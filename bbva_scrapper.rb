@@ -9,7 +9,7 @@ def obtener_precios(asset)
   if response.code == 200
     doc = Nokogiri::HTML(response.body)
     asset_link = asset.downcase == 'oro' ? "OroLibertadClosesCV.html" : asset.downcase == 'plata' ? "PlataLibertadClosesCV.html" : nil
-    return "Asset no soportado" unless asset_link    
+    return "Asset no soportado" unless asset_link
 
     asset_data = doc.at_css("a[href*='#{asset_link}']")&.ancestors('div.col-sm-4')
 
@@ -37,7 +37,7 @@ end
 
 
 
-assets = ['Oro', 'Plata']
+assets = [ 'Oro', 'Plata' ]
 
 puts "CONECTANDO CON BBVA"; 3.times { print "."; sleep(0.5) }; print " ✅ CONECTADO A BBVA CORRECTAMENTE \n"
 

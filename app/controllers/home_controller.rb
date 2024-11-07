@@ -1,5 +1,5 @@
 class HomeController < ApplicationController
     def index
-        puts 'hola'
+        puts "hola"
     end
 end
