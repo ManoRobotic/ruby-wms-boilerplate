@@ -1,12 +1,12 @@
-<nav class="w-64 p-4 min-h-screen bg-gray-600 sticky top-0">
+<nav class="sticky top-0 w-64 min-h-screen p-4 bg-gray-600">
   <div class="flex items-center">
     <%= image_tag 'logo.png', class: 'w-16' %>
-    <h1 class='text-md py-2 text-white font-bold hidden md:block'>Ecommerce Monedas</h1>
+    <h1 class='hidden py-2 font-bold text-white text-md md:block'>Ecommerce Monedas</h1>
   </div>
   <ul class="mt-2">
     <li>
       <%= link_to admin_orders_path, class: 'block px-4 py-2 hover:rounded hover:bg-gray-700' do %>
-        <%= icon('fa-solid', 'gauge-high', class: 'mr-2') %> <span class="hidden md:inline-block">Ordenes</span>
+        <%= icon('fa-solid', 'truck-fast', class: 'mr-2') %> <span class="hidden md:inline-block">Ordenes</span>
       <% end %>
     </li>
     <li>
@@ -21,7 +21,7 @@
     </li>
     <li>
       <%= link_to admin_path, class: 'block px-4 py-2 hover:rounded hover:bg-gray-700' do %>
-        <%= icon('fa-solid', 'truck-fast', class: 'mr-2') %> <span class="hidden md:inline-block">Envíos</span>
+        <%= icon('fa-solid', 'gauge-high', class: 'mr-2') %> <span class="hidden md:inline-block">Dashboard</span>
       <% end %>
     </li>
     <li>
