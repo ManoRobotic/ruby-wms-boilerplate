@@ -1,16 +1,27 @@
-<h2>Forgot your password?</h2>
+<div class="flex items-center justify-center min-h-screen bg-gray-100">
+  <div class="relative flex flex-col w-full max-w-md p-8 bg-white shadow-lg rounded-xl">
+    <h2 class="block mb-2 text-2xl font-medium text-center text-slate-800">
+      Forgot your password?
+    </h2>
+    <p class="mb-6 font-light text-center text-slate-500">
+      Enter your email to receive reset instructions.
+    </p>
 
-<%= form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :post }) do |f| %>
-  <%= render "devise/shared/error_messages", resource: resource %>
+    <%= form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :post }, class: "mt-8 mb-2 w-full") do |f| %>
+      <%= render "devise/shared/error_messages", resource: resource %>
 
-  <div class="field">
-    <%= f.label :email %><br />
-    <%= f.email_field :email, autofocus: true, autocomplete: "email" %>
+      <div class="mb-6">
+        <%= f.label :email, class: "block mb-2 text-sm text-slate-600" %>
+        <%= f.email_field :email, autofocus: true, autocomplete: "email", class: "w-full bg-transparent placeholder:text-slate-400 text-slate-700 text-base border border-slate-200 rounded-md px-4 py-3 transition duration-300 ease focus:outline-none focus:border-slate-400 hover:border-slate-300 shadow-sm focus:shadow" %>
+      </div>
+
+      <div class="mt-4 actions">
+        <%= f.submit "Send me reset password instructions", class: "w-full rounded-md bg-slate-800 py-3 px-4 border border-transparent text-center text-sm text-white transition-all shadow-md hover:shadow-lg focus:bg-slate-700 focus:shadow-none active:bg-slate-700 hover:bg-slate-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" %>
+      </div>
+    <% end %>
+
+    <div class="flex justify-center mt-6">
+      <%= render "devise/shared/links" %>
+    </div>
   </div>
-
-  <div class="actions">
-    <%= f.submit "Send me reset password instructions" %>
-  </div>
-<% end %>
-
-<%= render "devise/shared/links" %>
+</div>
