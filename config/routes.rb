@@ -2,7 +2,7 @@ Rails.application.routes.draw do
   root "home#index"
 
   devise_for :admins, controllers: {
-    registrations: "admins/registrations",
+    registrations: "admin/registrations",
   }
 
   authenticate :admin_user do
