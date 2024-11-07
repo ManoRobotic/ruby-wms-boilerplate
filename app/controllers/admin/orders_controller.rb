@@ -23,7 +23,6 @@ class Admin::OrdersController < AdminController
   def create
     @admin_order = Order.new(order_params)
 
-    byebug
     respond_to do |format|
       if @admin_order.save
         format.html { redirect_to admin_orders_path(@admin_order), notice: "Order was successfully created." }
@@ -66,6 +65,6 @@ class Admin::OrdersController < AdminController
 
     # Only allow a list of trusted parameters through.
     def order_params
-      params.require(:admin_order).permit(:customer_email, :fulfilled, :total, :address)
+      params.require(:order).permit(:customer_email, :fulfilled, :total, :address)
     end
 end
