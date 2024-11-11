@@ -1,51 +1,51 @@
-<div class="flex items-center justify-center min-h-screen bg-gray-100">
-  <div class="relative flex flex-col w-full max-w-xl p-8 bg-white shadow-lg rounded-xl">
-    <h2 class="block mb-2 text-2xl font-medium text-center text-slate-800">
+<div class="flex items-center justify-center min-h-full p-4 bg-gray-100 sm:min-h-screen">
+  <div class="relative flex flex-col w-full max-w-md p-4 bg-white rounded-lg shadow-md sm:p-6">
+    <h2 class="mb-2 text-xl font-semibold text-center text-slate-800">
       Sign up
     </h2>
-    <p class="mb-6 font-light text-center text-slate-500">
+    <p class="mb-4 text-sm text-center text-slate-500">
       Create a new account by filling in your details.
     </p>
     
-    <%= form_for(resource, as: resource_name, url: registration_path(resource_name), class: "mt-8 mb-2 w-full") do |f| %>
+    <%= form_for(resource, as: resource_name, url: registration_path(resource_name), class: "mt-4 w-full") do |f| %>
       <%= render "devise/shared/error_messages", resource: resource %>
       
-      <div class="flex flex-col gap-6 mb-6">
-        <div class="w-full">
-          <%= f.label :email, class: "block mb-2 text-sm text-slate-600" %>
-          <%= f.email_field :email, autofocus: true, autocomplete: "email", class: "w-full bg-transparent placeholder:text-slate-400 text-slate-700 text-base border border-slate-200 rounded-md px-4 py-3 transition duration-300 ease focus:outline-none focus:border-slate-400 hover:border-slate-300 shadow-sm focus:shadow" %>
+      <div class="flex flex-col gap-4 mb-4">
+        <div>
+          <%= f.label :email, class: "block mb-1 text-xs text-slate-600" %>
+          <%= f.email_field :email, autofocus: true, autocomplete: "email", class: "w-full placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-md px-3 py-2 focus:outline-none focus:border-slate-400" %>
         </div>
 
-        <div class="w-full">
-          <%= f.label :password, class: "block mb-2 text-sm text-slate-600" %>
+        <div>
+          <%= f.label :password, class: "block mb-1 text-xs text-slate-600" %>
           <% if @minimum_password_length %>
             <em class="text-xs text-slate-500">(<%= @minimum_password_length %> characters minimum)</em>
           <% end %>
-          <%= f.password_field :password, autocomplete: "new-password", class: "w-full bg-transparent placeholder:text-slate-400 text-slate-700 text-base border border-slate-200 rounded-md px-4 py-3 transition duration-300 ease focus:outline-none focus:border-slate-400 hover:border-slate-300 shadow-sm focus:shadow" %>
+          <%= f.password_field :password, autocomplete: "new-password", class: "w-full placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-md px-3 py-2 focus:outline-none focus:border-slate-400" %>
         </div>
 
-        <div class="w-full">
-          <%= f.label :name, class: "block mb-2 text-sm text-slate-600" %>
-          <%= f.text_field :name, autofocus: true, autocomplete: "name", class: "w-full bg-transparent placeholder:text-slate-400 text-slate-700 text-base border border-slate-200 rounded-md px-4 py-3 transition duration-300 ease focus:outline-none focus:border-slate-400 hover:border-slate-300 shadow-sm focus:shadow" %>
+        <div>
+          <%= f.label :name, class: "block mb-1 text-xs text-slate-600" %>
+          <%= f.text_field :name, autocomplete: "name", class: "w-full placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-md px-3 py-2 focus:outline-none focus:border-slate-400" %>
         </div>
 
-        <div class="w-full">
-          <%= f.label :address, class: "block mb-2 text-sm text-slate-600" %>
-          <%= f.text_field :address, autofocus: true, autocomplete: "address", class: "w-full bg-transparent placeholder:text-slate-400 text-slate-700 text-base border border-slate-200 rounded-md px-4 py-3 transition duration-300 ease focus:outline-none focus:border-slate-400 hover:border-slate-300 shadow-sm focus:shadow" %>
+        <div>
+          <%= f.label :address, class: "block mb-1 text-xs text-slate-600" %>
+          <%= f.text_field :address, autocomplete: "address", class: "w-full placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-md px-3 py-2 focus:outline-none focus:border-slate-400" %>
         </div>
 
-        <div class="w-full">
-          <%= f.label :password_confirmation, class: "block mb-2 text-sm text-slate-600" %>
-          <%= f.password_field :password_confirmation, autocomplete: "new-password", class: "w-full bg-transparent placeholder:text-slate-400 text-slate-700 text-base border border-slate-200 rounded-md px-4 py-3 transition duration-300 ease focus:outline-none focus:border-slate-400 hover:border-slate-300 shadow-sm focus:shadow" %>
+        <div>
+          <%= f.label :password_confirmation, class: "block mb-1 text-xs text-slate-600" %>
+          <%= f.password_field :password_confirmation, autocomplete: "new-password", class: "w-full placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-md px-3 py-2 focus:outline-none focus:border-slate-400" %>
         </div>
       </div>
 
-      <div class="mt-8 actions">
-        <%= f.submit "Sign up", class: "w-full rounded-md bg-slate-800 py-3 px-4 border border-transparent text-center text-sm text-white transition-all shadow-md hover:shadow-lg focus:bg-slate-700 focus:shadow-none active:bg-slate-700 hover:bg-slate-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" %>
+      <div class="actions">
+        <%= f.submit "Sign up", class: "w-full bg-slate-800 py-2 rounded-md text-center text-white text-sm transition hover:bg-slate-700 focus:bg-slate-700" %>
       </div>
     <% end %>
 
-    <div class="flex justify-center mt-6">
+    <div class="flex justify-center mt-4">
       <%= render "devise/shared/links" %>
     </div>
   </div>
