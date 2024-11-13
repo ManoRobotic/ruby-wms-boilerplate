@@ -1,5 +1,13 @@
-<div class="flex items-center justify-center min-h-full bg-gray-100 sm:min-h-screen">
-  <div class="relative flex flex-col w-full max-w-xl p-8 bg-white shadow-lg rounded-xl">
+<div class="relative flex items-center justify-center min-h-screen overflow-hidden">
+  <!-- Blurred gradient background -->
+  <div class="absolute inset-0 z-0">
+    <div class="absolute inset-0 opacity-75 bg-gradient-to-br from-yekki-400 via-green-500 to-white-500"></div>
+    <div class="absolute inset-0 opacity-50 bg-gradient-to-tr from-yellow-300 via-green-400 to-teal-500 mix-blend-overlay"></div>
+    <div class="absolute inset-0 backdrop-blur-3xl"></div>
+  </div>
+  
+  
+  <div class="relative flex flex-col w-full max-w-xl p-8 mx-4 bg-white shadow-lg rounded-xl sm:mx-0 sm:max-w-md ">
     <h4 class="block mb-2 text-2xl font-medium text-center text-slate-800">
       Log in
     </h4>
@@ -50,4 +58,6 @@
       <%= link_to "Sign up", new_registration_path(resource_name), class: "ml-1 text-sm font-semibold text-slate-700 underline" %>
     </p>
   </div>
+</div>
+
 </div>
