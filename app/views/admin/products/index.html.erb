@@ -1,26 +1,28 @@
-<div class="w-full mt-8 ml-8 mr-8">
+<div class="w-full mt-4 ml-4 mr-4">
   <% if notice.present? %>
-    <p class="py-2 px-3 bg-green-50 mb-5 text-green-500 font-medium rounded-lg inline-block" id="notice"><%= notice %></p>
+    <p class="inline-block px-3 py-2 mb-5 font-medium text-green-500 rounded-lg bg-green-50" id="notice"><%= notice %></p>
   <% end %>
 
   <% content_for :title, "Products" %>
 
-  <div class="flex justify-between items-center">
-    <h1 class="font-bold text-4xl">Products</h1>
-    <%= link_to "New product", new_admin_product_path, class: "rounded-lg py-3 px-5 bg-blue-600 text-white block font-medium" %>
+  <div class="flex items-center justify-between">
+    <h1 class="text-4xl font-bold">Products</h1>
+    <div class="flex w-full gap-2 shrink-0 md:w-max">
+      <%= link_to "Nuevo Producto", new_admin_product_path, class: "flex select-none items-center gap-3 rounded-lg bg-gray-900 py-2 px-4 text-center align-middle font-sans text-xs font-bold uppercase text-white shadow-md shadow-gray-900/10 transition-all hover:shadow-lg hover:shadow-gray-900/20 focus:opacity-[0.85] focus:shadow-none active:opacity-[0.85] active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" %>
+    </div>
   </div>
 
-  <section class="py-16 bg-muted flex flex-col w-full">
-    <div class="container mx-auto px-4">
-      <div id="categories" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"> <!-- Configurado para 3 columnas -->
+  <section class="flex flex-col w-full py-16 bg-muted">
+    <div class="container px-4 mx-auto">
+      <div id="categories" class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3"> <!-- Configurado para 3 columnas -->
         <% @admin_products.each  do |admin_product| %>
-          <div class="group cursor-pointer hover:shadow-lg transition-shadow p-6 rounded-lg border">
+          <div class="p-6 transition-shadow border rounded-lg cursor-pointer group hover:shadow-lg">
             <div class="flex flex-col items-center text-center">
-              <h4 class="font-semibold group-hover:text-primary transition-colors mb-4">
+              <h4 class="mb-4 font-semibold transition-colors group-hover:text-primary">
                 <%= admin_product.name %>
               </h4>
               <p><%= admin_product.description %></p>
-              <td data-label="Name" class="border border-slate-300 bg-white text-left p-4">Precio: <%= number_to_currency(admin_product.price) %></td>
+              <td data-label="Name" class="p-4 text-left bg-white border border-slate-300">Precio: <%= number_to_currency(admin_product.price) %></td>
               <%= link_to 'Mostrar Producto', admin_product_path(admin_product), class: "hover:bg-gray-400 rounded-lg py-2 px-4 bg-gray-200 inline-block font-medium mt-4" %>
             </div>
           </div>

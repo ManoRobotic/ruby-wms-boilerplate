@@ -5,6 +5,11 @@
   </div>
   <ul class="flex flex-col gap-2 p-2 text-gray-800">
     <li>
+      <%= link_to admin_path, class: 'flex items-center w-full p-3 leading-tight transition-all rounded-lg text-start hover:bg-gray-300 hover:text-gray-900 focus:bg-gray-300 focus:text-gray-900' do %>
+        <%= icon('fa-solid', 'gauge-high', class: 'mr-2') %> <span class="hidden md:inline-block">Dashboard</span>
+      <% end %>
+    </li>
+    <li>
       <%= link_to admin_orders_path, class: 'flex items-center w-full p-3 leading-tight transition-all rounded-lg text-start hover:bg-gray-300 hover:text-gray-900 focus:bg-gray-300 focus:text-gray-900' do %>
         <%= icon('fa-solid', 'truck-fast', class: 'mr-2') %> <span class="hidden md:inline-block">Ordenes</span>
       <% end %>
@@ -17,11 +22,6 @@
     <li>
       <%= link_to admin_categories_path, class: 'flex items-center w-full p-3 leading-tight transition-all rounded-lg text-start hover:bg-gray-300 hover:text-gray-900 focus:bg-gray-300 focus:text-gray-900' do %>
         <%= icon('fa-solid', 'list', class: 'mr-2') %> <span class="hidden md:inline-block">Categorías</span>
-      <% end %>
-    </li>
-    <li>
-      <%= link_to admin_path, class: 'flex items-center w-full p-3 leading-tight transition-all rounded-lg text-start hover:bg-gray-300 hover:text-gray-900 focus:bg-gray-300 focus:text-gray-900' do %>
-        <%= icon('fa-solid', 'gauge-high', class: 'mr-2') %> <span class="hidden md:inline-block">Dashboard</span>
       <% end %>
     </li>
     <li>

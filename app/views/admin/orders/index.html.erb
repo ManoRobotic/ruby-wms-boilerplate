@@ -11,12 +11,12 @@
     <div class="relative mx-4 mt-4 overflow-hidden text-gray-700 bg-white rounded-none bg-clip-border">
       <div class="flex flex-col justify-between gap-8 mb-4 md:flex-row md:items-center">
         <div>
-          <h5 class="block font-sans text-xl antialiased font-semibold leading-snug tracking-normal text-blue-gray-900">
-            Orders
-          </h5>
+          <h2 class="block font-sans text-xl antialiased font-semibold leading-snug tracking-normal text-blue-gray-900">
+            Ordenes
+          </h2>
         </div>
         <div class="flex w-full gap-2 shrink-0 md:w-max">
-          <%= link_to "New order", new_admin_order_path, class: "flex select-none items-center gap-3 rounded-lg bg-gray-900 py-2 px-4 text-center align-middle font-sans text-xs font-bold uppercase text-white shadow-md shadow-gray-900/10 transition-all hover:shadow-lg hover:shadow-gray-900/20 focus:opacity-[0.85] focus:shadow-none active:opacity-[0.85] active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" %>
+          <%= link_to "Nueva Orden", new_admin_order_path, class: "flex select-none items-center gap-3 rounded-lg bg-gray-900 py-2 px-4 text-center align-middle font-sans text-xs font-bold uppercase text-white shadow-md shadow-gray-900/10 transition-all hover:shadow-lg hover:shadow-gray-900/20 focus:opacity-[0.85] focus:shadow-none active:opacity-[0.85] active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" %>
         </div>
       </div>
     </div>
@@ -25,10 +25,10 @@
       <div class="flex flex-col justify-between gap-8 mb-4 md:flex-row md:items-center">
         <div>
           <h5 class="block font-sans text-xl antialiased font-semibold leading-snug tracking-normal text-blue-gray-900">
-            Fulfilled Orders
+            Ordenes completadas
           </h5>
           <p class="block mt-1 font-sans text-base antialiased font-normal leading-relaxed text-gray-700">
-            These are the orders that have been fulfilled
+            Estás son las ordenes completadas
           </p>
         </div>
       </div>
@@ -79,10 +79,10 @@
       <div class="flex flex-col justify-between gap-8 mb-4 md:flex-row md:items-center">
         <div>
           <h5 class="block font-sans text-xl antialiased font-semibold leading-snug tracking-normal text-blue-gray-900">
-            Not Fulfilled Orders
+            Ordenes no completadas
           </h5>
           <p class="block mt-1 font-sans text-base antialiased font-normal leading-relaxed text-gray-700">
-            These are the orders that haven't been fulfilled
+            Estás son las ordenes que aún no son completadas
           </p>
         </div>
       </div>

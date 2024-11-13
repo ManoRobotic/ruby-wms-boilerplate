@@ -1,9 +1,31 @@
-<nav class='bg-gray-600 flex justify-between items-center py-4 px-2'>
-    <%= link_to root_path do %>
-        <h1 class='text-3xl font-bold text-white'><%= t('app_name') %></h1>
-    <% end %>
+<%# <div class="text-white bg-gray-800">
+    <nav class="container px-4 py-3 mx-auto">
+        <div class="flex items-center justify-between">
+            <a href="#" class="text-2xl font-bold">CoinCollect</a>
+            <button id="menuToggle" class="md:hidden">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                </svg>
+            </button>
+        </div>
+        <div id="mobileMenu" class="hidden mt-4 md:flex md:items-center md:justify-between md:mt-0">
+            <ul class="flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-4">
+                <li><a href="#" class="block hover:text-gray-300">Inicio</a></li>
+                <li><a href="#" class="block hover:text-gray-300">Catálogo</a></li>
+                <li><a href="#" class="block hover:text-gray-300">Sobre Nosotros</a></li>
+                <li><a href="#" class="block hover:text-gray-300">Contacto</a></li>
+            </ul>
+            <div class="flex items-center mt-4 space-x-4 md:mt-0">
+                <a href="#" class="hover:text-gray-300">
+                    <span class="sr-only">Carrito</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                </a>
+                <a href="#" class="px-4 py-2 text-gray-900 transition duration-300 bg-yellow-500 rounded-md hover:bg-yellow-400">Iniciar Sesión</a>
+            </div>
+        </div>
+    </nav>
+</div> %>
 
-    <div class='hidden sm:block'>
-        <%= render partial: 'shared/items' %>
-    </div> 
-</nav>
+
