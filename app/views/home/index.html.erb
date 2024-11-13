@@ -1,4 +1,4 @@
-<div
+<%# <div
   class="flex flex-wrap justify-end px-4 py-2 bg-gray-900 shadow-sm lg:items-center lg:justify-center gap-x-6"
 >
   <h6
@@ -39,9 +39,9 @@
       </svg>
     </span>
   </button>
-</div>
+</div> %>
 
-<div class="text-white bg-gray-800">
+<div class="text-white bg-gray-800 rounded-b-lg">
     <nav class="container px-4 py-3 mx-auto">
         <div class="flex items-center justify-between mb-2">
             <a href="#" class="text-2xl font-bold">CoinCollect</a>
@@ -50,6 +50,8 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
                 </svg>
             </button>
+
+            
            
         </div>
         <div id="mobileMenu" class="hidden mt-4 md:flex md:items-center md:justify-between md:mt-0">
@@ -66,8 +68,10 @@
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                     </svg>
-                </a>
-                <a href="#" class="px-4 py-2 text-gray-900 transition duration-300 bg-yellow-500 rounded-md hover:bg-yellow-400">Iniciar Sesión</a>
+                </a>                    
+                    <div class="flex w-full gap-2 shrink-0 md:w-max">
+                        <%= link_to "Iniciar Sesión", '#', class: "flex select-none items-center gap-3 rounded-lg bg-yellow-500 py-2 px-4 text-center align-middle font-sans text-xs font-bold uppercase text-gray-900 shadow-md shadow-gray-900/10 transition-all hover:shadow-lg hover:shadow-gray-900/20 focus:opacity-[0.85] focus:shadow-none active:opacity-[0.85] active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" %>
+                    </div>
             </div>
         </div>
     </nav>
@@ -181,6 +185,8 @@
         </section>
     </main>
 
+
+    <%# Footer %>
     <footer class="py-8 text-white bg-gray-800">
         <div class="container px-4 mx-auto">
             <div class="grid grid-cols-1 gap-8 md:grid-cols-3">

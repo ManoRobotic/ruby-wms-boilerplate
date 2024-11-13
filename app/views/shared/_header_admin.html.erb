@@ -1,8 +1,5 @@
-<nav class="sticky top-0 w-64 min-h-screen p-4 bg-gray-400 shadow-xl">
-  <div class="flex items-center p-4 mb-2">
-    <%= image_tag 'logo.png', class: 'w-16' %>
-    <h1 class="hidden py-2 ml-2 font-bold text-gray-800 text-md md:block">Admin Panel</h1>
-  </div>
+<nav class="sticky top-0 w-64 min-h-screen p-4 bg-gray-400 shadow-xl rounded-e-lg">
+
   <ul class="flex flex-col gap-2 p-2 text-gray-800">
     <li>
       <%= link_to admin_path, class: 'flex items-center w-full p-3 leading-tight transition-all rounded-lg text-start hover:bg-gray-300 hover:text-gray-900 focus:bg-gray-300 focus:text-gray-900' do %>
@@ -31,4 +28,3 @@
     </li>
   </ul>
 </nav>
-
