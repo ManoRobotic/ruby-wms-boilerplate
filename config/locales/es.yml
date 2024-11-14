@@ -5,3 +5,7 @@ es:
     title: 'Tipos de Monedas'
     show: 'Mostrar moneda'
     description: 'Descripción de las categorías'
+  devise:
+    sessions:
+      admin:
+        signed_in: 'Inicio de sesión correcto'
