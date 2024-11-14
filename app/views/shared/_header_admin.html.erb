@@ -1,30 +1,82 @@
-<nav class="sticky top-0 w-64 min-h-screen p-4 bg-gray-400 shadow-xl rounded-e-lg">
+<div class="bg-gray-100">
+        <!-- Botón para abrir/cerrar el sidebar -->
+        <button id="sidebarToggle" type="button" class="fixed z-50 inline-flex items-center p-2 ml-3 text-sm text-gray-500 rounded-lg lg:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600">
+            <span class="sr-only">Abrir sidebar</span>
+            <svg class="w-6 h-6" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <path clip-rule="evenodd" fill-rule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z"></path>
+            </svg>
+        </button>
 
-  <ul class="flex flex-col gap-2 p-2 text-gray-800">
-    <li>
-      <%= link_to admin_path, class: 'flex items-center w-full p-3 leading-tight transition-all rounded-lg text-start hover:bg-gray-300 hover:text-gray-900 focus:bg-gray-300 focus:text-gray-900' do %>
-        <%= icon('fa-solid', 'gauge-high', class: 'mr-2') %> <span class="hidden md:inline-block">Dashboard</span>
-      <% end %>
-    </li>
-    <li>
-      <%= link_to admin_orders_path, class: 'flex items-center w-full p-3 leading-tight transition-all rounded-lg text-start hover:bg-gray-300 hover:text-gray-900 focus:bg-gray-300 focus:text-gray-900' do %>
-        <%= icon('fa-solid', 'truck-fast', class: 'mr-2') %> <span class="hidden md:inline-block">Ordenes</span>
-      <% end %>
-    </li>
-    <li>
-      <%= link_to admin_products_path, class: 'flex items-center w-full p-3 leading-tight transition-all rounded-lg text-start hover:bg-gray-300 hover:text-gray-900 focus:bg-gray-300 focus:text-gray-900' do %>
-        <%= icon('fa-solid', 'cart-shopping', class: 'mr-2') %> <span class="hidden md:inline-block">Productos</span>
-      <% end %>
-    </li>
-    <li>
-      <%= link_to admin_categories_path, class: 'flex items-center w-full p-3 leading-tight transition-all rounded-lg text-start hover:bg-gray-300 hover:text-gray-900 focus:bg-gray-300 focus:text-gray-900' do %>
-        <%= icon('fa-solid', 'list', class: 'mr-2') %> <span class="hidden md:inline-block">Categorías</span>
-      <% end %>
-    </li>
-    <li>
-      <%= link_to destroy_admin_session_path, data: { 'turbo-method': :delete, 'turbo-confirm': 'Are you sure you want to sign out?'}, class: 'flex items-center w-full p-3 leading-tight transition-all rounded-lg text-start hover:bg-gray-300 hover:text-gray-900 focus:bg-gray-300 focus:text-gray-900' do %>
-        <%= icon('fa-solid', 'sign-out', class: 'mr-2') %> <span class="hidden md:inline-block">Sign out</span>
-      <% end %>
-    </li>
-  </ul>
-</nav>
+        <!-- Sidebar -->
+        <nav id="default-sidebar" class="fixed top-0 left-0 z-40 w-64 h-screen transition-transform -translate-x-full lg:translate-x-0" aria-label="Sidebar">
+            <div class="h-full px-3 py-4 overflow-y-auto bg-gray-800">
+                <ul class="mt-12 space-y-2 font-medium text-white">
+                    <li>
+                        <%= link_to admin_path, class: 'flex items-center p-3 rounded-lg hover:bg-gray-700' do %>
+                          <%= icon('fa-solid', 'gauge-high', class: 'w-5 h-5 mr-2') %> <span>Dashboard</span>
+                        <% end %>
+                    </li>
+                  <li>
+                        <%= link_to admin_orders_path, class: 'flex items-center p-3 rounded-lg hover:bg-gray-700' do %>
+                        <%= icon('fa-solid', 'truck-fast', class: 'mr-2') %> <span>Ordenes</span>
+                        <% end %>
+                    </li>
+                      <li>
+                        <%= link_to admin_products_path, class: 'flex items-center p-3 rounded-lg hover:bg-gray-700' do %>
+                          <%= icon('fa-solid', 'cart-shopping', class: 'w-5 h-5 mr-2') %> <span>Productos</span>
+                        <% end %>
+                    </li>
+                       <li>
+                        <%= link_to admin_categories_path, class: 'flex items-center p-3 rounded-lg hover:bg-gray-700' do %>
+                          <%= icon('fa-solid', 'list', class: 'w-5 h-5 mr-2') %> <span>Categorías</span>
+                        <% end %>
+                    </li>
+                       <li>
+                        <%= link_to destroy_admin_session_path, class: 'flex items-center p-3 rounded-lg hover:bg-gray-700' do %>
+                          <%= icon('fa-solid', 'sign-out', class: 'w-5 h-5 mr-2') %> <span>Cerrar Sesión</span>
+                        <% end %>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const sidebar = document.getElementById("default-sidebar");
+            const toggleButton = document.getElementById("sidebarToggle");
+            const content = document.querySelector("main");
+
+            let isSidebarOpen = window.innerWidth >= 1024;
+
+            function updateSidebarState() {
+                sidebar.classList.toggle("-translate-x-full", !isSidebarOpen);
+                content.classList.toggle("lg:ml-64", isSidebarOpen);
+            }
+
+            toggleButton.addEventListener("click", function (event) {
+                event.stopPropagation();
+                isSidebarOpen = !isSidebarOpen;
+                updateSidebarState();
+            });
+
+            document.addEventListener("click", function (event) {
+                if (window.innerWidth < 1024 && isSidebarOpen && !sidebar.contains(event.target) && event.target !== toggleButton) {
+                    isSidebarOpen = false;
+                    updateSidebarState();
+                }
+            });
+
+            sidebar.addEventListener("click", function (event) {
+                event.stopPropagation();
+            });
+
+            window.addEventListener("resize", function() {
+                isSidebarOpen = window.innerWidth >= 1024;
+                updateSidebarState();
+            });
+
+            // Inicializar el estado del sidebar
+            updateSidebarState();
+        });
+    </script>
+</div>
