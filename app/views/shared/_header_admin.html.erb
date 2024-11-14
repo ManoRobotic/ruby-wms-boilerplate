@@ -21,7 +21,7 @@
                         <%= icon('fa-solid', 'truck-fast', class: 'mr-2') %> <span>Ordenes</span>
                         <% end %>
                     </li>
-                      <li>
+                    <li>
                         <%= link_to admin_products_path, class: 'flex items-center p-3 rounded-lg hover:bg-gray-700' do %>
                           <%= icon('fa-solid', 'cart-shopping', class: 'w-5 h-5 mr-2') %> <span>Productos</span>
                         <% end %>
@@ -31,10 +31,17 @@
                           <%= icon('fa-solid', 'list', class: 'w-5 h-5 mr-2') %> <span>Categorías</span>
                         <% end %>
                     </li>
-                       <li>
-                        <%= link_to destroy_admin_session_path, class: 'flex items-center p-3 rounded-lg hover:bg-gray-700' do %>
-                          <%= icon('fa-solid', 'sign-out', class: 'w-5 h-5 mr-2') %> <span>Cerrar Sesión</span>
-                        <% end %>
+                    <%# <li>
+                    <%= link_to destroy_admin_session_path, data: { "turbo-method": :delete, "turbo-confirm": "Are you sure you want to sign out?" },  class: 'flex items-center p-3 rounded-lg hover:bg-gray-700' do %>
+                        <%# <%= icon('fa-solid', 'sign-out', class: 'w-5 h-5 mr-2')  <span>Cerrar Sesión</span> %>
+                    <%# <% end  %> 
+                    </li>
+                    <li>
+                    <%= form_with url: destroy_admin_session_path, method: :delete, class: 'inline' do %>
+                        <button type="submit" class="flex items-center p-3 rounded-lg hover:bg-gray-700" data-confirm="Are you sure you want to sign out?">
+                        <%= icon('fa-solid', 'sign-out', class: 'w-5 h-5 mr-2') %> <span>Cerrar Sesión</span>
+                        </button>
+                    <% end %>
                     </li>
                 </ul>
             </div>
