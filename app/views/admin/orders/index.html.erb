@@ -1,9 +1,9 @@
-<div  class="w-full mt-4 ml-4 mr-4">
-  <% if notice.present? %>
-    <%= render "shared/succes_alert", notice: notice %>
-  <% end %>
-    
+<% if notice.present? %>
+  <%= render "shared/succes_alert", notice: notice %>
+<% end %>
 
+<div  class="w-full mt-4 ml-4 mr-4">
+    
   <!-- Primera Tabla -->
   <div class="relative flex flex-col w-full text-gray-700 bg-white shadow-md rounded-xl bg-clip-border">
     <div class="relative mx-4 mt-4 overflow-hidden text-gray-700 bg-white rounded-none bg-clip-border">
