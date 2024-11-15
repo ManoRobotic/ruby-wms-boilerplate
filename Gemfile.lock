@@ -183,7 +183,7 @@ GEM
       ast (~> 2.4.1)
       racc
     pg (1.5.9)
-    pry (0.14.2)
+    pry (0.15.0)
       coderay (~> 1.1)
       method_source (~> 1.0)
     psych (5.2.0)
@@ -345,7 +345,7 @@ DEPENDENCIES
   importmap-rails
   jbuilder
   pg (~> 1.5)
-  pry (~> 0.14.2)
+  pry (~> 0.15.0)
   puma (>= 5.0)
   rails (~> 8.0.0)
   rubocop-rails-omakase
