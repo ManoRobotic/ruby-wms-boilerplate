@@ -11,30 +11,19 @@
     <nav id="default-sidebar" class="fixed top-0 left-0 z-40 w-64 h-screen transition-transform -translate-x-full lg:translate-x-0" aria-label="Sidebar">
         <div class="flex flex-col justify-between h-full px-3 py-4 overflow-y-auto bg-gray-800 rounded-r-lg md:rounded-none">
             <ul class="mt-16 space-y-2 font-medium text-white">
-                <li>
-                    <%= link_to admin_path, class: "flex items-center p-3 rounded-lg hover:bg-gray-700 #{'bg-gray-700' if current_page?(admin_path)} sidebar-item" do %>
-                      <%= icon('fa-solid', 'gauge-high', class: 'w-5 h-5 mr-2') %> 
-                      <span>Dashboard</span>
-                    <% end %>
-                </li>
-                <li>
-                    <%= link_to admin_orders_path, class: "flex items-center p-3 rounded-lg hover:bg-gray-700 #{'bg-gray-700' if current_page?(admin_orders_path)} sidebar-item" do %>
-                      <%= icon('fa-solid', 'truck-fast', class: 'mr-2') %> 
-                      <span>Órdenes</span>
-                    <% end %>
-                </li>
-                <li>
-                    <%= link_to admin_products_path, class: "flex items-center p-3 rounded-lg hover:bg-gray-700 #{'bg-gray-700' if current_page?(admin_products_path)} sidebar-item" do %>
-                      <%= icon('fa-solid', 'cart-shopping', class: 'w-5 h-5 mr-2') %> 
-                      <span>Productos</span>
-                    <% end %>
-                </li>
-                <li>
-                    <%= link_to admin_categories_path, class: "flex items-center p-3 rounded-lg hover:bg-gray-700 #{'bg-gray-700' if current_page?(admin_categories_path)} sidebar-item" do %>
-                      <%= icon('fa-solid', 'list', class: 'w-5 h-5 mr-2') %> 
-                      <span>Categorías</span>
-                    <% end %>
-                </li>
+                <% [
+                    { path: admin_path, icon: 'gauge-high', label: 'Dashboard' },
+                    { path: admin_orders_path, icon: 'truck-fast', label: 'Órdenes' },
+                    { path: admin_products_path, icon: 'cart-shopping', label: 'Productos' },
+                    { path: admin_categories_path, icon: 'list', label: 'Categorías' }
+                ].each do |item| %>
+                    <li>
+                        <%= link_to item[:path], class: "flex items-center p-3 rounded-lg hover:bg-gray-700 #{'bg-gray-700' if current_page?(item[:path])} sidebar-item" do %>
+                            <%= icon('fa-solid', item[:icon], class: 'w-5 h-5 mr-2') %> 
+                            <span><%= item[:label] %></span>
+                        <% end %>
+                    </li>
+                <% end %>
             </ul>
 
             <!-- Botón de cerrar sesión -->
@@ -50,74 +39,59 @@
     </nav>
 </div>
 
+
 <script>
-function initializeSidebar() {
-    const sidebar = document.getElementById("default-sidebar");
-    const toggleButton = document.getElementById("sidebarToggle");
-    const content = document.querySelector("main");
-    const sidebarLinks = document.querySelectorAll(".sidebar-item");
+    function initializeSidebar() {
+        const sidebar = document.getElementById("default-sidebar");
+        const toggleButton = document.getElementById("sidebarToggle");
+        const content = document.querySelector("main");
+        const sidebarLinks = document.querySelectorAll(".sidebar-item");
 
-    if (!sidebar || !toggleButton || !content) return;
+        if (!sidebar || !toggleButton || !content) return;
 
-    let isSidebarOpen = localStorage.getItem('sidebarOpen') === 'true' || window.innerWidth >= 1024;
+        let isSidebarOpen = localStorage.getItem("sidebarOpen") === "true" || window.innerWidth >= 1024;
 
-    function updateSidebarState() {
-        sidebar.classList.toggle("-translate-x-full", !isSidebarOpen);
-        content.classList.toggle("lg:ml-64", isSidebarOpen);
-        localStorage.setItem('sidebarOpen', isSidebarOpen);
-    }
+        const updateSidebarState = () => {
+            sidebar.classList.toggle("-translate-x-full", !isSidebarOpen);
+            content.classList.toggle("lg:ml-64", isSidebarOpen);
+            localStorage.setItem("sidebarOpen", isSidebarOpen);
+        };
 
-    if (!toggleButton.hasAttribute('data-initialized')) {
-        toggleButton.addEventListener("click", function (event) {
-            event.stopPropagation();
-            isSidebarOpen = !isSidebarOpen;
-            updateSidebarState();
-        });
-
-        sidebarLinks.forEach(link => {
-            link.addEventListener("click", function () {
-                if (window.innerWidth < 1024) {
-                    isSidebarOpen = false;
-                    updateSidebarState();
-                }
-            });
-        });
-
-        document.addEventListener("click", function (event) {
-            if (window.innerWidth < 1024 && isSidebarOpen && !sidebar.contains(event.target) && event.target !== toggleButton) {
-                isSidebarOpen = false;
-                updateSidebarState();
-            }
-        });
-
-        sidebar.addEventListener("click", function (event) {
-            event.stopPropagation();
-        });
-
-        window.addEventListener("resize", function () {
-            if (window.innerWidth >= 1024) {
-                isSidebarOpen = true;
-            } else {
-                isSidebarOpen = localStorage.getItem('sidebarOpen') === 'true';
-            }
-            updateSidebarState();
-        });
-
-        // Cierra el sidebar al hacer scroll en dispositivos móviles
-        window.addEventListener("scroll", function () {
+        const closeSidebarOnMobile = () => {
             if (window.innerWidth < 1024 && isSidebarOpen) {
                 isSidebarOpen = false;
                 updateSidebarState();
             }
-        });
+        };
 
-        toggleButton.setAttribute('data-initialized', 'true');
+        if (!toggleButton.hasAttribute("data-initialized")) {
+            toggleButton.addEventListener("click", (event) => {
+                event.stopPropagation();
+                isSidebarOpen = !isSidebarOpen;
+                updateSidebarState();
+            });
+
+            sidebarLinks.forEach((link) => link.addEventListener("click", closeSidebarOnMobile));
+
+            document.addEventListener("click", (event) => {
+                if (window.innerWidth < 1024 && isSidebarOpen && !sidebar.contains(event.target) && event.target !== toggleButton) {
+                    closeSidebarOnMobile();
+                }
+            });
+
+            window.addEventListener("resize", () => {
+                isSidebarOpen = window.innerWidth >= 1024 || localStorage.getItem("sidebarOpen") === "true";
+                updateSidebarState();
+            });
+
+            window.addEventListener("scroll", closeSidebarOnMobile);
+
+            toggleButton.setAttribute("data-initialized", "true");
+        }
+
+        updateSidebarState();
     }
 
-    updateSidebarState();
-}
-
-document.addEventListener("DOMContentLoaded", initializeSidebar);
-document.addEventListener("turbo:load", initializeSidebar);
-
+    document.addEventListener("DOMContentLoaded", initializeSidebar);
+    document.addEventListener("turbo:load", initializeSidebar);
 </script>
