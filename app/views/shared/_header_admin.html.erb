@@ -1,71 +1,86 @@
 <div class="bg-gray-100">
-        <!-- Botón para abrir/cerrar el sidebar -->
-        <button id="sidebarToggle" type="button" class="fixed z-50 inline-flex items-center p-2 mt-3 ml-5 text-sm text-gray-500 rounded-lg lg:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600">
-            <span class="sr-only">Abrir sidebar</span>
-            <svg class="w-6 h-6" aria-hidden="true" fill="gray" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                <path clip-rule="evenodd" fill-rule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z"></path>
-            </svg>
-        </button>
+    <!-- Botón para abrir/cerrar el sidebar -->
+    <button id="sidebarToggle" type="button" class="fixed z-50 inline-flex items-center p-2 mt-3 ml-5 text-sm text-gray-500 rounded-lg lg:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600">
+        <span class="sr-only">Abrir sidebar</span>
+        <svg class="w-6 h-6" aria-hidden="true" fill="gray" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+            <path clip-rule="evenodd" fill-rule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z"></path>
+        </svg>
+    </button>
 
-        <!-- Sidebar -->
-        <nav id="default-sidebar" class="fixed top-0 left-0 z-40 w-64 h-screen transition-transform -translate-x-full lg:translate-x-0" aria-label="Sidebar">
-            <div class="h-full px-3 py-4 overflow-y-auto bg-gray-800 rounded-r-lg md:rounded-none">
-                <ul class="mt-16 space-y-2 font-medium text-white md:mt-16">
-                    <li>
-                        <%= link_to admin_path, class: 'flex items-center p-3 rounded-lg hover:bg-gray-700' do %>
-                          <%= icon('fa-solid', 'gauge-high', class: 'w-5 h-5 mr-2') %> <span>Dashboard</span>
-                        <% end %>
-                    </li>
-                  <li>
-                        <%= link_to admin_orders_path, class: 'flex items-center p-3 rounded-lg hover:bg-gray-700' do %>
-                          <%= icon('fa-solid', 'truck-fast', class: 'mr-2') %> <span>Ordenes</span>
-                        <% end %>
-                    </li>
-                    <li>
-                        <%= link_to admin_products_path, class: 'flex items-center p-3 rounded-lg hover:bg-gray-700' do %>
-                          <%= icon('fa-solid', 'cart-shopping', class: 'w-5 h-5 mr-2') %> <span>Productos</span>
-                        <% end %>
-                    </li>
-                       <li>
-                        <%= link_to admin_categories_path, class: 'flex items-center p-3 rounded-lg hover:bg-gray-700' do %>
-                          <%= icon('fa-solid', 'list', class: 'w-5 h-5 mr-2') %> <span>Categorías</span>
-                        <% end %>
-                    </li>
-                    <%# <li>
-                    <%= link_to destroy_admin_session_path, data: { "turbo-method": :delete, "turbo-confirm": "Are you sure you want to sign out?" },  class: 'flex items-center p-3 rounded-lg hover:bg-gray-700' do %>
-                        <%# <%= icon('fa-solid', 'sign-out', class: 'w-5 h-5 mr-2')  <span>Cerrar Sesión</span> %>
-                    <%# <% end  %> 
-                    </li>
-                    <li>
-                    <%= form_with url: destroy_admin_session_path, method: :delete, class: 'inline' do %>
-                        <button type="submit" class="flex items-center p-3 rounded-lg hover:bg-gray-700" data-confirm="Are you sure you want to sign out?">
-                        <%= icon('fa-solid', 'sign-out', class: 'w-5 h-5 mr-2') %> <span>Cerrar Sesión</span>
-                        </button>
+    <!-- Sidebar -->
+    <nav id="default-sidebar" class="fixed top-0 left-0 z-40 w-64 h-screen transition-transform -translate-x-full lg:translate-x-0" aria-label="Sidebar">
+        <div class="flex flex-col justify-between h-full px-3 py-4 overflow-y-auto bg-gray-800 rounded-r-lg md:rounded-none">
+            <ul class="mt-16 space-y-2 font-medium text-white">
+                <li>
+                    <%= link_to admin_path, class: "flex items-center p-3 rounded-lg hover:bg-gray-700 #{'bg-gray-700' if current_page?(admin_path)} sidebar-item" do %>
+                      <%= icon('fa-solid', 'gauge-high', class: 'w-5 h-5 mr-2') %> 
+                      <span>Dashboard</span>
                     <% end %>
-                    </li>
-                </ul>
+                </li>
+                <li>
+                    <%= link_to admin_orders_path, class: "flex items-center p-3 rounded-lg hover:bg-gray-700 #{'bg-gray-700' if current_page?(admin_orders_path)} sidebar-item" do %>
+                      <%= icon('fa-solid', 'truck-fast', class: 'mr-2') %> 
+                      <span>Órdenes</span>
+                    <% end %>
+                </li>
+                <li>
+                    <%= link_to admin_products_path, class: "flex items-center p-3 rounded-lg hover:bg-gray-700 #{'bg-gray-700' if current_page?(admin_products_path)} sidebar-item" do %>
+                      <%= icon('fa-solid', 'cart-shopping', class: 'w-5 h-5 mr-2') %> 
+                      <span>Productos</span>
+                    <% end %>
+                </li>
+                <li>
+                    <%= link_to admin_categories_path, class: "flex items-center p-3 rounded-lg hover:bg-gray-700 #{'bg-gray-700' if current_page?(admin_categories_path)} sidebar-item" do %>
+                      <%= icon('fa-solid', 'list', class: 'w-5 h-5 mr-2') %> 
+                      <span>Categorías</span>
+                    <% end %>
+                </li>
+            </ul>
+
+            <!-- Botón de cerrar sesión -->
+            <div class="mt-4 text-white">
+                <%= form_with url: destroy_admin_session_path, method: :delete, class: 'inline' do %>
+                    <button type="submit" class="flex items-center w-full p-3 rounded-lg hover:bg-gray-700" data-confirm="Are you sure you want to sign out?">
+                        <%= icon('fa-solid', 'sign-out', class: 'w-5 h-5 mr-2') %> 
+                        <span>Cerrar Sesión</span>
+                    </button>
+                <% end %>
             </div>
-        </nav>
+        </div>
+    </nav>
 </div>
 
 <script>
-    function initializeSidebar() {
-        const sidebar = document.getElementById("default-sidebar");
-        const toggleButton = document.getElementById("sidebarToggle");
-        const content = document.querySelector("main");
+function initializeSidebar() {
+    const sidebar = document.getElementById("default-sidebar");
+    const toggleButton = document.getElementById("sidebarToggle");
+    const content = document.querySelector("main");
+    const sidebarLinks = document.querySelectorAll(".sidebar-item");
 
-        let isSidebarOpen = localStorage.getItem('sidebarOpen') === 'true' || window.innerWidth >= 1024;
+    if (!sidebar || !toggleButton || !content) return;
 
-        function updateSidebarState() {
-            sidebar.classList.toggle("-translate-x-full", !isSidebarOpen);
-            content.classList.toggle("lg:ml-64", isSidebarOpen);
-            localStorage.setItem('sidebarOpen', isSidebarOpen);
-        }
+    let isSidebarOpen = localStorage.getItem('sidebarOpen') === 'true' || window.innerWidth >= 1024;
 
+    function updateSidebarState() {
+        sidebar.classList.toggle("-translate-x-full", !isSidebarOpen);
+        content.classList.toggle("lg:ml-64", isSidebarOpen);
+        localStorage.setItem('sidebarOpen', isSidebarOpen);
+    }
+
+    if (!toggleButton.hasAttribute('data-initialized')) {
         toggleButton.addEventListener("click", function (event) {
             event.stopPropagation();
             isSidebarOpen = !isSidebarOpen;
             updateSidebarState();
+        });
+
+        sidebarLinks.forEach(link => {
+            link.addEventListener("click", function () {
+                if (window.innerWidth < 1024) {
+                    isSidebarOpen = false;
+                    updateSidebarState();
+                }
+            });
         });
 
         document.addEventListener("click", function (event) {
@@ -79,7 +94,7 @@
             event.stopPropagation();
         });
 
-        window.addEventListener("resize", function() {
+        window.addEventListener("resize", function () {
             if (window.innerWidth >= 1024) {
                 isSidebarOpen = true;
             } else {
@@ -88,13 +103,21 @@
             updateSidebarState();
         });
 
-        // Initialize the sidebar state
-        updateSidebarState();
+        // Cierra el sidebar al hacer scroll en dispositivos móviles
+        window.addEventListener("scroll", function () {
+            if (window.innerWidth < 1024 && isSidebarOpen) {
+                isSidebarOpen = false;
+                updateSidebarState();
+            }
+        });
+
+        toggleButton.setAttribute('data-initialized', 'true');
     }
 
-    // Run on initial page load
-    document.addEventListener("DOMContentLoaded", initializeSidebar);
+    updateSidebarState();
+}
 
-    // Run after Turbo navigation
-    document.addEventListener("turbo:load", initializeSidebar);
+document.addEventListener("DOMContentLoaded", initializeSidebar);
+document.addEventListener("turbo:load", initializeSidebar);
+
 </script>
