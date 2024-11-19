@@ -2,24 +2,24 @@
   <%= render "shared/succes_alert", notice: notice %>
 <% end %>
 
-<div class="w-full mt-4 ml-4 mr-4">
+<div class="w-full px-4 mt-4">
   <div class="relative flex flex-col w-full text-gray-700 bg-white shadow-md rounded-xl bg-clip-border">
-    <div class="relative mx-4 mt-4 mr-4 overflow-hidden text-gray-700 bg-white rounded-none bg-clip-border">
+    <div class="relative p-4 overflow-hidden text-gray-700 bg-white bg-clip-border">
       <div class="flex flex-col items-center gap-8 mb-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 class="block font-sans text-xl antialiased font-semibold leading-snug tracking-normal text-center  md:mt-12 text-blue-gray-900 md:text-left">
+          <h1 class="font-sans text-xl font-semibold leading-snug tracking-normal text-center text-blue-gray-900 md:text-left">
             Categorías
           </h1>
         </div>
-        <div class="flex justify-center w-full gap-2 mr-4 shrink-0 md:w-max md:justify-start">
-          <%= link_to "Nueva Categoría", new_admin_category_path, class: "flex select-none items-center gap-3 rounded-lg bg-gray-900 py-2 px-4 text-center align-middle font-sans text-xs font-bold uppercase text-white shadow-md shadow-gray-900/10 transition-all hover:shadow-lg hover:shadow-gray-900/20 focus:opacity-[0.85] focus:shadow-none active:opacity-[0.85] active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" %>
+        <div class="flex justify-center gap-2 shrink-0 md:w-auto">
+          <%= link_to "Nueva Categoría", new_admin_category_path, class: "flex items-center gap-3 rounded-lg bg-gray-900 py-2 px-4 text-white font-bold uppercase shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85" %>
         </div>
       </div>
     </div>
 
     <section class="flex flex-col w-full py-16 bg-muted">
-      <div class="container px-4 mx-auto">
-        <div id="categories" class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+      <div class="container mx-auto">
+        <div id="categories" class="grid grid-cols-1 gap-8 px-4 sm:grid-cols-2 lg:grid-cols-3">
           <% @categories.each do |category| %>
             <div class="p-6 transition-shadow border rounded-lg cursor-pointer group hover:shadow-lg">
               <div class="flex flex-col items-center text-center">
@@ -28,7 +28,7 @@
                   alt="<%= category.name %>"
                   class="object-cover w-24 h-24 mb-4 rounded-full"
                 />
-                <h4 class="mb-4 font-semibold transition-colors group-hover:text-primary">
+                <h4 class="mb-4 font-semibold group-hover:text-primary">
                   <%= category.name %>
                 </h4>
                 <p><%= category.description %></p>

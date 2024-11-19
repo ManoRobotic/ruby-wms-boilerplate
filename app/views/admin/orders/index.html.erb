@@ -1,69 +1,46 @@
+
 <% if notice.present? %>
   <%= render "shared/succes_alert", notice: notice %>
 <% end %>
 
-<div class="w-full mt-4 ml-4 mr-4">
-    
-  <!-- Primera Tabla -->
-  <div class="relative flex flex-col w-full text-gray-700 bg-white shadow-md rounded-xl bg-clip-border">
+<div class="w-full px-4 mt-4">
+  <!-- Tabla de Ordenes Cumplidas -->
+  <div class="relative flex flex-col w-full px-6 text-gray-700 bg-white shadow-md lg:px-10 rounded-xl bg-clip-border">
     <div class="relative mx-4 mt-4 overflow-hidden text-gray-700 bg-white rounded-none bg-clip-border">
       <div class="flex flex-col items-center justify-between gap-8 mb-4 md:flex-row md:items-center">
         <div>
-          <h2 class="block font-sans text-xl antialiased font-semibold leading-snug tracking-normal text-center text-blue-gray-900 md:text-left md:mt-12">
-            Ordenes
+          <h2 class="block font-sans text-xl font-semibold leading-snug tracking-normal text-center text-blue-gray-900 md:text-left md:mt-12">
+            Ordenes Pagadas
           </h2>
         </div>
-        <div class="flex justify-center w-full gap-2 mr-4 shrink-0 md:w-max md:justify-start">
-          <%= link_to "Nueva Orden", new_admin_order_path, class: "flex select-none items-center gap-3 rounded-lg bg-gray-900 py-2 px-4 text-center align-middle font-sans text-xs font-bold uppercase text-white shadow-md shadow-gray-900/10 transition-all hover:shadow-lg hover:shadow-gray-900/20 focus:opacity-[0.85] focus:shadow-none active:opacity-[0.85] active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" %>
+        <div class="flex justify-center gap-2 shrink-0 md:w-auto">
+          <%= link_to "Nueva Orden", new_admin_order_path, class: "flex items-center gap-3 rounded-lg bg-gray-900 py-2 px-4 text-white font-bold uppercase shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85" %>
         </div>
       </div>
     </div>
 
-
-      <div class="relative mx-4 mt-4 overflow-hidden text-gray-700 bg-white rounded-none bg-clip-border">
-      <div class="flex flex-col justify-between gap-8 mb-4 md:flex-row md:items-center">
-        <div>
-          <h5 class="block font-sans text-xl antialiased font-semibold leading-snug tracking-normal text-blue-gray-900">
-            Ordenes completadas
-          </h5>
-          <p class="block mt-1 font-sans text-base antialiased font-normal leading-relaxed text-gray-700">
-            Estás son las ordenes completadas
-          </p>
-        </div>
-      </div>
-    </div>
-
-    <div class="px-0 overflow-scroll">
-    
-      <table class="w-full ml-8 text-left table-auto min-w-max">
-        <!-- Encabezado de la tabla -->
-        <thead>
+    <div class="px-4 overflow-auto">
+      <table class="w-full mx-auto text-left rounded-lg table-auto min-w-max">
+        <thead class="bg-gray-200 rounded-lg">
           <tr>
             <th class="p-4 border-y border-blue-gray-100 bg-blue-gray-50/50">Order</th>
             <th class="p-4 border-y border-blue-gray-100 bg-blue-gray-50/50">Fulfilled</th>
-            <th class="p-4 border-y border-blue-gray-100 bg-blue-gray-50/50">Amount</th>
             <th class="p-4 border-y border-blue-gray-100 bg-blue-gray-50/50">Date</th>
             <th class="p-4 border-y border-blue-gray-100 bg-blue-gray-50/50">Total</th>
-            <th class="p-4 border-y border-blue-gray-100 bg-blue-gray-50/50">Actions</th>
-            <th class="p-4 border-y border-blue-gray-100 bg-blue-gray-50/50"></th>
+            <th class="p-4 border-y border-blue-gray-100 bg-blue-gray-50/50">Edit</th>
           </tr>
         </thead>
         <tbody>
           <% @admin_orders.each do |admin_order| %>
             <tr class="border-b">
-              <td class="p-4 border-b border-blue-gray-50"><%= admin_order.id.slice(-5, 5) %></td>
-              <td class="p-4 border-b border-blue-gray-50"><%= admin_order&.fulfilled %></td>
-              <td class="p-4 border-b border-blue-gray-50"><%= admin_order.created_at.strftime("%Y-%m-%d") %></td>
+              <td class="p-4 border-b border-blue-gray-50"><%= admin_order.id.slice(1,5) %></td>
+              <td class="p-4 border-b border-blue-gray-50"><%= admin_order.fulfilled %></td>
               <td class="p-4 border-b border-blue-gray-50"><%= admin_order.created_at.strftime("%Y-%m-%d") %></td>
               <td class="p-4 border-b border-blue-gray-50"><%= admin_order.total %></td>
               <td class="p-4 border-b border-blue-gray-50">
-                <%= button_to [:admin, admin_order], method: :get, class: "relative h-10 max-h-[40px] w-10 max-w-[40px] select-none rounded-lg text-center align-middle font-sans text-xs font-medium uppercase text-gray-900 transition-all hover:bg-gray-900/10 active:bg-gray-900/20 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" do %>
-                  <span class="absolute transform -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="w-4 h-4">
-                      <path d="M21.731 2.269a2.625 2.625 0 00-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 000-3.712zM19.513 8.199l-3.712-3.712-12.15 12.15a5.25 5.25 0 00-1.32 2.214l-.8 2.685a.75.75 0 00.933.933l2.685-.8a5.25 5.25 0 002.214-1.32L19.513 8.2z"></path>
-                    </svg>
-                  </span>
-                <% end %>     
+                <%= link_to edit_admin_order_path(admin_order), class: "text-blue-500" do %>
+                  <i class="fas fa-edit"></i>
+                <% end %>
               </td>
             </tr>
           <% end %>
@@ -72,50 +49,40 @@
     </div>
   </div>
 
-  <!-- Segunda Tabla -->
-  <div class="relative flex flex-col w-full mt-10 text-gray-700 bg-white shadow-md rounded-xl bg-clip-border">
+  <!-- Tabla de Ordenes No Cumplidas -->
+  <div class="relative flex flex-col w-full px-6 mt-8 text-gray-700 bg-white shadow-md lg:px-10 rounded-xl bg-clip-border">
     <div class="relative mx-4 mt-4 overflow-hidden text-gray-700 bg-white rounded-none bg-clip-border">
-      <div class="flex flex-col justify-between gap-8 mb-4 md:flex-row md:items-center">
+      <div class="flex flex-col items-center justify-between gap-8 mb-4 md:flex-row md:items-center">
         <div>
-          <h5 class="block font-sans text-xl antialiased font-semibold leading-snug tracking-normal text-blue-gray-900">
-            Ordenes no completadas
-          </h5>
-          <p class="block mt-1 font-sans text-base antialiased font-normal leading-relaxed text-gray-700">
-            Estás son las ordenes que aún no son completadas
-          </p>
+          <h2 class="block leading-snug tracking-normal text-center font-semi bold font-sanstext-xl text-blue-gray-900 md:text-left md:mt-12">
+            Ordenes No Pagadas
+          </h2>
         </div>
       </div>
     </div>
-    <div class="px-0 overflow-scroll ">
-      <table class="w-full ml-8 text-left table-auto min-w-max ">
-        <!-- Encabezado de la tabla -->
-        <thead>
+
+    <div class="px-4 overflow-auto">
+      <table class="w-full mx-auto text-left table-auto min-w-max ">
+        <thead class="bg-gray-200 ">
           <tr>
             <th class="p-4 border-y border-blue-gray-100 bg-blue-gray-50/50">Order</th>
             <th class="p-4 border-y border-blue-gray-100 bg-blue-gray-50/50">Fulfilled</th>
-            <th class="p-4 border-y border-blue-gray-100 bg-blue-gray-50/50">Amount</th>
             <th class="p-4 border-y border-blue-gray-100 bg-blue-gray-50/50">Date</th>
             <th class="p-4 border-y border-blue-gray-100 bg-blue-gray-50/50">Total</th>
-            <th class="p-4 border-y border-blue-gray-100 bg-blue-gray-50/50">Actions</th>
-            <th class="p-4 border-y border-blue-gray-100 bg-blue-gray-50/50"></th>
+            <th class="p-4 border-y border-blue-gray-100 bg-blue-gray-50/50">Edit</th>
           </tr>
         </thead>
         <tbody>
-          <% @not_fulfilled_orders.each do |not_fulfilled_order| %>
+          <% @not_fulfilled_orders.each do |admin_order| %>
             <tr class="border-b">
-              <td class="p-4 border-b border-blue-gray-50"><%= not_fulfilled_order.id.slice(-5, 5) %></td>
-              <td class="p-4 border-b border-blue-gray-50"><%= not_fulfilled_order.fulfilled %></td>
-              <td class="p-4 border-b border-blue-gray-50"><%= not_fulfilled_order.created_at.strftime("%Y-%m-%d") %></td>
-              <td class="p-4 border-b border-blue-gray-50"><%= not_fulfilled_order.created_at.strftime("%Y-%m-%d") %></td>
-              <td class="p-4 border-b border-blue-gray-50"><%= not_fulfilled_order.total %></td>
+              <td class="p-4 border-b border-blue-gray-50"><%= admin_order.id.slice(1,5) %></td>
+              <td class="p-4 border-b border-blue-gray-50"><%= admin_order.fulfilled %></td>
+              <td class="p-4 border-b border-blue-gray-50"><%= admin_order.created_at.strftime("%Y-%m-%d") %></td>
+              <td class="p-4 border-b border-blue-gray-50"><%= admin_order.total %></td>
               <td class="p-4 border-b border-blue-gray-50">
-              <%= button_to [:admin, not_fulfilled_order], method: :get, class: "relative h-10 max-h-[40px] w-10 max-w-[40px] select-none rounded-lg text-center align-middle font-sans text-xs font-medium uppercase text-gray-900 transition-all hover:bg-gray-900/10 active:bg-gray-900/20 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" do %>
-                <span class="absolute transform -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="w-4 h-4">
-                    <path d="M21.731 2.269a2.625 2.625 0 00-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 000-3.712zM19.513 8.199l-3.712-3.712-12.15 12.15a5.25 5.25 0 00-1.32 2.214l-.8 2.685a.75.75 0 00.933.933l2.685-.8a5.25 5.25 0 002.214-1.32L19.513 8.2z"></path>
-                  </svg>
-                </span>
-              <% end %>
+                <%= link_to edit_admin_order_path(admin_order), class: "text-blue-500" do %>
+                  <i class="fas fa-edit"></i>
+                <% end %>
               </td>
             </tr>
           <% end %>
@@ -124,6 +91,3 @@
     </div>
   </div>
 </div>
-
-
-
