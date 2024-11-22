@@ -10,10 +10,10 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2024_11_07_084818) do
+ActiveRecord::Schema[8.0].define(version: 2024_11_22_082823) do
   # These are extensions that must be enabled in order to support this database
+  enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
-  enable_extension "plpgsql"
 
   create_table "active_storage_attachments", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "name", null: false
@@ -94,6 +94,7 @@ ActiveRecord::Schema[7.2].define(version: 2024_11_07_084818) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.boolean "active", default: false
+    t.string "image_url"
     t.index ["category_id"], name: "index_products_on_category_id"
   end
 

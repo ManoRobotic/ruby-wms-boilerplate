@@ -26,6 +26,11 @@
                 <h4 class="mb-4 font-semibold group-hover:text-primary">
                   <%= admin_product.name %>
                 </h4>
+                         <img
+                  src="<%= admin_product.image_url %>" 
+                  alt="<%= admin_product.name %>"
+                  class="object-cover w-24 h-24 mb-4 rounded-full"
+                />
                 <p><%= admin_product.description %></p>
                 <p data-label="Name" class="p-4 text-left">
                   Precio: <%= number_to_currency(admin_product.price) %>
