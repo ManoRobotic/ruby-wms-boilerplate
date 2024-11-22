@@ -3,10 +3,7 @@
 <div class="flex flex-col min-h-screen">
 
     <main class="container flex-grow px-4 py-8 mx-auto">
-        <%# <section class="mb-12">
-            <h1 class="mb-4 text-3xl font-bold md:text-4xl">Bienvenido a CoinCollect</h1>
-            <p class="text-lg text-gray-600 md:text-xl">Descubre nuestra colección única de monedas raras y valiosas.</p>
-        </section> %>
+
 
                 <section class="py-20 text-center text-black">
             <h1 class="mb-4 text-5xl font-bold">Bienvenido a CoinCollec</h1>
@@ -91,24 +88,38 @@
         </div>
     </section>
 
-    <section>
-        <h2 class="mb-6 text-2xl font-semibold">Categorías Populares</h2>
-        <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
-            <% @main_categories.each do |category| %>
-                <%= link_to category_path(category), class: "block p-6 transition duration-300 bg-gray-100 rounded-lg hover:bg-gray-200" do %>
-                    <h3 class="mb-2 text-xl font-semibold text-gray-800"><%= category.name %></h3>
-                    <% if category.image_url.present? %>
-                        <%= image_tag(category.image_url, class: "mb-4 w-full h-auto rounded") %>
-                    <% else %>
-                        <%= image_tag("http://via.placeholder.com/512", class: "mb-4 w-full h-auto rounded") %>
-                    <% end %>
-                    <p class="text-gray-600">Explora más sobre <%= category.name %>.</p>
-                <% end %>
-            <% end %>
+<section>
+  <h2 class="mb-6 text-2xl font-semibold text-slate-800">Categorías</h2>
+  <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
+    <% @main_categories.each do |category| %>
+      <%= link_to category_path(category), class: "flex flex-col bg-white shadow-sm border border-slate-200 rounded-lg transition duration-300 hover:shadow-md w-full" do %>
+        <div class="flex items-center justify-center w-40 h-40 m-4 mx-auto overflow-hidden rounded-full">
+          <% if category.image_url.present? %>
+            <%= image_tag(category.image_url, class: "w-full h-full object-cover") %>
+          <% else %>
+            <%= image_tag("http://via.placeholder.com/512", class: "w-full h-full object-cover") %>
+          <% end %>
         </div>
-    </section>
+        <div class="p-6 text-center">
+          <h3 class="mb-1 text-xl font-semibold text-slate-800">
+            <%= category.name %>
+          </h3>
+          <p class="text-sm font-semibold uppercase text-slate-500">
+            Explora más sobre esta categoría
+          </p>
+          <p class="mt-4 text-base font-light text-slate-600">
+            Encuentra lo mejor relacionado con <%= category.name %>.
+          </p>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+</section>
+
+
 
     </main>
+
 
 
     <%# Footer %>
