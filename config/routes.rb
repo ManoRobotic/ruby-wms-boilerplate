@@ -18,4 +18,5 @@ Rails.application.routes.draw do
   end
 
   get "admin" => "admin#index"
+  get 'precios', to: 'precios#index'
 end

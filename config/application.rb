@@ -19,6 +19,7 @@ module CoinsEcommerceApp
     # set both languages, set spanish :es as default language
     config.i18n.available_locales = [ :en, :es ]
     config.i18n.default_locale = :es
+    config.hosts << "pv5g5qjk-3000.usw3.devtunnels.ms"
 
     # Configuration for the application, engines, and railties goes here.
     #

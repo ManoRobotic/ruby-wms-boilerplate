@@ -24,17 +24,24 @@
                         <% end %>
                     </li>
                 <% end %>
+
+                            <div class="my-2 border-t border-gray-600"></div>
+
+                <!-- Botón de cerrar sesión -->
+<div class="mt-0 text-white lg:mt-auto">
+    <%= form_with url: destroy_admin_session_path, method: :delete, class: 'inline' do %>
+        <button type="submit" class="flex items-center w-full p-3 rounded-lg hover:bg-gray-700" data-confirm="Are you sure you want to sign out?">
+            <%= icon('fa-solid', 'sign-out', class: 'w-5 h-5 mr-2') %> 
+            <span>Cerrar Sesión</span>
+        </button>
+    <% end %>
+</div>
+
             </ul>
 
-            <!-- Botón de cerrar sesión -->
-            <div class="mt-4 text-white">
-                <%= form_with url: destroy_admin_session_path, method: :delete, class: 'inline' do %>
-                    <button type="submit" class="flex items-center w-full p-3 rounded-lg hover:bg-gray-700" data-confirm="Are you sure you want to sign out?">
-                        <%= icon('fa-solid', 'sign-out', class: 'w-5 h-5 mr-2') %> 
-                        <span>Cerrar Sesión</span>
-                    </button>
-                <% end %>
-            </div>
+
+
+
         </div>
     </nav>
 </div>

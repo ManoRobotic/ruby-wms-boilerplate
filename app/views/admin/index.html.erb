@@ -1,55 +1,83 @@
-<% if notice.present?  %>
-     <%= render "shared/succes_alert", notice: notice %>
-<% end  %>
+<% if notice.present? %>
+  <%= render "shared/succes_alert", notice: notice %>
+<% end %>
 
-
-<div class="flex flex-wrap items-center justify-between w-full max-w-4xl mt-4 ml-8">
-<h1>Admin Home</h1>
-
-<div class="flex flex-wrap items-center justify-between w-full max-w-4xl mt-8">
-  <h2 class="mb-4 text-2xl font-medium text-gray-800">Daily Stats</h2>
-  <div class="flex flex-col justify-between w-full gap-10 md:flex-row">
-    <div class="max-w-sm overflow-hidden rounded shadow-xl bg-gradient-to-r from-gray-400 to-gray-300">
-      <div class="px-6 py-4">
-        <div class="mb-2 text-xl font-bold text-white">Revenue</div>
-        <p class="text-base text-white">
-          <%= @quick_stats[:revenue] ? number_to_currency(@quick_stats[:revenue]) : '$0.00' %>
-        </p>
+<div class="w-full px-4 mt-4">
+  <!-- Vista de Admin -->
+  <div class="relative flex flex-col w-full px-6 text-gray-700 bg-white shadow-md lg:px-10 rounded-xl bg-clip-border">
+    <div class="relative mx-4 mt-4 overflow-hidden text-gray-700 bg-white rounded-none bg-clip-border">
+      <div class="flex flex-col items-center justify-between gap-8 mb-4 md:flex-row md:items-center">
+        <div>
+          <h2 class="block text-xl font-semibold text-center text-blue-gray-900 md:text-left">
+            Resumen de Ventas
+          </h2>
+        </div>
       </div>
     </div>
 
-    <div class="max-w-sm overflow-hidden rounded shadow-xl bg-gradient-to-r from-gray-400 to-gray-300">
-      <div class="px-6 py-4">
-        <div class="mb-2 text-xl font-bold text-white">Total Sales</div>
-        <p class="text-base text-white">
-          <%= @quick_stats[:sales] ? number_to_currency(@quick_stats[:sales]) : '$0.00' %>
-        </p>
+    <!-- Tabla de Estadísticas Rápidas -->
+    <div class="px-4 overflow-auto">
+      <h2 class="mb-4 text-2xl font-medium text-gray-800">Status del día</h2>
+      <div class="grid w-full gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+        <% stats = [
+          { title: "Revenue", value: @quick_stats[:revenue] ? number_to_currency(@quick_stats[:revenue]) : '$0.00' },
+          { title: "Total Sales", value: @quick_stats[:sales] ? number_to_currency(@quick_stats[:sales]) : '$0.00' },
+          { title: "Average Sale", value: @quick_stats[:avg_sale] ? number_to_currency(@quick_stats[:avg_sale]) : '$0.00' },
+          { title: "Items/Sale", value: @quick_stats[:per_sale].to_i }
+        ] %>
+        <% stats.each do |stat| %>
+          <div class="relative flex flex-col w-full bg-white border rounded-lg shadow-sm border-slate-200">
+            <div class="px-1 pt-3 pb-2 mx-3 mb-0 border-b border-slate-200">
+              <span class="text-sm font-medium text-slate-600">
+                <%= stat[:title] %>
+              </span>
+            </div>
+            <div class="p-4">
+              <p class="mb-2 text-xl font-semibold text-slate-800">
+                <%= stat[:value] %>
+              </p>
+              <p class="font-light leading-normal text-slate-600">
+                Datos relevantes sobre <%= stat[:title] %>.
+              </p>
+            </div>
+          </div>
+        <% end %>
       </div>
     </div>
-
-    <div class="max-w-sm overflow-hidden rounded shadow-xl bg-gradient-to-r from-gray-400 to-gray-300">
-      <div class="px-6 py-4">
-        <div class="mb-2 text-xl font-bold text-white">Average Sale</div>
-        <p class="text-base text-white">
-          <%= @quick_stats[:avg_sale] ? number_to_currency(@quick_stats[:avg_sale]) : '$0.00' %>
-        </p>
+    <div class="w-full my-8">
+      <h2 class="mb-4 text-2xl font-medium text-gray-800">Revenue</h2>
+      <div class="relative w-full" data-controller="dashboard" data-dashboard-revenue-value="<%= @revenue_by_day.to_json %>">
+        <canvas id="revenueChart"></canvas>
       </div>
     </div>
-
-    <div class="max-w-sm overflow-hidden rounded shadow-xl bg-gradient-to-r from-gray-400 to-gray-300">
-      <div class="px-6 py-4">
-        <div class="mb-2 text-xl font-bold text-white">Items/Sale</div>
-        <p class="text-base text-white">
-          <%= @quick_stats[:per_sale].to_i %>
-        </p>
-      </div>
+    
+    <!-- Tabla de Órdenes Recientes -->
+    <div class="px-4 mt-8 overflow-auto">
+      <h2 class="mb-4 text-2xl font-medium text-gray-800">Recent Unfulfilled Orders</h2>
+      <table class="w-full mx-auto text-left border-collapse table-auto min-w-max">
+        <thead>
+          <tr class="border-b table-header bg-slate-50 border-slate-300">
+            <th class="p-4 text-sm font-medium text-slate-700">N°</th>
+            <th class="p-4 text-sm font-medium text-slate-700">Customer</th>
+            <th class="p-4 text-sm font-medium text-slate-700">Date</th>
+            <th class="p-4 text-sm font-medium text-slate-700">Amount</th>
+            <th class="p-4 text-sm font-medium text-slate-700">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @orders.each_with_index do |order, index| %>
+            <tr class="border-b border-slate-300">
+              <td class="p-4 text-slate-600"><%= link_to (index + 1), admin_order_path(order), class: "underline" %></td>
+              <td class="p-4 text-slate-600"><%= order.customer_email %></td>
+              <td class="p-4 text-slate-600"><%= order.created_at.strftime("%B %d, %Y at %I:%M %p") %></td>
+              <td class="p-4 text-slate-600"><%= number_to_currency(order.total) %></td>
+              <td class="p-4 text-slate-600">
+                <%= link_to "Edit", edit_admin_order_path(order), class: "text-blue-500 hover:underline" %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
     </div>
   </div>
-  <div class="w-full my-8">
-    <h2 class="mb-4 text-2xl font-medium text-gray-800">Revenue</h2>
-    <div class="w-full" data-controller="dashboard" data-dashboard-revenue-value="<%= @revenue_by_day.to_json %>">
-      <canvas id="revenueChart"></canvas>
-    </div>
-  </div>
-</div>
 </div>
