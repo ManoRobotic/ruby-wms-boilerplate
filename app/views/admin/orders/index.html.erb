@@ -7,14 +7,10 @@
   <div class="relative flex flex-col w-full px-6 text-gray-700 bg-white shadow-md lg:px-10 rounded-xl bg-clip-border">
     <div class="relative mx-4 mt-4 overflow-hidden text-gray-700 bg-white rounded-none bg-clip-border">
       <div class="flex flex-col items-center justify-between gap-8 mb-4 md:flex-row md:items-center">
-        <div>
-          <h2 class="block text-xl font-semibold text-center text-blue-gray-900 md:text-left md:mt-12">
-            Ordenes Pagadas
-          </h2>
-        </div>
-        <div class="flex justify-center gap-2 shrink-0 md:w-auto">
-          <%= link_to "Nueva Orden", new_admin_order_path, class: "flex items-center gap-3 rounded-lg bg-gray-900 py-2 px-4 text-white font-bold uppercase shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85" %>
-        </div>
+        <h2 class="block text-xl font-semibold text-center text-blue-gray-900 md:text-left md:mt-12">
+          Órdenes Pagadas
+        </h2>
+        <%= link_to "Nueva Orden", new_admin_order_path, class: "flex items-center gap-3 rounded-lg bg-gray-900 py-2 px-4 text-white font-bold uppercase shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85" %>
       </div>
     </div>
 
@@ -32,7 +28,7 @@
         <tbody>
           <% @admin_orders.each do |admin_order| %>
             <tr class="border-b">
-              <td class="p-4 border-b"><%= admin_order.id.slice(1,5) %></td>
+              <td class="p-4 border-b"><%= admin_order.id.slice(1, 5) %></td>
               <td class="p-4 border-b"><%= admin_order.fulfilled %></td>
               <td class="p-4 border-b"><%= admin_order.created_at.strftime("%Y-%m-%d") %></td>
               <td class="p-4 border-b"><%= admin_order.total %></td>
@@ -49,19 +45,11 @@
       <!-- Paginación -->
       <% if @admin_orders.any? %>
         <div class="flex mt-4 mb-4 space-x-1">
-          <!-- Botón 'Prev' -->
-          <%= link_to raw('<button class="px-3 py-2 ml-2 text-sm text-center transition-all border rounded-md shadow-sm border-slate-300 hover:shadow-lg text-slate-600 hover:text-white hover:bg-slate-800 hover:border-slate-800 focus:text-white focus:bg-slate-800 focus:border-slate-800 active:border-slate-800 active:text-white active:bg-slate-800 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none">Prev</button>'), admin_orders_path(page: @admin_orders.prev_page) if @admin_orders.prev_page %>
-
-          <!-- Páginas -->
           <% (1..@admin_orders.total_pages).each do |page| %>
-            <%= link_to raw("<button class='min-w-9 rounded-md #{'bg-slate-800 text-white' if page == @admin_orders.current_page} py-2 px-3 border border-transparent text-center text-sm transition-all shadow-md hover:shadow-lg focus:bg-slate-700 focus:shadow-none active:bg-slate-700 hover:bg-slate-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none ml-2'>#{page}</button>"), admin_orders_path(page: page) %>
+            <%= link_to raw("<button class='min-w-9 rounded-md #{'bg-slate-800 text-white' if page == @admin_orders.current_page} py-2 px-3 border border-transparent text-center text-sm transition-all shadow-md hover:shadow-lg focus:bg-slate-700 focus:shadow-none active:bg-slate-700 hover:bg-slate-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none ml-2'>#{page}</button>"), admin_orders_path(paid_page: page, unpaid_page: params[:unpaid_page]) %>
           <% end %>
-
-          <!-- Botón 'Next' -->
-          <%= link_to raw('<button class="px-3 py-2 ml-2 text-sm text-center transition-all border rounded-md shadow-sm border-slate-300 hover:shadow-lg text-slate-600 hover:text-white hover:bg-slate-800 hover:border-slate-800 focus:text-white focus:bg-slate-800 focus:border-slate-800 active:border-slate-800 active:text-white active:bg-slate-800 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none">Next</button>'), admin_orders_path(page: @admin_orders.next_page) if @admin_orders.next_page %>
         </div>
       <% end %>
-
     </div>
   </div>
 
@@ -69,11 +57,9 @@
   <div class="relative flex flex-col w-full px-6 mt-8 text-gray-700 bg-white shadow-md lg:px-10 rounded-xl bg-clip-border">
     <div class="relative mx-4 mt-4 overflow-hidden text-gray-700 bg-white rounded-none bg-clip-border">
       <div class="flex flex-col items-center justify-between gap-8 mb-4 md:flex-row md:items-center">
-        <div>
-          <h2 class="block text-xl font-semibold text-center text-blue-gray-900 md:text-left md:mt-12">
-            Ordenes No Pagadas
-          </h2>
-        </div>
+        <h2 class="block text-xl font-semibold text-center text-blue-gray-900 md:text-left md:mt-12">
+          Órdenes No Pagadas
+        </h2>
       </div>
     </div>
 
@@ -91,7 +77,7 @@
         <tbody>
           <% @not_fulfilled_orders.each do |admin_order| %>
             <tr class="border-b">
-              <td class="p-4 border-b"><%= admin_order.id.slice(1,5) %></td>
+              <td class="p-4 border-b"><%= admin_order.id.slice(1, 5) %></td>
               <td class="p-4 border-b"><%= admin_order.fulfilled %></td>
               <td class="p-4 border-b"><%= admin_order.created_at.strftime("%Y-%m-%d") %></td>
               <td class="p-4 border-b"><%= admin_order.total %></td>
@@ -106,22 +92,11 @@
       </table>
 
       <!-- Paginación -->
-      <div class="mt-4">
-        <%= paginate @not_fulfilled_orders %>
-      </div>
-
       <% if @not_fulfilled_orders.any? %>
         <div class="flex mt-4 mb-4 space-x-1">
-          <!-- Botón 'Prev' -->
-          <%= link_to raw('<button class="px-3 py-2 ml-2 text-sm text-center transition-all border rounded-md shadow-sm border-slate-300 hover:shadow-lg text-slate-600 hover:text-white hover:bg-slate-800 hover:border-slate-800 focus:text-white focus:bg-slate-800 focus:border-slate-800 active:border-slate-800 active:text-white active:bg-slate-800 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none">Prev</button>'), admin_orders_path(page: @admin_orders.prev_page) if @admin_orders.prev_page %>
-
-          <!-- Páginas -->
-          <% (1..@admin_orders.total_pages).each do |page| %>
-            <%= link_to raw("<button class='min-w-9 rounded-md #{'bg-slate-800 text-white' if page == @not_fulfilled_orders.current_page} py-2 px-3 border border-transparent text-center text-sm transition-all shadow-md hover:shadow-lg focus:bg-slate-700 focus:shadow-none active:bg-slate-700 hover:bg-slate-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none ml-2'>#{page}</button>"), admin_orders_path(page: page) %>
+          <% (1..@not_fulfilled_orders.total_pages).each do |page| %>
+            <%= link_to raw("<button class='min-w-9 rounded-md #{'bg-slate-800 text-white' if page == @not_fulfilled_orders.current_page} py-2 px-3 border border-transparent text-center text-sm transition-all shadow-md hover:shadow-lg focus:bg-slate-700 focus:shadow-none active:bg-slate-700 hover:bg-slate-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none ml-2'>#{page}</button>"), admin_orders_path(unpaid_page: page, paid_page: params[:paid_page]) %>
           <% end %>
-
-          <!-- Botón 'Next' -->
-          <%= link_to raw('<button class="px-3 py-2 ml-2 text-sm text-center transition-all border rounded-md shadow-sm border-slate-300 hover:shadow-lg text-slate-600 hover:text-white hover:bg-slate-800 hover:border-slate-800 focus:text-white focus:bg-slate-800 focus:border-slate-800 active:border-slate-800 active:text-white active:bg-slate-800 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none">Next</button>'), admin_orders_path(page: @admin_orders.next_page) if @admin_orders.next_page %>
         </div>
       <% end %>
     </div>
