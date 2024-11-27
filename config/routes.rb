@@ -21,4 +21,7 @@ Rails.application.routes.draw do
 
   get "admin" => "admin#index"
   get 'precios', to: 'precios#index'
+
+  resources :products, only: [:show]
+
 end

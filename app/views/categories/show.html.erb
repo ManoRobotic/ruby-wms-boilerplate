@@ -1,0 +1,20 @@
+<div class="container mx-auto my-12">
+  <h1 class="mb-8 text-4xl font-semibold text-center text-gray-800"><%= @category.name %></h1>
+  <% if @products.empty? %>
+    <p class="text-lg text-center text-gray-600">No se encontraron productos en esta categoría.</p>
+  <% else %>
+    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <% @products.each do |product| %>
+        <%= link_to product_path(product), class: "block bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300" do %>
+          <div class="overflow-hidden">
+            <%= product.images.first ? image_tag(product.images.first.variant(:medium), class: "object-cover w-full h-48") : image_tag("http://via.placeholder.com/250", class: "object-cover w-full h-48") %>
+          </div>
+          <div class="p-4">
+            <h2 class="text-lg font-bold text-gray-800 truncate"><%= product.name %></h2>
+            <p class="text-gray-500"><%= number_to_currency(product.price) %></p>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+  <% end %>
+</div>

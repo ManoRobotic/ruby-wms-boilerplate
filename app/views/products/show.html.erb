@@ -1,0 +1,32 @@
+<div class="container flex flex-col-reverse gap-12 mx-auto my-12 lg:flex-row">
+  <div class="flex-1">
+    <% if @product.images.empty? %>
+      <p class="text-lg text-gray-600">No hay imágenes disponibles para este producto.</p>
+    <% else %>
+      <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <% @product.images.each do |image| %>
+          <%= image_tag image, class: "object-cover w-full h-64 rounded-lg shadow" %>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+  <div class="flex-1">
+    <h1 class="text-4xl font-bold text-gray-800"><%= @product.name %></h1>
+    <p class="my-4 text-2xl text-blue-600"><%= number_to_currency(@product.price) %></p>
+    <p class="mb-6 text-gray-700"><%= @product.description %></p>
+    <h3 class="mb-4 text-lg font-semibold text-gray-800">Tamaños disponibles:</h3>
+    <div class="flex flex-wrap gap-2">
+      <% @product.stocks.each do |stock| %>
+        <% if stock.amount > 0 %>
+          <button class="px-4 py-2 text-sm font-semibold text-white bg-blue-500 rounded hover:bg-blue-600">
+            <%= stock.size %>
+          </button>
+        <% else %>
+          <button class="px-4 py-2 text-sm font-semibold text-gray-400 bg-gray-200 rounded" disabled>
+            <%= stock.size %> (Agotado)
+          </button>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+</div>
