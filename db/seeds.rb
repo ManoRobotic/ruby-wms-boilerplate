@@ -31,7 +31,7 @@ Category.create!([
   }
 ])
 
-puts "Finished seeding Categories"
+puts "--- Finished seeding Categories --"
 
 Product.destroy_all
 Product.create!([
@@ -69,4 +69,4 @@ Product.create!([
   }
 ])
 
-puts "Finished seeding Products"
+puts " --- Finished seeding Products ---"
