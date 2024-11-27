@@ -18,20 +18,25 @@
     <%= javascript_importmap_tags %>
   </head>
 
-  <body>
-<main class="flex flex-col min-h-screen"> <!-- flex y min-h-screen para usar todo el alto -->
-  <% unless devise_controller? %>
-    <%= render 'shared/header_user' %>
-  <% end %>
+<body class="h-full">
+  <main class="flex flex-col min-h-screen">
+    <% unless devise_controller? %>
+      <%= render 'shared/header_user' %>
+    <% end %>
 
-  <%= yield %>
+    <div class="flex-grow">
+      <%= yield %>
+    </div>
 
-  <% unless devise_controller? %>
-    <%= render 'shared/footer' %>
-  <% end %>
-</main>
+    <% unless devise_controller? %>
+      <footer class="mt-auto bg-blue-500">
+        <%= render 'shared/footer' %>
+      </footer>
+    <% end %>
+  </main>
+</body>
 
 
-  </body>
+
 
 </html>

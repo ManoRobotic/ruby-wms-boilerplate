@@ -23,5 +23,6 @@ Rails.application.routes.draw do
   get 'precios', to: 'precios#index'
 
   resources :products, only: [:show]
+  resources :templates
 
 end
