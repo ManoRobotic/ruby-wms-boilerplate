@@ -19,10 +19,19 @@
   </head>
 
   <body>
-    <%# <main class="container flex px-5 mx-auto mt-28"> %>
-     <%# <%= render 'shared/banner' %>  
-    <main class="flex flex-col">
-      <%= yield %>
-    </main>
+<main class="flex flex-col min-h-screen"> <!-- flex y min-h-screen para usar todo el alto -->
+  <% unless devise_controller? %>
+    <%= render 'shared/header_user' %>
+  <% end %>
+
+  <%= yield %>
+
+  <% unless devise_controller? %>
+    <%= render 'shared/footer' %>
+  <% end %>
+</main>
+
+
   </body>
+
 </html>
