@@ -1,6 +1,6 @@
 <section class="py-16 bg-white">
 
-<%# <%= breadcrumb({label: 'Templates', url: '/templates'}, {label: 'Flowbite', url: templates_path}, {label: 'Current Page', url: ''}) %> %>
+<%# <%= breadcrumb({label: 'Templates', url: '/templates'}, {label: 'Flowbite', url: templates_path}, {label: 'Current Page', url: ''}) %> 
 
   <div class="max-w-screen-xl px-4 mx-auto">
     <div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
@@ -20,7 +20,7 @@
       </div>
 
       <!-- Información del producto -->
-      <div class="h-full pt-8 text-gray-800 bg-white lg:pt-0">
+      <div data-controller="products" data-products-product-value="<%= @product.to_json %>"  class="h-full pt-8 text-gray-800 bg-white lg:pt-0">
         <h1 class="text-4xl font-bold text-black">
           <%= @product.name %>
         </h1>
@@ -38,11 +38,11 @@
         <div class="flex flex-wrap gap-2">
           <% @product.stocks.each do |stock| %>
             <% if stock.amount > 0 %>
-              <button class="px-4 py-2 text-sm font-semibold text-white bg-blue-500 rounded hover:bg-blue-600">
+              <button data-action="click->products#selectSize" value="<%= stock.size %>" class="px-4 py-2 text-sm font-semibold text-white bg-blue-500 rounded hover:bg-blue-600">
                 <%= stock.size %>
               </button>
             <% else %>
-              <button class="px-4 py-2 text-sm font-semibold text-gray-400 bg-gray-200 rounded" disabled>
+              <button disabled value="<%= stock.size %>" class="px-4 py-2 text-sm font-semibold text-gray-400 bg-gray-200 rounded" disabled>
                 <%= stock.size %> (Agotado)
               </button>
             <% end %>
@@ -58,13 +58,10 @@
           >
             Añadir a favoritos
           </a>
-          <a
-            href="#"
-            title="Añadir al carrito"
-            class="py-2.5 px-5 text-sm font-medium text-white bg-blue-500 rounded-lg hover:bg-blue-600 focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-700"
-          >
-            Añadir al carrito
-          </a>
+          <div id="selected-size"></div> 
+          <button data-action="click->products#addToCart" class="inline-flex items-center justify-center px-5 py-3 font-medium text-white bg-gray-600 border border-transparent rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+              Add to Cart
+          </button>
         </div>
       </div>
     </div>

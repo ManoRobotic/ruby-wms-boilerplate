@@ -1,4 +1,7 @@
 <% if admin_signed_in? %>
+  <%= link_to '#', class: 'text-white hover:underline py-2 rounded-md text-md font-medium' do %>
+    <%= icon 'fa-solid', 'shopping-cart' %>
+  <% end %>
   <%= link_to 'Edit', '#', class: "mx-2 text-white hover:text-gray-200 font-bold text-xl" %>
   <%#= link_to 'Log out', '#', class: "mx-2 text-white hover:text-gray-200 font-bold text-xl", method: :delete, data: {
     turbo_method: :delete,
