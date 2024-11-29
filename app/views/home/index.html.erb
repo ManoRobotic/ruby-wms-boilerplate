@@ -115,6 +115,26 @@
     <% end %>
   </div>
 </section>
-
     </main>
+
+    
+    <script>
+        // Image slider functionality
+        const slider = document.querySelector('.slider > div');
+        const prevButton = document.getElementById('prevSlide');
+        const nextButton = document.getElementById('nextSlide');
+        let currentSlide = 0;
+        const totalSlides = slider.children.length;
+
+        function showSlide(index) {
+            currentSlide = (index + totalSlides) % totalSlides;
+            slider.style.transform = `translateX(-${currentSlide * 100}%)`;
+        }
+
+        prevButton.addEventListener('click', () => showSlide(currentSlide - 1));
+        nextButton.addEventListener('click', () => showSlide(currentSlide + 1));
+
+        // Auto-advance slides every 5 seconds
+        setInterval(() => showSlide(currentSlide + 1), 5000);
+    </script>
 </div>
