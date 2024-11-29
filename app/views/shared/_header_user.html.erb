@@ -8,7 +8,6 @@
                 </svg>
             </button>
 
-            
         </div>
         <div id="mobileMenu" class="hidden mt-4 md:flex md:items-center md:justify-between md:mt-0">
             <ul class="flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-4">
@@ -31,4 +30,32 @@
             </div>
         </div>
     </nav>
+
+
+    <script>
+        // Toggle mobile menu
+        const menuToggle = document.getElementById('menuToggle');
+        const mobileMenu = document.getElementById('mobileMenu');
+        menuToggle.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // Image slider functionality
+        const slider = document.querySelector('.slider > div');
+        const prevButton = document.getElementById('prevSlide');
+        const nextButton = document.getElementById('nextSlide');
+        let currentSlide = 0;
+        const totalSlides = slider.children.length;
+
+        function showSlide(index) {
+            currentSlide = (index + totalSlides) % totalSlides;
+            slider.style.transform = `translateX(-${currentSlide * 100}%)`;
+        }
+
+        prevButton.addEventListener('click', () => showSlide(currentSlide - 1));
+        nextButton.addEventListener('click', () => showSlide(currentSlide + 1));
+
+        // Auto-advance slides every 5 seconds
+        setInterval(() => showSlide(currentSlide + 1), 5000);
+    </script>
 </div>
