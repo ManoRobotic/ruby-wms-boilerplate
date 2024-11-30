@@ -1,5 +1,5 @@
 <% if admin_signed_in? %>
-  <%= link_to '#', class: 'text-white hover:underline py-2 rounded-md text-md font-medium' do %>
+  <%= link_to cart_path, class: 'text-white hover:underline py-2 rounded-md text-2xl font-medium' do %>
     <%= icon 'fa-solid', 'shopping-cart' %>
   <% end %>
   <%= link_to 'Edit', '#', class: "mx-2 text-white hover:text-gray-200 font-bold text-xl" %>
@@ -8,6 +8,9 @@
     turbo_confirm: 'Are you sure?'
   } %>
 <% else %>
+  <%= link_to cart_path, class: 'text-white hover:underline py-2 rounded-md text-2xl font-medium' do %>
+   <%= icon 'fa-solid', 'shopping-cart' %>
+  <% end %>
   <%= link_to 'Log in', admin_session_path, class: "mx-2 text-white hover:text-gray-200 font-bold text-xl" %>
   <%= link_to 'Sign up', new_admin_registration_path, class: "mx-2 bg-white text-blue-500 px-4 py-2 rounded-full hover:bg-blue-400 hover:text-white transition duration-300 font-bold" %>
 <% end %>

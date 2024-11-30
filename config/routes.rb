@@ -20,6 +20,7 @@ Rails.application.routes.draw do
   resources :categories, only: [:show]
 
   get "admin" => "admin#index"
+  get "cart" => "cart#show"
   get 'precios', to: 'precios#index'
 
   resources :products, only: [:show]
