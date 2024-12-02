@@ -1,20 +1,24 @@
-<div
-  class="flex flex-wrap justify-end px-4 py-2 bg-gray-900 shadow-sm lg:items-center lg:justify-center gap-x-6"
->
-  <h6
-    class="block font-sans text-base antialiased font-semibold leading-relaxed tracking-normal text-white text-md"
-  >
-    Precios actuales de OZ Oro y Plata Libertad
-  </h6>
-
-  <% if @precios.present? %>
-    <% @precios.each do |precio| %>
-      <div class="text-sm text-white">
-        <strong><%= precio[:nombre] %>:</strong>
-        Compra: <%= precio[:compra] %> | Venta: <%= precio[:venta] %>
-      </div>
-    <% end %>
-  <% else %>
-    <div class="text-sm text-white">Cargando precios...</div>
-  <% end %>
+<div class="py-6 ml-4 mr-4">
+  <div class="w-full overflow-hidden bg-white rounded-lg shadow-lg">
+    <div class="flex flex-col items-center justify-center gap-6 p-6 sm:flex-row">
+      <% Coins.all.each do |coin| %>
+        <div class="flex items-center justify-center w-full p-4 space-x-4 sm:w-auto">
+          <!-- Ícono dinámico según la moneda -->
+          <div class="<%= coin.name == 'Oro' ? 'text-yellow-500' : coin.name == 'Plata' ? 'text-gray-400' : 'text-orange-500' %>">
+            <i class="text-4xl fas fa-coins"></i>
+          </div>
+          <div class="text-center">
+            <h2 class="text-lg font-semibold"><%= coin.name %></h2>
+            <%# <p class="text-2xl font-bold">$<%= number_with_precision(coin.selling_price, precision: 2) %>
+       
+            <!-- Nuevos campos de precios de compra y venta -->
+            <div class="mt-2">
+              <p class="text-sm text-gray-600">Compra: $<%= number_with_precision(coin.purchase_price, precision: 2) %></p>
+              <p class="text-sm text-gray-600">Venta: $<%= number_with_precision(coin.selling_price, precision: 2) %></p>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
 </div>
