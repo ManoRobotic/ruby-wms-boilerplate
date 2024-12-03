@@ -9,7 +9,7 @@
             </button>
         </div>
         <div id="mobileMenu" class="hidden mt-4 md:flex md:items-center md:justify-between md:mt-0">
-            <ul class="flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-4">
+           <ul class="flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-4">
                 <%= link_to "Inicio", root_path, class: "block hover:text-gray-300" %>
                 <%= link_to "Catalogo", root_path, class: "block hover:text-gray-300" %>
                 <%= link_to "Sobre Nosotros", root_path, class: "block hover:text-gray-300" %>
@@ -31,17 +31,40 @@
         </div>
     </nav>
     <script>
-        function setupMobileMenu() {
-            const menuToggle = document.getElementById('menuToggle');
-            const mobileMenu = document.getElementById('mobileMenu');
-            if (menuToggle && mobileMenu) {
-                menuToggle.addEventListener('click', () => {
-                    mobileMenu.classList.toggle('hidden');
-                });
-            }
-        }
+     let toggleMenu; // Define la función en un ámbito accesible
 
-        document.addEventListener('turbo:load', setupMobileMenu);
-        document.addEventListener('DOMContentLoaded', setupMobileMenu);
+function setupMobileMenu() {
+    const menuToggle = document.getElementById('menuToggle');
+    const mobileMenu = document.getElementById('mobileMenu');
+
+    if (!menuToggle || !mobileMenu) {
+        console.warn('Menu elements not found.');
+        return;
+    }
+
+    // Define la función toggleMenu si aún no está definida
+    toggleMenu = function () {
+        mobileMenu.classList.toggle('hidden');
+    };
+
+    // Limpia cualquier listener anterior y añade uno nuevo
+    menuToggle.removeEventListener('click', toggleMenu);
+    menuToggle.addEventListener('click', toggleMenu);
+}
+
+// Limpia los event listeners antes de renderizar una nueva vista
+document.addEventListener('turbo:before-render', () => {
+    console.log('Cleaning up before render.');
+    const menuToggle = document.getElementById('menuToggle');
+    if (menuToggle && toggleMenu) {
+        menuToggle.removeEventListener('click', toggleMenu);
+    }
+});
+
+// Configura el menú al cargar nuevas vistas
+document.addEventListener('turbo:load', setupMobileMenu);
+document.addEventListener('turbo:frame-load', setupMobileMenu);
+
+
     </script>
 </div>
