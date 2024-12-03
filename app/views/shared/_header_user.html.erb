@@ -10,10 +10,10 @@
         </div>
         <div id="mobileMenu" class="hidden mt-4 md:flex md:items-center md:justify-between md:mt-0">
             <ul class="flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-4">
-                <li><a href="#" class="block hover:text-gray-300">Inicio</a></li>
-                <li><a href="#" class="block hover:text-gray-300">Catálogo</a></li>
-                <li><a href="#" class="block hover:text-gray-300">Sobre Nosotros</a></li>
-                <li><a href="#" class="block hover:text-gray-300">Contacto</a></li>
+                <%= link_to "Inicio", root_path, class: "block hover:text-gray-300" %>
+                <%= link_to "Catalogo", root_path, class: "block hover:text-gray-300" %>
+                <%= link_to "Sobre Nosotros", root_path, class: "block hover:text-gray-300" %>
+                <%= link_to "Contacto", root_path, class: "block hover:text-gray-300" %>
             </ul>
             <div class="flex items-center mt-4 space-x-4 md:mt-0">
                 <%= link_to cart_path, class: 'relative inline-flex items-center p-3 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800' do %>

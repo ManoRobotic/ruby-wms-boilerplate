@@ -1,4 +1,3 @@
-<%= render 'shared/banner' %> 
 
 <div class="flex flex-col min-h-screen">
 
@@ -10,8 +9,10 @@
             <p class="mb-8 text-xl">Descubre nuestra colección única de monedas raras y valiosas.</p>
             <%= link_to "Shop Now", root_path, class: "bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 px-6 rounded" %>
         </section>
+        <%= render 'shared/banner' %> 
 
-        <section class="relative mb-12">
+
+        <section class="relative mt-8 mb-12">
             <h2 class="mb-6 text-2xl font-semibold">Monedas Destacadas</h2>
             <div class="relative overflow-hidden slider">
                 <div class="flex transition-transform duration-300 ease-in-out">
