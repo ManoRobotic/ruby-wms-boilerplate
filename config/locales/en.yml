@@ -5,3 +5,9 @@ en:
     title: 'Coins Categories'
     show: 'Show this category'
     description: 'Descripción de las categorías'
+  devise:
+    sessions:
+      admin:
+        signed_in: 'Login Succesfully'
+  footer:
+    info:  '2024 CoinMex. Todos los derechos reservados.'

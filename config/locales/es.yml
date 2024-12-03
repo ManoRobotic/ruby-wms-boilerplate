@@ -9,3 +9,5 @@ es:
     sessions:
       admin:
         signed_in: 'Inicio de sesión correcto'
+  footer:
+    info:  '2024 CoinMex. Todos los derechos reservados.'
