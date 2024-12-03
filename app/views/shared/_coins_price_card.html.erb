@@ -1,0 +1,33 @@
+
+<div class="py-4 ">
+  <div class="w-full overflow-hidden bg-white rounded-lg shadow-xl">
+    <div class="flex flex-col items-center justify-center gap-6 p-4 sm:flex-row">
+      <% Coins.all.each do |coin| %>
+        <div class="flex items-center justify-center w-full p-4 space-x-4 sm:w-auto">
+          <!-- Ícono dinámico según la moneda -->
+          <div class="<%= coin.name == 'Oro' ? 'text-yellow-500' : coin.name == 'Plata' ? 'text-gray-400' : 'text-orange-500' %>">
+            <i class="text-4xl fas fa-coins"></i>
+          </div>
+          <div class="text-center">
+            <h2 class="text-lg font-semibold"><%= coin.name %></h2>
+            <%# <p class="text-2xl font-bold">$<%= number_with_precision(coin.selling_price, precision: 2) %>
+              <%# Simulación de cambio dinámico de precio %>
+              <%# <% change = (rand(-5.0..5.0).round(2) / 100) %>
+              <%# <% if change >= 0 %> 
+                <%# <i class="mr-1 text-green-500 fas fa-arrow-up"></i> %>
+                <%# <span class="text-green-500">+<%= number_to_percentage(change, precision: 1) </span> %>
+              <%# <% else %>
+                <%# <i class="mr-1 text-red-500 fas fa-arrow-down"></i> %>
+                <%# <span class="text-red-500"><%= number_to_percentage(change, precision: 1) </span> %>
+              <%# <% end %> 
+            <!-- Nuevos campos de precios de compra y venta -->
+            <div class="mt-2">
+              <p class="text-sm text-gray-600">Compra: $<%= number_with_precision(coin.purchase_price, precision: 2) %></p>
+              <p class="text-sm text-gray-600">Venta: $<%= number_with_precision(coin.selling_price, precision: 2) %></p>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
