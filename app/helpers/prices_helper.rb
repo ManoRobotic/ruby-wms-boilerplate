@@ -24,10 +24,18 @@ module PricesHelper
             puts "**************************************************\n"
   
             # Actualizar el precio en la base de datos
-            coin = Coins.find_by(name: asset)
+            coin = Coins.find_by(name: asset.capitalize) # Asegúrate de que el nombre coincida con el caso correcto
             if coin
-              coin.update(purchase_price: compra.to_f, selling_price: venta.to_f)
-              puts "#{asset.capitalize} - Precios actualizados en la base de datos."
+              # Verificar si los valores obtenidos no son nulos o vacíos antes de actualizar
+              if compra.present? && venta.present?
+                compra = compra.gsub(/[^\d.]/, '').to_f
+                venta = venta.gsub(/[^\d.]/, '').to_f
+
+                coin.update(purchase_price: compra.to_f, selling_price: venta.to_f)
+                puts "#{asset.capitalize} - Precios actualizados en la base de datos."
+              else
+                puts "#{asset.capitalize} - Los precios obtenidos no son válidos."
+              end
             else
               puts "#{asset.capitalize} - No se encontró la moneda en la base de datos."
             end
@@ -41,5 +49,5 @@ module PricesHelper
         puts "Error al obtener la página: #{response.code}"
       end
     end
-  end
+end
   
