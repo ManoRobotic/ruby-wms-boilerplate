@@ -19,6 +19,8 @@
   </head>
 
 <body class="h-full">
+<%= render 'shared/banner' %> 
+
   <main class="flex flex-col min-h-screen">
     <% unless devise_controller? %>
       <%= render 'shared/header_user' %>
