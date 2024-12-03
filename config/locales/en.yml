@@ -10,4 +10,6 @@ en:
       admin:
         signed_in: 'Login Succesfully'
   footer:
-    info:  '2024 CoinMex. Todos los derechos reservados.'
+    info:  '2024 CoinMex. All rigths reserved.'
+  coins_card:
+    info: 'Precios en pesos mexicanos MXN'
