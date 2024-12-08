@@ -1,66 +1,65 @@
-<section class="py-16 bg-white">
-
-<%# <%= breadcrumb({label: 'Templates', url: '/templates'}, {label: 'Flowbite', url: templates_path}, {label: 'Current Page', url: ''}) %> 
-
-  <div class="max-w-screen-xl px-4 mx-auto">
-    <div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
-      <!-- Galería de imágenes -->
-      <div class="max-w-md mx-auto shrink-0 lg:max-w-lg">
+<section class="py-16 bg-stone-50">
+  <div class="container px-4 mx-auto">
+    <div class="grid grid-cols-1 gap-12 lg:grid-cols-2">
+      <!-- Image Gallery -->
+      <div class="max-w-md mx-auto lg:max-w-lg">
         <% if @product.image_url.present? %>
-          <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <div class="grid grid-cols-2 gap-4">
             <% Array(@product.image_url).each do |image_url| %>
-              <%= image_tag(image_url, class: "object-cover w-full h-64 rounded-lg") %>
+              <div class="overflow-hidden rounded-full aspect-square">
+                <%= image_tag(image_url, class: "object-cover w-full h-full transition-transform duration-300 ease-in-out transform hover:scale-110") %>
+              </div>
             <% end %>
           </div>
         <% else %>
-          <p class="text-gray-600 dark:text-gray-400">
+          <p class="text-lg text-center text-slate-600">
             No hay imágenes disponibles para este producto.
           </p>
         <% end %>
       </div>
 
-      <!-- Información del producto -->
-      <div data-controller="products" data-products-product-value="<%= @product.to_json %>"  class="h-full pt-8 text-gray-800 bg-white lg:pt-0">
-        <h1 class="text-4xl font-bold text-black">
+      <!-- Product Information -->
+      <div data-controller="products" data-products-product-value="<%= @product.to_json %>" class="flex flex-col h-full">
+        <h1 class="mb-4 text-4xl font-bold tracking-tight text-slate-800">
           <%= @product.name %>
         </h1>
-        <p class="my-4 text-2xl font-extrabold text-blue-600">
+        <p class="mb-6 text-3xl font-extrabold text-emerald-600">
           <%= number_to_currency(@product.price) %>
         </p>
-        <p class="mb-6 text-gray-800">
+        <p class="mb-8 text-lg text-slate-600">
           <%= @product.description %>
         </p>
 
-        <!-- Tamaños disponibles -->
-        <h3 class="mb-4 text-lg font-semibold text-gray-800">
+        <!-- Available Sizes -->
+        <h3 class="mb-4 text-xl font-semibold text-slate-800">
           Tamaños disponibles:
         </h3>
-        <div class="flex flex-wrap gap-2">
+        <div class="flex flex-wrap gap-2 mb-8">
           <% @product.stocks.each do |stock| %>
             <% if stock.amount > 0 %>
-              <button data-action="click->products#selectSize" value="<%= stock.size %>" class="px-4 py-2 text-sm font-semibold text-white bg-blue-500 rounded hover:bg-blue-600">
+              <button data-action="click->products#selectSize" value="<%= stock.size %>" class="px-4 py-2 text-sm font-medium text-white transition duration-300 rounded-full bg-emerald-600 hover:bg-emerald-700">
                 <%= stock.size %>
               </button>
             <% else %>
-              <button disabled value="<%= stock.size %>" class="px-4 py-2 text-sm font-semibold text-gray-400 bg-gray-200 rounded" disabled>
+              <button disabled value="<%= stock.size %>" class="px-4 py-2 text-sm font-medium rounded-full text-slate-400 bg-slate-200">
                 <%= stock.size %> (Agotado)
               </button>
             <% end %>
           <% end %>
         </div>
 
-        <!-- Botones de acción -->
-        <div class="flex gap-4 mt-6">
+        <!-- Action Buttons -->
+        <div class="flex flex-wrap gap-4 mt-auto">
           <a
             href="#"
             title="Añadir a favoritos"
-            class="py-2.5 px-5 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700"
+            class="px-6 py-3 text-sm font-medium transition duration-300 rounded-full text-emerald-700 bg-emerald-100 hover:bg-emerald-200 focus:ring-4 focus:ring-emerald-100"
           >
             Añadir a favoritos
           </a>
-          <div id="selected-size"></div> 
-          <button data-action="click->products#addToCart" class="inline-flex items-center justify-center px-5 py-3 font-medium text-white bg-gray-600 border border-transparent rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
-              Add to Cart
+          <div id="selected-size" class="text-lg font-medium text-slate-600"></div> 
+          <button data-action="click->products#addToCart" class="px-6 py-3 text-sm font-medium text-white transition duration-300 rounded-full bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">
+            Añadir al Carrito
           </button>
         </div>
       </div>

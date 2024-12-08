@@ -1,36 +1,49 @@
-
-<div class="py-4 ">
-  <div class="w-full overflow-hidden bg-white rounded-lg shadow-xl">
-    <div class="flex flex-col items-center justify-center gap-6 p-4 sm:flex-row">
-    <div class="text-lg font-semibold text-center">
-    </h2>
-    Precios en pesos mexicanos MXN
-    <h2>
+<div class="px-4 py-12 mx-auto max-w-7xl sm:px-6 lg:px-8">
+  <div class="overflow-hidden bg-white shadow-lg rounded-2xl">
+    <!-- Header -->
+    <div class="px-6 py-8 bg-gradient-to-r from-emerald-50 to-emerald-100">
+      <h2 class="text-3xl font-semibold text-center text-emerald-600">
+        <%= t('coins_card.alert') %>
+      </h2>
     </div>
+
+    <!-- Coins Grid -->
+    <div class="grid grid-cols-1 gap-8 p-6 md:grid-cols-2 lg:grid-cols-3">
       <% Coins.all.each do |coin| %>
-        <div class="flex items-center justify-center w-full p-4 space-x-4 sm:w-auto">
-          <!-- Ícono dinámico según la moneda -->
-          <div class="<%= coin.name == 'Oro' ? 'text-yellow-500' : coin.name == 'Plata' ? 'text-gray-400' : 'text-orange-500' %>">
-            <i class="text-4xl fas fa-coins"></i>
+        <div class="relative p-6 transition-all duration-300 bg-white group rounded-xl hover:shadow-md">
+          <!-- Coin Icon and Name -->
+          <div class="flex items-center mb-4 space-x-4">
+            <div class="<%= coin.name == 'Oro' ? 'text-amber-400' : coin.name == 'Plata' ? 'text-gray-400' : 'text-orange-400' %> 
+                        p-3 rounded-full bg-opacity-10 <%= coin.name == 'Oro' ? 'bg-amber-100' : coin.name == 'Plata' ? 'bg-gray-100' : 'bg-orange-100' %>">
+              <i class="text-3xl fas fa-coins"></i>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-900"><%= coin.name %></h3>
           </div>
-          <div class="text-center">
-            <h2 class="text-lg font-semibold"><%= coin.name %></h2>
-            <%# <p class="text-2xl font-bold">$<%= number_with_precision(coin.selling_price, precision: 2) %>
-              <%# Simulación de cambio dinámico de precio %>
-              <%# <% change = (rand(-5.0..5.0).round(2) / 100) %>
-              <%# <% if change >= 0 %> 
-                <%# <i class="mr-1 text-green-500 fas fa-arrow-up"></i> %>
-                <%# <span class="text-green-500">+<%= number_to_percentage(change, precision: 1) </span> %>
-              <%# <% else %>
-                <%# <i class="mr-1 text-red-500 fas fa-arrow-down"></i> %>
-                <%# <span class="text-red-500"><%= number_to_percentage(change, precision: 1) </span> %>
-              <%# <% end %> 
-            <!-- Nuevos campos de precios de compra y venta -->
-            <div class="mt-2">
-              <p class="text-sm text-gray-600">Compra: $<%= number_with_precision(coin.purchase_price, precision: 2) %></p>
-              <p class="text-sm text-gray-600">Venta: $<%= number_with_precision(coin.selling_price, precision: 2) %></p>
+
+          <!-- Prices -->
+          <div class="space-y-3">
+            <!-- Purchase Price -->
+            <div class="flex items-center justify-between">
+              <span class="text-gray-600">Compra:</span>
+              <span class="text-lg font-medium text-gray-900">
+                $<%= number_with_precision(coin.purchase_price, precision: 2) %>
+              </span>
+            </div>
+
+            <!-- Divider -->
+            <div class="border-t border-gray-100"></div>
+
+            <!-- Selling Price -->
+            <div class="flex items-center justify-between">
+              <span class="text-gray-600">Venta:</span>
+              <span class="text-lg font-medium text-gray-900">
+                $<%= number_with_precision(coin.selling_price, precision: 2) %>
+              </span>
             </div>
           </div>
+
+          <!-- Hover Effect Overlay -->
+          <div class="absolute inset-0 transition-all duration-300 border-2 border-transparent rounded-xl group-hover:border-emerald-500"></div>
         </div>
       <% end %>
     </div>

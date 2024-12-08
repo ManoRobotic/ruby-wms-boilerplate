@@ -13,3 +13,4 @@ en:
     info:  '2024 CoinMex. All rigths reserved.'
   coins_card:
     info: 'Precios en pesos mexicanos MXN'
+    alert: 'Prices updated in realtime'
