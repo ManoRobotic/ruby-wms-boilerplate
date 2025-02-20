@@ -21,3 +21,37 @@
     padding: 0;
   }
   
+
+  .coin-slider {
+    width: 100%;
+    overflow: hidden;
+  }
+  
+  .coin-slider-track {
+    display: flex;
+    animation: loop-scroll 20s linear infinite;
+  }
+  
+  @keyframes loop-scroll {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+  
+  .coin-slider-track div {
+    flex-shrink: 0; /* Evita que los elementos se contraigan */
+  }
+  
+  /* Responsive design */
+  @media (max-width: 768px) {
+    .coin-slider-track {
+      gap: 2rem; /* Espaciado entre monedas */
+    }
+  
+    .coin-slider-track div {
+      min-width: 200px; /* Ancho mínimo para dispositivos móviles */
+    }
+  }
