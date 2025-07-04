@@ -1,0 +1,219 @@
+AlanAlvarez21
+ecommerce-boilerplate
+
+Type / to search
+Code
+Issues
+Pull requests
+Actions
+Projects
+Wiki
+Security
+Insights
+Settings
+CI
+Fix system tests for admin namespace #156
+Jobs
+Run details
+test
+failed now in 1m 36s
+Search logs
+1s
+22s
+19s
+1s
+4s
+46s
+Run bin/rails db:test:prepare test test:system
+DEPRECATION WARNING: `to_time` will always preserve the full timezone rather than offset of the receiver in Rails 8.1. To opt in to the new behavior, set `config.active_support.to_time_preserves_timezone = :zone`. (called from <main> at /home/runner/work/ecommerce-boilerplate/ecommerce-boilerplate/config/environment.rb:5)
+DEPRECATION WARNING: `to_time` will always preserve the full timezone rather than offset of the receiver in Rails 8.1. To opt in to the new behavior, set `config.active_support.to_time_preserves_timezone = :zone`. (called from <main> at /home/runner/work/ecommerce-boilerplate/ecommerce-boilerplate/config/environment.rb:5)
+DEPRECATION WARNING: `to_time` will always preserve the full timezone rather than offset of the receiver in Rails 8.1. To opt in to the new behavior, set `config.active_support.to_time_preserves_timezone = :zone`. (called from <main> at /home/runner/work/ecommerce-boilerplate/ecommerce-boilerplate/config/environment.rb:5)
+DEPRECATION WARNING: `to_time` will always preserve the full timezone rather than offset of the receiver in Rails 8.1. To opt in to the new behavior, set `config.active_support.to_time_preserves_timezone = :zone`. (called from <main> at /home/runner/work/ecommerce-boilerplate/ecommerce-boilerplate/config/environment.rb:5)
+≈ tailwindcss v4.1.10
+
+Done in 4s
+Running 0 tests in a single process (parallelization threshold is 50)
+Run options: --seed 28819
+
+# Running:
+
+
+
+Finished in 0.001363s, 0.0000 runs/s, 0.0000 assertions/s.
+0 runs, 0 assertions, 0 failures, 0 errors, 0 skips
+DEPRECATION WARNING: `to_time` will always preserve the full timezone rather than offset of the receiver in Rails 8.1. To opt in to the new behavior, set `config.active_support.to_time_preserves_timezone = :zone`. (called from <main> at /home/runner/work/ecommerce-boilerplate/ecommerce-boilerplate/config/environment.rb:5)
+DEPRECATION WARNING: `to_time` will always preserve the full timezone rather than offset of the receiver in Rails 8.1. To opt in to the new behavior, set `config.active_support.to_time_preserves_timezone = :zone`. (called from <main> at /home/runner/work/ecommerce-boilerplate/ecommerce-boilerplate/config/environment.rb:5)
+≈ tailwindcss v4.1.10
+
+Done in 4s
+Running 16 tests in a single process (parallelization threshold is 50)
+Run options: --seed 54741
+
+# Running:
+
+Capybara starting Puma...
+* Version 6.6.0, codename: Return to Forever
+* Min threads: 0, max threads: 4
+* Listening on http://127.0.0.1:38597
+[Screenshot Image]: /home/runner/work/ecommerce-boilerplate/ecommerce-boilerplate/tmp/screenshots/failures_test_visiting_the_index.png
+F
+
+Failure:
+Admin::OrdersTest#test_visiting_the_index [test/system/admin/orders_test.rb:10]:
+expected to find visible css "h1" with text "Orders" but there were no matches. Also found "Blocked hosts: 127.0.0.1:38597", which matched the selector but not all filters. 
+
+bin/rails test test/system/admin/orders_test.rb:8
+
+[Screenshot Image]: /home/runner/work/ecommerce-boilerplate/ecommerce-boilerplate/tmp/screenshots/failures_test_should_create_order.png
+E
+
+Error:
+Admin::OrdersTest#test_should_create_order:
+Capybara::ElementNotFound: Unable to find link or button "New order"
+    test/system/admin/orders_test.rb:15:in `block in <class:OrdersTest>'
+
+bin/rails test test/system/admin/orders_test.rb:13
+
+[Screenshot Image]: /home/runner/work/ecommerce-boilerplate/ecommerce-boilerplate/tmp/screenshots/failures_test_should_update_Order.png
+E
+
+Error:
+Admin::OrdersTest#test_should_update_Order:
+Capybara::ElementNotFound: Unable to find link or button "Edit this order"
+    test/system/admin/orders_test.rb:29:in `block in <class:OrdersTest>'
+
+bin/rails test test/system/admin/orders_test.rb:27
+
+[Screenshot Image]: /home/runner/work/ecommerce-boilerplate/ecommerce-boilerplate/tmp/screenshots/failures_test_should_destroy_Order.png
+E
+
+Error:
+Admin::OrdersTest#test_should_destroy_Order:
+Capybara::ElementNotFound: Unable to find link or button "Destroy this order"
+    test/system/admin/orders_test.rb:43:in `block in <class:OrdersTest>'
+
+bin/rails test test/system/admin/orders_test.rb:41
+
+[Screenshot Image]: /home/runner/work/ecommerce-boilerplate/ecommerce-boilerplate/tmp/screenshots/failures_test_visiting_the_index.png
+F
+
+Failure:
+Admin::CategoriesTest#test_visiting_the_index [test/system/admin/categories_test.rb:10]:
+expected to find visible css "h1" with text "Categories" but there were no matches. Also found "Blocked hosts: 127.0.0.1:38597", which matched the selector but not all filters. 
+
+bin/rails test test/system/admin/categories_test.rb:8
+
+[Screenshot Image]: /home/runner/work/ecommerce-boilerplate/ecommerce-boilerplate/tmp/screenshots/failures_test_should_create_category.png
+E
+
+Error:
+Admin::CategoriesTest#test_should_create_category:
+Capybara::ElementNotFound: Unable to find link or button "New category"
+    test/system/admin/categories_test.rb:15:in `block in <class:CategoriesTest>'
+
+bin/rails test test/system/admin/categories_test.rb:13
+
+[Screenshot Image]: /home/runner/work/ecommerce-boilerplate/ecommerce-boilerplate/tmp/screenshots/failures_test_should_update_Category.png
+E
+
+Error:
+Admin::CategoriesTest#test_should_update_Category:
+Capybara::ElementNotFound: Unable to find link or button "Edit this category"
+    test/system/admin/categories_test.rb:27:in `block in <class:CategoriesTest>'
+
+bin/rails test test/system/admin/categories_test.rb:25
+
+[Screenshot Image]: /home/runner/work/ecommerce-boilerplate/ecommerce-boilerplate/tmp/screenshots/failures_test_should_destroy_Category.png
+E
+
+Error:
+Admin::CategoriesTest#test_should_destroy_Category:
+Capybara::ElementNotFound: Unable to find link or button "Destroy this category"
+    test/system/admin/categories_test.rb:39:in `block in <class:CategoriesTest>'
+
+bin/rails test test/system/admin/categories_test.rb:37
+
+[Screenshot Image]: /home/runner/work/ecommerce-boilerplate/ecommerce-boilerplate/tmp/screenshots/failures_test_visiting_the_index.png
+E
+
+Error:
+Admin::StocksTest#test_visiting_the_index:
+NameError: undefined local variable or method `admin_stocks_url' for an instance of Admin::StocksTest
+    test/system/admin/stocks_test.rb:9:in `block in <class:StocksTest>'
+
+bin/rails test test/system/admin/stocks_test.rb:8
+
+[Screenshot Image]: /home/runner/work/ecommerce-boilerplate/ecommerce-boilerplate/tmp/screenshots/failures_test_should_create_stock.png
+E
+
+Error:
+Admin::StocksTest#test_should_create_stock:
+NameError: undefined local variable or method `admin_stocks_url' for an instance of Admin::StocksTest
+    test/system/admin/stocks_test.rb:14:in `block in <class:StocksTest>'
+
+bin/rails test test/system/admin/stocks_test.rb:13
+
+[Screenshot Image]: /home/runner/work/ecommerce-boilerplate/ecommerce-boilerplate/tmp/screenshots/failures_test_should_update_Stock.png
+E
+
+Error:
+Admin::StocksTest#test_should_update_Stock:
+NoMethodError: undefined method `admin_stock_url' for an instance of Admin::StocksTest
+    test/system/admin/stocks_test.rb:27:in `block in <class:StocksTest>'
+
+bin/rails test test/system/admin/stocks_test.rb:26
+
+[Screenshot Image]: /home/runner/work/ecommerce-boilerplate/ecommerce-boilerplate/tmp/screenshots/failures_test_should_destroy_Stock.png
+E
+
+Error:
+Admin::StocksTest#test_should_destroy_Stock:
+NoMethodError: undefined method `admin_stock_url' for an instance of Admin::StocksTest
+    test/system/admin/stocks_test.rb:40:in `block in <class:StocksTest>'
+
+bin/rails test test/system/admin/stocks_test.rb:39
+
+[Screenshot Image]: /home/runner/work/ecommerce-boilerplate/ecommerce-boilerplate/tmp/screenshots/failures_test_visiting_the_index.png
+F
+
+Failure:
+Admin::ProductsTest#test_visiting_the_index [test/system/admin/products_test.rb:10]:
+expected to find visible css "h1" with text "Products" but there were no matches. Also found "Blocked hosts: 127.0.0.1:38597", which matched the selector but not all filters. 
+
+bin/rails test test/system/admin/products_test.rb:8
+
+[Screenshot Image]: /home/runner/work/ecommerce-boilerplate/ecommerce-boilerplate/tmp/screenshots/failures_test_should_create_product.png
+E
+
+Error:
+Admin::ProductsTest#test_should_create_product:
+Capybara::ElementNotFound: Unable to find link or button "New product"
+    test/system/admin/products_test.rb:15:in `block in <class:ProductsTest>'
+
+bin/rails test test/system/admin/products_test.rb:13
+
+[Screenshot Image]: /home/runner/work/ecommerce-boilerplate/ecommerce-boilerplate/tmp/screenshots/failures_test_should_update_Product.png
+E
+
+Error:
+Admin::ProductsTest#test_should_update_Product:
+Capybara::ElementNotFound: Unable to find link or button "Edit this product"
+    test/system/admin/products_test.rb:29:in `block in <class:ProductsTest>'
+
+bin/rails test test/system/admin/products_test.rb:27
+
+[Screenshot Image]: /home/runner/work/ecommerce-boilerplate/ecommerce-boilerplate/tmp/screenshots/failures_test_should_destroy_Product.png
+E
+
+Error:
+Admin::ProductsTest#test_should_destroy_Product:
+Capybara::ElementNotFound: Unable to find link or button "Destroy this product"
+    test/system/admin/products_test.rb:43:in `block in <class:ProductsTest>'
+
+bin/rails test test/system/admin/products_test.rb:41
+
+
+
+Finished in 28.898290s, 0.5537 runs/s, 0.1038 assertions/s.
+16 runs, 3 assertions, 3 failures, 13 errors, 0 skips
+Error: Process completed with exit code 1.

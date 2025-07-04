@@ -3,6 +3,7 @@ require "application_system_test_case"
 class Admin::ProductsTest < ApplicationSystemTestCase
   setup do
     @admin_product = products(:one)
+    sign_in_admin
   end
 
   test "visiting the index" do
