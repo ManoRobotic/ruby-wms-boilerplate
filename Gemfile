@@ -48,7 +48,7 @@ gem "kaminari"
 gem "mercadopago-sdk"
 
 # Background jobs
-gem "sidekiq", "~> 7.0"
+gem "sidekiq", "~> 8.0"
 
 # Rate limiting and security
 gem "rack-attack", "~> 6.6"
