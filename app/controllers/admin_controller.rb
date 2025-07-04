@@ -55,11 +55,7 @@ class AdminController < ApplicationController
     # Add role-based access control if needed
     # For now, just ensure admin is active
     unless current_admin&.email&.present?
-      Rails.logger.warn "Unauthorized admin access attempt", {
-        admin_id: current_admin&.id,
-        ip: request.remote_ip,
-        path: request.path
-      }
+      Rails.logger.warn "Unauthorized admin access attempt - Admin ID: #{current_admin&.id}, IP: #{request.remote_ip}, Path: #{request.path}"
       redirect_to root_path, alert: "Access denied"
     end
   end

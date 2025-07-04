@@ -28,11 +28,7 @@ class CartProcessor
       line_items = build_line_items
       MercadoPagoSdk.new.create_preference(line_items, user_info)
     rescue StandardError => e
-      Rails.logger.error "Failed to create payment preference", {
-        error: e.message,
-        cart_data: cart_data,
-        user_info: user_info.except(:identification_number)
-      }
+      Rails.logger.error "Failed to create payment preference: #{e.message}. Cart data: #{cart_data.inspect}. User info: #{user_info.except(:identification_number).inspect}"
       @errors << I18n.t("checkout.payment_error")
       nil
     end

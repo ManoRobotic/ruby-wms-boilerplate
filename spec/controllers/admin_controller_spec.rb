@@ -8,9 +8,9 @@ RSpec.describe AdminController, type: :controller do
   end
 
   describe "GET #index" do
-    let!(:fulfilled_order) { create(:order, fulfilled: true, total: 100, created_at: 1.day.ago) }
-    let!(:unfulfilled_orders) { create_list(:order, 7, fulfilled: false, total: 50, created_at: 1.day.ago) }
-    let!(:today_orders) { create_list(:order, 3, fulfilled: true, total: 75, created_at: 30.minutes.ago) }
+    let!(:fulfilled_order) { create(:order, :delivered, total: 100, created_at: 1.day.ago) }
+    let!(:unfulfilled_orders) { create_list(:order, 7, :pending, total: 50, created_at: 1.day.ago) }
+    let!(:today_orders) { create_list(:order, 3, :delivered, total: 75, created_at: 30.minutes.ago) }
 
     before do
       # Create order products for per_sale calculation
@@ -49,15 +49,13 @@ RSpec.describe AdminController, type: :controller do
       get :index
 
       revenue_by_day = assigns(:revenue_by_day)
-      expect(revenue_by_day).to be_an(Array)
-      expect(revenue_by_day.length).to eq(7)
+      expect(revenue_by_day).to be_a(Hash)
+      expect(revenue_by_day.keys.length).to eq(7)
 
-      # Each day should have [day_name, revenue] format
-      revenue_by_day.each do |day_data|
-        expect(day_data).to be_an(Array)
-        expect(day_data.length).to eq(2)
-        expect(day_data[0]).to be_a(String) # day name
-        expect(day_data[1]).to be_a(Numeric) # revenue
+      # Each entry should have Date as key and revenue as value
+      revenue_by_day.each do |date, revenue|
+        expect(date).to be_a(Date)
+        expect(revenue).to be_a(Numeric)
       end
     end
 
@@ -65,10 +63,10 @@ RSpec.describe AdminController, type: :controller do
       get :index
 
       revenue_by_day = assigns(:revenue_by_day)
-      today_data = revenue_by_day.find { |day| day[0] == Date.today.strftime("%A") }
+      today_data = revenue_by_day[Date.current]
 
       expect(today_data).to be_present
-      expect(today_data[1]).to eq(225) # today's total revenue
+      expect(today_data).to eq(225) # today's total revenue
     end
 
     context "when no orders exist" do
@@ -82,7 +80,7 @@ RSpec.describe AdminController, type: :controller do
         expect(assigns(:orders)).to be_empty
         expect(assigns(:quick_stats)[:sales]).to eq(0)
         expect(assigns(:quick_stats)[:revenue]).to be_nil
-        expect(assigns(:revenue_by_day)).to be_an(Array)
+        expect(assigns(:revenue_by_day)).to be_a(Hash)
       end
     end
   end

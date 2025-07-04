@@ -1,4 +1,3 @@
-spec ./spec
 DEPRECATION WARNING: `to_time` will always preserve the full timezone rather than offset of the receiver in Rails 8.1. To opt in to the new behavior, set `config.active_support.to_time_preserves_timezone = :zone`. (called from <top (required)> at /Users/dev/coinsEcommerceApp/config/environment.rb:5)
 DEPRECATION WARNING: `to_time` will always preserve the full timezone rather than offset of the receiver in Rails 8.1. To opt in to the new behavior, set `config.active_support.to_time_preserves_timezone = :zone`. (called from <top (required)> at /Users/dev/coinsEcommerceApp/config/environment.rb:5)
 
@@ -483,10 +482,10 @@ Failures:
   1) AdminController GET #index assigns recent unfulfilled orders
      Failure/Error: expect(assigns(:orders)).to match_array(unfulfilled_orders.take(5))
      
-       expected collection contained:  [#<Order id: "0107fe03-7087-4670-acb4-0734dfc77c68", customer_email: [FILTERED], fulfilled: false, to...t: "2025-07-04 16:53:28.677653000 -0600", payment_id: "MP-a60f50069707e6d5c4f1", status: "pending">]
-       actual collection contained:    [#<Order id: "2cb0043f-87f0-4ad6-aadd-604fce4082c1", customer_email: [FILTERED], fulfilled: false, to...t: "2025-07-04 16:53:28.686298000 -0600", payment_id: "MP-75913fd9b2448519ba36", status: "pending">]
-       the missing elements were:      [#<Order id: "0107fe03-7087-4670-acb4-0734dfc77c68", customer_email: [FILTERED], fulfilled: false, to...t: "2025-07-04 16:53:28.674407000 -0600", payment_id: "MP-e853a06a105f528700e9", status: "pending">]
-       the extra elements were:        [#<Order id: "9eec95b5-1cae-45ac-b8b3-c252097977f4", customer_email: [FILTERED], fulfilled: true, tot...t: "2025-07-04 16:53:28.686298000 -0600", payment_id: "MP-75913fd9b2448519ba36", status: "pending">]
+       expected collection contained:  [#<Order id: "0c42e63b-19a1-4917-b0b1-7f7584d52520", customer_email: [FILTERED], fulfilled: false, to...t: "2025-07-04 16:59:58.784896000 -0600", payment_id: "MP-6b5bea1c6e338baaf9b4", status: "pending">]
+       actual collection contained:    [#<Order id: "0c42e63b-19a1-4917-b0b1-7f7584d52520", customer_email: [FILTERED], fulfilled: false, to...t: "2025-07-04 16:59:58.791661000 -0600", payment_id: "MP-19d8d90a9ea26efa25cb", status: "pending">]
+       the missing elements were:      [#<Order id: "3ecad373-15d1-43d8-8f3e-70d07ead024f", customer_email: [FILTERED], fulfilled: false, to...t: "2025-07-04 16:59:58.784896000 -0600", payment_id: "MP-6b5bea1c6e338baaf9b4", status: "pending">]
+       the extra elements were:        [#<Order id: "3441e229-4d2f-460a-8189-1ec6a95f7cd5", customer_email: [FILTERED], fulfilled: true, tot...t: "2025-07-04 16:59:58.791661000 -0600", payment_id: "MP-19d8d90a9ea26efa25cb", status: "pending">]
      # ./spec/controllers/admin_controller_spec.rb:34:in `block (3 levels) in <top (required)>'
 
   2) AdminController GET #index calculates quick stats for today
@@ -1029,52 +1028,52 @@ Failures:
         +        </thead>
         +        <tbody>
         +            <tr class="border-b">
-        +              <td class="p-4 border-b">5fd4c</td>
+        +              <td class="p-4 border-b">51ed1</td>
         +              <td class="p-4 border-b">false</td>
         +              <td class="p-4 border-b">2025-07-04</td>
-        +              <td class="p-4 border-b">104.43</td>
+        +              <td class="p-4 border-b">235.41</td>
         +              <td class="p-4 border-b">
-        +                <a class="text-blue-500" href="/admin/orders/65fd4c88-5fb1-4999-ad16-a1cc36dee929/edit?locale=en">
+        +                <a class="text-blue-500" href="/admin/orders/f51ed13b-d255-4077-bf62-7e0fc3227312/edit?locale=en">
         +                  <i class="fas fa-edit"></i>
         +</a>              </td>
         +            </tr>
         +            <tr class="border-b">
-        +              <td class="p-4 border-b">b983d</td>
+        +              <td class="p-4 border-b">681c8</td>
         +              <td class="p-4 border-b">false</td>
         +              <td class="p-4 border-b">2025-07-04</td>
-        +              <td class="p-4 border-b">413.11</td>
+        +              <td class="p-4 border-b">272.57</td>
         +              <td class="p-4 border-b">
-        +                <a class="text-blue-500" href="/admin/orders/6b983d3a-be80-43ae-b7cd-95c6579e940e/edit?locale=en">
+        +                <a class="text-blue-500" href="/admin/orders/0681c8cc-b466-48f8-95bf-3456f6ec276f/edit?locale=en">
         +                  <i class="fas fa-edit"></i>
         +</a>              </td>
         +            </tr>
         +            <tr class="border-b">
-        +              <td class="p-4 border-b">0c070</td>
+        +              <td class="p-4 border-b">0f2eb</td>
         +              <td class="p-4 border-b">false</td>
         +              <td class="p-4 border-b">2025-07-04</td>
-        +              <td class="p-4 border-b">218.65</td>
+        +              <td class="p-4 border-b">373.08</td>
         +              <td class="p-4 border-b">
-        +                <a class="text-blue-500" href="/admin/orders/00c07003-04a0-4b29-86cd-c1fc83f501eb/edit?locale=en">
+        +                <a class="text-blue-500" href="/admin/orders/a0f2eb53-a944-4c77-8faf-448a39e6c59f/edit?locale=en">
         +                  <i class="fas fa-edit"></i>
         +</a>              </td>
         +            </tr>
         +            <tr class="border-b">
-        +              <td class="p-4 border-b">4a0c4</td>
+        +              <td class="p-4 border-b">692e3</td>
         +              <td class="p-4 border-b">false</td>
         +              <td class="p-4 border-b">2025-07-03</td>
-        +              <td class="p-4 border-b">150.93</td>
+        +              <td class="p-4 border-b">146.64</td>
         +              <td class="p-4 border-b">
-        +                <a class="text-blue-500" href="/admin/orders/44a0c4bc-440c-4735-89a9-e06722df3b26/edit?locale=en">
+        +                <a class="text-blue-500" href="/admin/orders/e692e32d-5c07-4f68-9978-7096668823b8/edit?locale=en">
         +                  <i class="fas fa-edit"></i>
         +</a>              </td>
         +            </tr>
         +            <tr class="border-b">
-        +              <td class="p-4 border-b">4fac7</td>
+        +              <td class="p-4 border-b">333df</td>
         +              <td class="p-4 border-b">false</td>
         +              <td class="p-4 border-b">2025-07-03</td>
-        +              <td class="p-4 border-b">480.13</td>
+        +              <td class="p-4 border-b">246.5</td>
         +              <td class="p-4 border-b">
-        +                <a class="text-blue-500" href="/admin/orders/f4fac78e-805b-44f0-87f6-1d92977a8634/edit?locale=en">
+        +                <a class="text-blue-500" href="/admin/orders/2333df51-8daa-4683-9753-c2c7c7645244/edit?locale=en">
         +                  <i class="fas fa-edit"></i>
         +</a>              </td>
         +            </tr>
@@ -1336,52 +1335,52 @@ Failures:
         +        </thead>
         +        <tbody>
         +            <tr class="border-b">
-        +              <td class="p-4 border-b">d3780</td>
+        +              <td class="p-4 border-b">0ea4b</td>
         +              <td class="p-4 border-b">false</td>
         +              <td class="p-4 border-b">2025-07-04</td>
-        +              <td class="p-4 border-b">210.87</td>
+        +              <td class="p-4 border-b">191.34</td>
         +              <td class="p-4 border-b">
-        +                <a class="text-blue-500" href="/admin/orders/4d3780cf-d14c-4c64-a66e-b76da575eb8a/edit?locale=en">
+        +                <a class="text-blue-500" href="/admin/orders/60ea4b9d-d911-419e-9afc-2d755c5c3f13/edit?locale=en">
         +                  <i class="fas fa-edit"></i>
         +</a>              </td>
         +            </tr>
         +            <tr class="border-b">
-        +              <td class="p-4 border-b">fce34</td>
+        +              <td class="p-4 border-b">56f52</td>
         +              <td class="p-4 border-b">false</td>
         +              <td class="p-4 border-b">2025-07-04</td>
-        +              <td class="p-4 border-b">166.06</td>
+        +              <td class="p-4 border-b">449.19</td>
         +              <td class="p-4 border-b">
-        +                <a class="text-blue-500" href="/admin/orders/4fce3460-5794-4081-8cb8-87c6bc4e186b/edit?locale=en">
+        +                <a class="text-blue-500" href="/admin/orders/456f527b-fed8-4ced-aa32-5cfae50a75ec/edit?locale=en">
         +                  <i class="fas fa-edit"></i>
         +</a>              </td>
         +            </tr>
         +            <tr class="border-b">
-        +              <td class="p-4 border-b">bea28</td>
+        +              <td class="p-4 border-b">35148</td>
         +              <td class="p-4 border-b">false</td>
         +              <td class="p-4 border-b">2025-07-04</td>
-        +              <td class="p-4 border-b">368.06</td>
+        +              <td class="p-4 border-b">133.9</td>
         +              <td class="p-4 border-b">
-        +                <a class="text-blue-500" href="/admin/orders/0bea2826-de28-4085-8f4c-325ff90d6055/edit?locale=en">
+        +                <a class="text-blue-500" href="/admin/orders/b35148ac-1af7-43d4-aeea-b6b7e543b950/edit?locale=en">
         +                  <i class="fas fa-edit"></i>
         +</a>              </td>
         +            </tr>
         +            <tr class="border-b">
-        +              <td class="p-4 border-b">ada1c</td>
+        +              <td class="p-4 border-b">f9f59</td>
         +              <td class="p-4 border-b">false</td>
         +              <td class="p-4 border-b">2025-07-03</td>
-        +              <td class="p-4 border-b">384.7</td>
+        +              <td class="p-4 border-b">272.23</td>
         +              <td class="p-4 border-b">
-        +                <a class="text-blue-500" href="/admin/orders/6ada1ca3-aab7-4f12-b5f3-e64fc6c7dfc7/edit?locale=en">
+        +                <a class="text-blue-500" href="/admin/orders/0f9f5967-5a78-4bcf-a7c4-6cbaf8f827ce/edit?locale=en">
         +                  <i class="fas fa-edit"></i>
         +</a>              </td>
         +            </tr>
         +            <tr class="border-b">
-        +              <td class="p-4 border-b">825e9</td>
+        +              <td class="p-4 border-b">aa2c7</td>
         +              <td class="p-4 border-b">false</td>
         +              <td class="p-4 border-b">2025-07-03</td>
-        +              <td class="p-4 border-b">70.37</td>
+        +              <td class="p-4 border-b">410.25</td>
         +              <td class="p-4 border-b">
-        +                <a class="text-blue-500" href="/admin/orders/f825e9fe-ce8d-4f2a-a4b6-f5f3482f96ae/edit?locale=en">
+        +                <a class="text-blue-500" href="/admin/orders/faa2c7db-7af3-4615-b7c1-70396166a915/edit?locale=en">
         +                  <i class="fas fa-edit"></i>
         +</a>              </td>
         +            </tr>
@@ -1641,52 +1640,52 @@ Failures:
         +        </thead>
         +        <tbody>
         +            <tr class="border-b">
-        +              <td class="p-4 border-b">8c460</td>
+        +              <td class="p-4 border-b">b756f</td>
         +              <td class="p-4 border-b">false</td>
         +              <td class="p-4 border-b">2025-07-04</td>
-        +              <td class="p-4 border-b">367.59</td>
+        +              <td class="p-4 border-b">424.5</td>
         +              <td class="p-4 border-b">
-        +                <a class="text-blue-500" href="/admin/orders/48c4603c-a533-4160-be3b-108df9cef26e/edit?locale=en">
+        +                <a class="text-blue-500" href="/admin/orders/0b756f12-fd85-4448-b256-286ae5a3caf4/edit?locale=en">
         +                  <i class="fas fa-edit"></i>
         +</a>              </td>
         +            </tr>
         +            <tr class="border-b">
-        +              <td class="p-4 border-b">03173</td>
+        +              <td class="p-4 border-b">6dbf4</td>
         +              <td class="p-4 border-b">false</td>
         +              <td class="p-4 border-b">2025-07-04</td>
-        +              <td class="p-4 border-b">247.05</td>
+        +              <td class="p-4 border-b">77.81</td>
         +              <td class="p-4 border-b">
-        +                <a class="text-blue-500" href="/admin/orders/003173d9-58df-470c-bf59-eeae0ed307e0/edit?locale=en">
+        +                <a class="text-blue-500" href="/admin/orders/e6dbf417-845e-4dad-a722-e95b13edbf70/edit?locale=en">
         +                  <i class="fas fa-edit"></i>
         +</a>              </td>
         +            </tr>
         +            <tr class="border-b">
-        +              <td class="p-4 border-b">18024</td>
+        +              <td class="p-4 border-b">7d7be</td>
         +              <td class="p-4 border-b">false</td>
         +              <td class="p-4 border-b">2025-07-04</td>
-        +              <td class="p-4 border-b">273.78</td>
+        +              <td class="p-4 border-b">63.7</td>
         +              <td class="p-4 border-b">
-        +                <a class="text-blue-500" href="/admin/orders/c1802461-de23-41a1-910e-17bc261a045e/edit?locale=en">
+        +                <a class="text-blue-500" href="/admin/orders/67d7be11-758d-49b1-a954-2436e75cb355/edit?locale=en">
         +                  <i class="fas fa-edit"></i>
         +</a>              </td>
         +            </tr>
         +            <tr class="border-b">
-        +              <td class="p-4 border-b">a993d</td>
+        +              <td class="p-4 border-b">f2632</td>
         +              <td class="p-4 border-b">false</td>
         +              <td class="p-4 border-b">2025-07-04</td>
-        +              <td class="p-4 border-b">461.62</td>
+        +              <td class="p-4 border-b">163.13</td>
         +              <td class="p-4 border-b">
-        +                <a class="text-blue-500" href="/admin/orders/ea993d71-9ccb-4a18-badf-2ab26406bad9/edit?locale=en">
+        +                <a class="text-blue-500" href="/admin/orders/4f26320d-6914-4033-968b-d0d9797dce13/edit?locale=en">
         +                  <i class="fas fa-edit"></i>
         +</a>              </td>
         +            </tr>
         +            <tr class="border-b">
-        +              <td class="p-4 border-b">cb6d1</td>
+        +              <td class="p-4 border-b">9d690</td>
         +              <td class="p-4 border-b">false</td>
         +              <td class="p-4 border-b">2025-07-04</td>
-        +              <td class="p-4 border-b">427.09</td>
+        +              <td class="p-4 border-b">415.16</td>
         +              <td class="p-4 border-b">
-        +                <a class="text-blue-500" href="/admin/orders/3cb6d1cf-db62-4e84-8119-b481057b9070/edit?locale=en">
+        +                <a class="text-blue-500" href="/admin/orders/19d69008-86aa-4f27-8cb6-1fbce9750317/edit?locale=en">
         +                  <i class="fas fa-edit"></i>
         +</a>              </td>
         +            </tr>
@@ -1882,7 +1881,7 @@ Failures:
         +      <div class="flex w-full mx-auto md:w-2/3">
         +  <div class="mx-auto">
         +
-        +    <div id="order_a9b0e63f-aebf-42d8-a786-e60fbfe3a52a">
+        +    <div id="order_4c970350-f9da-42b4-b96f-708f6128efc4">
         +  <p class="my-5">
         +    <strong class="block mb-1 font-medium">Customer email:</strong>
         +    customer241@example.com
@@ -1895,12 +1894,12 @@ Failures:
         +
         +  <p class="my-5">
         +    <strong class="block mb-1 font-medium">Total:</strong>
-        +    106.86
+        +    258.94
         +  </p>
         +
         +  <p class="my-5">
         +    <strong class="block mb-1 font-medium">Address:</strong>
-        +    Allan Oval 7440
+        +    Willie Estates 78810
         +  </p>
         +
         +  <strong class="mt-6 mb-3 font-mediuum ">Products</strong>
@@ -1910,11 +1909,11 @@ Failures:
         +    </div>
         +    <div class="flex justify-between">
         +      <strong class="">Size</strong>
-        +      M
+        +      L
         +    </div>      
         +    <div class="flex justify-between">
         +      <strong class="">Quantity</strong>
-        +      2
+        +      1
         +    </div>
         +    <div class="flex justify-between">
         +      <strong class="">Name</strong>
@@ -1922,11 +1921,11 @@ Failures:
         +    </div>
         +    <div class="flex justify-between">
         +      <strong class="">Size</strong>
-        +      XS
+        +      XL
         +    </div>      
         +    <div class="flex justify-between">
         +      <strong class="">Quantity</strong>
-        +      2
+        +      5
         +    </div>
         +    <div class="flex justify-between">
         +      <strong class="">Name</strong>
@@ -1934,22 +1933,22 @@ Failures:
         +    </div>
         +    <div class="flex justify-between">
         +      <strong class="">Size</strong>
-        +      L
+        +      XS
         +    </div>      
         +    <div class="flex justify-between">
         +      <strong class="">Quantity</strong>
-        +      2
+        +      5
         +    </div>
         +
         +</div>
         +
         +      <div class="mt-8">
-        +      <a class="px-4 py-2 ml-2 text-sm text-center text-white transition-all border border-transparent rounded-md shadow-md bg-slate-800 hover:shadow-lg focus:bg-slate-700 focus:shadow-none active:bg-slate-700 hover:bg-slate-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" href="/admin/orders/a9b0e63f-aebf-42d8-a786-e60fbfe3a52a/edit?locale=en">Edit this order</a>
+        +      <a class="px-4 py-2 ml-2 text-sm text-center text-white transition-all border border-transparent rounded-md shadow-md bg-slate-800 hover:shadow-lg focus:bg-slate-700 focus:shadow-none active:bg-slate-700 hover:bg-slate-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" href="/admin/orders/4c970350-f9da-42b4-b96f-708f6128efc4/edit?locale=en">Edit this order</a>
         +
         +      <a class="px-4 py-2 ml-2 text-sm text-center text-white transition-all border border-transparent rounded-md shadow-md bg-slate-800 hover:shadow-lg focus:bg-slate-700 focus:shadow-none active:bg-slate-700 hover:bg-slate-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" href="/admin/orders?locale=en">Back to orders</a>
         +
         +      <div class="inline-block ml-2">
-        +        <form class="button_to" method="post" action="/admin/orders/a9b0e63f-aebf-42d8-a786-e60fbfe3a52a?locale=en"><input type="hidden" name="_method" value="delete" autocomplete="off" /><button class="px-4 py-2 ml-2 text-sm text-center text-white transition-all border border-transparent rounded-md shadow-md bg-slate-800 hover:shadow-lg focus:bg-slate-700 focus:shadow-none active:bg-slate-700 hover:bg-slate-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" type="submit">Destroy this order</button></form>
+        +        <form class="button_to" method="post" action="/admin/orders/4c970350-f9da-42b4-b96f-708f6128efc4?locale=en"><input type="hidden" name="_method" value="delete" autocomplete="off" /><button class="px-4 py-2 ml-2 text-sm text-center text-white transition-all border border-transparent rounded-md shadow-md bg-slate-800 hover:shadow-lg focus:bg-slate-700 focus:shadow-none active:bg-slate-700 hover:bg-slate-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" type="submit">Destroy this order</button></form>
         +      </div>
         +    </div>
         +  </div>
@@ -1994,10 +1993,10 @@ Failures:
   35) Admin::Orders analytics and reporting with revenue data calculates revenue correctly
       Failure/Error: expect(response.body).to include(total_revenue.to_s) if total_revenue > 0
       
-        expected "<!DOCTYPE html>\n<html>\n  <head>\n    <title>Coins Ecommerce App</title>\n    <meta name=\"viewport...'>1</button></a>\n        </div>\n    </div>\n  </div>\n</div>\n\n    </main>\n  </body>\n</html>\n" to include "7948.42"
+        expected "<!DOCTYPE html>\n<html>\n  <head>\n    <title>Coins Ecommerce App</title>\n    <meta name=\"viewport...'>1</button></a>\n        </div>\n    </div>\n  </div>\n</div>\n\n    </main>\n  </body>\n</html>\n" to include "8017.44"
         Diff:
         @@ -1 +1,294 @@
-        -7948.42
+        -8017.44
         +<!DOCTYPE html>
         +<html>
         +  <head>
@@ -2229,52 +2228,52 @@ Failures:
         +        </thead>
         +        <tbody>
         +            <tr class="border-b">
-        +              <td class="p-4 border-b">f5262</td>
+        +              <td class="p-4 border-b">c5ed8</td>
         +              <td class="p-4 border-b">false</td>
         +              <td class="p-4 border-b">2025-07-04</td>
-        +              <td class="p-4 border-b">4800.05</td>
+        +              <td class="p-4 border-b">3619.21</td>
         +              <td class="p-4 border-b">
-        +                <a class="text-blue-500" href="/admin/orders/7f526200-4830-4480-8525-2487775d3e2e/edit?locale=en">
+        +                <a class="text-blue-500" href="/admin/orders/6c5ed8fe-ecbd-4fc7-a38d-a55b3171a531/edit?locale=en">
         +                  <i class="fas fa-edit"></i>
         +</a>              </td>
         +            </tr>
         +            <tr class="border-b">
-        +              <td class="p-4 border-b">0f7f5</td>
+        +              <td class="p-4 border-b">861e5</td>
         +              <td class="p-4 border-b">false</td>
         +              <td class="p-4 border-b">2025-07-04</td>
-        +              <td class="p-4 border-b">3094.53</td>
+        +              <td class="p-4 border-b">4281.31</td>
         +              <td class="p-4 border-b">
-        +                <a class="text-blue-500" href="/admin/orders/60f7f5b8-0538-4105-9f9d-da680969948f/edit?locale=en">
+        +                <a class="text-blue-500" href="/admin/orders/1861e523-041b-402f-bbe6-6328d1f99d9b/edit?locale=en">
         +                  <i class="fas fa-edit"></i>
         +</a>              </td>
         +            </tr>
         +            <tr class="border-b">
-        +              <td class="p-4 border-b">fd015</td>
+        +              <td class="p-4 border-b">a9618</td>
         +              <td class="p-4 border-b">false</td>
         +              <td class="p-4 border-b">2025-07-03</td>
-        +              <td class="p-4 border-b">14.01</td>
+        +              <td class="p-4 border-b">47.32</td>
         +              <td class="p-4 border-b">
-        +                <a class="text-blue-500" href="/admin/orders/dfd0150b-22a3-462c-af65-d7c9959891fe/edit?locale=en">
+        +                <a class="text-blue-500" href="/admin/orders/6a9618f6-ce16-4fe9-ba97-56c652be53c0/edit?locale=en">
         +                  <i class="fas fa-edit"></i>
         +</a>              </td>
         +            </tr>
         +            <tr class="border-b">
-        +              <td class="p-4 border-b">8d601</td>
+        +              <td class="p-4 border-b">bd3af</td>
         +              <td class="p-4 border-b">false</td>
         +              <td class="p-4 border-b">2025-07-03</td>
-        +              <td class="p-4 border-b">17.5</td>
+        +              <td class="p-4 border-b">43.33</td>
         +              <td class="p-4 border-b">
-        +                <a class="text-blue-500" href="/admin/orders/18d601db-dcb9-4012-a39c-1152f664a0ac/edit?locale=en">
+        +                <a class="text-blue-500" href="/admin/orders/4bd3af01-f0b0-4263-bad4-7f3a4c47d2e8/edit?locale=en">
         +                  <i class="fas fa-edit"></i>
         +</a>              </td>
         +            </tr>
         +            <tr class="border-b">
-        +              <td class="p-4 border-b">950eb</td>
+        +              <td class="p-4 border-b">9cb4d</td>
         +              <td class="p-4 border-b">false</td>
         +              <td class="p-4 border-b">2025-07-03</td>
-        +              <td class="p-4 border-b">22.33</td>
+        +              <td class="p-4 border-b">26.27</td>
         +              <td class="p-4 border-b">
-        +                <a class="text-blue-500" href="/admin/orders/3950eb32-3868-48d7-98ad-0b70559f1d2c/edit?locale=en">
+        +                <a class="text-blue-500" href="/admin/orders/29cb4dfd-70cf-47ce-81dd-e8d4caee67c8/edit?locale=en">
         +                  <i class="fas fa-edit"></i>
         +</a>              </td>
         +            </tr>
@@ -2435,38 +2434,19 @@ Failures:
       # ./spec/requests/checkouts_spec.rb:158:in `block (3 levels) in <top (required)>'
 
   45) Checkouts cart calculations calculates total correctly for multiple products
-      Failure/Error: create(:stock, product: product, quantity: rand(10..100))
+      Failure/Error:
+        allow(CartProcessor).to receive(:process_checkout).and_return(
+          double(
+            success?: true,
+            order: create(:order, total: expected_total),
+            message: 'Order created successfully'
+          )
+        )
       
-      NoMethodError:
-        undefined method `quantity=' for an instance of Stock
-      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/factory_bot-6.5.4/lib/factory_bot/attribute_assigner.rb:16:in `public_send'
-      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/factory_bot-6.5.4/lib/factory_bot/attribute_assigner.rb:16:in `block (2 levels) in object'
-      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/factory_bot-6.5.4/lib/factory_bot/attribute_assigner.rb:15:in `each'
-      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/factory_bot-6.5.4/lib/factory_bot/attribute_assigner.rb:15:in `block in object'
-      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/factory_bot-6.5.4/lib/factory_bot/attribute_assigner.rb:14:in `object'
-      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/factory_bot-6.5.4/lib/factory_bot/evaluation.rb:10:in `object'
-      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/factory_bot-6.5.4/lib/factory_bot/strategy/create.rb:9:in `result'
-      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/factory_bot-6.5.4/lib/factory_bot/factory.rb:47:in `run'
-      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/factory_bot-6.5.4/lib/factory_bot/factory_runner.rb:29:in `block in run'
-      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/factory_bot-6.5.4/lib/factory_bot/factory_runner.rb:28:in `run'
-      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/factory_bot-6.5.4/lib/factory_bot/strategy_syntax_method_registrar.rb:28:in `block in define_singular_strategy_method'
-      # ./spec/factories/products.rb:18:in `block (4 levels) in <top (required)>'
-      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/factory_bot-6.5.4/lib/factory_bot/callback.rb:12:in `instance_exec'
-      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/factory_bot-6.5.4/lib/factory_bot/callback.rb:12:in `run'
-      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/factory_bot-6.5.4/lib/factory_bot/callbacks_observer.rb:11:in `block in update'
-      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/factory_bot-6.5.4/lib/factory_bot/callbacks_observer.rb:10:in `each'
-      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/factory_bot-6.5.4/lib/factory_bot/callbacks_observer.rb:10:in `update'
-      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/factory_bot-6.5.4/lib/factory_bot/evaluation.rb:20:in `notify'
-      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/factory_bot-6.5.4/lib/factory_bot/strategy/create.rb:13:in `block in result'
-      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/factory_bot-6.5.4/lib/factory_bot/strategy/create.rb:9:in `result'
-      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/factory_bot-6.5.4/lib/factory_bot/factory.rb:47:in `run'
-      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/factory_bot-6.5.4/lib/factory_bot/factory_runner.rb:29:in `block in run'
-      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/factory_bot-6.5.4/lib/factory_bot/factory_runner.rb:28:in `run'
-      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/factory_bot-6.5.4/lib/factory_bot/strategy_syntax_method_registrar.rb:28:in `block in define_singular_strategy_method'
-      # ./spec/requests/checkouts_spec.rb:167:in `block (3 levels) in <top (required)>'
-      # ./spec/requests/checkouts_spec.rb:181:in `block (3 levels) in <top (required)>'
+        CartProcessor does not implement: process_checkout
+      # ./spec/requests/checkouts_spec.rb:183:in `block (3 levels) in <top (required)>'
 
-Finished in 3.06 seconds (files took 1.86 seconds to load)
+Finished in 3.18 seconds (files took 1.88 seconds to load)
 274 examples, 45 failures
 
 Failed examples:
