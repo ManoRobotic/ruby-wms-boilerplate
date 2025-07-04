@@ -4,8 +4,16 @@ class PaymentProcessor
 
   attr_accessor :payment_data
 
-  def self.process_approved_payment(payment_data)
+  def self.process_approved_payment(payment_id)
+    payment_data = fetch_payment_data(payment_id)
     new(payment_data: payment_data).process
+  end
+
+  def self.fetch_payment_data(payment_id)
+    # Fetch payment data from MercadoPago
+    sdk = Mercadopago::SDK.new(ENV['MP_ACCESS_TOKEN'])
+    response = sdk.payment.get(payment_id)
+    response.response
   end
 
   def initialize(payment_data:)
@@ -13,22 +21,18 @@ class PaymentProcessor
   end
 
   def process
-    return false unless payment_approved?
+    return { success: false, error: "Payment not approved" } unless payment_approved?
 
     ActiveRecord::Base.transaction do
       order = create_order
       create_order_products(order)
       update_stock_levels
       log_successful_payment(order)
-      order
+      { success: true, order: order }
     end
   rescue StandardError => e
-    Rails.logger.error "Payment processing failed: #{e.message}", {
-      payment_id: payment_id,
-      error: e.message,
-      backtrace: e.backtrace.first(5)
-    }
-    false
+    Rails.logger.error "Payment processing failed: #{e.message}. Payment ID: #{payment_id}. Backtrace: #{e.backtrace.first(5).join(', ')}"
+    { success: false, error: e.message }
   end
 
   private
@@ -46,7 +50,7 @@ class PaymentProcessor
       customer_email: payment_data.dig("payer", "email"),
       total: payment_data.dig("transaction_details", "total_paid_amount"),
       address: build_address,
-      fulfilled: false,
+      status: :pending,
       payment_id: payment_id
     )
   end
@@ -67,7 +71,7 @@ class PaymentProcessor
         product_id: item["product_id"],
         quantity: item["quantity"].to_i,
         size: item["size"],
-        unit_price: item["price"].to_f
+        unit_price: item["price"]&.to_f || 0.0
       )
     end
   end
@@ -82,11 +86,6 @@ class PaymentProcessor
   end
 
   def log_successful_payment(order)
-    Rails.logger.info "Payment processed successfully", {
-      payment_id: payment_id,
-      order_id: order.id,
-      amount: order.total,
-      customer_email: order.customer_email
-    }
+    Rails.logger.info "Payment processed successfully - Payment ID: #{payment_id}, Order ID: #{order.id}, Amount: #{order.total}, Customer: #{order.customer_email}"
   end
 end

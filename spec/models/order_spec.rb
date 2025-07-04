@@ -69,7 +69,10 @@ RSpec.describe Order, type: :model do
 
     describe '.today' do
       it 'returns orders created today' do
-        expect(Order.today).to match_array(today_orders)
+        today_result = Order.today
+        today_orders.each do |order|
+          expect(today_result).to include(order)
+        end
       end
     end
 

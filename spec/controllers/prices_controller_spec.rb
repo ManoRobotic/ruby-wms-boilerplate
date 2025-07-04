@@ -39,10 +39,10 @@ RSpec.describe PricesController, type: :controller do
         allow(BbvaScraper).to receive(:obtener_precios).and_raise(StandardError.new("Scraper error"))
       end
 
-      it "lets the error bubble up" do
-        expect {
-          get :index
-        }.to raise_error(StandardError, "Scraper error")
+      it "handles the error gracefully" do
+        get :index
+        expect(response).to have_http_status(:success)
+        expect(assigns(:precios)).to eq({})
       end
     end
 

@@ -50,11 +50,18 @@ class Admin::OrdersController < AdminController
 
   # DELETE /admin/orders/1 or /admin/orders/1.json
   def destroy
-    @admin_order.destroy!
+    if @admin_order.cancelled?
+      @admin_order.destroy!
 
-    respond_to do |format|
-      format.html { redirect_to admin_orders_path, status: :see_other, notice: t("admin.orders.deleted") }
-      format.json { head :no_content }
+      respond_to do |format|
+        format.html { redirect_to admin_orders_path, status: :see_other, notice: t("admin.orders.deleted") }
+        format.json { head :no_content }
+      end
+    else
+      respond_to do |format|
+        format.html { redirect_to admin_orders_path, alert: "Only cancelled orders can be deleted" }
+        format.json { render json: { error: "Only cancelled orders can be deleted" }, status: :unprocessable_entity }
+      end
     end
   end
 
@@ -64,6 +71,6 @@ class Admin::OrdersController < AdminController
     end
 
     def order_params
-      params.require(:order).permit(:customer_email, :fulfilled, :total, :address)
+      params.require(:order).permit(:customer_email, :fulfilled, :total, :address, :status)
     end
 end

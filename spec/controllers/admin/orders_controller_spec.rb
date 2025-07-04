@@ -203,7 +203,7 @@ RSpec.describe Admin::OrdersController, type: :controller do
   end
 
   describe "DELETE #destroy" do
-    let!(:order_to_delete) { create(:order) }
+    let!(:order_to_delete) { create(:order, :cancelled) }
 
     it "destroys the requested order" do
       expect {

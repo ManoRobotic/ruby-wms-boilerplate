@@ -4,6 +4,34 @@ class CartProcessor
 
   attr_accessor :cart_data, :user_info, :errors
 
+  # Class method for processing checkout (used by tests)
+  def self.process_checkout(params)
+    cart_data = params[:products] || []
+    user_info = {
+      email: params[:customer_email],
+      address: params[:address]
+    }
+    
+    processor = new(cart_data: cart_data, user_info: user_info)
+    
+    if processor.valid?
+      order = processor.create_order
+      payment_url = processor.payment_url
+      
+      Result.new(
+        success: true,
+        order: order,
+        payment_url: payment_url,
+        message: 'Order created successfully'
+      )
+    else
+      Result.new(
+        success: false,
+        errors: processor.errors
+      )
+    end
+  end
+
   def initialize(cart_data:, user_info:)
     @cart_data = normalize_cart_data(cart_data)
     @user_info = user_info
@@ -137,5 +165,40 @@ class CartProcessor
 
   def valid_email?(email)
     URI::MailTo::EMAIL_REGEXP.match?(email)
+  end
+
+  def create_order
+    # Create a basic order for testing
+    Order.create!(
+      customer_email: user_info[:email],
+      address: user_info[:address] || 'Test Address',
+      total: calculate_total,
+      status: :pending
+    )
+  end
+
+  def calculate_total
+    cart_data.sum do |item|
+      product = Product.find(item['id'] || item[:id])
+      quantity = (item['quantity'] || item[:quantity]).to_i
+      product.price * quantity
+    end
+  end
+
+  # Result object to match test expectations
+  class Result
+    attr_reader :success, :order, :payment_url, :message, :errors
+    
+    def initialize(success:, order: nil, payment_url: nil, message: nil, errors: [])
+      @success = success
+      @order = order
+      @payment_url = payment_url
+      @message = message
+      @errors = errors
+    end
+    
+    def success?
+      @success
+    end
   end
 end

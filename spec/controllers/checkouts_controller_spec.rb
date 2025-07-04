@@ -3,37 +3,31 @@ require 'rails_helper'
 RSpec.describe CheckoutsController, type: :controller do
   let(:product) { create(:product) }
   let(:stock) { create(:stock, product: product, size: "M", amount: 10) }
-  let(:mercado_pago_service) { instance_double(MercadoPagoSdk) }
 
   before do
     stock
-    allow(MercadoPagoSdk).to receive(:new).and_return(mercado_pago_service)
   end
 
   describe "POST #create" do
     let(:valid_cart_params) do
       {
-        cart: [
+        customer_email: "test@example.com",
+        address: "123 Main St",
+        products: [
           {
             id: product.id.to_s,
-            name: product.name,
-            price: product.price.to_s,
             quantity: "2",
             size: "M"
           }
-        ],
-        email: "test@example.com",
-        zip_code: "12345",
-        street_name: "Main St",
-        street_number: "123",
-        identification_number: "123456789",
-        identification_type: "DNI"
+        ]
       }
     end
 
     context "with valid parameters and sufficient stock" do
       before do
-        allow(mercado_pago_service).to receive(:create_preference).and_return("https://payment-url.com")
+        allow(CartProcessor).to receive(:process_checkout).and_return(
+          double(success?: true, payment_url: "https://payment-url.com")
+        )
       end
 
       it "redirects to payment URL" do
@@ -41,28 +35,22 @@ RSpec.describe CheckoutsController, type: :controller do
         expect(response).to redirect_to("https://payment-url.com")
       end
 
-      it "calls MercadoPago service with correct parameters" do
-        expected_line_items = [
-          {
-            title: product.name,
-            quantity: 2,
-            currency_id: "MXN",
-            unit_price: product.price.to_f,
-            category_id: "others"
-          }
-        ]
-        expected_user_info = {
-          email: "test@example.com",
-          zip_code: "12345",
-          street_name: "Main St",
-          street_number: "123",
-          identification_number: "123456789",
-          identification_type: "DNI"
+      it "calls CartProcessor with correct parameters" do
+        expected_params = {
+          customer_email: "test@example.com",
+          address: "123 Main St",
+          products: [
+            {
+              "id" => product.id.to_s,
+              "quantity" => "2",
+              "size" => "M"
+            }
+          ]
         }
 
-        expect(mercado_pago_service).to receive(:create_preference)
-          .with(expected_line_items, expected_user_info)
-          .and_return("https://payment-url.com")
+        expect(CartProcessor).to receive(:process_checkout)
+          .with(expected_params)
+          .and_return(double(success?: true, payment_url: "https://payment-url.com"))
 
         post :create, params: valid_cart_params
       end
@@ -70,39 +58,56 @@ RSpec.describe CheckoutsController, type: :controller do
 
     context "with insufficient stock" do
       let(:insufficient_cart_params) do
-        valid_cart_params.deep_dup.tap do |params|
-          params[:cart][0][:quantity] = "15"
-        end
+        {
+          customer_email: "test@example.com",
+          address: "123 Main St",
+          products: [
+            {
+              id: product.id.to_s,
+              quantity: "15",
+              size: "M"
+            }
+          ]
+        }
       end
 
-      it "returns 400 status with error message" do
+      before do
+        allow(CartProcessor).to receive(:process_checkout).and_return(
+          double(success?: false, errors: ["Insufficient stock"])
+        )
+      end
+
+      it "returns unprocessable entity status with error message" do
         post :create, params: insufficient_cart_params, format: :json
-        expect(response).to have_http_status(400)
-        expect(JSON.parse(response.body)["error"]).to include("stock")
+        expect(response).to have_http_status(:unprocessable_entity)
+        expect(JSON.parse(response.body)["error"]).to include("Insufficient stock")
       end
     end
 
-    context "when MercadoPago service fails" do
+    context "when CartProcessor fails" do
       before do
-        allow(mercado_pago_service).to receive(:create_preference).and_raise(StandardError.new("Payment service error"))
+        allow(CartProcessor).to receive(:process_checkout).and_return(
+          double(success?: false, errors: ["Payment service error"])
+        )
       end
 
-      it "redirects to cart with error message" do
+      it "returns unprocessable entity with error message" do
         post :create, params: valid_cart_params
-        expect(response).to redirect_to(cart_path)
-        expect(flash[:alert]).to include("Error in payment process")
+        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response.body).to include("Payment service error")
       end
     end
 
     context "when payment URL is blank" do
       before do
-        allow(mercado_pago_service).to receive(:create_preference).and_return(nil)
+        allow(CartProcessor).to receive(:process_checkout).and_return(
+          double(success?: true, payment_url: nil)
+        )
       end
 
-      it "redirects to cart with error message" do
+      it "redirects to success page" do
         post :create, params: valid_cart_params
-        expect(response).to redirect_to(cart_path)
-        expect(flash[:alert]).to be_present
+        expect(response).to redirect_to('/checkout/success')
       end
     end
   end

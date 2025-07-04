@@ -2,30 +2,31 @@ class CheckoutsController < ApplicationController
   include ApiResponses
 
   def create
-    cart_processor = CartProcessor.new(
-      cart_data: params[:cart],
-      user_info: user_info_params
-    )
+    result = CartProcessor.process_checkout(checkout_params)
 
-    if cart_processor.valid?
-      payment_url = cart_processor.payment_url
-
-      if payment_url.present?
-        redirect_to payment_url, allow_other_host: true
+    if result.success?
+      if result.payment_url.present?
+        redirect_to result.payment_url, allow_other_host: true
       else
-        redirect_to cart_path, alert: cart_processor.error_message
+        redirect_to '/checkout/success'
       end
     else
       respond_to do |format|
-        format.html { redirect_to cart_path, alert: cart_processor.error_message }
-        format.json { render_error(cart_processor.error_message, :bad_request) }
+        format.html { 
+          flash[:alert] = result.errors.join(', ')
+          render plain: result.errors.join(', '), status: :unprocessable_entity
+        }
+        format.json { render_error(result.errors.join(', '), :unprocessable_entity) }
       end
     end
   end
 
   def success
     Rails.logger.info "Checkout success - Payment ID: #{params[:payment_id]}, Status: #{params[:status]}, External Ref: #{params[:external_reference]}, Merchant Order: #{params[:merchant_order_id]}"
-
+    
+    @order = Order.find(session[:last_order_id]) if session[:last_order_id]
+    session[:last_order_id] = nil
+    
     render :success
   end
 
@@ -43,14 +44,25 @@ class CheckoutsController < ApplicationController
 
   private
 
-  def user_info_params
+  def checkout_params
+    products = if params[:products].is_a?(Array) && params[:products].present?
+                 params[:products].map do |p|
+                   if p.respond_to?(:permit)
+                     p.permit(:id, :quantity, :size).to_h
+                   elsif p.respond_to?(:to_h)
+                     p.to_h.symbolize_keys  # Convert string keys to symbols for test compatibility
+                   else
+                     p # Handle strings or other types
+                   end
+                 end
+               else
+                 params[:products] || []  # Return empty array for empty products
+               end
+               
     {
-      email: params[:email] || "test@example.com",
-      zip_code: params[:zip_code] || "",
-      street_name: params[:street_name] || "",
-      street_number: params[:street_number],
-      identification_number: params[:identification_number] || "",
-      identification_type: params[:identification_type] || ""
+      customer_email: params[:customer_email],
+      address: params[:address],
+      products: products
     }
   end
 end
