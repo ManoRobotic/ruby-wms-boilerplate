@@ -1,219 +1,2522 @@
-AlanAlvarez21
-ecommerce-boilerplate
+spec ./spec
+DEPRECATION WARNING: `to_time` will always preserve the full timezone rather than offset of the receiver in Rails 8.1. To opt in to the new behavior, set `config.active_support.to_time_preserves_timezone = :zone`. (called from <top (required)> at /Users/dev/coinsEcommerceApp/config/environment.rb:5)
+DEPRECATION WARNING: `to_time` will always preserve the full timezone rather than offset of the receiver in Rails 8.1. To opt in to the new behavior, set `config.active_support.to_time_preserves_timezone = :zone`. (called from <top (required)> at /Users/dev/coinsEcommerceApp/config/environment.rb:5)
 
-Type / to search
-Code
-Issues
-Pull requests
-Actions
-Projects
-Wiki
-Security
-Insights
-Settings
-CI
-Fix system tests for admin namespace #156
-Jobs
-Run details
-test
-failed now in 1m 36s
-Search logs
-1s
-22s
-19s
-1s
-4s
-46s
-Run bin/rails db:test:prepare test test:system
-DEPRECATION WARNING: `to_time` will always preserve the full timezone rather than offset of the receiver in Rails 8.1. To opt in to the new behavior, set `config.active_support.to_time_preserves_timezone = :zone`. (called from <main> at /home/runner/work/ecommerce-boilerplate/ecommerce-boilerplate/config/environment.rb:5)
-DEPRECATION WARNING: `to_time` will always preserve the full timezone rather than offset of the receiver in Rails 8.1. To opt in to the new behavior, set `config.active_support.to_time_preserves_timezone = :zone`. (called from <main> at /home/runner/work/ecommerce-boilerplate/ecommerce-boilerplate/config/environment.rb:5)
-DEPRECATION WARNING: `to_time` will always preserve the full timezone rather than offset of the receiver in Rails 8.1. To opt in to the new behavior, set `config.active_support.to_time_preserves_timezone = :zone`. (called from <main> at /home/runner/work/ecommerce-boilerplate/ecommerce-boilerplate/config/environment.rb:5)
-DEPRECATION WARNING: `to_time` will always preserve the full timezone rather than offset of the receiver in Rails 8.1. To opt in to the new behavior, set `config.active_support.to_time_preserves_timezone = :zone`. (called from <main> at /home/runner/work/ecommerce-boilerplate/ecommerce-boilerplate/config/environment.rb:5)
-≈ tailwindcss v4.1.10
+Admin::CategoriesController
+  GET #index
+    returns http success
+    renders the admin layout
+    assigns all categories
+  GET #show
+    returns http success
+    assigns the requested category
+    raises error for invalid id
+  GET #new
+    returns http success
+    assigns a new category
+  GET #edit
+    returns http success
+    assigns the requested category
+  POST #create
+    with valid parameters
+      creates a new category
+      redirects to admin categories index
+      sets a success notice
+    with invalid parameters
+      does not create a new category
+      renders the new template
+    JSON format
+      returns created status for valid attributes
+      returns errors for invalid attributes
+  PATCH #update
+    with valid parameters
+      updates the requested category
+      redirects to admin categories index
+      sets a success notice
+    with invalid parameters
+      renders the edit template
+    JSON format
+      returns ok status for valid attributes
+      returns errors for invalid attributes
+  DELETE #destroy
+    destroys the requested category
+    redirects to admin categories index
+    sets a success notice
+    JSON format
+      returns no content status
+  authentication
+    when admin is not signed in
+      redirects to admin sign in for index
+      redirects to admin sign in for show
+  private methods
+    #set_category
+      sets @category for show action
+    #category_params
+      permits allowed parameters
 
-Done in 4s
-Running 0 tests in a single process (parallelization threshold is 50)
-Run options: --seed 28819
+Admin::OrdersController
+  GET #index
+    returns http success
+    renders the admin layout
+    assigns fulfilled orders
+    paginates fulfilled orders with paid_page parameter
+    paginates unfulfilled orders with unpaid_page parameter
+    limits results to 5 per page
+  GET #show
+    returns http success
+    assigns the requested order
+    raises error for invalid id
+  GET #new
+    returns http success
+    assigns a new order
+  GET #edit
+    returns http success
+    assigns the requested order
+  POST #create
+    with valid parameters
+      creates a new order
+      redirects to admin orders index
+      sets a success notice
+    with invalid parameters
+      does not create a new order
+      renders the new template
+    JSON format
+      returns created status for valid attributes
+      returns errors for invalid attributes
+  PATCH #update
+    with valid parameters
+      updates the requested order
+      redirects to admin orders index
+      sets a success notice
+    with invalid parameters
+      renders the edit template
+    JSON format
+      returns ok status for valid attributes
+      returns errors for invalid attributes
+  DELETE #destroy
+    destroys the requested order
+    redirects to admin orders index
+    sets a success notice
+    JSON format
+      returns no content status
+  authentication
+    when admin is not signed in
+      redirects to admin sign in for index
+      redirects to admin sign in for show
+  private methods
+    #set_order
+      sets @admin_order for show action
+    #order_params
+      permits allowed parameters
 
-# Running:
+Admin::ProductsController
+  GET #index
+    returns http success
+    renders the admin layout
+    assigns all products
+  GET #show
+    returns http success
+    assigns the requested product
+    raises error for invalid id
+  GET #new
+    returns http success
+    assigns a new product
+  GET #edit
+    returns http success
+    assigns the requested product
+  POST #create
+    with valid parameters
+      creates a new product
+      redirects to admin products index
+      sets a success notice
+    with invalid parameters
+      does not create a new product
+      renders the new template
+    JSON format
+      returns created status for valid attributes
+      returns errors for invalid attributes
+  PATCH #update
+    with valid parameters (first update logic)
+      updates the requested product
+      redirects to admin products index
+      sets a success notice
+    with invalid parameters
+      renders the edit template
+    JSON format
+      returns ok status for valid attributes
+      returns errors for invalid attributes
+    with image attachments
+      handles image attachments in the update logic
+  DELETE #destroy
+    destroys the requested product
+    redirects to admin products index
+    sets a success notice
+    JSON format
+      returns no content status
+  authentication
+    when admin is not signed in
+      redirects to admin sign in for index
+      redirects to admin sign in for show
+  private methods
+    #set_admin_product
+      sets @admin_product for show action
+    #admin_product_params
+      permits allowed parameters
 
+Admin::RegistrationsController
+  parameter sanitization
+    #configure_sign_up_params
+      permits name and address for sign up
+      calls configure_sign_up_params before create
+    #configure_account_update_params
+      permits name and address for account update
+      calls configure_account_update_params before update
+  inheritance from Devise::RegistrationsController
+    inherits from Devise::RegistrationsController
+    uses admin devise mapping
+  GET #new
+    returns http success
+    assigns a new admin
+  POST #create
+    with valid parameters
+      creates a new admin
+      redirects to admin root after successful creation
+      signs in the new admin
+    with invalid parameters
+      does not create a new admin
+      renders the new template
+  GET #edit
+    returns http success
+    assigns the current admin
+  PATCH #update
+    with valid parameters
+      updates the admin
+      redirects after successful update
+    with invalid current password
+      does not update the admin
+      renders the edit template with errors
+  authentication
+    when admin is not signed in
+      redirects to sign in for edit
+      redirects to sign in for update
 
+Admin::StocksController
+  GET #index
+    returns http success
+    renders the admin layout
+    assigns only stocks for the specified product
+    orders stocks by created_at desc
+  GET #show
+    returns http success
+    assigns the requested stock
+    raises error for invalid id
+  GET #new
+    returns http success
+    assigns a new stock
+    assigns the product
+    raises error for invalid product_id
+  GET #edit
+    returns http success
+    assigns the requested stock
+    assigns the product
+  POST #create
+    with valid parameters
+      creates a new stock
+      associates stock with the product
+      redirects to admin product stock path
+      sets a success notice
+    with invalid parameters
+      does not create a new stock
+      renders the new template
+      assigns the product
+    JSON format
+      returns created status for valid attributes
+      returns errors for invalid attributes
+  PATCH #update
+    with valid parameters
+      updates the requested stock
+      redirects to admin product stocks path
+      sets a success notice
+    with invalid parameters
+      renders the edit template
+    JSON format
+      returns ok status for valid attributes
+      returns errors for invalid attributes
+  DELETE #destroy
+    destroys the requested stock
+    redirects to admin product stocks path
+    sets a success notice
+    JSON format
+      returns no content status
+  authentication
+    when admin is not signed in
+      redirects to admin sign in for index
+      redirects to admin sign in for show
+  private methods
+    #set_stock
+      sets @admin_stock for show action
+    #stock_params
+      permits allowed parameters
 
-Finished in 0.001363s, 0.0000 runs/s, 0.0000 assertions/s.
-0 runs, 0 assertions, 0 failures, 0 errors, 0 skips
-DEPRECATION WARNING: `to_time` will always preserve the full timezone rather than offset of the receiver in Rails 8.1. To opt in to the new behavior, set `config.active_support.to_time_preserves_timezone = :zone`. (called from <main> at /home/runner/work/ecommerce-boilerplate/ecommerce-boilerplate/config/environment.rb:5)
-DEPRECATION WARNING: `to_time` will always preserve the full timezone rather than offset of the receiver in Rails 8.1. To opt in to the new behavior, set `config.active_support.to_time_preserves_timezone = :zone`. (called from <main> at /home/runner/work/ecommerce-boilerplate/ecommerce-boilerplate/config/environment.rb:5)
-≈ tailwindcss v4.1.10
+AdminController
+  GET #index
+    returns http success
+    renders the admin layout
+    assigns recent unfulfilled orders (FAILED - 1)
+    calculates quick stats for today (FAILED - 2)
+    calculates revenue by day for last 7 days (FAILED - 3)
+    includes today's revenue in revenue_by_day (FAILED - 4)
+    when no orders exist
+      handles empty data gracefully (FAILED - 5)
+  authentication
+    when admin is not signed in
+      redirects to admin sign in
 
-Done in 4s
-Running 16 tests in a single process (parallelization threshold is 50)
-Run options: --seed 54741
+ApplicationController
+  locale handling
+    when locale parameter is provided
+      sets the locale from params
+      renders with the set locale
+    when no locale parameter is provided
+      uses the default locale
+  #default_url_options
+    includes the current locale
+  before_action :set_locale
+    calls set_locale before each action
 
-# Running:
+CartController
+  GET #show
+    returns http success
+    renders the show template
 
-Capybara starting Puma...
-* Version 6.6.0, codename: Return to Forever
-* Min threads: 0, max threads: 4
-* Listening on http://127.0.0.1:38597
-[Screenshot Image]: /home/runner/work/ecommerce-boilerplate/ecommerce-boilerplate/tmp/screenshots/failures_test_visiting_the_index.png
-F
+CategoriesController
+  GET #show
+    with valid category id
+      returns http success
+      renders the show template
+      assigns the requested category
+      assigns products belonging to the category
+    with invalid category id
+      raises ActiveRecord::RecordNotFound
+      raises ActiveRecord::RecordNotFound for non-existent id
+    when category has no products
+      assigns empty products collection
 
-Failure:
-Admin::OrdersTest#test_visiting_the_index [test/system/admin/orders_test.rb:10]:
-expected to find visible css "h1" with text "Orders" but there were no matches. Also found "Blocked hosts: 127.0.0.1:38597", which matched the selector but not all filters. 
+CheckoutsController
+  POST #create
+    with valid parameters and sufficient stock
+      redirects to payment URL
+      calls MercadoPago service with correct parameters
+    with insufficient stock
+      returns 400 status with error message (FAILED - 6)
+    when MercadoPago service fails
+      redirects to cart with error message (FAILED - 7)
+    when payment URL is blank
+      redirects to cart with error message (FAILED - 8)
+  GET #success
+    returns http success (FAILED - 9)
+    renders the success template (FAILED - 10)
+  GET #failure
+    returns http success (FAILED - 11)
+    renders the failure template (FAILED - 12)
+  GET #pending
+    returns http success (FAILED - 13)
+    renders the pending template (FAILED - 14)
 
-bin/rails test test/system/admin/orders_test.rb:8
+HomeController
+  GET #index
+    returns http success
+    renders the index template
+    assigns @main_categories with first 4 categories
+    assigns @products with first 4 products
+    limits categories to 4
+    limits products to 4
 
-[Screenshot Image]: /home/runner/work/ecommerce-boilerplate/ecommerce-boilerplate/tmp/screenshots/failures_test_should_create_order.png
-E
+PricesController
+  GET #index
+    returns http success
+    renders the index template
+    assigns prices from BbvaScraper
+    calls BbvaScraper.obtener_precios
+    when BbvaScraper raises an error
+      lets the error bubble up (FAILED - 15)
+    when BbvaScraper returns nil
+      assigns nil to @precios
+    when BbvaScraper returns empty hash
+      assigns empty hash to @precios
 
-Error:
-Admin::OrdersTest#test_should_create_order:
-Capybara::ElementNotFound: Unable to find link or button "New order"
-    test/system/admin/orders_test.rb:15:in `block in <class:OrdersTest>'
+ProductsController
+  GET #show
+    with valid product id
+      returns http success
+      renders the show template
+      assigns the requested product
+    with invalid product id
+      raises ActiveRecord::RecordNotFound
+      raises ActiveRecord::RecordNotFound for non-existent id
 
-bin/rails test test/system/admin/orders_test.rb:13
+WebhooksController
+  POST #mercadopago
+    when payment is approved
+      returns 200 OK
+      creates a new order (FAILED - 16)
+      creates order with correct attributes (FAILED - 17)
+      creates order products (FAILED - 18)
+      creates order product with correct attributes (FAILED - 19)
+      decrements stock amount (FAILED - 20)
+      calls MercadoPago SDK with correct parameters (FAILED - 21)
+    when payment is not approved
+      returns 422 unprocessable entity (FAILED - 22)
+      does not create an order
+      does not create order products
+      does not decrement stock
+    when payment status is pending
+      returns 422 unprocessable entity (FAILED - 23)
+    when MercadoPago SDK raises an error
+      lets the error bubble up (FAILED - 24)
+    with multiple order items
+      creates multiple order products (FAILED - 25)
+      decrements stock for all items (FAILED - 26)
+  CSRF protection
+    skips CSRF protection for webhook endpoint
 
-[Screenshot Image]: /home/runner/work/ecommerce-boilerplate/ecommerce-boilerplate/tmp/screenshots/failures_test_should_update_Order.png
-E
+Order
+  validations
+    validates presence of customer_email
+    validates presence of total
+    validates presence of address
+    validates total is greater than 0
+    validates email format
+  associations
+    has many order_products
+    has many products through order_products
+  enums
+    defines status enum
+    has correct default status
+  scopes
+    .today
+      returns orders created today
+    .recent
+      returns orders in descending order by creation date
+    status scopes
+      filters by pending status
+      filters by processing status
+      filters by delivered status
+  class methods
+    .revenue_by_day
+      calculates revenue correctly
+      only includes delivered orders
+    .count_for_period
+      counts orders in given period
+    .revenue_for_period
+      calculates revenue only for delivered orders
+    .average_order_value_for_period
+      calculates average order value
+  instance methods
+    #total_items
+      calculates total items correctly
+    #can_be_cancelled?
+      returns true for pending orders
+      returns false for delivered orders
+    #formatted_total
+      formats total as currency
+  callbacks
+    before_save
+      normalizes email to lowercase
+    after_create
+      generates payment_id if not present
+  factory traits
+    status traits
+      creates pending order
+      creates processing order
+      creates delivered order
+    time traits
+      creates today order
+      creates yesterday order
+    value traits
+      creates high value order
+      creates low value order
 
-Error:
-Admin::OrdersTest#test_should_update_Order:
-Capybara::ElementNotFound: Unable to find link or button "Edit this order"
-    test/system/admin/orders_test.rb:29:in `block in <class:OrdersTest>'
+Admin::Orders
+  GET /admin/orders
+    with various order statuses
+      returns success and displays all orders (FAILED - 27)
+      shows correct order counts by status (FAILED - 28)
+    with pagination
+      paginates orders correctly (FAILED - 29)
+  GET /admin/orders/:id
+    shows order details (FAILED - 30)
+    shows order products
+  PUT /admin/orders/:id
+    updates order status successfully (FAILED - 31)
+    handles invalid status transitions (FAILED - 32)
+  DELETE /admin/orders/:id
+    deletes the order (FAILED - 33)
+    prevents deletion of non-cancelled orders (FAILED - 34)
+  analytics and reporting
+    with revenue data
+      calculates revenue correctly (FAILED - 35)
 
-bin/rails test test/system/admin/orders_test.rb:27
+Checkouts
+  POST /checkout
+    with valid parameters
+      creates a new order successfully (FAILED - 36)
+      processes checkout with CartProcessor (FAILED - 37)
+    with invalid parameters
+      returns validation errors (FAILED - 38)
+    with insufficient stock
+      handles insufficient stock gracefully (FAILED - 39)
+    with MercadoPago integration
+      redirects to MercadoPago for payment (FAILED - 40)
+  GET /checkout/success
+    displays success page (FAILED - 41)
+    clears the order from session (FAILED - 42)
+  GET /checkout/failure
+    displays failure page (FAILED - 43)
+  GET /checkout/pending
+    displays pending page (FAILED - 44)
+  cart calculations
+    calculates total correctly for multiple products (FAILED - 45)
 
-[Screenshot Image]: /home/runner/work/ecommerce-boilerplate/ecommerce-boilerplate/tmp/screenshots/failures_test_should_destroy_Order.png
-E
+Failures:
 
-Error:
-Admin::OrdersTest#test_should_destroy_Order:
-Capybara::ElementNotFound: Unable to find link or button "Destroy this order"
-    test/system/admin/orders_test.rb:43:in `block in <class:OrdersTest>'
+  1) AdminController GET #index assigns recent unfulfilled orders
+     Failure/Error: expect(assigns(:orders)).to match_array(unfulfilled_orders.take(5))
+     
+       expected collection contained:  [#<Order id: "0107fe03-7087-4670-acb4-0734dfc77c68", customer_email: [FILTERED], fulfilled: false, to...t: "2025-07-04 16:53:28.677653000 -0600", payment_id: "MP-a60f50069707e6d5c4f1", status: "pending">]
+       actual collection contained:    [#<Order id: "2cb0043f-87f0-4ad6-aadd-604fce4082c1", customer_email: [FILTERED], fulfilled: false, to...t: "2025-07-04 16:53:28.686298000 -0600", payment_id: "MP-75913fd9b2448519ba36", status: "pending">]
+       the missing elements were:      [#<Order id: "0107fe03-7087-4670-acb4-0734dfc77c68", customer_email: [FILTERED], fulfilled: false, to...t: "2025-07-04 16:53:28.674407000 -0600", payment_id: "MP-e853a06a105f528700e9", status: "pending">]
+       the extra elements were:        [#<Order id: "9eec95b5-1cae-45ac-b8b3-c252097977f4", customer_email: [FILTERED], fulfilled: true, tot...t: "2025-07-04 16:53:28.686298000 -0600", payment_id: "MP-75913fd9b2448519ba36", status: "pending">]
+     # ./spec/controllers/admin_controller_spec.rb:34:in `block (3 levels) in <top (required)>'
 
-bin/rails test test/system/admin/orders_test.rb:41
+  2) AdminController GET #index calculates quick stats for today
+     Failure/Error: expect(quick_stats[:revenue]).to eq(225) # 3 * 75
+     
+       expected: 225
+            got: nil
+     
+       (compared using ==)
+     # ./spec/controllers/admin_controller_spec.rb:43:in `block (3 levels) in <top (required)>'
 
-[Screenshot Image]: /home/runner/work/ecommerce-boilerplate/ecommerce-boilerplate/tmp/screenshots/failures_test_visiting_the_index.png
-F
+  3) AdminController GET #index calculates revenue by day for last 7 days
+     Failure/Error: expect(revenue_by_day).to be_an(Array)
+       expected {Sat, 28 Jun 2025=>0.0, Sun, 29 Jun 2025=>0.0, Mon, 30 Jun 2025=>0.0, Tue, 01 Jul 2025=>0.0, Wed, 02 Jul 2025=>0.0, Thu, 03 Jul 2025=>0.0, Fri, 04 Jul 2025=>0.0} to be a kind of Array
+     # ./spec/controllers/admin_controller_spec.rb:52:in `block (3 levels) in <top (required)>'
 
-Failure:
-Admin::CategoriesTest#test_visiting_the_index [test/system/admin/categories_test.rb:10]:
-expected to find visible css "h1" with text "Categories" but there were no matches. Also found "Blocked hosts: 127.0.0.1:38597", which matched the selector but not all filters. 
+  4) AdminController GET #index includes today's revenue in revenue_by_day
+     Failure/Error: expect(today_data).to be_present
+       expected `nil.present?` to be truthy, got false
+     # ./spec/controllers/admin_controller_spec.rb:70:in `block (3 levels) in <top (required)>'
 
-bin/rails test test/system/admin/categories_test.rb:8
+  5) AdminController GET #index when no orders exist handles empty data gracefully
+     Failure/Error: expect(assigns(:revenue_by_day)).to be_an(Array)
+       expected {Sat, 28 Jun 2025=>0.0, Sun, 29 Jun 2025=>0.0, Mon, 30 Jun 2025=>0.0, Tue, 01 Jul 2025=>0.0, Wed, 02 Jul 2025=>0.0, Thu, 03 Jul 2025=>0.0, Fri, 04 Jul 2025=>0.0} to be a kind of Array
+     # ./spec/controllers/admin_controller_spec.rb:85:in `block (4 levels) in <top (required)>'
 
-[Screenshot Image]: /home/runner/work/ecommerce-boilerplate/ecommerce-boilerplate/tmp/screenshots/failures_test_should_create_category.png
-E
+  6) CheckoutsController POST #create with insufficient stock returns 400 status with error message
+     Failure/Error: expect(response).to have_http_status(400)
+       expected the response to have status code 400 but it was 302
+     # ./spec/controllers/checkouts_controller_spec.rb:80:in `block (4 levels) in <top (required)>'
 
-Error:
-Admin::CategoriesTest#test_should_create_category:
-Capybara::ElementNotFound: Unable to find link or button "New category"
-    test/system/admin/categories_test.rb:15:in `block in <class:CategoriesTest>'
+  7) CheckoutsController POST #create when MercadoPago service fails redirects to cart with error message
+     Failure/Error:
+       Rails.logger.error "Failed to create payment preference", {
+         error: e.message,
+         cart_data: cart_data,
+         user_info: user_info.except(:identification_number)
+       }
+     
+     ArgumentError:
+       wrong number of arguments (given 2, expected 0..1)
+     # /Users/dev/.rvm/gems/ruby-3.3.3/gems/logger-1.7.0/lib/logger.rb:732:in `error'
+     # ./app/services/cart_processor.rb:31:in `rescue in payment_url'
+     # ./app/services/cart_processor.rb:27:in `payment_url'
+     # ./app/controllers/checkouts_controller.rb:11:in `create'
+     # /Users/dev/.rvm/gems/ruby-3.3.3/gems/turbo-rails-2.0.16/lib/turbo-rails.rb:24:in `with_request_id'
+     # /Users/dev/.rvm/gems/ruby-3.3.3/gems/turbo-rails-2.0.16/app/controllers/concerns/turbo/request_id_tracking.rb:10:in `turbo_tracking_request_id'
+     # /Users/dev/.rvm/gems/ruby-3.3.3/gems/actiontext-8.0.2/lib/action_text/rendering.rb:25:in `with_renderer'
+     # /Users/dev/.rvm/gems/ruby-3.3.3/gems/actiontext-8.0.2/lib/action_text/engine.rb:71:in `block (4 levels) in <class:Engine>'
+     # /Users/dev/.rvm/gems/ruby-3.3.3/gems/rails-controller-testing-1.0.5/lib/rails/controller/testing/template_assertions.rb:62:in `process'
+     # /Users/dev/.rvm/gems/ruby-3.3.3/gems/devise-4.9.4/lib/devise/test/controller_helpers.rb:35:in `block in process'
+     # /Users/dev/.rvm/gems/ruby-3.3.3/gems/devise-4.9.4/lib/devise/test/controller_helpers.rb:104:in `catch'
+     # /Users/dev/.rvm/gems/ruby-3.3.3/gems/devise-4.9.4/lib/devise/test/controller_helpers.rb:104:in `_catch_warden'
+     # /Users/dev/.rvm/gems/ruby-3.3.3/gems/devise-4.9.4/lib/devise/test/controller_helpers.rb:35:in `process'
+     # /Users/dev/.rvm/gems/ruby-3.3.3/gems/rails-controller-testing-1.0.5/lib/rails/controller/testing/integration.rb:16:in `block (2 levels) in <module:Integration>'
+     # ./spec/controllers/checkouts_controller_spec.rb:91:in `block (4 levels) in <top (required)>'
+     # ------------------
+     # --- Caused by: ---
+     # StandardError:
+     #   Payment service error
+     #   ./app/services/cart_processor.rb:29:in `payment_url'
 
-bin/rails test test/system/admin/categories_test.rb:13
+  8) CheckoutsController POST #create when payment URL is blank redirects to cart with error message
+     Failure/Error: expect(flash[:alert]).to be_present
+       expected `"".present?` to be truthy, got false
+     # ./spec/controllers/checkouts_controller_spec.rb:105:in `block (4 levels) in <top (required)>'
 
-[Screenshot Image]: /home/runner/work/ecommerce-boilerplate/ecommerce-boilerplate/tmp/screenshots/failures_test_should_update_Category.png
-E
+  9) CheckoutsController GET #success returns http success
+     Failure/Error:
+       Rails.logger.info "Checkout success", {
+         payment_id: params[:payment_id],
+         status: params[:status],
+         external_reference: params[:external_reference],
+         merchant_order_id: params[:merchant_order_id]
+       }
+     
+     ArgumentError:
+       wrong number of arguments (given 2, expected 0..1)
+     # /Users/dev/.rvm/gems/ruby-3.3.3/gems/logger-1.7.0/lib/logger.rb:720:in `info'
+     # ./app/controllers/checkouts_controller.rb:27:in `success'
+     # /Users/dev/.rvm/gems/ruby-3.3.3/gems/turbo-rails-2.0.16/lib/turbo-rails.rb:24:in `with_request_id'
+     # /Users/dev/.rvm/gems/ruby-3.3.3/gems/turbo-rails-2.0.16/app/controllers/concerns/turbo/request_id_tracking.rb:10:in `turbo_tracking_request_id'
+     # /Users/dev/.rvm/gems/ruby-3.3.3/gems/actiontext-8.0.2/lib/action_text/rendering.rb:25:in `with_renderer'
+     # /Users/dev/.rvm/gems/ruby-3.3.3/gems/actiontext-8.0.2/lib/action_text/engine.rb:71:in `block (4 levels) in <class:Engine>'
+     # /Users/dev/.rvm/gems/ruby-3.3.3/gems/rails-controller-testing-1.0.5/lib/rails/controller/testing/template_assertions.rb:62:in `process'
+     # /Users/dev/.rvm/gems/ruby-3.3.3/gems/devise-4.9.4/lib/devise/test/controller_helpers.rb:35:in `block in process'
+     # /Users/dev/.rvm/gems/ruby-3.3.3/gems/devise-4.9.4/lib/devise/test/controller_helpers.rb:104:in `catch'
+     # /Users/dev/.rvm/gems/ruby-3.3.3/gems/devise-4.9.4/lib/devise/test/controller_helpers.rb:104:in `_catch_warden'
+     # /Users/dev/.rvm/gems/ruby-3.3.3/gems/devise-4.9.4/lib/devise/test/controller_helpers.rb:35:in `process'
+     # /Users/dev/.rvm/gems/ruby-3.3.3/gems/rails-controller-testing-1.0.5/lib/rails/controller/testing/integration.rb:16:in `block (2 levels) in <module:Integration>'
+     # ./spec/controllers/checkouts_controller_spec.rb:121:in `block (3 levels) in <top (required)>'
 
-Error:
-Admin::CategoriesTest#test_should_update_Category:
-Capybara::ElementNotFound: Unable to find link or button "Edit this category"
-    test/system/admin/categories_test.rb:27:in `block in <class:CategoriesTest>'
+  10) CheckoutsController GET #success renders the success template
+      Failure/Error:
+        Rails.logger.info "Checkout success", {
+          payment_id: params[:payment_id],
+          status: params[:status],
+          external_reference: params[:external_reference],
+          merchant_order_id: params[:merchant_order_id]
+        }
+      
+      ArgumentError:
+        wrong number of arguments (given 2, expected 0..1)
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/logger-1.7.0/lib/logger.rb:720:in `info'
+      # ./app/controllers/checkouts_controller.rb:27:in `success'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/turbo-rails-2.0.16/lib/turbo-rails.rb:24:in `with_request_id'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/turbo-rails-2.0.16/app/controllers/concerns/turbo/request_id_tracking.rb:10:in `turbo_tracking_request_id'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/actiontext-8.0.2/lib/action_text/rendering.rb:25:in `with_renderer'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/actiontext-8.0.2/lib/action_text/engine.rb:71:in `block (4 levels) in <class:Engine>'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/rails-controller-testing-1.0.5/lib/rails/controller/testing/template_assertions.rb:62:in `process'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/devise-4.9.4/lib/devise/test/controller_helpers.rb:35:in `block in process'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/devise-4.9.4/lib/devise/test/controller_helpers.rb:104:in `catch'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/devise-4.9.4/lib/devise/test/controller_helpers.rb:104:in `_catch_warden'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/devise-4.9.4/lib/devise/test/controller_helpers.rb:35:in `process'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/rails-controller-testing-1.0.5/lib/rails/controller/testing/integration.rb:16:in `block (2 levels) in <module:Integration>'
+      # ./spec/controllers/checkouts_controller_spec.rb:126:in `block (3 levels) in <top (required)>'
 
-bin/rails test test/system/admin/categories_test.rb:25
+  11) CheckoutsController GET #failure returns http success
+      Failure/Error:
+        Rails.logger.info "Checkout failure", {
+          payment_id: params[:payment_id],
+          status: params[:status]
+        }
+      
+      ArgumentError:
+        wrong number of arguments (given 2, expected 0..1)
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/logger-1.7.0/lib/logger.rb:720:in `info'
+      # ./app/controllers/checkouts_controller.rb:38:in `failure'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/turbo-rails-2.0.16/lib/turbo-rails.rb:24:in `with_request_id'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/turbo-rails-2.0.16/app/controllers/concerns/turbo/request_id_tracking.rb:10:in `turbo_tracking_request_id'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/actiontext-8.0.2/lib/action_text/rendering.rb:25:in `with_renderer'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/actiontext-8.0.2/lib/action_text/engine.rb:71:in `block (4 levels) in <class:Engine>'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/rails-controller-testing-1.0.5/lib/rails/controller/testing/template_assertions.rb:62:in `process'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/devise-4.9.4/lib/devise/test/controller_helpers.rb:35:in `block in process'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/devise-4.9.4/lib/devise/test/controller_helpers.rb:104:in `catch'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/devise-4.9.4/lib/devise/test/controller_helpers.rb:104:in `_catch_warden'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/devise-4.9.4/lib/devise/test/controller_helpers.rb:35:in `process'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/rails-controller-testing-1.0.5/lib/rails/controller/testing/integration.rb:16:in `block (2 levels) in <module:Integration>'
+      # ./spec/controllers/checkouts_controller_spec.rb:133:in `block (3 levels) in <top (required)>'
 
-[Screenshot Image]: /home/runner/work/ecommerce-boilerplate/ecommerce-boilerplate/tmp/screenshots/failures_test_should_destroy_Category.png
-E
+  12) CheckoutsController GET #failure renders the failure template
+      Failure/Error:
+        Rails.logger.info "Checkout failure", {
+          payment_id: params[:payment_id],
+          status: params[:status]
+        }
+      
+      ArgumentError:
+        wrong number of arguments (given 2, expected 0..1)
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/logger-1.7.0/lib/logger.rb:720:in `info'
+      # ./app/controllers/checkouts_controller.rb:38:in `failure'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/turbo-rails-2.0.16/lib/turbo-rails.rb:24:in `with_request_id'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/turbo-rails-2.0.16/app/controllers/concerns/turbo/request_id_tracking.rb:10:in `turbo_tracking_request_id'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/actiontext-8.0.2/lib/action_text/rendering.rb:25:in `with_renderer'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/actiontext-8.0.2/lib/action_text/engine.rb:71:in `block (4 levels) in <class:Engine>'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/rails-controller-testing-1.0.5/lib/rails/controller/testing/template_assertions.rb:62:in `process'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/devise-4.9.4/lib/devise/test/controller_helpers.rb:35:in `block in process'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/devise-4.9.4/lib/devise/test/controller_helpers.rb:104:in `catch'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/devise-4.9.4/lib/devise/test/controller_helpers.rb:104:in `_catch_warden'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/devise-4.9.4/lib/devise/test/controller_helpers.rb:35:in `process'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/rails-controller-testing-1.0.5/lib/rails/controller/testing/integration.rb:16:in `block (2 levels) in <module:Integration>'
+      # ./spec/controllers/checkouts_controller_spec.rb:138:in `block (3 levels) in <top (required)>'
 
-Error:
-Admin::CategoriesTest#test_should_destroy_Category:
-Capybara::ElementNotFound: Unable to find link or button "Destroy this category"
-    test/system/admin/categories_test.rb:39:in `block in <class:CategoriesTest>'
+  13) CheckoutsController GET #pending returns http success
+      Failure/Error:
+        Rails.logger.info "Checkout pending", {
+          payment_id: params[:payment_id],
+          status: params[:status]
+        }
+      
+      ArgumentError:
+        wrong number of arguments (given 2, expected 0..1)
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/logger-1.7.0/lib/logger.rb:720:in `info'
+      # ./app/controllers/checkouts_controller.rb:47:in `pending'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/turbo-rails-2.0.16/lib/turbo-rails.rb:24:in `with_request_id'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/turbo-rails-2.0.16/app/controllers/concerns/turbo/request_id_tracking.rb:10:in `turbo_tracking_request_id'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/actiontext-8.0.2/lib/action_text/rendering.rb:25:in `with_renderer'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/actiontext-8.0.2/lib/action_text/engine.rb:71:in `block (4 levels) in <class:Engine>'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/rails-controller-testing-1.0.5/lib/rails/controller/testing/template_assertions.rb:62:in `process'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/devise-4.9.4/lib/devise/test/controller_helpers.rb:35:in `block in process'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/devise-4.9.4/lib/devise/test/controller_helpers.rb:104:in `catch'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/devise-4.9.4/lib/devise/test/controller_helpers.rb:104:in `_catch_warden'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/devise-4.9.4/lib/devise/test/controller_helpers.rb:35:in `process'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/rails-controller-testing-1.0.5/lib/rails/controller/testing/integration.rb:16:in `block (2 levels) in <module:Integration>'
+      # ./spec/controllers/checkouts_controller_spec.rb:145:in `block (3 levels) in <top (required)>'
 
-bin/rails test test/system/admin/categories_test.rb:37
+  14) CheckoutsController GET #pending renders the pending template
+      Failure/Error:
+        Rails.logger.info "Checkout pending", {
+          payment_id: params[:payment_id],
+          status: params[:status]
+        }
+      
+      ArgumentError:
+        wrong number of arguments (given 2, expected 0..1)
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/logger-1.7.0/lib/logger.rb:720:in `info'
+      # ./app/controllers/checkouts_controller.rb:47:in `pending'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/turbo-rails-2.0.16/lib/turbo-rails.rb:24:in `with_request_id'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/turbo-rails-2.0.16/app/controllers/concerns/turbo/request_id_tracking.rb:10:in `turbo_tracking_request_id'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/actiontext-8.0.2/lib/action_text/rendering.rb:25:in `with_renderer'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/actiontext-8.0.2/lib/action_text/engine.rb:71:in `block (4 levels) in <class:Engine>'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/rails-controller-testing-1.0.5/lib/rails/controller/testing/template_assertions.rb:62:in `process'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/devise-4.9.4/lib/devise/test/controller_helpers.rb:35:in `block in process'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/devise-4.9.4/lib/devise/test/controller_helpers.rb:104:in `catch'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/devise-4.9.4/lib/devise/test/controller_helpers.rb:104:in `_catch_warden'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/devise-4.9.4/lib/devise/test/controller_helpers.rb:35:in `process'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/rails-controller-testing-1.0.5/lib/rails/controller/testing/integration.rb:16:in `block (2 levels) in <module:Integration>'
+      # ./spec/controllers/checkouts_controller_spec.rb:150:in `block (3 levels) in <top (required)>'
 
-[Screenshot Image]: /home/runner/work/ecommerce-boilerplate/ecommerce-boilerplate/tmp/screenshots/failures_test_visiting_the_index.png
-E
+  15) PricesController GET #index when BbvaScraper raises an error lets the error bubble up
+      Failure/Error:
+        expect {
+          get :index
+        }.to raise_error(StandardError, "Scraper error")
+      
+        expected StandardError with "Scraper error" but nothing was raised
+      # ./spec/controllers/prices_controller_spec.rb:43:in `block (4 levels) in <top (required)>'
 
-Error:
-Admin::StocksTest#test_visiting_the_index:
-NameError: undefined local variable or method `admin_stocks_url' for an instance of Admin::StocksTest
-    test/system/admin/stocks_test.rb:9:in `block in <class:StocksTest>'
+  16) WebhooksController POST #mercadopago when payment is approved creates a new order
+      Failure/Error:
+        expect {
+          post :mercadopago, params: { data: { id: payment_id } }
+        }.to change(Order, :count).by(1)
+      
+        expected `Order.count` to have changed by 1, but was changed by 0
+      # ./spec/controllers/webhooks_controller_spec.rb:55:in `block (4 levels) in <top (required)>'
 
-bin/rails test test/system/admin/stocks_test.rb:8
+  17) WebhooksController POST #mercadopago when payment is approved creates order with correct attributes
+      Failure/Error: expect(order.customer_email).to eq('customer@example.com')
+      
+      NoMethodError:
+        undefined method `customer_email' for nil
+      # ./spec/controllers/webhooks_controller_spec.rb:64:in `block (4 levels) in <top (required)>'
 
-[Screenshot Image]: /home/runner/work/ecommerce-boilerplate/ecommerce-boilerplate/tmp/screenshots/failures_test_should_create_stock.png
-E
+  18) WebhooksController POST #mercadopago when payment is approved creates order products
+      Failure/Error:
+        expect {
+          post :mercadopago, params: { data: { id: payment_id } }
+        }.to change(OrderProduct, :count).by(1)
+      
+        expected `OrderProduct.count` to have changed by 1, but was changed by 0
+      # ./spec/controllers/webhooks_controller_spec.rb:71:in `block (4 levels) in <top (required)>'
 
-Error:
-Admin::StocksTest#test_should_create_stock:
-NameError: undefined local variable or method `admin_stocks_url' for an instance of Admin::StocksTest
-    test/system/admin/stocks_test.rb:14:in `block in <class:StocksTest>'
+  19) WebhooksController POST #mercadopago when payment is approved creates order product with correct attributes
+      Failure/Error: expect(order_product.product_id).to eq(product.id)
+      
+      NoMethodError:
+        undefined method `product_id' for nil
+      # ./spec/controllers/webhooks_controller_spec.rb:80:in `block (4 levels) in <top (required)>'
 
-bin/rails test test/system/admin/stocks_test.rb:13
+  20) WebhooksController POST #mercadopago when payment is approved decrements stock amount
+      Failure/Error:
+        expect {
+          post :mercadopago, params: { data: { id: payment_id } }
+        }.to change { stock.reload.amount }.from(10).to(8)
+      
+        expected `stock.reload.amount` to have changed from 10 to 8, but did not change
+      # ./spec/controllers/webhooks_controller_spec.rb:86:in `block (4 levels) in <top (required)>'
 
-[Screenshot Image]: /home/runner/work/ecommerce-boilerplate/ecommerce-boilerplate/tmp/screenshots/failures_test_should_update_Stock.png
-E
+  21) WebhooksController POST #mercadopago when payment is approved calls MercadoPago SDK with correct parameters
+      Failure/Error: expect(Mercadopago::SDK).to receive(:new).with('test_token')
+      
+        (Mercadopago::SDK (class)).new("test_token")
+            expected: 1 time with arguments: ("test_token")
+            received: 0 times
+      # ./spec/controllers/webhooks_controller_spec.rb:92:in `block (4 levels) in <top (required)>'
 
-Error:
-Admin::StocksTest#test_should_update_Stock:
-NoMethodError: undefined method `admin_stock_url' for an instance of Admin::StocksTest
-    test/system/admin/stocks_test.rb:27:in `block in <class:StocksTest>'
+  22) WebhooksController POST #mercadopago when payment is not approved returns 422 unprocessable entity
+      Failure/Error: expect(response).to have_http_status(:unprocessable_entity)
+        expected the response to have status code :unprocessable_entity (422) but it was :ok (200)
+      # ./spec/controllers/webhooks_controller_spec.rb:115:in `block (4 levels) in <top (required)>'
 
-bin/rails test test/system/admin/stocks_test.rb:26
+  23) WebhooksController POST #mercadopago when payment status is pending returns 422 unprocessable entity
+      Failure/Error: expect(response).to have_http_status(:unprocessable_entity)
+        expected the response to have status code :unprocessable_entity (422) but it was :ok (200)
+      # ./spec/controllers/webhooks_controller_spec.rb:150:in `block (4 levels) in <top (required)>'
 
-[Screenshot Image]: /home/runner/work/ecommerce-boilerplate/ecommerce-boilerplate/tmp/screenshots/failures_test_should_destroy_Stock.png
-E
+  24) WebhooksController POST #mercadopago when MercadoPago SDK raises an error lets the error bubble up
+      Failure/Error:
+        expect {
+          post :mercadopago, params: { data: { id: payment_id } }
+        }.to raise_error(StandardError, "API Error")
+      
+        expected StandardError with "API Error" but nothing was raised
+      # ./spec/controllers/webhooks_controller_spec.rb:160:in `block (4 levels) in <top (required)>'
 
-Error:
-Admin::StocksTest#test_should_destroy_Stock:
-NoMethodError: undefined method `admin_stock_url' for an instance of Admin::StocksTest
-    test/system/admin/stocks_test.rb:40:in `block in <class:StocksTest>'
+  25) WebhooksController POST #mercadopago with multiple order items creates multiple order products
+      Failure/Error:
+        expect {
+          post :mercadopago, params: { data: { id: payment_id } }
+        }.to change(OrderProduct, :count).by(2)
+      
+        expected `OrderProduct.count` to have changed by 2, but was changed by 0
+      # ./spec/controllers/webhooks_controller_spec.rb:206:in `block (4 levels) in <top (required)>'
 
-bin/rails test test/system/admin/stocks_test.rb:39
+  26) WebhooksController POST #mercadopago with multiple order items decrements stock for all items
+      Failure/Error: expect(stock.reload.amount).to eq(9)  # 10 - 1
+      
+        expected: 9
+             got: 10
+      
+        (compared using ==)
+      # ./spec/controllers/webhooks_controller_spec.rb:214:in `block (4 levels) in <top (required)>'
 
-[Screenshot Image]: /home/runner/work/ecommerce-boilerplate/ecommerce-boilerplate/tmp/screenshots/failures_test_visiting_the_index.png
-F
+  27) Admin::Orders GET /admin/orders with various order statuses returns success and displays all orders
+      Failure/Error: expect(response.body).to include(order.customer_email)
+      
+        expected "<!DOCTYPE html>\n<html>\n  <head>\n    <title>Coins Ecommerce App</title>\n    <meta name=\"viewport...'>2</button></a>\n        </div>\n    </div>\n  </div>\n</div>\n\n    </main>\n  </body>\n</html>\n" to include "customer199@example.com"
+        Diff:
+        @@ -1 +1,295 @@
+        -customer199@example.com
+        +<!DOCTYPE html>
+        +<html>
+        +  <head>
+        +    <title>Coins Ecommerce App</title>
+        +    <meta name="viewport" content="width=device-width,initial-scale=1">
+        +    <meta name="apple-mobile-web-app-capable" content="yes">
+        +    
+        +    
+        +
+        +    
+        +
+        +    <link rel="manifest" href="/manifest.json">
+        +    <link rel="icon" href="/icon.png" type="image/png">
+        +    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+        +    <link rel="apple-touch-icon" href="/icon.png">
+        +    <link rel="stylesheet" href="/assets/tailwind-f1451a962053cdc451fe350a9c8e6d406f0f0a8b5e22ae84a3490133928735b2.css" data-turbo-track="reload" />
+        +<link rel="stylesheet" href="/assets/inter-font-6fd0c410ae351b4ac710f0bb10332736cc1f51ccd3433d5b1a1f9a8bd909e77a.css" data-turbo-track="reload" />
+        +    <link rel="stylesheet" href="/assets/application-d20f13c125f9ace46929bf82d467c943c9d65121168be7836aa6787aa2c30335.css" data-turbo-track="reload" />
+        +    <script type="importmap" data-turbo-track="reload">{
+        +  "imports": {
+        +    "application": "/assets/application-37f365cbecf1fa2810a8303f4b6571676fa1f9c56c248528bc14ddb857531b95.js",
+        +    "@hotwired/turbo-rails": "/assets/turbo.min-38d030897e3554a265d3a3b6bdf4fb7509b08197ba2b6e3761683c07e776c1bc.js",
+        +    "@hotwired/stimulus": "/assets/stimulus.min-dd364f16ec9504dfb72672295637a1c8838773b01c0b441bd41008124c407894.js",
+        +    "@hotwired/stimulus-loading": "/assets/stimulus-loading-3576ce92b149ad5d6959438c6f291e2426c86df3b874c525b30faad51b0d96b3.js",
+        +    "chart.js": "https://ga.jspm.io/npm:chart.js@4.4.1/dist/chart.js",
+        +    "@kurkle/color": "https://ga.jspm.io/npm:@kurkle/color@0.3.2/dist/color.esm.js",
+        +    "controllers/application": "/assets/controllers/application-368d98631bccbf2349e0d4f8269afb3fe9625118341966de054759d96ea86c7e.js",
+        +    "controllers/cart_controller": "/assets/controllers/cart_controller-4e6e806169e87f8cdebe5dda5f7de50f2d058dbf7be9501af1fc6c9d1e33a0fe.js",
+        +    "controllers/dashboard_controller": "/assets/controllers/dashboard_controller-00c56224714f90542e24d12141a8a34ca60b4e9c6f6991cc46f34f57971f91ab.js",
+        +    "controllers/header_controller": "/assets/controllers/header_controller-0c3679e95e9b8619abbec160bbc5b4b293a9b2441a695d5a7d2b3798e8e38371.js",
+        +    "controllers/hello_controller": "/assets/controllers/hello_controller-549135e8e7c683a538c3d6d517339ba470fcfb79d62f738a0a089ba41851a554.js",
+        +    "controllers": "/assets/controllers/index-31a9bee606cbc5cdb1593881f388bbf4c345bf693ea24e124f84b6d5c98ab648.js",
+        +    "controllers/products_controller": "/assets/controllers/products_controller-a9b1823b34a4edade3274c05ae51f95bc6811afd9067944b8e7a3b7b7d58b10c.js",
+        +    "controllers/slider_controller": "/assets/controllers/slider_controller-f525b32b756f76345f93f499e0ba74b1afaa2207c424c8ddc2b0151b2e45e175.js"
+        +  }
+        +}</script>
+        +<link rel="modulepreload" href="/assets/application-37f365cbecf1fa2810a8303f4b6571676fa1f9c56c248528bc14ddb857531b95.js">
+        +<link rel="modulepreload" href="/assets/turbo.min-38d030897e3554a265d3a3b6bdf4fb7509b08197ba2b6e3761683c07e776c1bc.js">
+        +<link rel="modulepreload" href="/assets/stimulus.min-dd364f16ec9504dfb72672295637a1c8838773b01c0b441bd41008124c407894.js">
+        +<link rel="modulepreload" href="/assets/stimulus-loading-3576ce92b149ad5d6959438c6f291e2426c86df3b874c525b30faad51b0d96b3.js">
+        +<link rel="modulepreload" href="https://ga.jspm.io/npm:chart.js@4.4.1/dist/chart.js">
+        +<link rel="modulepreload" href="https://ga.jspm.io/npm:@kurkle/color@0.3.2/dist/color.esm.js">
+        +<link rel="modulepreload" href="/assets/controllers/application-368d98631bccbf2349e0d4f8269afb3fe9625118341966de054759d96ea86c7e.js">
+        +<link rel="modulepreload" href="/assets/controllers/cart_controller-4e6e806169e87f8cdebe5dda5f7de50f2d058dbf7be9501af1fc6c9d1e33a0fe.js">
+        +<link rel="modulepreload" href="/assets/controllers/dashboard_controller-00c56224714f90542e24d12141a8a34ca60b4e9c6f6991cc46f34f57971f91ab.js">
+        +<link rel="modulepreload" href="/assets/controllers/header_controller-0c3679e95e9b8619abbec160bbc5b4b293a9b2441a695d5a7d2b3798e8e38371.js">
+        +<link rel="modulepreload" href="/assets/controllers/hello_controller-549135e8e7c683a538c3d6d517339ba470fcfb79d62f738a0a089ba41851a554.js">
+        +<link rel="modulepreload" href="/assets/controllers/index-31a9bee606cbc5cdb1593881f388bbf4c345bf693ea24e124f84b6d5c98ab648.js">
+        +<link rel="modulepreload" href="/assets/controllers/products_controller-a9b1823b34a4edade3274c05ae51f95bc6811afd9067944b8e7a3b7b7d58b10c.js">
+        +<link rel="modulepreload" href="/assets/controllers/slider_controller-f525b32b756f76345f93f499e0ba74b1afaa2207c424c8ddc2b0151b2e45e175.js">
+        +<script type="module">import "application"</script>
+        +  </head>
+        +
+        +  <body>
+        +    <main>
+        +      <div class="bg-gray-100">
+        +    <!-- Botón para abrir/cerrar el sidebar -->
+        +    <button id="sidebarToggle" type="button" class="fixed z-50 inline-flex items-center p-2 mt-3 ml-5 text-sm text-gray-500 rounded-lg lg:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600">
+        +        <span class="sr-only">Open sidebar</span>
+        +        <svg class="w-6 h-6" aria-hidden="true" fill="gray" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+        +            <path clip-rule="evenodd" fill-rule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z"></path>
+        +        </svg>
+        +    </button>
+        +
+        +    <!-- Sidebar -->
+        +    <nav id="default-sidebar" class="fixed top-0 left-0 z-40 w-64 h-screen transition-transform -translate-x-full lg:translate-x-0" aria-label="Sidebar">
+        +        <div class="flex flex-col justify-between h-full px-3 py-4 overflow-y-auto bg-gray-800 rounded-r-lg md:rounded-none">
+        +            <ul class="mt-16 space-y-2 font-medium text-white">
+        +                    <li>
+        +                        <a class="flex items-center p-3 rounded-lg hover:bg-gray-700 sidebar-item" href="/admin?locale=en">
+        +                            <i class="w-5 h-5 mr-2 fa-solid fa-gauge-high" aria-hidden="true"></i> 
+        +                            <span>Dashboard</span>
+        +</a>                    </li>
+        +                    <li>
+        +                        <a class="flex items-center p-3 rounded-lg hover:bg-gray-700 sidebar-item" href="/admin/orders?locale=en">
+        +                            <i class="w-5 h-5 mr-2 fa-solid fa-truck-fast" aria-hidden="true"></i> 
+        +                            <span>Orders</span>
+        +</a>                    </li>
+        +                    <li>
+        +                        <a class="flex items-center p-3 rounded-lg hover:bg-gray-700 sidebar-item" href="/admin/products?locale=en">
+        +                            <i class="w-5 h-5 mr-2 fa-solid fa-cart-shopping" aria-hidden="true"></i> 
+        +                            <span>Products</span>
+        +</a>                    </li>
+        +                    <li>
+        +                        <a class="flex items-center p-3 rounded-lg hover:bg-gray-700 sidebar-item" href="/admin/categories?locale=en">
+        +                            <i class="w-5 h-5 mr-2 fa-solid fa-list" aria-hidden="true"></i> 
+        +                            <span>Categories</span>
+        +</a>                    </li>
+        +
+        +                <div class="my-2 border-t border-gray-600"></div>
+        +                <!-- Botón de cerrar sesión -->
+        +                <div class="mt-0 text-white lg:mt-auto">
+        +                    <form class="inline" action="/admins/sign_out?locale=en" accept-charset="UTF-8" method="post"><input type="hidden" name="_method" value="delete" autocomplete="off" />
+        +                        <button type="submit" class="flex items-center w-full p-3 rounded-lg hover:bg-gray-700" data-confirm="Are you sure you want to sign out?">
+        +                            <i class="w-5 h-5 mr-2 fa-solid fa-sign-out" aria-hidden="true"></i> 
+        +                            <span>Sign Out</span>
+        +                        </button>
+        +</form>                </div>
+        +            </ul>
+        +        </div>
+        +    </nav>
+        +</div>
+        +
+        +
+        +<script>
+        +    function initializeSidebar() {
+        +        const sidebar = document.getElementById("default-sidebar");
+        +        const toggleButton = document.getElementById("sidebarToggle");
+        +        const content = document.querySelector("main");
+        +        const sidebarLinks = document.querySelectorAll(".sidebar-item");
+        +
+        +        if (!sidebar || !toggleButton || !content) return;
+        +
+        +        let isSidebarOpen = localStorage.getItem("sidebarOpen") === "true" || window.innerWidth >= 1024;
+        +
+        +        const updateSidebarState = () => {
+        +            sidebar.classList.toggle("-translate-x-full", !isSidebarOpen);
+        +            content.classList.toggle("lg:ml-64", isSidebarOpen);
+        +            localStorage.setItem("sidebarOpen", isSidebarOpen);
+        +        };
+        +
+        +        const closeSidebarOnMobile = () => {
+        +            if (window.innerWidth < 1024 && isSidebarOpen) {
+        +                isSidebarOpen = false;
+        +                updateSidebarState();
+        +            }
+        +        };
+        +
+        +        if (!toggleButton.hasAttribute("data-initialized")) {
+        +            toggleButton.addEventListener("click", (event) => {
+        +                event.stopPropagation();
+        +                isSidebarOpen = !isSidebarOpen;
+        +                updateSidebarState();
+        +            });
+        +
+        +            sidebarLinks.forEach((link) => link.addEventListener("click", closeSidebarOnMobile));
+        +
+        +            document.addEventListener("click", (event) => {
+        +                if (window.innerWidth < 1024 && isSidebarOpen && !sidebar.contains(event.target) && event.target !== toggleButton) {
+        +                    closeSidebarOnMobile();
+        +                }
+        +            });
+        +
+        +            window.addEventListener("resize", () => {
+        +                isSidebarOpen = window.innerWidth >= 1024 || localStorage.getItem("sidebarOpen") === "true";
+        +                updateSidebarState();
+        +            });
+        +
+        +            window.addEventListener("scroll", closeSidebarOnMobile);
+        +
+        +            toggleButton.setAttribute("data-initialized", "true");
+        +        }
+        +
+        +        updateSidebarState();
+        +    }
+        +
+        +    document.addEventListener("DOMContentLoaded", initializeSidebar);
+        +    document.addEventListener("turbo:load", initializeSidebar);
+        +</script>
+        +
+        +      
+        +<div class="w-full px-4 mt-6">
+        +
+        +  <!-- Tabla misc -->
+        +  <div class="relative flex flex-col w-full px-6 text-gray-700 bg-white shadow-md lg:px-10 rounded-xl bg-clip-border">
+        +    <div class="relative mx-4 mt-4 overflow-hidden text-gray-700 bg-white rounded-none bg-clip-border">
+        +      <div class="flex flex-col items-center justify-between gap-8 mb-4 md:flex-row md:items-center">
+        +        <h2 class="block text-xl font-semibold text-center text-blue-gray-900 md:text-left md:mt-12">
+        +          <span class="translation_missing" title="translation missing: en.admin.orders.misc">Misc</span>
+        +        </h2>
+        +      </div>
+        +    </div>
+        +
+        +    <div class="px-4 overflow-auto">
+        +
+        +    </div>
+        +  </div>
+        +  
+        +  <!-- Tabla de Ordenes Cumplidas -->
+        +  <div class="relative flex flex-col w-full px-6 text-gray-700 bg-white shadow-md lg:px-10 rounded-xl bg-clip-border">
+        +    <div class="relative mx-4 mt-4 overflow-hidden text-gray-700 bg-white rounded-none bg-clip-border">
+        +      <div class="flex flex-col items-center justify-between gap-8 mb-4 md:flex-row md:items-center">
+        +        <h2 class="block text-xl font-semibold text-center text-blue-gray-900 md:text-left md:mt-12">
+        +          <span class="translation_missing" title="translation missing: en.admin.orders.paid_orders">Paid Orders</span>
+        +        </h2>
+        +        <a class="flex items-center gap-3 px-4 py-2 font-bold text-white uppercase bg-gray-900 rounded-lg shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85" href="/admin/orders/new?locale=en"><span class="translation_missing" title="translation missing: en.admin.orders.new_order">New Order</span></a>
+        +      </div>
+        +    </div>
+        +
+        +    <div class="px-4 overflow-auto">
+        +      <table class="w-full mx-auto text-left table-auto min-w-max">
+        +        <thead>
+        +          <tr class="table-header">
+        +            <th class="p-4 border-y"><span class="translation_missing" title="translation missing: en.admin.orders.order">Order</span></th>
+        +            <th class="p-4 border-y"><span class="translation_missing" title="translation missing: en.admin.orders.fulfilled">Fulfilled</span></th>
+        +            <th class="p-4 border-y"><span class="translation_missing" title="translation missing: en.admin.orders.date">Date</span></th>
+        +            <th class="p-4 border-y"><span class="translation_missing" title="translation missing: en.admin.dashboard.total">Total</span></th>
+        +            <th class="p-4 border-y"><span class="translation_missing" title="translation missing: en.admin.orders.edit">Edit</span></th>
+        +          </tr>
+        +        </thead>
+        +        <tbody>
+        +        </tbody>
+        +      </table>
+        +
+        +      <!-- Paginación -->
+        +    </div>
+        +  </div>
+        +
+        +  <!-- Tabla de Ordenes No Cumplidas -->
+        +  <div class="relative flex flex-col w-full px-6 mt-8 text-gray-700 bg-white shadow-md lg:px-10 rounded-xl bg-clip-border">
+        +    <div class="relative mx-4 mt-4 overflow-hidden text-gray-700 bg-white rounded-none bg-clip-border">
+        +      <div class="flex flex-col items-center justify-between gap-8 mb-4 md:flex-row md:items-center">
+        +        <h2 class="block text-xl font-semibold text-center text-blue-gray-900 md:text-left md:mt-12">
+        +          <span class="translation_missing" title="translation missing: en.admin.orders.unpaid_orders">Unpaid Orders</span>
+        +        </h2>
+        +      </div>
+        +    </div>
+        +
+        +    <div class="px-4 overflow-auto">
+        +      <table class="w-full mx-auto text-left table-auto min-w-max">
+        +        <thead>
+        +          <tr class="table-header">
+        +            <th class="p-4 border-y"><span class="translation_missing" title="translation missing: en.admin.orders.order">Order</span></th>
+        +            <th class="p-4 border-y"><span class="translation_missing" title="translation missing: en.admin.orders.fulfilled">Fulfilled</span></th>
+        +            <th class="p-4 border-y"><span class="translation_missing" title="translation missing: en.admin.orders.date">Date</span></th>
+        +            <th class="p-4 border-y"><span class="translation_missing" title="translation missing: en.admin.dashboard.total">Total</span></th>
+        +            <th class="p-4 border-y"><span class="translation_missing" title="translation missing: en.admin.orders.edit">Edit</span></th>
+        +          </tr>
+        +        </thead>
+        +        <tbody>
+        +            <tr class="border-b">
+        +              <td class="p-4 border-b">5fd4c</td>
+        +              <td class="p-4 border-b">false</td>
+        +              <td class="p-4 border-b">2025-07-04</td>
+        +              <td class="p-4 border-b">104.43</td>
+        +              <td class="p-4 border-b">
+        +                <a class="text-blue-500" href="/admin/orders/65fd4c88-5fb1-4999-ad16-a1cc36dee929/edit?locale=en">
+        +                  <i class="fas fa-edit"></i>
+        +</a>              </td>
+        +            </tr>
+        +            <tr class="border-b">
+        +              <td class="p-4 border-b">b983d</td>
+        +              <td class="p-4 border-b">false</td>
+        +              <td class="p-4 border-b">2025-07-04</td>
+        +              <td class="p-4 border-b">413.11</td>
+        +              <td class="p-4 border-b">
+        +                <a class="text-blue-500" href="/admin/orders/6b983d3a-be80-43ae-b7cd-95c6579e940e/edit?locale=en">
+        +                  <i class="fas fa-edit"></i>
+        +</a>              </td>
+        +            </tr>
+        +            <tr class="border-b">
+        +              <td class="p-4 border-b">0c070</td>
+        +              <td class="p-4 border-b">false</td>
+        +              <td class="p-4 border-b">2025-07-04</td>
+        +              <td class="p-4 border-b">218.65</td>
+        +              <td class="p-4 border-b">
+        +                <a class="text-blue-500" href="/admin/orders/00c07003-04a0-4b29-86cd-c1fc83f501eb/edit?locale=en">
+        +                  <i class="fas fa-edit"></i>
+        +</a>              </td>
+        +            </tr>
+        +            <tr class="border-b">
+        +              <td class="p-4 border-b">4a0c4</td>
+        +              <td class="p-4 border-b">false</td>
+        +              <td class="p-4 border-b">2025-07-03</td>
+        +              <td class="p-4 border-b">150.93</td>
+        +              <td class="p-4 border-b">
+        +                <a class="text-blue-500" href="/admin/orders/44a0c4bc-440c-4735-89a9-e06722df3b26/edit?locale=en">
+        +                  <i class="fas fa-edit"></i>
+        +</a>              </td>
+        +            </tr>
+        +            <tr class="border-b">
+        +              <td class="p-4 border-b">4fac7</td>
+        +              <td class="p-4 border-b">false</td>
+        +              <td class="p-4 border-b">2025-07-03</td>
+        +              <td class="p-4 border-b">480.13</td>
+        +              <td class="p-4 border-b">
+        +                <a class="text-blue-500" href="/admin/orders/f4fac78e-805b-44f0-87f6-1d92977a8634/edit?locale=en">
+        +                  <i class="fas fa-edit"></i>
+        +</a>              </td>
+        +            </tr>
+        +        </tbody>
+        +      </table>
+        +
+        +      <!-- Paginación -->
+        +        <div class="flex mt-4 mb-4 space-x-1">
+        +            <a href="/admin/orders?locale=en&amp;unpaid_page=1"><button class='px-3 py-2 ml-2 text-sm text-center text-white transition-all border border-transparent rounded-md shadow-md min-w-9 bg-slate-800 hover:shadow-lg focus:bg-slate-700 focus:shadow-none active:bg-slate-700 hover:bg-slate-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none'>1</button></a>
+        +            <a href="/admin/orders?locale=en&amp;unpaid_page=2"><button class='px-3 py-2 ml-2 text-sm text-center transition-all border border-transparent rounded-md shadow-md min-w-9 hover:shadow-lg focus:bg-slate-700 focus:shadow-none active:bg-slate-700 hover:bg-slate-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none'>2</button></a>
+        +        </div>
+        +    </div>
+        +  </div>
+        +</div>
+        +
+        +    </main>
+        +  </body>
+        +</html>
+        
+      # ./spec/requests/admin/orders_spec.rb:24:in `block (5 levels) in <top (required)>'
+      # ./spec/requests/admin/orders_spec.rb:23:in `each'
+      # ./spec/requests/admin/orders_spec.rb:23:in `block (4 levels) in <top (required)>'
 
-Failure:
-Admin::ProductsTest#test_visiting_the_index [test/system/admin/products_test.rb:10]:
-expected to find visible css "h1" with text "Products" but there were no matches. Also found "Blocked hosts: 127.0.0.1:38597", which matched the selector but not all filters. 
+  28) Admin::Orders GET /admin/orders with various order statuses shows correct order counts by status
+      Failure/Error: expect(response.body).to include('pending')
+      
+        expected "<!DOCTYPE html>\n<html>\n  <head>\n    <title>Coins Ecommerce App</title>\n    <meta name=\"viewport...'>2</button></a>\n        </div>\n    </div>\n  </div>\n</div>\n\n    </main>\n  </body>\n</html>\n" to include "pending"
+        Diff:
+        @@ -1 +1,295 @@
+        -pending
+        +<!DOCTYPE html>
+        +<html>
+        +  <head>
+        +    <title>Coins Ecommerce App</title>
+        +    <meta name="viewport" content="width=device-width,initial-scale=1">
+        +    <meta name="apple-mobile-web-app-capable" content="yes">
+        +    
+        +    
+        +
+        +    
+        +
+        +    <link rel="manifest" href="/manifest.json">
+        +    <link rel="icon" href="/icon.png" type="image/png">
+        +    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+        +    <link rel="apple-touch-icon" href="/icon.png">
+        +    <link rel="stylesheet" href="/assets/tailwind-f1451a962053cdc451fe350a9c8e6d406f0f0a8b5e22ae84a3490133928735b2.css" data-turbo-track="reload" />
+        +<link rel="stylesheet" href="/assets/inter-font-6fd0c410ae351b4ac710f0bb10332736cc1f51ccd3433d5b1a1f9a8bd909e77a.css" data-turbo-track="reload" />
+        +    <link rel="stylesheet" href="/assets/application-d20f13c125f9ace46929bf82d467c943c9d65121168be7836aa6787aa2c30335.css" data-turbo-track="reload" />
+        +    <script type="importmap" data-turbo-track="reload">{
+        +  "imports": {
+        +    "application": "/assets/application-37f365cbecf1fa2810a8303f4b6571676fa1f9c56c248528bc14ddb857531b95.js",
+        +    "@hotwired/turbo-rails": "/assets/turbo.min-38d030897e3554a265d3a3b6bdf4fb7509b08197ba2b6e3761683c07e776c1bc.js",
+        +    "@hotwired/stimulus": "/assets/stimulus.min-dd364f16ec9504dfb72672295637a1c8838773b01c0b441bd41008124c407894.js",
+        +    "@hotwired/stimulus-loading": "/assets/stimulus-loading-3576ce92b149ad5d6959438c6f291e2426c86df3b874c525b30faad51b0d96b3.js",
+        +    "chart.js": "https://ga.jspm.io/npm:chart.js@4.4.1/dist/chart.js",
+        +    "@kurkle/color": "https://ga.jspm.io/npm:@kurkle/color@0.3.2/dist/color.esm.js",
+        +    "controllers/application": "/assets/controllers/application-368d98631bccbf2349e0d4f8269afb3fe9625118341966de054759d96ea86c7e.js",
+        +    "controllers/cart_controller": "/assets/controllers/cart_controller-4e6e806169e87f8cdebe5dda5f7de50f2d058dbf7be9501af1fc6c9d1e33a0fe.js",
+        +    "controllers/dashboard_controller": "/assets/controllers/dashboard_controller-00c56224714f90542e24d12141a8a34ca60b4e9c6f6991cc46f34f57971f91ab.js",
+        +    "controllers/header_controller": "/assets/controllers/header_controller-0c3679e95e9b8619abbec160bbc5b4b293a9b2441a695d5a7d2b3798e8e38371.js",
+        +    "controllers/hello_controller": "/assets/controllers/hello_controller-549135e8e7c683a538c3d6d517339ba470fcfb79d62f738a0a089ba41851a554.js",
+        +    "controllers": "/assets/controllers/index-31a9bee606cbc5cdb1593881f388bbf4c345bf693ea24e124f84b6d5c98ab648.js",
+        +    "controllers/products_controller": "/assets/controllers/products_controller-a9b1823b34a4edade3274c05ae51f95bc6811afd9067944b8e7a3b7b7d58b10c.js",
+        +    "controllers/slider_controller": "/assets/controllers/slider_controller-f525b32b756f76345f93f499e0ba74b1afaa2207c424c8ddc2b0151b2e45e175.js"
+        +  }
+        +}</script>
+        +<link rel="modulepreload" href="/assets/application-37f365cbecf1fa2810a8303f4b6571676fa1f9c56c248528bc14ddb857531b95.js">
+        +<link rel="modulepreload" href="/assets/turbo.min-38d030897e3554a265d3a3b6bdf4fb7509b08197ba2b6e3761683c07e776c1bc.js">
+        +<link rel="modulepreload" href="/assets/stimulus.min-dd364f16ec9504dfb72672295637a1c8838773b01c0b441bd41008124c407894.js">
+        +<link rel="modulepreload" href="/assets/stimulus-loading-3576ce92b149ad5d6959438c6f291e2426c86df3b874c525b30faad51b0d96b3.js">
+        +<link rel="modulepreload" href="https://ga.jspm.io/npm:chart.js@4.4.1/dist/chart.js">
+        +<link rel="modulepreload" href="https://ga.jspm.io/npm:@kurkle/color@0.3.2/dist/color.esm.js">
+        +<link rel="modulepreload" href="/assets/controllers/application-368d98631bccbf2349e0d4f8269afb3fe9625118341966de054759d96ea86c7e.js">
+        +<link rel="modulepreload" href="/assets/controllers/cart_controller-4e6e806169e87f8cdebe5dda5f7de50f2d058dbf7be9501af1fc6c9d1e33a0fe.js">
+        +<link rel="modulepreload" href="/assets/controllers/dashboard_controller-00c56224714f90542e24d12141a8a34ca60b4e9c6f6991cc46f34f57971f91ab.js">
+        +<link rel="modulepreload" href="/assets/controllers/header_controller-0c3679e95e9b8619abbec160bbc5b4b293a9b2441a695d5a7d2b3798e8e38371.js">
+        +<link rel="modulepreload" href="/assets/controllers/hello_controller-549135e8e7c683a538c3d6d517339ba470fcfb79d62f738a0a089ba41851a554.js">
+        +<link rel="modulepreload" href="/assets/controllers/index-31a9bee606cbc5cdb1593881f388bbf4c345bf693ea24e124f84b6d5c98ab648.js">
+        +<link rel="modulepreload" href="/assets/controllers/products_controller-a9b1823b34a4edade3274c05ae51f95bc6811afd9067944b8e7a3b7b7d58b10c.js">
+        +<link rel="modulepreload" href="/assets/controllers/slider_controller-f525b32b756f76345f93f499e0ba74b1afaa2207c424c8ddc2b0151b2e45e175.js">
+        +<script type="module">import "application"</script>
+        +  </head>
+        +
+        +  <body>
+        +    <main>
+        +      <div class="bg-gray-100">
+        +    <!-- Botón para abrir/cerrar el sidebar -->
+        +    <button id="sidebarToggle" type="button" class="fixed z-50 inline-flex items-center p-2 mt-3 ml-5 text-sm text-gray-500 rounded-lg lg:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600">
+        +        <span class="sr-only">Open sidebar</span>
+        +        <svg class="w-6 h-6" aria-hidden="true" fill="gray" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+        +            <path clip-rule="evenodd" fill-rule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z"></path>
+        +        </svg>
+        +    </button>
+        +
+        +    <!-- Sidebar -->
+        +    <nav id="default-sidebar" class="fixed top-0 left-0 z-40 w-64 h-screen transition-transform -translate-x-full lg:translate-x-0" aria-label="Sidebar">
+        +        <div class="flex flex-col justify-between h-full px-3 py-4 overflow-y-auto bg-gray-800 rounded-r-lg md:rounded-none">
+        +            <ul class="mt-16 space-y-2 font-medium text-white">
+        +                    <li>
+        +                        <a class="flex items-center p-3 rounded-lg hover:bg-gray-700 sidebar-item" href="/admin?locale=en">
+        +                            <i class="w-5 h-5 mr-2 fa-solid fa-gauge-high" aria-hidden="true"></i> 
+        +                            <span>Dashboard</span>
+        +</a>                    </li>
+        +                    <li>
+        +                        <a class="flex items-center p-3 rounded-lg hover:bg-gray-700 sidebar-item" href="/admin/orders?locale=en">
+        +                            <i class="w-5 h-5 mr-2 fa-solid fa-truck-fast" aria-hidden="true"></i> 
+        +                            <span>Orders</span>
+        +</a>                    </li>
+        +                    <li>
+        +                        <a class="flex items-center p-3 rounded-lg hover:bg-gray-700 sidebar-item" href="/admin/products?locale=en">
+        +                            <i class="w-5 h-5 mr-2 fa-solid fa-cart-shopping" aria-hidden="true"></i> 
+        +                            <span>Products</span>
+        +</a>                    </li>
+        +                    <li>
+        +                        <a class="flex items-center p-3 rounded-lg hover:bg-gray-700 sidebar-item" href="/admin/categories?locale=en">
+        +                            <i class="w-5 h-5 mr-2 fa-solid fa-list" aria-hidden="true"></i> 
+        +                            <span>Categories</span>
+        +</a>                    </li>
+        +
+        +                <div class="my-2 border-t border-gray-600"></div>
+        +                <!-- Botón de cerrar sesión -->
+        +                <div class="mt-0 text-white lg:mt-auto">
+        +                    <form class="inline" action="/admins/sign_out?locale=en" accept-charset="UTF-8" method="post"><input type="hidden" name="_method" value="delete" autocomplete="off" />
+        +                        <button type="submit" class="flex items-center w-full p-3 rounded-lg hover:bg-gray-700" data-confirm="Are you sure you want to sign out?">
+        +                            <i class="w-5 h-5 mr-2 fa-solid fa-sign-out" aria-hidden="true"></i> 
+        +                            <span>Sign Out</span>
+        +                        </button>
+        +</form>                </div>
+        +            </ul>
+        +        </div>
+        +    </nav>
+        +</div>
+        +
+        +
+        +<script>
+        +    function initializeSidebar() {
+        +        const sidebar = document.getElementById("default-sidebar");
+        +        const toggleButton = document.getElementById("sidebarToggle");
+        +        const content = document.querySelector("main");
+        +        const sidebarLinks = document.querySelectorAll(".sidebar-item");
+        +
+        +        if (!sidebar || !toggleButton || !content) return;
+        +
+        +        let isSidebarOpen = localStorage.getItem("sidebarOpen") === "true" || window.innerWidth >= 1024;
+        +
+        +        const updateSidebarState = () => {
+        +            sidebar.classList.toggle("-translate-x-full", !isSidebarOpen);
+        +            content.classList.toggle("lg:ml-64", isSidebarOpen);
+        +            localStorage.setItem("sidebarOpen", isSidebarOpen);
+        +        };
+        +
+        +        const closeSidebarOnMobile = () => {
+        +            if (window.innerWidth < 1024 && isSidebarOpen) {
+        +                isSidebarOpen = false;
+        +                updateSidebarState();
+        +            }
+        +        };
+        +
+        +        if (!toggleButton.hasAttribute("data-initialized")) {
+        +            toggleButton.addEventListener("click", (event) => {
+        +                event.stopPropagation();
+        +                isSidebarOpen = !isSidebarOpen;
+        +                updateSidebarState();
+        +            });
+        +
+        +            sidebarLinks.forEach((link) => link.addEventListener("click", closeSidebarOnMobile));
+        +
+        +            document.addEventListener("click", (event) => {
+        +                if (window.innerWidth < 1024 && isSidebarOpen && !sidebar.contains(event.target) && event.target !== toggleButton) {
+        +                    closeSidebarOnMobile();
+        +                }
+        +            });
+        +
+        +            window.addEventListener("resize", () => {
+        +                isSidebarOpen = window.innerWidth >= 1024 || localStorage.getItem("sidebarOpen") === "true";
+        +                updateSidebarState();
+        +            });
+        +
+        +            window.addEventListener("scroll", closeSidebarOnMobile);
+        +
+        +            toggleButton.setAttribute("data-initialized", "true");
+        +        }
+        +
+        +        updateSidebarState();
+        +    }
+        +
+        +    document.addEventListener("DOMContentLoaded", initializeSidebar);
+        +    document.addEventListener("turbo:load", initializeSidebar);
+        +</script>
+        +
+        +      
+        +<div class="w-full px-4 mt-6">
+        +
+        +  <!-- Tabla misc -->
+        +  <div class="relative flex flex-col w-full px-6 text-gray-700 bg-white shadow-md lg:px-10 rounded-xl bg-clip-border">
+        +    <div class="relative mx-4 mt-4 overflow-hidden text-gray-700 bg-white rounded-none bg-clip-border">
+        +      <div class="flex flex-col items-center justify-between gap-8 mb-4 md:flex-row md:items-center">
+        +        <h2 class="block text-xl font-semibold text-center text-blue-gray-900 md:text-left md:mt-12">
+        +          <span class="translation_missing" title="translation missing: en.admin.orders.misc">Misc</span>
+        +        </h2>
+        +      </div>
+        +    </div>
+        +
+        +    <div class="px-4 overflow-auto">
+        +
+        +    </div>
+        +  </div>
+        +  
+        +  <!-- Tabla de Ordenes Cumplidas -->
+        +  <div class="relative flex flex-col w-full px-6 text-gray-700 bg-white shadow-md lg:px-10 rounded-xl bg-clip-border">
+        +    <div class="relative mx-4 mt-4 overflow-hidden text-gray-700 bg-white rounded-none bg-clip-border">
+        +      <div class="flex flex-col items-center justify-between gap-8 mb-4 md:flex-row md:items-center">
+        +        <h2 class="block text-xl font-semibold text-center text-blue-gray-900 md:text-left md:mt-12">
+        +          <span class="translation_missing" title="translation missing: en.admin.orders.paid_orders">Paid Orders</span>
+        +        </h2>
+        +        <a class="flex items-center gap-3 px-4 py-2 font-bold text-white uppercase bg-gray-900 rounded-lg shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85" href="/admin/orders/new?locale=en"><span class="translation_missing" title="translation missing: en.admin.orders.new_order">New Order</span></a>
+        +      </div>
+        +    </div>
+        +
+        +    <div class="px-4 overflow-auto">
+        +      <table class="w-full mx-auto text-left table-auto min-w-max">
+        +        <thead>
+        +          <tr class="table-header">
+        +            <th class="p-4 border-y"><span class="translation_missing" title="translation missing: en.admin.orders.order">Order</span></th>
+        +            <th class="p-4 border-y"><span class="translation_missing" title="translation missing: en.admin.orders.fulfilled">Fulfilled</span></th>
+        +            <th class="p-4 border-y"><span class="translation_missing" title="translation missing: en.admin.orders.date">Date</span></th>
+        +            <th class="p-4 border-y"><span class="translation_missing" title="translation missing: en.admin.dashboard.total">Total</span></th>
+        +            <th class="p-4 border-y"><span class="translation_missing" title="translation missing: en.admin.orders.edit">Edit</span></th>
+        +          </tr>
+        +        </thead>
+        +        <tbody>
+        +        </tbody>
+        +      </table>
+        +
+        +      <!-- Paginación -->
+        +    </div>
+        +  </div>
+        +
+        +  <!-- Tabla de Ordenes No Cumplidas -->
+        +  <div class="relative flex flex-col w-full px-6 mt-8 text-gray-700 bg-white shadow-md lg:px-10 rounded-xl bg-clip-border">
+        +    <div class="relative mx-4 mt-4 overflow-hidden text-gray-700 bg-white rounded-none bg-clip-border">
+        +      <div class="flex flex-col items-center justify-between gap-8 mb-4 md:flex-row md:items-center">
+        +        <h2 class="block text-xl font-semibold text-center text-blue-gray-900 md:text-left md:mt-12">
+        +          <span class="translation_missing" title="translation missing: en.admin.orders.unpaid_orders">Unpaid Orders</span>
+        +        </h2>
+        +      </div>
+        +    </div>
+        +
+        +    <div class="px-4 overflow-auto">
+        +      <table class="w-full mx-auto text-left table-auto min-w-max">
+        +        <thead>
+        +          <tr class="table-header">
+        +            <th class="p-4 border-y"><span class="translation_missing" title="translation missing: en.admin.orders.order">Order</span></th>
+        +            <th class="p-4 border-y"><span class="translation_missing" title="translation missing: en.admin.orders.fulfilled">Fulfilled</span></th>
+        +            <th class="p-4 border-y"><span class="translation_missing" title="translation missing: en.admin.orders.date">Date</span></th>
+        +            <th class="p-4 border-y"><span class="translation_missing" title="translation missing: en.admin.dashboard.total">Total</span></th>
+        +            <th class="p-4 border-y"><span class="translation_missing" title="translation missing: en.admin.orders.edit">Edit</span></th>
+        +          </tr>
+        +        </thead>
+        +        <tbody>
+        +            <tr class="border-b">
+        +              <td class="p-4 border-b">d3780</td>
+        +              <td class="p-4 border-b">false</td>
+        +              <td class="p-4 border-b">2025-07-04</td>
+        +              <td class="p-4 border-b">210.87</td>
+        +              <td class="p-4 border-b">
+        +                <a class="text-blue-500" href="/admin/orders/4d3780cf-d14c-4c64-a66e-b76da575eb8a/edit?locale=en">
+        +                  <i class="fas fa-edit"></i>
+        +</a>              </td>
+        +            </tr>
+        +            <tr class="border-b">
+        +              <td class="p-4 border-b">fce34</td>
+        +              <td class="p-4 border-b">false</td>
+        +              <td class="p-4 border-b">2025-07-04</td>
+        +              <td class="p-4 border-b">166.06</td>
+        +              <td class="p-4 border-b">
+        +                <a class="text-blue-500" href="/admin/orders/4fce3460-5794-4081-8cb8-87c6bc4e186b/edit?locale=en">
+        +                  <i class="fas fa-edit"></i>
+        +</a>              </td>
+        +            </tr>
+        +            <tr class="border-b">
+        +              <td class="p-4 border-b">bea28</td>
+        +              <td class="p-4 border-b">false</td>
+        +              <td class="p-4 border-b">2025-07-04</td>
+        +              <td class="p-4 border-b">368.06</td>
+        +              <td class="p-4 border-b">
+        +                <a class="text-blue-500" href="/admin/orders/0bea2826-de28-4085-8f4c-325ff90d6055/edit?locale=en">
+        +                  <i class="fas fa-edit"></i>
+        +</a>              </td>
+        +            </tr>
+        +            <tr class="border-b">
+        +              <td class="p-4 border-b">ada1c</td>
+        +              <td class="p-4 border-b">false</td>
+        +              <td class="p-4 border-b">2025-07-03</td>
+        +              <td class="p-4 border-b">384.7</td>
+        +              <td class="p-4 border-b">
+        +                <a class="text-blue-500" href="/admin/orders/6ada1ca3-aab7-4f12-b5f3-e64fc6c7dfc7/edit?locale=en">
+        +                  <i class="fas fa-edit"></i>
+        +</a>              </td>
+        +            </tr>
+        +            <tr class="border-b">
+        +              <td class="p-4 border-b">825e9</td>
+        +              <td class="p-4 border-b">false</td>
+        +              <td class="p-4 border-b">2025-07-03</td>
+        +              <td class="p-4 border-b">70.37</td>
+        +              <td class="p-4 border-b">
+        +                <a class="text-blue-500" href="/admin/orders/f825e9fe-ce8d-4f2a-a4b6-f5f3482f96ae/edit?locale=en">
+        +                  <i class="fas fa-edit"></i>
+        +</a>              </td>
+        +            </tr>
+        +        </tbody>
+        +      </table>
+        +
+        +      <!-- Paginación -->
+        +        <div class="flex mt-4 mb-4 space-x-1">
+        +            <a href="/admin/orders?locale=en&amp;unpaid_page=1"><button class='px-3 py-2 ml-2 text-sm text-center text-white transition-all border border-transparent rounded-md shadow-md min-w-9 bg-slate-800 hover:shadow-lg focus:bg-slate-700 focus:shadow-none active:bg-slate-700 hover:bg-slate-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none'>1</button></a>
+        +            <a href="/admin/orders?locale=en&amp;unpaid_page=2"><button class='px-3 py-2 ml-2 text-sm text-center transition-all border border-transparent rounded-md shadow-md min-w-9 hover:shadow-lg focus:bg-slate-700 focus:shadow-none active:bg-slate-700 hover:bg-slate-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none'>2</button></a>
+        +        </div>
+        +    </div>
+        +  </div>
+        +</div>
+        +
+        +    </main>
+        +  </body>
+        +</html>
+        
+      # ./spec/requests/admin/orders_spec.rb:32:in `block (4 levels) in <top (required)>'
 
-bin/rails test test/system/admin/products_test.rb:8
+  29) Admin::Orders GET /admin/orders with pagination paginates orders correctly
+      Failure/Error: expect(response.body).to include('Next') if Order.count > 25
+      
+        expected "<!DOCTYPE html>\n<html>\n  <head>\n    <title>Coins Ecommerce App</title>\n    <meta name=\"viewport...'>6</button></a>\n        </div>\n    </div>\n  </div>\n</div>\n\n    </main>\n  </body>\n</html>\n" to include "Next"
+        Diff:
+        @@ -1 +1,299 @@
+        -Next
+        +<!DOCTYPE html>
+        +<html>
+        +  <head>
+        +    <title>Coins Ecommerce App</title>
+        +    <meta name="viewport" content="width=device-width,initial-scale=1">
+        +    <meta name="apple-mobile-web-app-capable" content="yes">
+        +    
+        +    
+        +
+        +    
+        +
+        +    <link rel="manifest" href="/manifest.json">
+        +    <link rel="icon" href="/icon.png" type="image/png">
+        +    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+        +    <link rel="apple-touch-icon" href="/icon.png">
+        +    <link rel="stylesheet" href="/assets/tailwind-f1451a962053cdc451fe350a9c8e6d406f0f0a8b5e22ae84a3490133928735b2.css" data-turbo-track="reload" />
+        +<link rel="stylesheet" href="/assets/inter-font-6fd0c410ae351b4ac710f0bb10332736cc1f51ccd3433d5b1a1f9a8bd909e77a.css" data-turbo-track="reload" />
+        +    <link rel="stylesheet" href="/assets/application-d20f13c125f9ace46929bf82d467c943c9d65121168be7836aa6787aa2c30335.css" data-turbo-track="reload" />
+        +    <script type="importmap" data-turbo-track="reload">{
+        +  "imports": {
+        +    "application": "/assets/application-37f365cbecf1fa2810a8303f4b6571676fa1f9c56c248528bc14ddb857531b95.js",
+        +    "@hotwired/turbo-rails": "/assets/turbo.min-38d030897e3554a265d3a3b6bdf4fb7509b08197ba2b6e3761683c07e776c1bc.js",
+        +    "@hotwired/stimulus": "/assets/stimulus.min-dd364f16ec9504dfb72672295637a1c8838773b01c0b441bd41008124c407894.js",
+        +    "@hotwired/stimulus-loading": "/assets/stimulus-loading-3576ce92b149ad5d6959438c6f291e2426c86df3b874c525b30faad51b0d96b3.js",
+        +    "chart.js": "https://ga.jspm.io/npm:chart.js@4.4.1/dist/chart.js",
+        +    "@kurkle/color": "https://ga.jspm.io/npm:@kurkle/color@0.3.2/dist/color.esm.js",
+        +    "controllers/application": "/assets/controllers/application-368d98631bccbf2349e0d4f8269afb3fe9625118341966de054759d96ea86c7e.js",
+        +    "controllers/cart_controller": "/assets/controllers/cart_controller-4e6e806169e87f8cdebe5dda5f7de50f2d058dbf7be9501af1fc6c9d1e33a0fe.js",
+        +    "controllers/dashboard_controller": "/assets/controllers/dashboard_controller-00c56224714f90542e24d12141a8a34ca60b4e9c6f6991cc46f34f57971f91ab.js",
+        +    "controllers/header_controller": "/assets/controllers/header_controller-0c3679e95e9b8619abbec160bbc5b4b293a9b2441a695d5a7d2b3798e8e38371.js",
+        +    "controllers/hello_controller": "/assets/controllers/hello_controller-549135e8e7c683a538c3d6d517339ba470fcfb79d62f738a0a089ba41851a554.js",
+        +    "controllers": "/assets/controllers/index-31a9bee606cbc5cdb1593881f388bbf4c345bf693ea24e124f84b6d5c98ab648.js",
+        +    "controllers/products_controller": "/assets/controllers/products_controller-a9b1823b34a4edade3274c05ae51f95bc6811afd9067944b8e7a3b7b7d58b10c.js",
+        +    "controllers/slider_controller": "/assets/controllers/slider_controller-f525b32b756f76345f93f499e0ba74b1afaa2207c424c8ddc2b0151b2e45e175.js"
+        +  }
+        +}</script>
+        +<link rel="modulepreload" href="/assets/application-37f365cbecf1fa2810a8303f4b6571676fa1f9c56c248528bc14ddb857531b95.js">
+        +<link rel="modulepreload" href="/assets/turbo.min-38d030897e3554a265d3a3b6bdf4fb7509b08197ba2b6e3761683c07e776c1bc.js">
+        +<link rel="modulepreload" href="/assets/stimulus.min-dd364f16ec9504dfb72672295637a1c8838773b01c0b441bd41008124c407894.js">
+        +<link rel="modulepreload" href="/assets/stimulus-loading-3576ce92b149ad5d6959438c6f291e2426c86df3b874c525b30faad51b0d96b3.js">
+        +<link rel="modulepreload" href="https://ga.jspm.io/npm:chart.js@4.4.1/dist/chart.js">
+        +<link rel="modulepreload" href="https://ga.jspm.io/npm:@kurkle/color@0.3.2/dist/color.esm.js">
+        +<link rel="modulepreload" href="/assets/controllers/application-368d98631bccbf2349e0d4f8269afb3fe9625118341966de054759d96ea86c7e.js">
+        +<link rel="modulepreload" href="/assets/controllers/cart_controller-4e6e806169e87f8cdebe5dda5f7de50f2d058dbf7be9501af1fc6c9d1e33a0fe.js">
+        +<link rel="modulepreload" href="/assets/controllers/dashboard_controller-00c56224714f90542e24d12141a8a34ca60b4e9c6f6991cc46f34f57971f91ab.js">
+        +<link rel="modulepreload" href="/assets/controllers/header_controller-0c3679e95e9b8619abbec160bbc5b4b293a9b2441a695d5a7d2b3798e8e38371.js">
+        +<link rel="modulepreload" href="/assets/controllers/hello_controller-549135e8e7c683a538c3d6d517339ba470fcfb79d62f738a0a089ba41851a554.js">
+        +<link rel="modulepreload" href="/assets/controllers/index-31a9bee606cbc5cdb1593881f388bbf4c345bf693ea24e124f84b6d5c98ab648.js">
+        +<link rel="modulepreload" href="/assets/controllers/products_controller-a9b1823b34a4edade3274c05ae51f95bc6811afd9067944b8e7a3b7b7d58b10c.js">
+        +<link rel="modulepreload" href="/assets/controllers/slider_controller-f525b32b756f76345f93f499e0ba74b1afaa2207c424c8ddc2b0151b2e45e175.js">
+        +<script type="module">import "application"</script>
+        +  </head>
+        +
+        +  <body>
+        +    <main>
+        +      <div class="bg-gray-100">
+        +    <!-- Botón para abrir/cerrar el sidebar -->
+        +    <button id="sidebarToggle" type="button" class="fixed z-50 inline-flex items-center p-2 mt-3 ml-5 text-sm text-gray-500 rounded-lg lg:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600">
+        +        <span class="sr-only">Open sidebar</span>
+        +        <svg class="w-6 h-6" aria-hidden="true" fill="gray" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+        +            <path clip-rule="evenodd" fill-rule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z"></path>
+        +        </svg>
+        +    </button>
+        +
+        +    <!-- Sidebar -->
+        +    <nav id="default-sidebar" class="fixed top-0 left-0 z-40 w-64 h-screen transition-transform -translate-x-full lg:translate-x-0" aria-label="Sidebar">
+        +        <div class="flex flex-col justify-between h-full px-3 py-4 overflow-y-auto bg-gray-800 rounded-r-lg md:rounded-none">
+        +            <ul class="mt-16 space-y-2 font-medium text-white">
+        +                    <li>
+        +                        <a class="flex items-center p-3 rounded-lg hover:bg-gray-700 sidebar-item" href="/admin?locale=en">
+        +                            <i class="w-5 h-5 mr-2 fa-solid fa-gauge-high" aria-hidden="true"></i> 
+        +                            <span>Dashboard</span>
+        +</a>                    </li>
+        +                    <li>
+        +                        <a class="flex items-center p-3 rounded-lg hover:bg-gray-700 sidebar-item" href="/admin/orders?locale=en">
+        +                            <i class="w-5 h-5 mr-2 fa-solid fa-truck-fast" aria-hidden="true"></i> 
+        +                            <span>Orders</span>
+        +</a>                    </li>
+        +                    <li>
+        +                        <a class="flex items-center p-3 rounded-lg hover:bg-gray-700 sidebar-item" href="/admin/products?locale=en">
+        +                            <i class="w-5 h-5 mr-2 fa-solid fa-cart-shopping" aria-hidden="true"></i> 
+        +                            <span>Products</span>
+        +</a>                    </li>
+        +                    <li>
+        +                        <a class="flex items-center p-3 rounded-lg hover:bg-gray-700 sidebar-item" href="/admin/categories?locale=en">
+        +                            <i class="w-5 h-5 mr-2 fa-solid fa-list" aria-hidden="true"></i> 
+        +                            <span>Categories</span>
+        +</a>                    </li>
+        +
+        +                <div class="my-2 border-t border-gray-600"></div>
+        +                <!-- Botón de cerrar sesión -->
+        +                <div class="mt-0 text-white lg:mt-auto">
+        +                    <form class="inline" action="/admins/sign_out?locale=en" accept-charset="UTF-8" method="post"><input type="hidden" name="_method" value="delete" autocomplete="off" />
+        +                        <button type="submit" class="flex items-center w-full p-3 rounded-lg hover:bg-gray-700" data-confirm="Are you sure you want to sign out?">
+        +                            <i class="w-5 h-5 mr-2 fa-solid fa-sign-out" aria-hidden="true"></i> 
+        +                            <span>Sign Out</span>
+        +                        </button>
+        +</form>                </div>
+        +            </ul>
+        +        </div>
+        +    </nav>
+        +</div>
+        +
+        +
+        +<script>
+        +    function initializeSidebar() {
+        +        const sidebar = document.getElementById("default-sidebar");
+        +        const toggleButton = document.getElementById("sidebarToggle");
+        +        const content = document.querySelector("main");
+        +        const sidebarLinks = document.querySelectorAll(".sidebar-item");
+        +
+        +        if (!sidebar || !toggleButton || !content) return;
+        +
+        +        let isSidebarOpen = localStorage.getItem("sidebarOpen") === "true" || window.innerWidth >= 1024;
+        +
+        +        const updateSidebarState = () => {
+        +            sidebar.classList.toggle("-translate-x-full", !isSidebarOpen);
+        +            content.classList.toggle("lg:ml-64", isSidebarOpen);
+        +            localStorage.setItem("sidebarOpen", isSidebarOpen);
+        +        };
+        +
+        +        const closeSidebarOnMobile = () => {
+        +            if (window.innerWidth < 1024 && isSidebarOpen) {
+        +                isSidebarOpen = false;
+        +                updateSidebarState();
+        +            }
+        +        };
+        +
+        +        if (!toggleButton.hasAttribute("data-initialized")) {
+        +            toggleButton.addEventListener("click", (event) => {
+        +                event.stopPropagation();
+        +                isSidebarOpen = !isSidebarOpen;
+        +                updateSidebarState();
+        +            });
+        +
+        +            sidebarLinks.forEach((link) => link.addEventListener("click", closeSidebarOnMobile));
+        +
+        +            document.addEventListener("click", (event) => {
+        +                if (window.innerWidth < 1024 && isSidebarOpen && !sidebar.contains(event.target) && event.target !== toggleButton) {
+        +                    closeSidebarOnMobile();
+        +                }
+        +            });
+        +
+        +            window.addEventListener("resize", () => {
+        +                isSidebarOpen = window.innerWidth >= 1024 || localStorage.getItem("sidebarOpen") === "true";
+        +                updateSidebarState();
+        +            });
+        +
+        +            window.addEventListener("scroll", closeSidebarOnMobile);
+        +
+        +            toggleButton.setAttribute("data-initialized", "true");
+        +        }
+        +
+        +        updateSidebarState();
+        +    }
+        +
+        +    document.addEventListener("DOMContentLoaded", initializeSidebar);
+        +    document.addEventListener("turbo:load", initializeSidebar);
+        +</script>
+        +
+        +      
+        +<div class="w-full px-4 mt-6">
+        +
+        +  <!-- Tabla misc -->
+        +  <div class="relative flex flex-col w-full px-6 text-gray-700 bg-white shadow-md lg:px-10 rounded-xl bg-clip-border">
+        +    <div class="relative mx-4 mt-4 overflow-hidden text-gray-700 bg-white rounded-none bg-clip-border">
+        +      <div class="flex flex-col items-center justify-between gap-8 mb-4 md:flex-row md:items-center">
+        +        <h2 class="block text-xl font-semibold text-center text-blue-gray-900 md:text-left md:mt-12">
+        +          <span class="translation_missing" title="translation missing: en.admin.orders.misc">Misc</span>
+        +        </h2>
+        +      </div>
+        +    </div>
+        +
+        +    <div class="px-4 overflow-auto">
+        +
+        +    </div>
+        +  </div>
+        +  
+        +  <!-- Tabla de Ordenes Cumplidas -->
+        +  <div class="relative flex flex-col w-full px-6 text-gray-700 bg-white shadow-md lg:px-10 rounded-xl bg-clip-border">
+        +    <div class="relative mx-4 mt-4 overflow-hidden text-gray-700 bg-white rounded-none bg-clip-border">
+        +      <div class="flex flex-col items-center justify-between gap-8 mb-4 md:flex-row md:items-center">
+        +        <h2 class="block text-xl font-semibold text-center text-blue-gray-900 md:text-left md:mt-12">
+        +          <span class="translation_missing" title="translation missing: en.admin.orders.paid_orders">Paid Orders</span>
+        +        </h2>
+        +        <a class="flex items-center gap-3 px-4 py-2 font-bold text-white uppercase bg-gray-900 rounded-lg shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85" href="/admin/orders/new?locale=en"><span class="translation_missing" title="translation missing: en.admin.orders.new_order">New Order</span></a>
+        +      </div>
+        +    </div>
+        +
+        +    <div class="px-4 overflow-auto">
+        +      <table class="w-full mx-auto text-left table-auto min-w-max">
+        +        <thead>
+        +          <tr class="table-header">
+        +            <th class="p-4 border-y"><span class="translation_missing" title="translation missing: en.admin.orders.order">Order</span></th>
+        +            <th class="p-4 border-y"><span class="translation_missing" title="translation missing: en.admin.orders.fulfilled">Fulfilled</span></th>
+        +            <th class="p-4 border-y"><span class="translation_missing" title="translation missing: en.admin.orders.date">Date</span></th>
+        +            <th class="p-4 border-y"><span class="translation_missing" title="translation missing: en.admin.dashboard.total">Total</span></th>
+        +            <th class="p-4 border-y"><span class="translation_missing" title="translation missing: en.admin.orders.edit">Edit</span></th>
+        +          </tr>
+        +        </thead>
+        +        <tbody>
+        +        </tbody>
+        +      </table>
+        +
+        +      <!-- Paginación -->
+        +    </div>
+        +  </div>
+        +
+        +  <!-- Tabla de Ordenes No Cumplidas -->
+        +  <div class="relative flex flex-col w-full px-6 mt-8 text-gray-700 bg-white shadow-md lg:px-10 rounded-xl bg-clip-border">
+        +    <div class="relative mx-4 mt-4 overflow-hidden text-gray-700 bg-white rounded-none bg-clip-border">
+        +      <div class="flex flex-col items-center justify-between gap-8 mb-4 md:flex-row md:items-center">
+        +        <h2 class="block text-xl font-semibold text-center text-blue-gray-900 md:text-left md:mt-12">
+        +          <span class="translation_missing" title="translation missing: en.admin.orders.unpaid_orders">Unpaid Orders</span>
+        +        </h2>
+        +      </div>
+        +    </div>
+        +
+        +    <div class="px-4 overflow-auto">
+        +      <table class="w-full mx-auto text-left table-auto min-w-max">
+        +        <thead>
+        +          <tr class="table-header">
+        +            <th class="p-4 border-y"><span class="translation_missing" title="translation missing: en.admin.orders.order">Order</span></th>
+        +            <th class="p-4 border-y"><span class="translation_missing" title="translation missing: en.admin.orders.fulfilled">Fulfilled</span></th>
+        +            <th class="p-4 border-y"><span class="translation_missing" title="translation missing: en.admin.orders.date">Date</span></th>
+        +            <th class="p-4 border-y"><span class="translation_missing" title="translation missing: en.admin.dashboard.total">Total</span></th>
+        +            <th class="p-4 border-y"><span class="translation_missing" title="translation missing: en.admin.orders.edit">Edit</span></th>
+        +          </tr>
+        +        </thead>
+        +        <tbody>
+        +            <tr class="border-b">
+        +              <td class="p-4 border-b">8c460</td>
+        +              <td class="p-4 border-b">false</td>
+        +              <td class="p-4 border-b">2025-07-04</td>
+        +              <td class="p-4 border-b">367.59</td>
+        +              <td class="p-4 border-b">
+        +                <a class="text-blue-500" href="/admin/orders/48c4603c-a533-4160-be3b-108df9cef26e/edit?locale=en">
+        +                  <i class="fas fa-edit"></i>
+        +</a>              </td>
+        +            </tr>
+        +            <tr class="border-b">
+        +              <td class="p-4 border-b">03173</td>
+        +              <td class="p-4 border-b">false</td>
+        +              <td class="p-4 border-b">2025-07-04</td>
+        +              <td class="p-4 border-b">247.05</td>
+        +              <td class="p-4 border-b">
+        +                <a class="text-blue-500" href="/admin/orders/003173d9-58df-470c-bf59-eeae0ed307e0/edit?locale=en">
+        +                  <i class="fas fa-edit"></i>
+        +</a>              </td>
+        +            </tr>
+        +            <tr class="border-b">
+        +              <td class="p-4 border-b">18024</td>
+        +              <td class="p-4 border-b">false</td>
+        +              <td class="p-4 border-b">2025-07-04</td>
+        +              <td class="p-4 border-b">273.78</td>
+        +              <td class="p-4 border-b">
+        +                <a class="text-blue-500" href="/admin/orders/c1802461-de23-41a1-910e-17bc261a045e/edit?locale=en">
+        +                  <i class="fas fa-edit"></i>
+        +</a>              </td>
+        +            </tr>
+        +            <tr class="border-b">
+        +              <td class="p-4 border-b">a993d</td>
+        +              <td class="p-4 border-b">false</td>
+        +              <td class="p-4 border-b">2025-07-04</td>
+        +              <td class="p-4 border-b">461.62</td>
+        +              <td class="p-4 border-b">
+        +                <a class="text-blue-500" href="/admin/orders/ea993d71-9ccb-4a18-badf-2ab26406bad9/edit?locale=en">
+        +                  <i class="fas fa-edit"></i>
+        +</a>              </td>
+        +            </tr>
+        +            <tr class="border-b">
+        +              <td class="p-4 border-b">cb6d1</td>
+        +              <td class="p-4 border-b">false</td>
+        +              <td class="p-4 border-b">2025-07-04</td>
+        +              <td class="p-4 border-b">427.09</td>
+        +              <td class="p-4 border-b">
+        +                <a class="text-blue-500" href="/admin/orders/3cb6d1cf-db62-4e84-8119-b481057b9070/edit?locale=en">
+        +                  <i class="fas fa-edit"></i>
+        +</a>              </td>
+        +            </tr>
+        +        </tbody>
+        +      </table>
+        +
+        +      <!-- Paginación -->
+        +        <div class="flex mt-4 mb-4 space-x-1">
+        +            <a href="/admin/orders?locale=en&amp;unpaid_page=1"><button class='px-3 py-2 ml-2 text-sm text-center text-white transition-all border border-transparent rounded-md shadow-md min-w-9 bg-slate-800 hover:shadow-lg focus:bg-slate-700 focus:shadow-none active:bg-slate-700 hover:bg-slate-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none'>1</button></a>
+        +            <a href="/admin/orders?locale=en&amp;unpaid_page=2"><button class='px-3 py-2 ml-2 text-sm text-center transition-all border border-transparent rounded-md shadow-md min-w-9 hover:shadow-lg focus:bg-slate-700 focus:shadow-none active:bg-slate-700 hover:bg-slate-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none'>2</button></a>
+        +            <a href="/admin/orders?locale=en&amp;unpaid_page=3"><button class='px-3 py-2 ml-2 text-sm text-center transition-all border border-transparent rounded-md shadow-md min-w-9 hover:shadow-lg focus:bg-slate-700 focus:shadow-none active:bg-slate-700 hover:bg-slate-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none'>3</button></a>
+        +            <a href="/admin/orders?locale=en&amp;unpaid_page=4"><button class='px-3 py-2 ml-2 text-sm text-center transition-all border border-transparent rounded-md shadow-md min-w-9 hover:shadow-lg focus:bg-slate-700 focus:shadow-none active:bg-slate-700 hover:bg-slate-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none'>4</button></a>
+        +            <a href="/admin/orders?locale=en&amp;unpaid_page=5"><button class='px-3 py-2 ml-2 text-sm text-center transition-all border border-transparent rounded-md shadow-md min-w-9 hover:shadow-lg focus:bg-slate-700 focus:shadow-none active:bg-slate-700 hover:bg-slate-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none'>5</button></a>
+        +            <a href="/admin/orders?locale=en&amp;unpaid_page=6"><button class='px-3 py-2 ml-2 text-sm text-center transition-all border border-transparent rounded-md shadow-md min-w-9 hover:shadow-lg focus:bg-slate-700 focus:shadow-none active:bg-slate-700 hover:bg-slate-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none'>6</button></a>
+        +        </div>
+        +    </div>
+        +  </div>
+        +</div>
+        +
+        +    </main>
+        +  </body>
+        +</html>
+        
+      # ./spec/requests/admin/orders_spec.rb:48:in `block (4 levels) in <top (required)>'
 
-[Screenshot Image]: /home/runner/work/ecommerce-boilerplate/ecommerce-boilerplate/tmp/screenshots/failures_test_should_create_product.png
-E
+  30) Admin::Orders GET /admin/orders/:id shows order details
+      Failure/Error: expect(response.body).to include(order.status.humanize)
+      
+        expected "<!DOCTYPE html>\n<html>\n  <head>\n    <title>Coins Ecommerce App</title>\n    <meta name=\"viewport...er</button></form>\n      </div>\n    </div>\n  </div>\n</div>\n\n    </main>\n  </body>\n</html>\n" to include "Processing"
+        Diff:
+        @@ -1 +1,239 @@
+        -Processing
+        +<!DOCTYPE html>
+        +<html>
+        +  <head>
+        +    <title>Coins Ecommerce App</title>
+        +    <meta name="viewport" content="width=device-width,initial-scale=1">
+        +    <meta name="apple-mobile-web-app-capable" content="yes">
+        +    
+        +    
+        +
+        +    
+        +
+        +    <link rel="manifest" href="/manifest.json">
+        +    <link rel="icon" href="/icon.png" type="image/png">
+        +    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+        +    <link rel="apple-touch-icon" href="/icon.png">
+        +    <link rel="stylesheet" href="/assets/tailwind-f1451a962053cdc451fe350a9c8e6d406f0f0a8b5e22ae84a3490133928735b2.css" data-turbo-track="reload" />
+        +<link rel="stylesheet" href="/assets/inter-font-6fd0c410ae351b4ac710f0bb10332736cc1f51ccd3433d5b1a1f9a8bd909e77a.css" data-turbo-track="reload" />
+        +    <link rel="stylesheet" href="/assets/application-d20f13c125f9ace46929bf82d467c943c9d65121168be7836aa6787aa2c30335.css" data-turbo-track="reload" />
+        +    <script type="importmap" data-turbo-track="reload">{
+        +  "imports": {
+        +    "application": "/assets/application-37f365cbecf1fa2810a8303f4b6571676fa1f9c56c248528bc14ddb857531b95.js",
+        +    "@hotwired/turbo-rails": "/assets/turbo.min-38d030897e3554a265d3a3b6bdf4fb7509b08197ba2b6e3761683c07e776c1bc.js",
+        +    "@hotwired/stimulus": "/assets/stimulus.min-dd364f16ec9504dfb72672295637a1c8838773b01c0b441bd41008124c407894.js",
+        +    "@hotwired/stimulus-loading": "/assets/stimulus-loading-3576ce92b149ad5d6959438c6f291e2426c86df3b874c525b30faad51b0d96b3.js",
+        +    "chart.js": "https://ga.jspm.io/npm:chart.js@4.4.1/dist/chart.js",
+        +    "@kurkle/color": "https://ga.jspm.io/npm:@kurkle/color@0.3.2/dist/color.esm.js",
+        +    "controllers/application": "/assets/controllers/application-368d98631bccbf2349e0d4f8269afb3fe9625118341966de054759d96ea86c7e.js",
+        +    "controllers/cart_controller": "/assets/controllers/cart_controller-4e6e806169e87f8cdebe5dda5f7de50f2d058dbf7be9501af1fc6c9d1e33a0fe.js",
+        +    "controllers/dashboard_controller": "/assets/controllers/dashboard_controller-00c56224714f90542e24d12141a8a34ca60b4e9c6f6991cc46f34f57971f91ab.js",
+        +    "controllers/header_controller": "/assets/controllers/header_controller-0c3679e95e9b8619abbec160bbc5b4b293a9b2441a695d5a7d2b3798e8e38371.js",
+        +    "controllers/hello_controller": "/assets/controllers/hello_controller-549135e8e7c683a538c3d6d517339ba470fcfb79d62f738a0a089ba41851a554.js",
+        +    "controllers": "/assets/controllers/index-31a9bee606cbc5cdb1593881f388bbf4c345bf693ea24e124f84b6d5c98ab648.js",
+        +    "controllers/products_controller": "/assets/controllers/products_controller-a9b1823b34a4edade3274c05ae51f95bc6811afd9067944b8e7a3b7b7d58b10c.js",
+        +    "controllers/slider_controller": "/assets/controllers/slider_controller-f525b32b756f76345f93f499e0ba74b1afaa2207c424c8ddc2b0151b2e45e175.js"
+        +  }
+        +}</script>
+        +<link rel="modulepreload" href="/assets/application-37f365cbecf1fa2810a8303f4b6571676fa1f9c56c248528bc14ddb857531b95.js">
+        +<link rel="modulepreload" href="/assets/turbo.min-38d030897e3554a265d3a3b6bdf4fb7509b08197ba2b6e3761683c07e776c1bc.js">
+        +<link rel="modulepreload" href="/assets/stimulus.min-dd364f16ec9504dfb72672295637a1c8838773b01c0b441bd41008124c407894.js">
+        +<link rel="modulepreload" href="/assets/stimulus-loading-3576ce92b149ad5d6959438c6f291e2426c86df3b874c525b30faad51b0d96b3.js">
+        +<link rel="modulepreload" href="https://ga.jspm.io/npm:chart.js@4.4.1/dist/chart.js">
+        +<link rel="modulepreload" href="https://ga.jspm.io/npm:@kurkle/color@0.3.2/dist/color.esm.js">
+        +<link rel="modulepreload" href="/assets/controllers/application-368d98631bccbf2349e0d4f8269afb3fe9625118341966de054759d96ea86c7e.js">
+        +<link rel="modulepreload" href="/assets/controllers/cart_controller-4e6e806169e87f8cdebe5dda5f7de50f2d058dbf7be9501af1fc6c9d1e33a0fe.js">
+        +<link rel="modulepreload" href="/assets/controllers/dashboard_controller-00c56224714f90542e24d12141a8a34ca60b4e9c6f6991cc46f34f57971f91ab.js">
+        +<link rel="modulepreload" href="/assets/controllers/header_controller-0c3679e95e9b8619abbec160bbc5b4b293a9b2441a695d5a7d2b3798e8e38371.js">
+        +<link rel="modulepreload" href="/assets/controllers/hello_controller-549135e8e7c683a538c3d6d517339ba470fcfb79d62f738a0a089ba41851a554.js">
+        +<link rel="modulepreload" href="/assets/controllers/index-31a9bee606cbc5cdb1593881f388bbf4c345bf693ea24e124f84b6d5c98ab648.js">
+        +<link rel="modulepreload" href="/assets/controllers/products_controller-a9b1823b34a4edade3274c05ae51f95bc6811afd9067944b8e7a3b7b7d58b10c.js">
+        +<link rel="modulepreload" href="/assets/controllers/slider_controller-f525b32b756f76345f93f499e0ba74b1afaa2207c424c8ddc2b0151b2e45e175.js">
+        +<script type="module">import "application"</script>
+        +  </head>
+        +
+        +  <body>
+        +    <main>
+        +      <div class="bg-gray-100">
+        +    <!-- Botón para abrir/cerrar el sidebar -->
+        +    <button id="sidebarToggle" type="button" class="fixed z-50 inline-flex items-center p-2 mt-3 ml-5 text-sm text-gray-500 rounded-lg lg:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600">
+        +        <span class="sr-only">Open sidebar</span>
+        +        <svg class="w-6 h-6" aria-hidden="true" fill="gray" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+        +            <path clip-rule="evenodd" fill-rule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z"></path>
+        +        </svg>
+        +    </button>
+        +
+        +    <!-- Sidebar -->
+        +    <nav id="default-sidebar" class="fixed top-0 left-0 z-40 w-64 h-screen transition-transform -translate-x-full lg:translate-x-0" aria-label="Sidebar">
+        +        <div class="flex flex-col justify-between h-full px-3 py-4 overflow-y-auto bg-gray-800 rounded-r-lg md:rounded-none">
+        +            <ul class="mt-16 space-y-2 font-medium text-white">
+        +                    <li>
+        +                        <a class="flex items-center p-3 rounded-lg hover:bg-gray-700 sidebar-item" href="/admin?locale=en">
+        +                            <i class="w-5 h-5 mr-2 fa-solid fa-gauge-high" aria-hidden="true"></i> 
+        +                            <span>Dashboard</span>
+        +</a>                    </li>
+        +                    <li>
+        +                        <a class="flex items-center p-3 rounded-lg hover:bg-gray-700 sidebar-item" href="/admin/orders?locale=en">
+        +                            <i class="w-5 h-5 mr-2 fa-solid fa-truck-fast" aria-hidden="true"></i> 
+        +                            <span>Orders</span>
+        +</a>                    </li>
+        +                    <li>
+        +                        <a class="flex items-center p-3 rounded-lg hover:bg-gray-700 sidebar-item" href="/admin/products?locale=en">
+        +                            <i class="w-5 h-5 mr-2 fa-solid fa-cart-shopping" aria-hidden="true"></i> 
+        +                            <span>Products</span>
+        +</a>                    </li>
+        +                    <li>
+        +                        <a class="flex items-center p-3 rounded-lg hover:bg-gray-700 sidebar-item" href="/admin/categories?locale=en">
+        +                            <i class="w-5 h-5 mr-2 fa-solid fa-list" aria-hidden="true"></i> 
+        +                            <span>Categories</span>
+        +</a>                    </li>
+        +
+        +                <div class="my-2 border-t border-gray-600"></div>
+        +                <!-- Botón de cerrar sesión -->
+        +                <div class="mt-0 text-white lg:mt-auto">
+        +                    <form class="inline" action="/admins/sign_out?locale=en" accept-charset="UTF-8" method="post"><input type="hidden" name="_method" value="delete" autocomplete="off" />
+        +                        <button type="submit" class="flex items-center w-full p-3 rounded-lg hover:bg-gray-700" data-confirm="Are you sure you want to sign out?">
+        +                            <i class="w-5 h-5 mr-2 fa-solid fa-sign-out" aria-hidden="true"></i> 
+        +                            <span>Sign Out</span>
+        +                        </button>
+        +</form>                </div>
+        +            </ul>
+        +        </div>
+        +    </nav>
+        +</div>
+        +
+        +
+        +<script>
+        +    function initializeSidebar() {
+        +        const sidebar = document.getElementById("default-sidebar");
+        +        const toggleButton = document.getElementById("sidebarToggle");
+        +        const content = document.querySelector("main");
+        +        const sidebarLinks = document.querySelectorAll(".sidebar-item");
+        +
+        +        if (!sidebar || !toggleButton || !content) return;
+        +
+        +        let isSidebarOpen = localStorage.getItem("sidebarOpen") === "true" || window.innerWidth >= 1024;
+        +
+        +        const updateSidebarState = () => {
+        +            sidebar.classList.toggle("-translate-x-full", !isSidebarOpen);
+        +            content.classList.toggle("lg:ml-64", isSidebarOpen);
+        +            localStorage.setItem("sidebarOpen", isSidebarOpen);
+        +        };
+        +
+        +        const closeSidebarOnMobile = () => {
+        +            if (window.innerWidth < 1024 && isSidebarOpen) {
+        +                isSidebarOpen = false;
+        +                updateSidebarState();
+        +            }
+        +        };
+        +
+        +        if (!toggleButton.hasAttribute("data-initialized")) {
+        +            toggleButton.addEventListener("click", (event) => {
+        +                event.stopPropagation();
+        +                isSidebarOpen = !isSidebarOpen;
+        +                updateSidebarState();
+        +            });
+        +
+        +            sidebarLinks.forEach((link) => link.addEventListener("click", closeSidebarOnMobile));
+        +
+        +            document.addEventListener("click", (event) => {
+        +                if (window.innerWidth < 1024 && isSidebarOpen && !sidebar.contains(event.target) && event.target !== toggleButton) {
+        +                    closeSidebarOnMobile();
+        +                }
+        +            });
+        +
+        +            window.addEventListener("resize", () => {
+        +                isSidebarOpen = window.innerWidth >= 1024 || localStorage.getItem("sidebarOpen") === "true";
+        +                updateSidebarState();
+        +            });
+        +
+        +            window.addEventListener("scroll", closeSidebarOnMobile);
+        +
+        +            toggleButton.setAttribute("data-initialized", "true");
+        +        }
+        +
+        +        updateSidebarState();
+        +    }
+        +
+        +    document.addEventListener("DOMContentLoaded", initializeSidebar);
+        +    document.addEventListener("turbo:load", initializeSidebar);
+        +</script>
+        +
+        +      <div class="flex w-full mx-auto md:w-2/3">
+        +  <div class="mx-auto">
+        +
+        +    <div id="order_a9b0e63f-aebf-42d8-a786-e60fbfe3a52a">
+        +  <p class="my-5">
+        +    <strong class="block mb-1 font-medium">Customer email:</strong>
+        +    customer241@example.com
+        +  </p>
+        +
+        +  <p class="my-5">
+        +    <strong class="block mb-1 font-medium"><span class="translation_missing" title="translation missing: en.admin.labels.fulfilled">Fulfilled</span>:</strong>
+        +    false
+        +  </p>
+        +
+        +  <p class="my-5">
+        +    <strong class="block mb-1 font-medium">Total:</strong>
+        +    106.86
+        +  </p>
+        +
+        +  <p class="my-5">
+        +    <strong class="block mb-1 font-medium">Address:</strong>
+        +    Allan Oval 7440
+        +  </p>
+        +
+        +  <strong class="mt-6 mb-3 font-mediuum ">Products</strong>
+        +    <div class="flex justify-between">
+        +      <strong class="">Name</strong>
+        +      Product 169 
+        +    </div>
+        +    <div class="flex justify-between">
+        +      <strong class="">Size</strong>
+        +      M
+        +    </div>      
+        +    <div class="flex justify-between">
+        +      <strong class="">Quantity</strong>
+        +      2
+        +    </div>
+        +    <div class="flex justify-between">
+        +      <strong class="">Name</strong>
+        +      Product 170 
+        +    </div>
+        +    <div class="flex justify-between">
+        +      <strong class="">Size</strong>
+        +      XS
+        +    </div>      
+        +    <div class="flex justify-between">
+        +      <strong class="">Quantity</strong>
+        +      2
+        +    </div>
+        +    <div class="flex justify-between">
+        +      <strong class="">Name</strong>
+        +      Product 171 
+        +    </div>
+        +    <div class="flex justify-between">
+        +      <strong class="">Size</strong>
+        +      L
+        +    </div>      
+        +    <div class="flex justify-between">
+        +      <strong class="">Quantity</strong>
+        +      2
+        +    </div>
+        +
+        +</div>
+        +
+        +      <div class="mt-8">
+        +      <a class="px-4 py-2 ml-2 text-sm text-center text-white transition-all border border-transparent rounded-md shadow-md bg-slate-800 hover:shadow-lg focus:bg-slate-700 focus:shadow-none active:bg-slate-700 hover:bg-slate-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" href="/admin/orders/a9b0e63f-aebf-42d8-a786-e60fbfe3a52a/edit?locale=en">Edit this order</a>
+        +
+        +      <a class="px-4 py-2 ml-2 text-sm text-center text-white transition-all border border-transparent rounded-md shadow-md bg-slate-800 hover:shadow-lg focus:bg-slate-700 focus:shadow-none active:bg-slate-700 hover:bg-slate-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" href="/admin/orders?locale=en">Back to orders</a>
+        +
+        +      <div class="inline-block ml-2">
+        +        <form class="button_to" method="post" action="/admin/orders/a9b0e63f-aebf-42d8-a786-e60fbfe3a52a?locale=en"><input type="hidden" name="_method" value="delete" autocomplete="off" /><button class="px-4 py-2 ml-2 text-sm text-center text-white transition-all border border-transparent rounded-md shadow-md bg-slate-800 hover:shadow-lg focus:bg-slate-700 focus:shadow-none active:bg-slate-700 hover:bg-slate-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" type="submit">Destroy this order</button></form>
+        +      </div>
+        +    </div>
+        +  </div>
+        +</div>
+        +
+        +    </main>
+        +  </body>
+        +</html>
+        
+      # ./spec/requests/admin/orders_spec.rb:62:in `block (3 levels) in <top (required)>'
 
-Error:
-Admin::ProductsTest#test_should_create_product:
-Capybara::ElementNotFound: Unable to find link or button "New product"
-    test/system/admin/products_test.rb:15:in `block in <class:ProductsTest>'
+  31) Admin::Orders PUT /admin/orders/:id updates order status successfully
+      Failure/Error: expect(order.reload.status).to eq('processing')
+      
+        expected: #<Encoding:UTF-8> "processing"
+             got: #<Encoding:US-ASCII> "pending"
+      
+        (compared using ==)
+      # ./spec/requests/admin/orders_spec.rb:84:in `block (3 levels) in <top (required)>'
 
-bin/rails test test/system/admin/products_test.rb:13
+  32) Admin::Orders PUT /admin/orders/:id handles invalid status transitions
+      Failure/Error: expect(response).to have_http_status(:unprocessable_entity)
+        expected the response to have status code :unprocessable_entity (422) but it was :found (302)
+      # ./spec/requests/admin/orders_spec.rb:92:in `block (3 levels) in <top (required)>'
 
-[Screenshot Image]: /home/runner/work/ecommerce-boilerplate/ecommerce-boilerplate/tmp/screenshots/failures_test_should_update_Product.png
-E
+  33) Admin::Orders DELETE /admin/orders/:id deletes the order
+      Failure/Error: expect(response).to redirect_to(admin_orders_path)
+      
+        Expected response to be a redirect to <http://www.example.com/admin/orders> but was a redirect to <http://www.example.com/admin/orders?locale=en>.
+        Expected "http://www.example.com/admin/orders" to be === "http://www.example.com/admin/orders?locale=en".
+      # ./spec/requests/admin/orders_spec.rb:106:in `block (3 levels) in <top (required)>'
 
-Error:
-Admin::ProductsTest#test_should_update_Product:
-Capybara::ElementNotFound: Unable to find link or button "Edit this product"
-    test/system/admin/products_test.rb:29:in `block in <class:ProductsTest>'
+  34) Admin::Orders DELETE /admin/orders/:id prevents deletion of non-cancelled orders
+      Failure/Error:
+        expect {
+          delete "/admin/orders/#{processing_order.id}"
+        }.not_to change(Order, :count)
+      
+        expected `Order.count` not to have changed, but did change from 2 to 1
+      # ./spec/requests/admin/orders_spec.rb:112:in `block (3 levels) in <top (required)>'
 
-bin/rails test test/system/admin/products_test.rb:27
+  35) Admin::Orders analytics and reporting with revenue data calculates revenue correctly
+      Failure/Error: expect(response.body).to include(total_revenue.to_s) if total_revenue > 0
+      
+        expected "<!DOCTYPE html>\n<html>\n  <head>\n    <title>Coins Ecommerce App</title>\n    <meta name=\"viewport...'>1</button></a>\n        </div>\n    </div>\n  </div>\n</div>\n\n    </main>\n  </body>\n</html>\n" to include "7948.42"
+        Diff:
+        @@ -1 +1,294 @@
+        -7948.42
+        +<!DOCTYPE html>
+        +<html>
+        +  <head>
+        +    <title>Coins Ecommerce App</title>
+        +    <meta name="viewport" content="width=device-width,initial-scale=1">
+        +    <meta name="apple-mobile-web-app-capable" content="yes">
+        +    
+        +    
+        +
+        +    
+        +
+        +    <link rel="manifest" href="/manifest.json">
+        +    <link rel="icon" href="/icon.png" type="image/png">
+        +    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+        +    <link rel="apple-touch-icon" href="/icon.png">
+        +    <link rel="stylesheet" href="/assets/tailwind-f1451a962053cdc451fe350a9c8e6d406f0f0a8b5e22ae84a3490133928735b2.css" data-turbo-track="reload" />
+        +<link rel="stylesheet" href="/assets/inter-font-6fd0c410ae351b4ac710f0bb10332736cc1f51ccd3433d5b1a1f9a8bd909e77a.css" data-turbo-track="reload" />
+        +    <link rel="stylesheet" href="/assets/application-d20f13c125f9ace46929bf82d467c943c9d65121168be7836aa6787aa2c30335.css" data-turbo-track="reload" />
+        +    <script type="importmap" data-turbo-track="reload">{
+        +  "imports": {
+        +    "application": "/assets/application-37f365cbecf1fa2810a8303f4b6571676fa1f9c56c248528bc14ddb857531b95.js",
+        +    "@hotwired/turbo-rails": "/assets/turbo.min-38d030897e3554a265d3a3b6bdf4fb7509b08197ba2b6e3761683c07e776c1bc.js",
+        +    "@hotwired/stimulus": "/assets/stimulus.min-dd364f16ec9504dfb72672295637a1c8838773b01c0b441bd41008124c407894.js",
+        +    "@hotwired/stimulus-loading": "/assets/stimulus-loading-3576ce92b149ad5d6959438c6f291e2426c86df3b874c525b30faad51b0d96b3.js",
+        +    "chart.js": "https://ga.jspm.io/npm:chart.js@4.4.1/dist/chart.js",
+        +    "@kurkle/color": "https://ga.jspm.io/npm:@kurkle/color@0.3.2/dist/color.esm.js",
+        +    "controllers/application": "/assets/controllers/application-368d98631bccbf2349e0d4f8269afb3fe9625118341966de054759d96ea86c7e.js",
+        +    "controllers/cart_controller": "/assets/controllers/cart_controller-4e6e806169e87f8cdebe5dda5f7de50f2d058dbf7be9501af1fc6c9d1e33a0fe.js",
+        +    "controllers/dashboard_controller": "/assets/controllers/dashboard_controller-00c56224714f90542e24d12141a8a34ca60b4e9c6f6991cc46f34f57971f91ab.js",
+        +    "controllers/header_controller": "/assets/controllers/header_controller-0c3679e95e9b8619abbec160bbc5b4b293a9b2441a695d5a7d2b3798e8e38371.js",
+        +    "controllers/hello_controller": "/assets/controllers/hello_controller-549135e8e7c683a538c3d6d517339ba470fcfb79d62f738a0a089ba41851a554.js",
+        +    "controllers": "/assets/controllers/index-31a9bee606cbc5cdb1593881f388bbf4c345bf693ea24e124f84b6d5c98ab648.js",
+        +    "controllers/products_controller": "/assets/controllers/products_controller-a9b1823b34a4edade3274c05ae51f95bc6811afd9067944b8e7a3b7b7d58b10c.js",
+        +    "controllers/slider_controller": "/assets/controllers/slider_controller-f525b32b756f76345f93f499e0ba74b1afaa2207c424c8ddc2b0151b2e45e175.js"
+        +  }
+        +}</script>
+        +<link rel="modulepreload" href="/assets/application-37f365cbecf1fa2810a8303f4b6571676fa1f9c56c248528bc14ddb857531b95.js">
+        +<link rel="modulepreload" href="/assets/turbo.min-38d030897e3554a265d3a3b6bdf4fb7509b08197ba2b6e3761683c07e776c1bc.js">
+        +<link rel="modulepreload" href="/assets/stimulus.min-dd364f16ec9504dfb72672295637a1c8838773b01c0b441bd41008124c407894.js">
+        +<link rel="modulepreload" href="/assets/stimulus-loading-3576ce92b149ad5d6959438c6f291e2426c86df3b874c525b30faad51b0d96b3.js">
+        +<link rel="modulepreload" href="https://ga.jspm.io/npm:chart.js@4.4.1/dist/chart.js">
+        +<link rel="modulepreload" href="https://ga.jspm.io/npm:@kurkle/color@0.3.2/dist/color.esm.js">
+        +<link rel="modulepreload" href="/assets/controllers/application-368d98631bccbf2349e0d4f8269afb3fe9625118341966de054759d96ea86c7e.js">
+        +<link rel="modulepreload" href="/assets/controllers/cart_controller-4e6e806169e87f8cdebe5dda5f7de50f2d058dbf7be9501af1fc6c9d1e33a0fe.js">
+        +<link rel="modulepreload" href="/assets/controllers/dashboard_controller-00c56224714f90542e24d12141a8a34ca60b4e9c6f6991cc46f34f57971f91ab.js">
+        +<link rel="modulepreload" href="/assets/controllers/header_controller-0c3679e95e9b8619abbec160bbc5b4b293a9b2441a695d5a7d2b3798e8e38371.js">
+        +<link rel="modulepreload" href="/assets/controllers/hello_controller-549135e8e7c683a538c3d6d517339ba470fcfb79d62f738a0a089ba41851a554.js">
+        +<link rel="modulepreload" href="/assets/controllers/index-31a9bee606cbc5cdb1593881f388bbf4c345bf693ea24e124f84b6d5c98ab648.js">
+        +<link rel="modulepreload" href="/assets/controllers/products_controller-a9b1823b34a4edade3274c05ae51f95bc6811afd9067944b8e7a3b7b7d58b10c.js">
+        +<link rel="modulepreload" href="/assets/controllers/slider_controller-f525b32b756f76345f93f499e0ba74b1afaa2207c424c8ddc2b0151b2e45e175.js">
+        +<script type="module">import "application"</script>
+        +  </head>
+        +
+        +  <body>
+        +    <main>
+        +      <div class="bg-gray-100">
+        +    <!-- Botón para abrir/cerrar el sidebar -->
+        +    <button id="sidebarToggle" type="button" class="fixed z-50 inline-flex items-center p-2 mt-3 ml-5 text-sm text-gray-500 rounded-lg lg:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600">
+        +        <span class="sr-only">Open sidebar</span>
+        +        <svg class="w-6 h-6" aria-hidden="true" fill="gray" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+        +            <path clip-rule="evenodd" fill-rule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z"></path>
+        +        </svg>
+        +    </button>
+        +
+        +    <!-- Sidebar -->
+        +    <nav id="default-sidebar" class="fixed top-0 left-0 z-40 w-64 h-screen transition-transform -translate-x-full lg:translate-x-0" aria-label="Sidebar">
+        +        <div class="flex flex-col justify-between h-full px-3 py-4 overflow-y-auto bg-gray-800 rounded-r-lg md:rounded-none">
+        +            <ul class="mt-16 space-y-2 font-medium text-white">
+        +                    <li>
+        +                        <a class="flex items-center p-3 rounded-lg hover:bg-gray-700 sidebar-item" href="/admin?locale=en">
+        +                            <i class="w-5 h-5 mr-2 fa-solid fa-gauge-high" aria-hidden="true"></i> 
+        +                            <span>Dashboard</span>
+        +</a>                    </li>
+        +                    <li>
+        +                        <a class="flex items-center p-3 rounded-lg hover:bg-gray-700 sidebar-item" href="/admin/orders?locale=en">
+        +                            <i class="w-5 h-5 mr-2 fa-solid fa-truck-fast" aria-hidden="true"></i> 
+        +                            <span>Orders</span>
+        +</a>                    </li>
+        +                    <li>
+        +                        <a class="flex items-center p-3 rounded-lg hover:bg-gray-700 sidebar-item" href="/admin/products?locale=en">
+        +                            <i class="w-5 h-5 mr-2 fa-solid fa-cart-shopping" aria-hidden="true"></i> 
+        +                            <span>Products</span>
+        +</a>                    </li>
+        +                    <li>
+        +                        <a class="flex items-center p-3 rounded-lg hover:bg-gray-700 sidebar-item" href="/admin/categories?locale=en">
+        +                            <i class="w-5 h-5 mr-2 fa-solid fa-list" aria-hidden="true"></i> 
+        +                            <span>Categories</span>
+        +</a>                    </li>
+        +
+        +                <div class="my-2 border-t border-gray-600"></div>
+        +                <!-- Botón de cerrar sesión -->
+        +                <div class="mt-0 text-white lg:mt-auto">
+        +                    <form class="inline" action="/admins/sign_out?locale=en" accept-charset="UTF-8" method="post"><input type="hidden" name="_method" value="delete" autocomplete="off" />
+        +                        <button type="submit" class="flex items-center w-full p-3 rounded-lg hover:bg-gray-700" data-confirm="Are you sure you want to sign out?">
+        +                            <i class="w-5 h-5 mr-2 fa-solid fa-sign-out" aria-hidden="true"></i> 
+        +                            <span>Sign Out</span>
+        +                        </button>
+        +</form>                </div>
+        +            </ul>
+        +        </div>
+        +    </nav>
+        +</div>
+        +
+        +
+        +<script>
+        +    function initializeSidebar() {
+        +        const sidebar = document.getElementById("default-sidebar");
+        +        const toggleButton = document.getElementById("sidebarToggle");
+        +        const content = document.querySelector("main");
+        +        const sidebarLinks = document.querySelectorAll(".sidebar-item");
+        +
+        +        if (!sidebar || !toggleButton || !content) return;
+        +
+        +        let isSidebarOpen = localStorage.getItem("sidebarOpen") === "true" || window.innerWidth >= 1024;
+        +
+        +        const updateSidebarState = () => {
+        +            sidebar.classList.toggle("-translate-x-full", !isSidebarOpen);
+        +            content.classList.toggle("lg:ml-64", isSidebarOpen);
+        +            localStorage.setItem("sidebarOpen", isSidebarOpen);
+        +        };
+        +
+        +        const closeSidebarOnMobile = () => {
+        +            if (window.innerWidth < 1024 && isSidebarOpen) {
+        +                isSidebarOpen = false;
+        +                updateSidebarState();
+        +            }
+        +        };
+        +
+        +        if (!toggleButton.hasAttribute("data-initialized")) {
+        +            toggleButton.addEventListener("click", (event) => {
+        +                event.stopPropagation();
+        +                isSidebarOpen = !isSidebarOpen;
+        +                updateSidebarState();
+        +            });
+        +
+        +            sidebarLinks.forEach((link) => link.addEventListener("click", closeSidebarOnMobile));
+        +
+        +            document.addEventListener("click", (event) => {
+        +                if (window.innerWidth < 1024 && isSidebarOpen && !sidebar.contains(event.target) && event.target !== toggleButton) {
+        +                    closeSidebarOnMobile();
+        +                }
+        +            });
+        +
+        +            window.addEventListener("resize", () => {
+        +                isSidebarOpen = window.innerWidth >= 1024 || localStorage.getItem("sidebarOpen") === "true";
+        +                updateSidebarState();
+        +            });
+        +
+        +            window.addEventListener("scroll", closeSidebarOnMobile);
+        +
+        +            toggleButton.setAttribute("data-initialized", "true");
+        +        }
+        +
+        +        updateSidebarState();
+        +    }
+        +
+        +    document.addEventListener("DOMContentLoaded", initializeSidebar);
+        +    document.addEventListener("turbo:load", initializeSidebar);
+        +</script>
+        +
+        +      
+        +<div class="w-full px-4 mt-6">
+        +
+        +  <!-- Tabla misc -->
+        +  <div class="relative flex flex-col w-full px-6 text-gray-700 bg-white shadow-md lg:px-10 rounded-xl bg-clip-border">
+        +    <div class="relative mx-4 mt-4 overflow-hidden text-gray-700 bg-white rounded-none bg-clip-border">
+        +      <div class="flex flex-col items-center justify-between gap-8 mb-4 md:flex-row md:items-center">
+        +        <h2 class="block text-xl font-semibold text-center text-blue-gray-900 md:text-left md:mt-12">
+        +          <span class="translation_missing" title="translation missing: en.admin.orders.misc">Misc</span>
+        +        </h2>
+        +      </div>
+        +    </div>
+        +
+        +    <div class="px-4 overflow-auto">
+        +
+        +    </div>
+        +  </div>
+        +  
+        +  <!-- Tabla de Ordenes Cumplidas -->
+        +  <div class="relative flex flex-col w-full px-6 text-gray-700 bg-white shadow-md lg:px-10 rounded-xl bg-clip-border">
+        +    <div class="relative mx-4 mt-4 overflow-hidden text-gray-700 bg-white rounded-none bg-clip-border">
+        +      <div class="flex flex-col items-center justify-between gap-8 mb-4 md:flex-row md:items-center">
+        +        <h2 class="block text-xl font-semibold text-center text-blue-gray-900 md:text-left md:mt-12">
+        +          <span class="translation_missing" title="translation missing: en.admin.orders.paid_orders">Paid Orders</span>
+        +        </h2>
+        +        <a class="flex items-center gap-3 px-4 py-2 font-bold text-white uppercase bg-gray-900 rounded-lg shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85" href="/admin/orders/new?locale=en"><span class="translation_missing" title="translation missing: en.admin.orders.new_order">New Order</span></a>
+        +      </div>
+        +    </div>
+        +
+        +    <div class="px-4 overflow-auto">
+        +      <table class="w-full mx-auto text-left table-auto min-w-max">
+        +        <thead>
+        +          <tr class="table-header">
+        +            <th class="p-4 border-y"><span class="translation_missing" title="translation missing: en.admin.orders.order">Order</span></th>
+        +            <th class="p-4 border-y"><span class="translation_missing" title="translation missing: en.admin.orders.fulfilled">Fulfilled</span></th>
+        +            <th class="p-4 border-y"><span class="translation_missing" title="translation missing: en.admin.orders.date">Date</span></th>
+        +            <th class="p-4 border-y"><span class="translation_missing" title="translation missing: en.admin.dashboard.total">Total</span></th>
+        +            <th class="p-4 border-y"><span class="translation_missing" title="translation missing: en.admin.orders.edit">Edit</span></th>
+        +          </tr>
+        +        </thead>
+        +        <tbody>
+        +        </tbody>
+        +      </table>
+        +
+        +      <!-- Paginación -->
+        +    </div>
+        +  </div>
+        +
+        +  <!-- Tabla de Ordenes No Cumplidas -->
+        +  <div class="relative flex flex-col w-full px-6 mt-8 text-gray-700 bg-white shadow-md lg:px-10 rounded-xl bg-clip-border">
+        +    <div class="relative mx-4 mt-4 overflow-hidden text-gray-700 bg-white rounded-none bg-clip-border">
+        +      <div class="flex flex-col items-center justify-between gap-8 mb-4 md:flex-row md:items-center">
+        +        <h2 class="block text-xl font-semibold text-center text-blue-gray-900 md:text-left md:mt-12">
+        +          <span class="translation_missing" title="translation missing: en.admin.orders.unpaid_orders">Unpaid Orders</span>
+        +        </h2>
+        +      </div>
+        +    </div>
+        +
+        +    <div class="px-4 overflow-auto">
+        +      <table class="w-full mx-auto text-left table-auto min-w-max">
+        +        <thead>
+        +          <tr class="table-header">
+        +            <th class="p-4 border-y"><span class="translation_missing" title="translation missing: en.admin.orders.order">Order</span></th>
+        +            <th class="p-4 border-y"><span class="translation_missing" title="translation missing: en.admin.orders.fulfilled">Fulfilled</span></th>
+        +            <th class="p-4 border-y"><span class="translation_missing" title="translation missing: en.admin.orders.date">Date</span></th>
+        +            <th class="p-4 border-y"><span class="translation_missing" title="translation missing: en.admin.dashboard.total">Total</span></th>
+        +            <th class="p-4 border-y"><span class="translation_missing" title="translation missing: en.admin.orders.edit">Edit</span></th>
+        +          </tr>
+        +        </thead>
+        +        <tbody>
+        +            <tr class="border-b">
+        +              <td class="p-4 border-b">f5262</td>
+        +              <td class="p-4 border-b">false</td>
+        +              <td class="p-4 border-b">2025-07-04</td>
+        +              <td class="p-4 border-b">4800.05</td>
+        +              <td class="p-4 border-b">
+        +                <a class="text-blue-500" href="/admin/orders/7f526200-4830-4480-8525-2487775d3e2e/edit?locale=en">
+        +                  <i class="fas fa-edit"></i>
+        +</a>              </td>
+        +            </tr>
+        +            <tr class="border-b">
+        +              <td class="p-4 border-b">0f7f5</td>
+        +              <td class="p-4 border-b">false</td>
+        +              <td class="p-4 border-b">2025-07-04</td>
+        +              <td class="p-4 border-b">3094.53</td>
+        +              <td class="p-4 border-b">
+        +                <a class="text-blue-500" href="/admin/orders/60f7f5b8-0538-4105-9f9d-da680969948f/edit?locale=en">
+        +                  <i class="fas fa-edit"></i>
+        +</a>              </td>
+        +            </tr>
+        +            <tr class="border-b">
+        +              <td class="p-4 border-b">fd015</td>
+        +              <td class="p-4 border-b">false</td>
+        +              <td class="p-4 border-b">2025-07-03</td>
+        +              <td class="p-4 border-b">14.01</td>
+        +              <td class="p-4 border-b">
+        +                <a class="text-blue-500" href="/admin/orders/dfd0150b-22a3-462c-af65-d7c9959891fe/edit?locale=en">
+        +                  <i class="fas fa-edit"></i>
+        +</a>              </td>
+        +            </tr>
+        +            <tr class="border-b">
+        +              <td class="p-4 border-b">8d601</td>
+        +              <td class="p-4 border-b">false</td>
+        +              <td class="p-4 border-b">2025-07-03</td>
+        +              <td class="p-4 border-b">17.5</td>
+        +              <td class="p-4 border-b">
+        +                <a class="text-blue-500" href="/admin/orders/18d601db-dcb9-4012-a39c-1152f664a0ac/edit?locale=en">
+        +                  <i class="fas fa-edit"></i>
+        +</a>              </td>
+        +            </tr>
+        +            <tr class="border-b">
+        +              <td class="p-4 border-b">950eb</td>
+        +              <td class="p-4 border-b">false</td>
+        +              <td class="p-4 border-b">2025-07-03</td>
+        +              <td class="p-4 border-b">22.33</td>
+        +              <td class="p-4 border-b">
+        +                <a class="text-blue-500" href="/admin/orders/3950eb32-3868-48d7-98ad-0b70559f1d2c/edit?locale=en">
+        +                  <i class="fas fa-edit"></i>
+        +</a>              </td>
+        +            </tr>
+        +        </tbody>
+        +      </table>
+        +
+        +      <!-- Paginación -->
+        +        <div class="flex mt-4 mb-4 space-x-1">
+        +            <a href="/admin/orders?locale=en&amp;unpaid_page=1"><button class='px-3 py-2 ml-2 text-sm text-center text-white transition-all border border-transparent rounded-md shadow-md min-w-9 bg-slate-800 hover:shadow-lg focus:bg-slate-700 focus:shadow-none active:bg-slate-700 hover:bg-slate-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none'>1</button></a>
+        +        </div>
+        +    </div>
+        +  </div>
+        +</div>
+        +
+        +    </main>
+        +  </body>
+        +</html>
+        
+      # ./spec/requests/admin/orders_spec.rb:129:in `block (4 levels) in <top (required)>'
 
-[Screenshot Image]: /home/runner/work/ecommerce-boilerplate/ecommerce-boilerplate/tmp/screenshots/failures_test_should_destroy_Product.png
-E
+  36) Checkouts POST /checkout with valid parameters creates a new order successfully
+      Failure/Error:
+        allow(CartProcessor).to receive(:process_checkout).and_return(
+          double(success?: true, order: create(:order), message: 'Order created successfully')
+        )
+      
+        CartProcessor does not implement: process_checkout
+      # ./spec/requests/checkouts_spec.rb:23:in `block (4 levels) in <top (required)>'
 
-Error:
-Admin::ProductsTest#test_should_destroy_Product:
-Capybara::ElementNotFound: Unable to find link or button "Destroy this product"
-    test/system/admin/products_test.rb:43:in `block in <class:ProductsTest>'
+  37) Checkouts POST /checkout with valid parameters processes checkout with CartProcessor
+      Failure/Error:
+        allow(CartProcessor).to receive(:process_checkout).and_return(
+          double(success?: true, order: create(:order), message: 'Order created successfully')
+        )
+      
+        CartProcessor does not implement: process_checkout
+      # ./spec/requests/checkouts_spec.rb:23:in `block (4 levels) in <top (required)>'
 
-bin/rails test test/system/admin/products_test.rb:41
+  38) Checkouts POST /checkout with invalid parameters returns validation errors
+      Failure/Error:
+        allow(CartProcessor).to receive(:process_checkout).and_return(
+          double(success?: false, errors: [ 'Invalid email format', 'Address is required' ])
+        )
+      
+        CartProcessor does not implement: process_checkout
+      # ./spec/requests/checkouts_spec.rb:52:in `block (4 levels) in <top (required)>'
 
+  39) Checkouts POST /checkout with insufficient stock handles insufficient stock gracefully
+      Failure/Error:
+        allow(CartProcessor).to receive(:process_checkout).and_return(
+          double(success?: false, errors: [ 'Insufficient stock for product' ])
+        )
+      
+        CartProcessor does not implement: process_checkout
+      # ./spec/requests/checkouts_spec.rb:83:in `block (4 levels) in <top (required)>'
 
+  40) Checkouts POST /checkout with MercadoPago integration redirects to MercadoPago for payment
+      Failure/Error:
+        allow(CartProcessor).to receive(:process_checkout).and_return(
+          double(
+            success?: true,
+            order: create(:order, payment_id: 'MP-12345'),
+            payment_url: 'https://mercadopago.com/checkout/123'
+          )
+        )
+      
+        CartProcessor does not implement: process_checkout
+      # ./spec/requests/checkouts_spec.rb:106:in `block (4 levels) in <top (required)>'
 
-Finished in 28.898290s, 0.5537 runs/s, 0.1038 assertions/s.
-16 runs, 3 assertions, 3 failures, 13 errors, 0 skips
-Error: Process completed with exit code 1.
+  41) Checkouts GET /checkout/success displays success page
+      Failure/Error: session[:last_order_id] = order.id
+      
+      NoMethodError:
+        undefined method `session' for nil
+      # ./spec/requests/checkouts_spec.rb:128:in `block (3 levels) in <top (required)>'
+
+  42) Checkouts GET /checkout/success clears the order from session
+      Failure/Error: session[:last_order_id] = order.id
+      
+      NoMethodError:
+        undefined method `session' for nil
+      # ./spec/requests/checkouts_spec.rb:128:in `block (3 levels) in <top (required)>'
+
+  43) Checkouts GET /checkout/failure displays failure page
+      Failure/Error:
+        Rails.logger.info "Checkout failure", {
+          payment_id: params[:payment_id],
+          status: params[:status]
+        }
+      
+      ArgumentError:
+        wrong number of arguments (given 2, expected 0..1)
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/logger-1.7.0/lib/logger.rb:720:in `info'
+      # ./app/controllers/checkouts_controller.rb:38:in `failure'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/turbo-rails-2.0.16/lib/turbo-rails.rb:24:in `with_request_id'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/turbo-rails-2.0.16/app/controllers/concerns/turbo/request_id_tracking.rb:10:in `turbo_tracking_request_id'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/actiontext-8.0.2/lib/action_text/rendering.rb:25:in `with_renderer'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/actiontext-8.0.2/lib/action_text/engine.rb:71:in `block (4 levels) in <class:Engine>'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/railties-8.0.2/lib/rails/engine/lazy_route_set.rb:68:in `call'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/rack-attack-6.7.0/lib/rack/attack.rb:103:in `call'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/rack-attack-6.7.0/lib/rack/attack.rb:110:in `call'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/warden-1.2.9/lib/warden/manager.rb:36:in `block in call'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/warden-1.2.9/lib/warden/manager.rb:34:in `catch'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/warden-1.2.9/lib/warden/manager.rb:34:in `call'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/rack-3.1.16/lib/rack/tempfile_reaper.rb:20:in `call'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/rack-3.1.16/lib/rack/etag.rb:29:in `call'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/rack-3.1.16/lib/rack/conditional_get.rb:31:in `call'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/rack-3.1.16/lib/rack/head.rb:15:in `call'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/rack-session-2.1.1/lib/rack/session/abstract/id.rb:274:in `context'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/rack-session-2.1.1/lib/rack/session/abstract/id.rb:268:in `call'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/railties-8.0.2/lib/rails/rack/logger.rb:41:in `call_app'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/railties-8.0.2/lib/rails/rack/logger.rb:29:in `call'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/rack-3.1.16/lib/rack/method_override.rb:28:in `call'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/rack-3.1.16/lib/rack/runtime.rb:24:in `call'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/rack-3.1.16/lib/rack/sendfile.rb:114:in `call'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/railties-8.0.2/lib/rails/engine.rb:535:in `call'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/rack-test-2.2.0/lib/rack/test.rb:360:in `process_request'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/rack-test-2.2.0/lib/rack/test.rb:153:in `request'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/rails-controller-testing-1.0.5/lib/rails/controller/testing/integration.rb:16:in `block (2 levels) in <module:Integration>'
+      # ./spec/requests/checkouts_spec.rb:148:in `block (3 levels) in <top (required)>'
+
+  44) Checkouts GET /checkout/pending displays pending page
+      Failure/Error:
+        Rails.logger.info "Checkout pending", {
+          payment_id: params[:payment_id],
+          status: params[:status]
+        }
+      
+      ArgumentError:
+        wrong number of arguments (given 2, expected 0..1)
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/logger-1.7.0/lib/logger.rb:720:in `info'
+      # ./app/controllers/checkouts_controller.rb:47:in `pending'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/turbo-rails-2.0.16/lib/turbo-rails.rb:24:in `with_request_id'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/turbo-rails-2.0.16/app/controllers/concerns/turbo/request_id_tracking.rb:10:in `turbo_tracking_request_id'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/actiontext-8.0.2/lib/action_text/rendering.rb:25:in `with_renderer'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/actiontext-8.0.2/lib/action_text/engine.rb:71:in `block (4 levels) in <class:Engine>'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/railties-8.0.2/lib/rails/engine/lazy_route_set.rb:68:in `call'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/rack-attack-6.7.0/lib/rack/attack.rb:103:in `call'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/rack-attack-6.7.0/lib/rack/attack.rb:110:in `call'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/warden-1.2.9/lib/warden/manager.rb:36:in `block in call'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/warden-1.2.9/lib/warden/manager.rb:34:in `catch'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/warden-1.2.9/lib/warden/manager.rb:34:in `call'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/rack-3.1.16/lib/rack/tempfile_reaper.rb:20:in `call'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/rack-3.1.16/lib/rack/etag.rb:29:in `call'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/rack-3.1.16/lib/rack/conditional_get.rb:31:in `call'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/rack-3.1.16/lib/rack/head.rb:15:in `call'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/rack-session-2.1.1/lib/rack/session/abstract/id.rb:274:in `context'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/rack-session-2.1.1/lib/rack/session/abstract/id.rb:268:in `call'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/railties-8.0.2/lib/rails/rack/logger.rb:41:in `call_app'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/railties-8.0.2/lib/rails/rack/logger.rb:29:in `call'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/rack-3.1.16/lib/rack/method_override.rb:28:in `call'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/rack-3.1.16/lib/rack/runtime.rb:24:in `call'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/rack-3.1.16/lib/rack/sendfile.rb:114:in `call'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/railties-8.0.2/lib/rails/engine.rb:535:in `call'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/rack-test-2.2.0/lib/rack/test.rb:360:in `process_request'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/rack-test-2.2.0/lib/rack/test.rb:153:in `request'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/rails-controller-testing-1.0.5/lib/rails/controller/testing/integration.rb:16:in `block (2 levels) in <module:Integration>'
+      # ./spec/requests/checkouts_spec.rb:158:in `block (3 levels) in <top (required)>'
+
+  45) Checkouts cart calculations calculates total correctly for multiple products
+      Failure/Error: create(:stock, product: product, quantity: rand(10..100))
+      
+      NoMethodError:
+        undefined method `quantity=' for an instance of Stock
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/factory_bot-6.5.4/lib/factory_bot/attribute_assigner.rb:16:in `public_send'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/factory_bot-6.5.4/lib/factory_bot/attribute_assigner.rb:16:in `block (2 levels) in object'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/factory_bot-6.5.4/lib/factory_bot/attribute_assigner.rb:15:in `each'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/factory_bot-6.5.4/lib/factory_bot/attribute_assigner.rb:15:in `block in object'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/factory_bot-6.5.4/lib/factory_bot/attribute_assigner.rb:14:in `object'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/factory_bot-6.5.4/lib/factory_bot/evaluation.rb:10:in `object'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/factory_bot-6.5.4/lib/factory_bot/strategy/create.rb:9:in `result'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/factory_bot-6.5.4/lib/factory_bot/factory.rb:47:in `run'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/factory_bot-6.5.4/lib/factory_bot/factory_runner.rb:29:in `block in run'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/factory_bot-6.5.4/lib/factory_bot/factory_runner.rb:28:in `run'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/factory_bot-6.5.4/lib/factory_bot/strategy_syntax_method_registrar.rb:28:in `block in define_singular_strategy_method'
+      # ./spec/factories/products.rb:18:in `block (4 levels) in <top (required)>'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/factory_bot-6.5.4/lib/factory_bot/callback.rb:12:in `instance_exec'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/factory_bot-6.5.4/lib/factory_bot/callback.rb:12:in `run'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/factory_bot-6.5.4/lib/factory_bot/callbacks_observer.rb:11:in `block in update'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/factory_bot-6.5.4/lib/factory_bot/callbacks_observer.rb:10:in `each'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/factory_bot-6.5.4/lib/factory_bot/callbacks_observer.rb:10:in `update'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/factory_bot-6.5.4/lib/factory_bot/evaluation.rb:20:in `notify'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/factory_bot-6.5.4/lib/factory_bot/strategy/create.rb:13:in `block in result'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/factory_bot-6.5.4/lib/factory_bot/strategy/create.rb:9:in `result'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/factory_bot-6.5.4/lib/factory_bot/factory.rb:47:in `run'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/factory_bot-6.5.4/lib/factory_bot/factory_runner.rb:29:in `block in run'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/factory_bot-6.5.4/lib/factory_bot/factory_runner.rb:28:in `run'
+      # /Users/dev/.rvm/gems/ruby-3.3.3/gems/factory_bot-6.5.4/lib/factory_bot/strategy_syntax_method_registrar.rb:28:in `block in define_singular_strategy_method'
+      # ./spec/requests/checkouts_spec.rb:167:in `block (3 levels) in <top (required)>'
+      # ./spec/requests/checkouts_spec.rb:181:in `block (3 levels) in <top (required)>'
+
+Finished in 3.06 seconds (files took 1.86 seconds to load)
+274 examples, 45 failures
+
+Failed examples:
+
+rspec ./spec/controllers/admin_controller_spec.rb:32 # AdminController GET #index assigns recent unfulfilled orders
+rspec ./spec/controllers/admin_controller_spec.rb:38 # AdminController GET #index calculates quick stats for today
+rspec ./spec/controllers/admin_controller_spec.rb:48 # AdminController GET #index calculates revenue by day for last 7 days
+rspec ./spec/controllers/admin_controller_spec.rb:64 # AdminController GET #index includes today's revenue in revenue_by_day
+rspec ./spec/controllers/admin_controller_spec.rb:79 # AdminController GET #index when no orders exist handles empty data gracefully
+rspec ./spec/controllers/checkouts_controller_spec.rb:78 # CheckoutsController POST #create with insufficient stock returns 400 status with error message
+rspec ./spec/controllers/checkouts_controller_spec.rb:90 # CheckoutsController POST #create when MercadoPago service fails redirects to cart with error message
+rspec ./spec/controllers/checkouts_controller_spec.rb:102 # CheckoutsController POST #create when payment URL is blank redirects to cart with error message
+rspec ./spec/controllers/checkouts_controller_spec.rb:120 # CheckoutsController GET #success returns http success
+rspec ./spec/controllers/checkouts_controller_spec.rb:125 # CheckoutsController GET #success renders the success template
+rspec ./spec/controllers/checkouts_controller_spec.rb:132 # CheckoutsController GET #failure returns http success
+rspec ./spec/controllers/checkouts_controller_spec.rb:137 # CheckoutsController GET #failure renders the failure template
+rspec ./spec/controllers/checkouts_controller_spec.rb:144 # CheckoutsController GET #pending returns http success
+rspec ./spec/controllers/checkouts_controller_spec.rb:149 # CheckoutsController GET #pending renders the pending template
+rspec ./spec/controllers/prices_controller_spec.rb:42 # PricesController GET #index when BbvaScraper raises an error lets the error bubble up
+rspec ./spec/controllers/webhooks_controller_spec.rb:54 # WebhooksController POST #mercadopago when payment is approved creates a new order
+rspec ./spec/controllers/webhooks_controller_spec.rb:60 # WebhooksController POST #mercadopago when payment is approved creates order with correct attributes
+rspec ./spec/controllers/webhooks_controller_spec.rb:70 # WebhooksController POST #mercadopago when payment is approved creates order products
+rspec ./spec/controllers/webhooks_controller_spec.rb:76 # WebhooksController POST #mercadopago when payment is approved creates order product with correct attributes
+rspec ./spec/controllers/webhooks_controller_spec.rb:85 # WebhooksController POST #mercadopago when payment is approved decrements stock amount
+rspec ./spec/controllers/webhooks_controller_spec.rb:91 # WebhooksController POST #mercadopago when payment is approved calls MercadoPago SDK with correct parameters
+rspec ./spec/controllers/webhooks_controller_spec.rb:113 # WebhooksController POST #mercadopago when payment is not approved returns 422 unprocessable entity
+rspec ./spec/controllers/webhooks_controller_spec.rb:148 # WebhooksController POST #mercadopago when payment status is pending returns 422 unprocessable entity
+rspec ./spec/controllers/webhooks_controller_spec.rb:159 # WebhooksController POST #mercadopago when MercadoPago SDK raises an error lets the error bubble up
+rspec ./spec/controllers/webhooks_controller_spec.rb:205 # WebhooksController POST #mercadopago with multiple order items creates multiple order products
+rspec ./spec/controllers/webhooks_controller_spec.rb:211 # WebhooksController POST #mercadopago with multiple order items decrements stock for all items
+rspec ./spec/requests/admin/orders_spec.rb:16 # Admin::Orders GET /admin/orders with various order statuses returns success and displays all orders
+rspec ./spec/requests/admin/orders_spec.rb:28 # Admin::Orders GET /admin/orders with various order statuses shows correct order counts by status
+rspec ./spec/requests/admin/orders_spec.rb:43 # Admin::Orders GET /admin/orders with pagination paginates orders correctly
+rspec ./spec/requests/admin/orders_spec.rb:56 # Admin::Orders GET /admin/orders/:id shows order details
+rspec ./spec/requests/admin/orders_spec.rb:78 # Admin::Orders PUT /admin/orders/:id updates order status successfully
+rspec ./spec/requests/admin/orders_spec.rb:87 # Admin::Orders PUT /admin/orders/:id handles invalid status transitions
+rspec ./spec/requests/admin/orders_spec.rb:100 # Admin::Orders DELETE /admin/orders/:id deletes the order
+rspec ./spec/requests/admin/orders_spec.rb:109 # Admin::Orders DELETE /admin/orders/:id prevents deletion of non-cancelled orders
+rspec ./spec/requests/admin/orders_spec.rb:125 # Admin::Orders analytics and reporting with revenue data calculates revenue correctly
+rspec ./spec/requests/checkouts_spec.rb:28 # Checkouts POST /checkout with valid parameters creates a new order successfully
+rspec ./spec/requests/checkouts_spec.rb:35 # Checkouts POST /checkout with valid parameters processes checkout with CartProcessor
+rspec ./spec/requests/checkouts_spec.rb:57 # Checkouts POST /checkout with invalid parameters returns validation errors
+rspec ./spec/requests/checkouts_spec.rb:88 # Checkouts POST /checkout with insufficient stock handles insufficient stock gracefully
+rspec ./spec/requests/checkouts_spec.rb:115 # Checkouts POST /checkout with MercadoPago integration redirects to MercadoPago for payment
+rspec ./spec/requests/checkouts_spec.rb:131 # Checkouts GET /checkout/success displays success page
+rspec ./spec/requests/checkouts_spec.rb:139 # Checkouts GET /checkout/success clears the order from session
+rspec ./spec/requests/checkouts_spec.rb:147 # Checkouts GET /checkout/failure displays failure page
+rspec ./spec/requests/checkouts_spec.rb:157 # Checkouts GET /checkout/pending displays pending page
+rspec ./spec/requests/checkouts_spec.rb:180 # Checkouts cart calculations calculates total correctly for multiple products
+
+Coverage report generated for RSpec to /Users/dev/coinsEcommerceApp/coverage.
+Line Coverage: 54.61% (432 / 791)
+Stopped processing SimpleCov as a previous error not related to SimpleCov has been detected

@@ -15,19 +15,19 @@ FactoryBot.define do
 
     trait :with_stock do
       after(:create) do |product|
-        create(:stock, product: product, quantity: rand(10..100))
+        create(:stock, product: product, amount: rand(10..100))
       end
     end
 
     trait :out_of_stock do
       after(:create) do |product|
-        create(:stock, product: product, quantity: 0)
+        create(:stock, product: product, amount: 0)
       end
     end
 
     trait :low_stock do
       after(:create) do |product|
-        create(:stock, product: product, quantity: rand(1..5))
+        create(:stock, product: product, amount: rand(1..5))
       end
     end
 
