@@ -2,10 +2,10 @@
 
 one:
   product: one
-  amount: 1
-  size: MyString
+  amount: 10
+  size: "Medium"
 
 two:
   product: two
-  amount: 1
-  size: MyString
+  amount: 5
+  size: "Large"

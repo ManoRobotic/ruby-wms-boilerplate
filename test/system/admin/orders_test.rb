@@ -2,7 +2,7 @@ require "application_system_test_case"
 
 class Admin::OrdersTest < ApplicationSystemTestCase
   setup do
-    @admin_order = admin_orders(:one)
+    @admin_order = orders(:one)
   end
 
   test "visiting the index" do
@@ -16,7 +16,7 @@ class Admin::OrdersTest < ApplicationSystemTestCase
 
     fill_in "Address", with: @admin_order.address
     fill_in "Customer email", with: @admin_order.customer_email
-    check "Fulfilled" if @admin_order.fulfilled
+    select @admin_order.status.humanize, from: "Status"
     fill_in "Total", with: @admin_order.total
     click_on "Create Order"
 
@@ -30,7 +30,7 @@ class Admin::OrdersTest < ApplicationSystemTestCase
 
     fill_in "Address", with: @admin_order.address
     fill_in "Customer email", with: @admin_order.customer_email
-    check "Fulfilled" if @admin_order.fulfilled
+    select @admin_order.status.humanize, from: "Status"
     fill_in "Total", with: @admin_order.total
     click_on "Update Order"
 

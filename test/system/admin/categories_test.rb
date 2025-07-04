@@ -6,12 +6,12 @@ class Admin::CategoriesTest < ApplicationSystemTestCase
   end
 
   test "visiting the index" do
-    visit categories_url
+    visit admin_categories_url
     assert_selector "h1", text: "Categories"
   end
 
   test "should create category" do
-    visit categories_url
+    visit admin_categories_url
     click_on "New category"
 
     fill_in "Description", with: @category.description
@@ -23,7 +23,7 @@ class Admin::CategoriesTest < ApplicationSystemTestCase
   end
 
   test "should update Category" do
-    visit category_url(@category)
+    visit admin_category_url(@category)
     click_on "Edit this category", match: :first
 
     fill_in "Description", with: @category.description
@@ -35,7 +35,7 @@ class Admin::CategoriesTest < ApplicationSystemTestCase
   end
 
   test "should destroy Category" do
-    visit category_url(@category)
+    visit admin_category_url(@category)
     click_on "Destroy this category", match: :first
 
     assert_text "Category was successfully destroyed"
