@@ -90,7 +90,7 @@ RSpec.describe CheckoutsController, type: :controller do
       it "redirects to cart with error message" do
         post :create, params: valid_cart_params
         expect(response).to redirect_to(cart_path)
-        expect(flash[:alert]).to include("Error en el proceso de pago")
+        expect(flash[:alert]).to include("Error in payment process")
       end
     end
 
