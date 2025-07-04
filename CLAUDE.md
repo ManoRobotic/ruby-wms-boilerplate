@@ -15,7 +15,7 @@ This is a Rails 8.0.1 ecommerce application running Ruby 3.3.4, using Docker wit
 - **Initial setup**: `bin/build_container` - Builds the devcontainer and sets up the database
 - **Start development server**: `bin/dev` - Starts Rails server (port 3000) and Tailwind CSS watcher
 - **Database seeds**: `bin/rails db:seed`
-- **Run tests**: `bin/rails test`
+- **Run tests**: `bundle exec rspec`
 - **Linting**: `bin/rubocop` (Ruby code style)
 - **Security scan**: `bin/brakeman` (security vulnerability scanner)
 
