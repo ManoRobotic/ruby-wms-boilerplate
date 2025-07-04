@@ -76,7 +76,7 @@ RSpec.describe CheckoutsController, type: :controller do
       end
 
       it "returns 400 status with error message" do
-        post :create, params: insufficient_cart_params
+        post :create, params: insufficient_cart_params, format: :json
         expect(response).to have_http_status(400)
         expect(JSON.parse(response.body)["error"]).to include("stock")
       end
@@ -90,7 +90,7 @@ RSpec.describe CheckoutsController, type: :controller do
       it "redirects to cart with error message" do
         post :create, params: valid_cart_params
         expect(response).to redirect_to(cart_path)
-        expect(flash[:alert]).to include("Payment service error")
+        expect(flash[:alert]).to include("Error en el proceso de pago")
       end
     end
 

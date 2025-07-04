@@ -24,30 +24,19 @@ class CheckoutsController < ApplicationController
   end
 
   def success
-    Rails.logger.info "Checkout success", {
-      payment_id: params[:payment_id],
-      status: params[:status],
-      external_reference: params[:external_reference],
-      merchant_order_id: params[:merchant_order_id]
-    }
+    Rails.logger.info "Checkout success - Payment ID: #{params[:payment_id]}, Status: #{params[:status]}, External Ref: #{params[:external_reference]}, Merchant Order: #{params[:merchant_order_id]}"
 
     render :success
   end
 
   def failure
-    Rails.logger.info "Checkout failure", {
-      payment_id: params[:payment_id],
-      status: params[:status]
-    }
+    Rails.logger.info "Checkout failure - Payment ID: #{params[:payment_id]}, Status: #{params[:status]}"
 
     render :failure
   end
 
   def pending
-    Rails.logger.info "Checkout pending", {
-      payment_id: params[:payment_id],
-      status: params[:status]
-    }
+    Rails.logger.info "Checkout pending - Payment ID: #{params[:payment_id]}, Status: #{params[:status]}"
 
     render :pending
   end
