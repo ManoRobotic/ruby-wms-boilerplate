@@ -3,7 +3,11 @@
 one:
   product: one
   order: one
+  quantity: 2
+  unit_price: 99.99
 
 two:
   product: two
   order: two
+  quantity: 1
+  unit_price: 149.99

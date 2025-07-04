@@ -2,7 +2,6 @@
 
 one:
   customer_email: "customer1@test.com"
-  fulfilled: false
   total: 199.99
   address: "123 Test Street, Test City"
   status: 0  # pending
@@ -10,7 +9,6 @@ one:
 
 two:
   customer_email: "customer2@test.com"
-  fulfilled: true
   total: 299.99
   address: "456 Demo Avenue, Demo Town"
   status: 3  # delivered
