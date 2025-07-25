@@ -147,7 +147,7 @@ RSpec.describe 'Checkouts', type: :request do
       # Set session via a POST request that would set the session
       allow_any_instance_of(ActionDispatch::Request::Session).to receive(:[]).with(:last_order_id).and_return(order.id)
       allow_any_instance_of(ActionDispatch::Request::Session).to receive(:[]=).with(:last_order_id, nil)
-      
+
       get '/checkout/success'
 
       expect(response).to have_http_status(:success)

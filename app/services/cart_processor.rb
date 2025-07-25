@@ -11,18 +11,18 @@ class CartProcessor
       email: params[:customer_email],
       address: params[:address]
     }
-    
+
     processor = new(cart_data: cart_data, user_info: user_info)
-    
+
     if processor.valid?
       order = processor.create_order
       payment_url = processor.payment_url
-      
+
       Result.new(
         success: true,
         order: order,
         payment_url: payment_url,
-        message: 'Order created successfully'
+        message: "Order created successfully"
       )
     else
       Result.new(
@@ -55,7 +55,7 @@ class CartProcessor
     begin
       line_items = build_line_items
       payment_url = MercadoPagoSdk.new.create_preference(line_items, user_info)
-      
+
       if payment_url.blank?
         @errors << I18n.t("checkout.payment_url_error")
         nil
@@ -171,7 +171,7 @@ class CartProcessor
     # Create a basic order for testing
     Order.create!(
       customer_email: user_info[:email],
-      address: user_info[:address] || 'Test Address',
+      address: user_info[:address] || "Test Address",
       total: calculate_total,
       status: :pending
     )
@@ -179,8 +179,8 @@ class CartProcessor
 
   def calculate_total
     cart_data.sum do |item|
-      product = Product.find(item['id'] || item[:id])
-      quantity = (item['quantity'] || item[:quantity]).to_i
+      product = Product.find(item["id"] || item[:id])
+      quantity = (item["quantity"] || item[:quantity]).to_i
       product.price * quantity
     end
   end
@@ -188,7 +188,7 @@ class CartProcessor
   # Result object to match test expectations
   class Result
     attr_reader :success, :order, :payment_url, :message, :errors
-    
+
     def initialize(success:, order: nil, payment_url: nil, message: nil, errors: [])
       @success = success
       @order = order
@@ -196,7 +196,7 @@ class CartProcessor
       @message = message
       @errors = errors
     end
-    
+
     def success?
       @success
     end

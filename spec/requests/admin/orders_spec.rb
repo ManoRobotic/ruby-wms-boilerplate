@@ -31,7 +31,7 @@ RSpec.describe 'Admin::Orders', type: :request do
         # Test that we can see fulfilled and non-fulfilled statuses
         expect(response.body).to include('false')  # unfulfilled orders
         expect(response.body).to include('true')   # fulfilled orders (if any exist)
-        
+
         # Test that orders are displayed (check for edit links)
         expect(response.body).to include('fas fa-edit')
       end

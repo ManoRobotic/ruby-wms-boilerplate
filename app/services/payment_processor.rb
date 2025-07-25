@@ -11,7 +11,7 @@ class PaymentProcessor
 
   def self.fetch_payment_data(payment_id)
     # Fetch payment data from MercadoPago
-    sdk = Mercadopago::SDK.new(ENV['MP_ACCESS_TOKEN'])
+    sdk = Mercadopago::SDK.new(ENV["MP_ACCESS_TOKEN"])
     response = sdk.payment.get(payment_id)
     response.response
   end

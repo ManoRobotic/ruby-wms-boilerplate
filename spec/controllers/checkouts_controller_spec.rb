@@ -73,7 +73,7 @@ RSpec.describe CheckoutsController, type: :controller do
 
       before do
         allow(CartProcessor).to receive(:process_checkout).and_return(
-          double(success?: false, errors: ["Insufficient stock"])
+          double(success?: false, errors: [ "Insufficient stock" ])
         )
       end
 
@@ -87,7 +87,7 @@ RSpec.describe CheckoutsController, type: :controller do
     context "when CartProcessor fails" do
       before do
         allow(CartProcessor).to receive(:process_checkout).and_return(
-          double(success?: false, errors: ["Payment service error"])
+          double(success?: false, errors: [ "Payment service error" ])
         )
       end
 

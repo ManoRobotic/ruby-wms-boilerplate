@@ -60,7 +60,7 @@ RSpec.describe WebhooksController, type: :controller do
 
       # TODO: Implement full payment processing
       # These tests are temporarily disabled until PaymentProcessor is fully implemented
-      
+
       xit "creates order with correct attributes" do
         # Would test order creation after webhook processing
       end
