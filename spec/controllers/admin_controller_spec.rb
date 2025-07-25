@@ -9,7 +9,11 @@ RSpec.describe AdminController, type: :controller do
 
   describe "GET #index" do
     let!(:fulfilled_order) { create(:order, :delivered, total: 100, created_at: 1.day.ago) }
-    let!(:unfulfilled_orders) { create_list(:order, 7, :pending, total: 50, created_at: 1.day.ago) }
+    let!(:unfulfilled_orders) do
+      (1..7).map do |i|
+        create(:order, :pending, total: 50, created_at: i.days.ago)
+      end
+    end
     let!(:today_orders) { create_list(:order, 3, :delivered, total: 75, created_at: 30.minutes.ago) }
 
     before do
@@ -31,8 +35,11 @@ RSpec.describe AdminController, type: :controller do
 
     it "assigns recent unfulfilled orders" do
       get :index
-      expect(assigns(:orders)).to match_array(unfulfilled_orders.take(5))
       expect(assigns(:orders).count).to eq(5)
+      expect(assigns(:orders)).to all(have_attributes(fulfilled: false))
+      # Should return the 5 most recent (created 1-5 hours ago)
+      expected_orders = unfulfilled_orders.sort_by(&:created_at).reverse.first(5)
+      expect(assigns(:orders).pluck(:id)).to match_array(expected_orders.pluck(:id))
     end
 
     it "calculates quick stats for today" do

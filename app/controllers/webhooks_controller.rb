@@ -6,9 +6,14 @@ class WebhooksController < ApplicationController
   before_action :set_payment_id, only: [ :mercadopago ]
 
   def mercadopago
-    # For now, just return success for all webhooks
-    # In production, this would process the payment via PaymentProcessor
-    render_success({ message: "Payment processing initiated" })
+    result = PaymentProcessor.process_approved_payment(@payment_id)
+
+    if result[:success]
+      render_success({ message: "Payment processing initiated" })
+    else
+      Rails.logger.warn "Payment processing failed: #{result[:error]}. Payment ID: #{@payment_id}"
+      render_error("Payment processing failed", :unprocessable_entity)
+    end
   rescue StandardError => e
     Rails.logger.error "Webhook processing failed: #{e.message}. Payment ID: #{@payment_id}. Params: #{params.to_unsafe_h.inspect}"
     render_error("Internal server error", :internal_server_error)

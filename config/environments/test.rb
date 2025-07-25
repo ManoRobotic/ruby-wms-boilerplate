@@ -67,4 +67,7 @@ Rails.application.configure do
 
   # Allow all hosts in test environment
   config.hosts.clear
+
+  config.assets.compile = true
+
 end
