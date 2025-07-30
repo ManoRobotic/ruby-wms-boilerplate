@@ -18,10 +18,21 @@ class AdminController < ApplicationController
     @revenue_by_day = Rails.cache.fetch("admin_revenue_by_day_#{Date.current}", expires_in: 1.hour) do
       Order.revenue_by_day(7)
     end
+    
+    # Convert to array format for chart.js
+    @revenue_by_day_chart = @revenue_by_day.map { |date, revenue| [date.to_s, revenue] }
 
     # Additional useful metrics
     @low_stock_products = Product.low_stock(5).limit(10) rescue []
     @best_selling_products = Product.best_selling(5) rescue []
+    
+    # WMS Dashboard Metrics
+    @wms_metrics = calculate_wms_metrics rescue {}
+    @inventory_alerts = calculate_inventory_alerts rescue {}
+    @task_metrics = calculate_task_metrics rescue {}
+    @pick_list_metrics = calculate_pick_list_metrics rescue {}
+    @warehouse_utilization = calculate_warehouse_utilization rescue []
+    @recent_transactions = InventoryTransaction.recent.limit(5) rescue []
   end
 
   private
@@ -49,6 +60,60 @@ class AdminController < ApplicationController
       avg_sale: today_avg,
       per_sale: per_sale
     }
+  end
+
+  def calculate_wms_metrics
+    {
+      total_warehouses: Warehouse.active.count,
+      total_locations: Location.active.count,
+      total_products: Product.active.count,
+      total_inventory_value: Product.inventory_valuation || 0,
+      low_stock_products: Product.low_stock.count,
+      pending_receipts: (Receipt.scheduled.count rescue 0),
+      active_shipments: (Shipment.where(status: ['shipped', 'in_transit']).count rescue 0)
+    }
+  end
+  
+  def calculate_inventory_alerts
+    {
+      low_stock: Product.low_stock.count,
+      overstock: (Product.overstock.count rescue 0),
+      expiring_soon: (Stock.expiring_soon(30).group(:product_id).count.size rescue 0),
+      expired: (Stock.expired.group(:product_id).count.size rescue 0),
+      negative_stock: (Stock.where('amount < 0').count rescue 0)
+    }
+  end
+  
+  def calculate_task_metrics
+    {
+      pending: (Task.pending.count rescue 0),
+      in_progress: (Task.in_progress.count rescue 0),
+      completed_today: (Task.completed.where(completed_at: Date.current.beginning_of_day..Date.current.end_of_day).count rescue 0),
+      overdue: (Task.overdue.count rescue 0),
+      my_tasks: (Task.where(admin: current_admin, status: ['pending', 'assigned', 'in_progress']).count rescue 0)
+    }
+  end
+  
+  def calculate_pick_list_metrics
+    {
+      pending: (PickList.pending.count rescue 0),
+      in_progress: (PickList.in_progress.count rescue 0),
+      completed_today: (PickList.completed.where(completed_at: Date.current.beginning_of_day..Date.current.end_of_day).count rescue 0),
+      overdue: (PickList.overdue.count rescue 0)
+    }
+  end
+  
+  def calculate_warehouse_utilization
+    warehouses = Warehouse.active.includes(:locations)
+    
+    warehouses.map do |warehouse|
+      {
+        name: warehouse.name,
+        utilization: warehouse.utilization_percentage,
+        available_locations: warehouse.available_locations.count,
+        total_locations: warehouse.total_locations
+      }
+    end
   end
 
   def ensure_admin_permissions!
