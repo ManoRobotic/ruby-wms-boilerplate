@@ -15,7 +15,84 @@ Rails.application.routes.draw do
   end
 
   namespace :admin do
-    resources :orders
+    # WMS Resources
+    resources :warehouses do
+      resources :zones do
+        resources :locations do
+          member do
+            get :cycle_count
+            post :create_cycle_count
+          end
+        end
+      end
+    end
+
+    resources :tasks do
+      member do
+        patch :assign
+        patch :start
+        patch :complete
+        patch :cancel
+      end
+      collection do
+        patch :bulk_assign
+      end
+    end
+
+    resources :pick_lists do
+      member do
+        patch :assign
+        patch :start
+        patch :complete
+        patch :cancel
+        patch :optimize_route
+      end
+      collection do
+        post :generate_for_order
+      end
+    end
+
+    resources :inventory_transactions, only: [ :index, :show, :new, :create, :destroy ] do
+      collection do
+        get :movement_report
+        get :daily_summary
+        get :quick_adjustment
+        post :create_adjustment
+      end
+    end
+
+    resources :receipts do
+      member do
+        patch :start_receiving
+        patch :complete
+      end
+      resources :receipt_items, only: [ :show, :edit, :update ]
+    end
+
+    resources :cycle_counts do
+      member do
+        patch :start
+        patch :complete
+      end
+      resources :cycle_count_items, only: [ :show, :edit, :update ]
+    end
+
+    resources :shipments do
+      member do
+        patch :ship
+        patch :deliver
+      end
+    end
+
+    # Original resources
+    resources :orders do
+      member do
+        patch :allocate_inventory
+        patch :pack
+        patch :ship
+        patch :cancel
+      end
+    end
     resources :categories
     resources :products do
       resources :stocks

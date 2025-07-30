@@ -156,6 +156,7 @@ es:
       categories: 'Categorías'  
       logout: 'Cerrar Sesión'
       logout_confirm: '¿Estás seguro de que quieres cerrar sesión?'
+      manual_printing: 'Impresión Manual'
     categories:
       title: 'Categorías'
       new_category: 'Nueva Categoría'

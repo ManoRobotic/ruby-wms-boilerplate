@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_07_04_093100) do
+ActiveRecord::Schema[8.0].define(version: 2025_07_30_230915) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -75,6 +75,95 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_04_093100) do
     t.decimal "purchase_price"
   end
 
+  create_table "cycle_count_items", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "cycle_count_id", null: false
+    t.uuid "product_id", null: false
+    t.integer "system_quantity"
+    t.integer "counted_quantity"
+    t.integer "variance"
+    t.string "status"
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["cycle_count_id"], name: "index_cycle_count_items_on_cycle_count_id"
+    t.index ["product_id"], name: "index_cycle_count_items_on_product_id"
+  end
+
+  create_table "cycle_counts", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "warehouse_id", null: false
+    t.uuid "admin_id", null: false
+    t.uuid "location_id", null: false
+    t.string "status"
+    t.date "scheduled_date"
+    t.date "completed_date"
+    t.string "count_type"
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["admin_id"], name: "index_cycle_counts_on_admin_id"
+    t.index ["location_id", "status"], name: "idx_cycle_counts_location_status"
+    t.index ["location_id"], name: "index_cycle_counts_on_location_id"
+    t.index ["scheduled_date", "status"], name: "idx_cycle_counts_scheduled_status"
+    t.index ["warehouse_id", "status"], name: "idx_cycle_counts_warehouse_status"
+    t.index ["warehouse_id"], name: "index_cycle_counts_on_warehouse_id"
+  end
+
+  create_table "inventory_transactions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "warehouse_id", null: false
+    t.uuid "location_id"
+    t.uuid "product_id", null: false
+    t.string "transaction_type", null: false
+    t.integer "quantity", null: false
+    t.decimal "unit_cost", precision: 10, scale: 2
+    t.string "reference_type"
+    t.uuid "reference_id"
+    t.uuid "admin_id", null: false
+    t.text "reason"
+    t.string "batch_number", limit: 50
+    t.date "expiry_date"
+    t.string "size"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["admin_id", "created_at"], name: "idx_inventory_transactions_admin_date"
+    t.index ["admin_id"], name: "index_inventory_transactions_on_admin_id"
+    t.index ["batch_number"], name: "idx_inventory_transactions_batch", where: "(batch_number IS NOT NULL)"
+    t.index ["batch_number"], name: "index_inventory_transactions_on_batch_number"
+    t.index ["created_at"], name: "index_inventory_transactions_on_created_at"
+    t.index ["location_id", "created_at"], name: "idx_inventory_transactions_location_date"
+    t.index ["location_id"], name: "index_inventory_transactions_on_location_id"
+    t.index ["product_id", "created_at"], name: "idx_inventory_transactions_product_date"
+    t.index ["product_id"], name: "index_inventory_transactions_on_product_id"
+    t.index ["reference_type", "reference_id"], name: "idx_on_reference_type_reference_id_30e938d718"
+    t.index ["transaction_type", "created_at"], name: "idx_inventory_transactions_type_date"
+    t.index ["transaction_type"], name: "index_inventory_transactions_on_transaction_type"
+    t.index ["warehouse_id", "created_at"], name: "idx_inventory_transactions_warehouse_date"
+    t.index ["warehouse_id"], name: "index_inventory_transactions_on_warehouse_id"
+  end
+
+  create_table "locations", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "zone_id", null: false
+    t.string "aisle", limit: 10, null: false
+    t.string "bay", limit: 10, null: false
+    t.string "level", limit: 10, null: false
+    t.string "position", limit: 10, null: false
+    t.string "barcode", limit: 50
+    t.string "location_type", default: "bin", null: false
+    t.integer "capacity", default: 100
+    t.integer "current_volume", default: 0
+    t.boolean "active", default: true, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["active"], name: "index_locations_on_active"
+    t.index ["aisle", "bay", "level"], name: "idx_locations_position"
+    t.index ["barcode"], name: "idx_locations_barcode", where: "(barcode IS NOT NULL)"
+    t.index ["barcode"], name: "index_locations_on_barcode", unique: true, where: "(barcode IS NOT NULL)"
+    t.index ["current_volume", "capacity"], name: "idx_locations_utilization"
+    t.index ["location_type"], name: "index_locations_on_location_type"
+    t.index ["zone_id", "aisle", "bay", "level", "position"], name: "index_locations_on_coordinates", unique: true
+    t.index ["zone_id"], name: "idx_locations_zone"
+    t.index ["zone_id"], name: "index_locations_on_zone_id"
+  end
+
   create_table "order_products", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "product_id", null: false
     t.uuid "order_id", null: false
@@ -96,8 +185,71 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_04_093100) do
     t.datetime "updated_at", null: false
     t.string "payment_id"
     t.integer "status", default: 0, null: false
+    t.uuid "warehouse_id"
+    t.string "order_type", default: "sales_order"
+    t.string "fulfillment_status", default: "pending"
+    t.date "requested_ship_date"
+    t.date "shipped_date"
+    t.string "tracking_number", limit: 100
+    t.string "priority", default: "medium"
+    t.text "notes"
+    t.index ["fulfillment_status"], name: "index_orders_on_fulfillment_status"
+    t.index ["order_type"], name: "index_orders_on_order_type"
     t.index ["payment_id"], name: "index_orders_on_payment_id"
+    t.index ["priority"], name: "index_orders_on_priority"
+    t.index ["requested_ship_date"], name: "index_orders_on_requested_ship_date"
     t.index ["status"], name: "index_orders_on_status"
+    t.index ["warehouse_id"], name: "index_orders_on_warehouse_id"
+  end
+
+  create_table "pick_list_items", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "pick_list_id", null: false
+    t.uuid "product_id", null: false
+    t.uuid "location_id", null: false
+    t.integer "quantity_requested", null: false
+    t.integer "quantity_picked", default: 0
+    t.string "status", default: "pending", null: false
+    t.integer "sequence", null: false
+    t.string "size"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["location_id", "status"], name: "idx_pick_list_items_location_status"
+    t.index ["location_id"], name: "index_pick_list_items_on_location_id"
+    t.index ["pick_list_id", "location_id", "sequence"], name: "idx_pick_list_items_route_optimization"
+    t.index ["pick_list_id", "sequence"], name: "idx_pick_list_items_sequence"
+    t.index ["pick_list_id", "sequence"], name: "index_pick_list_items_on_pick_list_id_and_sequence"
+    t.index ["pick_list_id"], name: "index_pick_list_items_on_pick_list_id"
+    t.index ["product_id", "status"], name: "idx_pick_list_items_product_status"
+    t.index ["product_id"], name: "index_pick_list_items_on_product_id"
+    t.index ["status", "sequence"], name: "idx_pick_list_items_status_sequence"
+    t.index ["status"], name: "index_pick_list_items_on_status"
+  end
+
+  create_table "pick_lists", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "admin_id", null: false
+    t.uuid "order_id", null: false
+    t.uuid "warehouse_id", null: false
+    t.string "status", default: "pending", null: false
+    t.string "priority", default: "medium", null: false
+    t.integer "total_items", default: 0
+    t.integer "picked_items", default: 0
+    t.datetime "started_at"
+    t.datetime "completed_at"
+    t.string "pick_list_number", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["admin_id", "status"], name: "idx_pick_lists_admin_status"
+    t.index ["admin_id"], name: "index_pick_lists_on_admin_id"
+    t.index ["order_id"], name: "idx_pick_lists_order"
+    t.index ["order_id"], name: "index_pick_lists_on_order_id"
+    t.index ["pick_list_number"], name: "index_pick_lists_on_pick_list_number", unique: true
+    t.index ["priority"], name: "index_pick_lists_on_priority"
+    t.index ["started_at"], name: "idx_pick_lists_started_at", where: "(started_at IS NOT NULL)"
+    t.index ["started_at"], name: "index_pick_lists_on_started_at"
+    t.index ["status", "priority", "created_at"], name: "idx_pick_lists_status_priority_date"
+    t.index ["status"], name: "index_pick_lists_on_status"
+    t.index ["warehouse_id", "status"], name: "idx_pick_lists_warehouse_status"
+    t.index ["warehouse_id"], name: "index_pick_lists_on_warehouse_id"
   end
 
   create_table "products", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -109,7 +261,77 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_04_093100) do
     t.datetime "updated_at", null: false
     t.boolean "active", default: false
     t.string "image_url"
+    t.string "sku", limit: 50
+    t.decimal "weight", precision: 8, scale: 3
+    t.jsonb "dimensions", default: {}
+    t.integer "reorder_point", default: 10
+    t.integer "max_stock_level", default: 1000
+    t.boolean "batch_tracking", default: false
+    t.string "unit_of_measure", default: "unit"
+    t.string "barcode", limit: 50
+    t.index ["barcode"], name: "index_products_on_barcode", unique: true, where: "(barcode IS NOT NULL)"
+    t.index ["batch_tracking"], name: "index_products_on_batch_tracking"
     t.index ["category_id"], name: "index_products_on_category_id"
+    t.index ["sku"], name: "index_products_on_sku", unique: true, where: "(sku IS NOT NULL)"
+  end
+
+  create_table "receipt_items", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "receipt_id", null: false
+    t.uuid "product_id", null: false
+    t.integer "expected_quantity"
+    t.integer "received_quantity"
+    t.decimal "unit_cost"
+    t.string "batch_number"
+    t.date "expiry_date"
+    t.uuid "location_id", null: false
+    t.string "status"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["location_id"], name: "index_receipt_items_on_location_id"
+    t.index ["product_id"], name: "index_receipt_items_on_product_id"
+    t.index ["receipt_id"], name: "index_receipt_items_on_receipt_id"
+  end
+
+  create_table "receipts", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "warehouse_id", null: false
+    t.uuid "admin_id", null: false
+    t.string "supplier_name"
+    t.string "reference_number"
+    t.date "expected_date"
+    t.date "received_date"
+    t.string "status"
+    t.integer "total_items"
+    t.integer "received_items"
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["admin_id"], name: "index_receipts_on_admin_id"
+    t.index ["received_date"], name: "idx_receipts_received_date", where: "(received_date IS NOT NULL)"
+    t.index ["reference_number"], name: "idx_receipts_reference_number"
+    t.index ["warehouse_id", "status"], name: "idx_receipts_warehouse_status"
+    t.index ["warehouse_id"], name: "index_receipts_on_warehouse_id"
+  end
+
+  create_table "shipments", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "order_id", null: false
+    t.uuid "warehouse_id", null: false
+    t.uuid "admin_id", null: false
+    t.string "tracking_number"
+    t.string "carrier"
+    t.string "status"
+    t.date "shipped_date"
+    t.date "delivered_date"
+    t.decimal "total_weight"
+    t.decimal "shipping_cost"
+    t.jsonb "recipient_info"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["admin_id"], name: "index_shipments_on_admin_id"
+    t.index ["order_id"], name: "index_shipments_on_order_id"
+    t.index ["shipped_date"], name: "idx_shipments_shipped_date", where: "(shipped_date IS NOT NULL)"
+    t.index ["tracking_number"], name: "idx_shipments_tracking_number"
+    t.index ["warehouse_id", "status"], name: "idx_shipments_warehouse_status"
+    t.index ["warehouse_id"], name: "index_shipments_on_warehouse_id"
   end
 
   create_table "stocks", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -118,13 +340,117 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_04_093100) do
     t.string "size"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.uuid "location_id"
+    t.string "batch_number", limit: 50
+    t.date "expiry_date"
+    t.integer "reserved_quantity", default: 0
+    t.decimal "unit_cost", precision: 10, scale: 2
+    t.date "received_date"
+    t.index ["batch_number"], name: "index_stocks_on_batch_number"
+    t.index ["expiry_date"], name: "index_stocks_on_expiry_date"
+    t.index ["location_id"], name: "index_stocks_on_location_id"
+    t.index ["product_id", "location_id", "batch_number"], name: "index_stocks_on_product_location_batch"
     t.index ["product_id"], name: "index_stocks_on_product_id"
+  end
+
+  create_table "tasks", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "admin_id", null: false
+    t.string "task_type", null: false
+    t.string "priority", default: "medium", null: false
+    t.string "status", default: "pending", null: false
+    t.uuid "warehouse_id", null: false
+    t.uuid "location_id"
+    t.uuid "product_id"
+    t.integer "quantity", default: 1
+    t.text "instructions"
+    t.datetime "assigned_at"
+    t.datetime "completed_at"
+    t.uuid "from_location_id"
+    t.uuid "to_location_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["admin_id", "status"], name: "idx_tasks_admin_status"
+    t.index ["admin_id"], name: "index_tasks_on_admin_id"
+    t.index ["assigned_at"], name: "index_tasks_on_assigned_at"
+    t.index ["from_location_id"], name: "index_tasks_on_from_location_id"
+    t.index ["location_id"], name: "index_tasks_on_location_id"
+    t.index ["priority"], name: "index_tasks_on_priority"
+    t.index ["product_id"], name: "idx_tasks_product", where: "(product_id IS NOT NULL)"
+    t.index ["product_id"], name: "index_tasks_on_product_id"
+    t.index ["status", "priority", "created_at"], name: "idx_tasks_status_priority_date"
+    t.index ["status"], name: "index_tasks_on_status"
+    t.index ["task_type", "status"], name: "idx_tasks_type_status"
+    t.index ["task_type"], name: "index_tasks_on_task_type"
+    t.index ["to_location_id"], name: "index_tasks_on_to_location_id"
+    t.index ["warehouse_id", "status"], name: "idx_tasks_warehouse_status"
+    t.index ["warehouse_id", "task_type", "status", "priority"], name: "idx_tasks_warehouse_type_status_priority"
+    t.index ["warehouse_id"], name: "index_tasks_on_warehouse_id"
+  end
+
+  create_table "warehouses", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "name", limit: 100, null: false
+    t.string "code", limit: 20, null: false
+    t.text "address", null: false
+    t.boolean "active", default: true, null: false
+    t.jsonb "contact_info", default: {}
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["active"], name: "index_warehouses_on_active"
+    t.index ["code"], name: "index_warehouses_on_code", unique: true
+  end
+
+  create_table "zones", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "warehouse_id", null: false
+    t.string "name", limit: 100, null: false
+    t.string "code", limit: 20, null: false
+    t.string "zone_type", limit: 50, default: "general", null: false
+    t.text "description"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["warehouse_id", "code"], name: "index_zones_on_warehouse_id_and_code", unique: true
+    t.index ["warehouse_id", "zone_type"], name: "idx_zones_warehouse_type"
+    t.index ["warehouse_id"], name: "idx_zones_warehouse"
+    t.index ["warehouse_id"], name: "index_zones_on_warehouse_id"
+    t.index ["zone_type"], name: "index_zones_on_zone_type"
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "cycle_count_items", "cycle_counts"
+  add_foreign_key "cycle_count_items", "products"
+  add_foreign_key "cycle_counts", "admins"
+  add_foreign_key "cycle_counts", "locations"
+  add_foreign_key "cycle_counts", "warehouses"
+  add_foreign_key "inventory_transactions", "admins"
+  add_foreign_key "inventory_transactions", "locations"
+  add_foreign_key "inventory_transactions", "products"
+  add_foreign_key "inventory_transactions", "warehouses"
+  add_foreign_key "locations", "zones"
   add_foreign_key "order_products", "orders"
   add_foreign_key "order_products", "products"
+  add_foreign_key "orders", "warehouses"
+  add_foreign_key "pick_list_items", "locations"
+  add_foreign_key "pick_list_items", "pick_lists"
+  add_foreign_key "pick_list_items", "products"
+  add_foreign_key "pick_lists", "admins"
+  add_foreign_key "pick_lists", "orders"
+  add_foreign_key "pick_lists", "warehouses"
   add_foreign_key "products", "categories"
+  add_foreign_key "receipt_items", "locations"
+  add_foreign_key "receipt_items", "products"
+  add_foreign_key "receipt_items", "receipts"
+  add_foreign_key "receipts", "admins"
+  add_foreign_key "receipts", "warehouses"
+  add_foreign_key "shipments", "admins"
+  add_foreign_key "shipments", "orders"
+  add_foreign_key "shipments", "warehouses"
+  add_foreign_key "stocks", "locations"
   add_foreign_key "stocks", "products"
+  add_foreign_key "tasks", "admins"
+  add_foreign_key "tasks", "locations"
+  add_foreign_key "tasks", "locations", column: "from_location_id"
+  add_foreign_key "tasks", "locations", column: "to_location_id"
+  add_foreign_key "tasks", "products"
+  add_foreign_key "tasks", "warehouses"
+  add_foreign_key "zones", "warehouses"
 end

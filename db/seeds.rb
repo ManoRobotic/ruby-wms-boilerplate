@@ -216,7 +216,7 @@ all_products.each do |product|
   else
     rand(10..30) # Otros productos
   end
-  
+
   Stock.create!(
     product: product,
     amount: stock_amount,
@@ -241,7 +241,7 @@ sample_orders = []
     payment_id: "MP-sample-#{SecureRandom.hex(8)}",
     created_at: rand(1..7).days.ago
   )
-  
+
   # Add order products
   selected_products = all_products.sample(rand(1..3))
   selected_products.each do |product|
@@ -254,7 +254,7 @@ sample_orders = []
       size: "standard"
     )
   end
-  
+
   sample_orders << order
 end
 
@@ -269,7 +269,7 @@ end
     payment_id: "MP-pending-#{SecureRandom.hex(8)}",
     created_at: rand(1..3).days.ago
   )
-  
+
   # Add order products
   selected_products = all_products.sample(rand(1..2))
   selected_products.each do |product|
@@ -282,7 +282,7 @@ end
       size: "standard"
     )
   end
-  
+
   sample_orders << order
 end
 
@@ -293,7 +293,7 @@ puts "  📂 Categories: #{Category.count}"
 puts "  🪙 Products: #{Product.count}"
 puts "  📦 Stock entries: #{Stock.count}"
 puts "  👤 Admins: #{Admin.count}"
-puts "  📋 Orders: #{Order.count}" 
+puts "  📋 Orders: #{Order.count}"
 puts "  🛒 Order products: #{OrderProduct.count}"
 puts ""
 puts "🔐 Admin credentials:"
@@ -301,3 +301,229 @@ puts "  Email: admin@wmsapp.com"
 puts "  Password: password123"
 puts ""
 puts "✅ Database seeded successfully! 🚀"
+
+# WMS SPECIFIC SEEDING
+puts ""
+puts "🏭 Starting WMS-specific seeding..."
+
+# Create warehouses with the existing admin
+if Warehouse.count.zero?
+  warehouses_data = [
+    {
+      name: 'Centro de Distribución Principal',
+      code: 'CDP01',
+      address: 'Av. Industrial 1234, Zona Industrial, CDMX 12345',
+      active: true,
+      contact_info: {
+        phone: '+52-55-1234-5678',
+        email: 'cdp@wmsapp.com',
+        manager: 'Carlos Rodríguez',
+        hours: '24/7'
+      }
+    },
+    {
+      name: 'Almacén Regional Norte',
+      code: 'ARN01',
+      address: 'Blvd. Norte 5678, Monterrey, NL 67890',
+      active: true,
+      contact_info: {
+        phone: '+52-81-9876-5432',
+        email: 'arn@wmsapp.com',
+        manager: 'María López',
+        hours: 'Lun-Vie 8AM-6PM'
+      }
+    }
+  ]
+
+  warehouses_data.each do |wh_data|
+    warehouse = Warehouse.create!(
+      name: wh_data[:name],
+      code: wh_data[:code],
+      address: wh_data[:address],
+      active: wh_data[:active],
+      contact_info: wh_data[:contact_info]
+    )
+    puts "✅ Created warehouse: #{warehouse.name}"
+  end
+end
+
+# Create zones for each warehouse
+if Zone.count.zero?
+  zone_types = [ 'receiving', 'storage', 'picking', 'packing', 'shipping' ]
+
+  Warehouse.find_each do |warehouse|
+    zone_types.each_with_index do |zone_type, index|
+      zone = warehouse.zones.create!(
+        name: "Zona #{zone_type.titleize} #{index + 1}",
+        code: "#{zone_type.upcase[0..2]}#{index + 1}",
+        zone_type: zone_type,
+        description: "Área de operaciones de #{zone_type.titleize}"
+      )
+      puts "✅ Created zone: #{zone.name} in #{warehouse.name}"
+    end
+  end
+end
+
+# Create locations in storage zones
+if Location.count.zero?
+  Zone.where(zone_type: 'storage').find_each do |zone|
+    (1..3).each do |aisle| # Reduced for demo
+      (1..5).each do |bay|  # Reduced for demo
+        (1..3).each do |level| # Reduced for demo
+          location = zone.locations.create!(
+            aisle: aisle.to_s.rjust(2, '0'),
+            bay: bay.to_s.rjust(2, '0'),
+            level: level.to_s,
+            position: '01',
+            location_type: 'bin',
+            capacity: 100,
+            barcode: "#{zone.warehouse.code}-#{zone.code}-#{aisle.to_s.rjust(2, '0')}-#{bay.to_s.rjust(2, '0')}-#{level}",
+            active: true
+          )
+        end
+      end
+    end
+    puts "✅ Created locations for zone: #{zone.name}"
+  end
+end
+
+# Update existing products with WMS fields
+Product.where(sku: nil).find_each.with_index do |product, index|
+  product.update!(
+    sku: "#{product.name.gsub(/[^a-zA-Z0-9]/, '').upcase[0..5]}#{(index + 1).to_s.rjust(3, '0')}",
+    weight: case product.category.name
+            when 'Monedas de Oro', 'Monedas de Plata'
+             rand(0.02..0.05) # 20-50 gramos
+            when 'Lingotes'
+             rand(0.01..1.0) # 10g - 1kg
+            else
+             rand(0.01..0.1) # Billetes y otros
+            end,
+    dimensions: { length: rand(2..5), width: rand(2..5), height: rand(0.1..0.5) },
+    unit_of_measure: 'pieza',
+    batch_tracking: [ 'Numismática', 'Billetes Históricos' ].include?(product.category.name),
+    reorder_point: case product.category.name
+                   when 'Numismática' then 2
+                   when 'Monedas de Oro' then 5
+                   when 'Lingotes' then 3
+                   else 10
+                   end,
+    max_stock_level: case product.category.name
+                     when 'Numismática' then 10
+                     when 'Monedas de Oro' then 50
+                     else 100
+                     end,
+    barcode: "BC#{product.id.to_s.rjust(8, '0')}"
+  )
+end
+puts "✅ Updated products with WMS fields"
+
+# Update existing stocks with WMS fields
+Stock.where(location: nil).find_each do |stock|
+  storage_location = Location.joins(zone: :warehouse)
+                             .where(zones: { zone_type: 'storage' })
+                             .active
+                             .sample
+
+  if storage_location
+    begin
+      stock.update!(
+        location: storage_location,
+        unit_cost: stock.product.price * 0.6, # 60% del precio de venta
+        received_date: rand(30.days).seconds.ago
+      )
+    rescue => e
+      puts "Error updating stock: #{e.message}"
+      next
+    end
+
+    if stock.product.batch_tracking?
+      stock.update!(
+        batch_number: "BT#{Date.current.strftime('%Y%m')}#{rand(1000..9999)}",
+        expiry_date: rand(365..1095).days.from_now # 1-3 años
+      )
+    end
+  end
+end
+puts "✅ Updated stocks with WMS fields"
+
+# Update existing orders with WMS fields
+Order.where(warehouse: nil).find_each do |order|
+  order.update!(
+    warehouse: Warehouse.first,
+    order_type: 'sales_order',
+    fulfillment_status: case order.status
+                        when 'delivered' then 'delivered'
+                        when 'shipped' then 'shipped'
+                        else 'pending'
+                        end,
+    priority: [ 'low', 'medium', 'high' ].sample,
+    requested_ship_date: order.created_at + rand(1..5).days
+  )
+end
+puts "✅ Updated orders with WMS fields"
+
+# Create some sample tasks
+if Task.count.zero?
+  admin = Admin.first
+  warehouse = Warehouse.first
+  task_types = [ 'putaway', 'picking', 'replenishment', 'cycle_count' ]
+
+  10.times do |i|
+    product = Product.active.sample
+    location = Location.active.sample
+
+    begin
+      task = Task.create!(
+        admin: admin,
+        warehouse: warehouse,
+        task_type: task_types.sample,
+        priority: [ 'low', 'medium', 'high', 'urgent' ].sample,
+        status: [ 'pending', 'assigned' ].sample,
+        product: product,
+        location: location,
+        quantity: rand(1..5),
+        instructions: "Tarea de #{task_types.sample} para #{product.name} en #{location.coordinate_code}"
+      )
+    rescue => e
+      puts "Error creating task: #{e.message}"
+      next
+    end
+    puts "✅ Created task: #{task.display_name}"
+  end
+end
+
+# Create some inventory transactions
+if InventoryTransaction.count.zero?
+  admin = Admin.first
+
+  Stock.includes(:product, :location).limit(20).each do |stock|
+    next unless stock.location
+
+    # Create a receipt transaction
+    InventoryTransaction.create!(
+      warehouse: stock.location.warehouse,
+      location: stock.location,
+      product: stock.product,
+      transaction_type: 'receipt',
+      quantity: stock.amount,
+      unit_cost: stock.unit_cost,
+      admin: admin,
+      reason: 'Initial stock receipt',
+      batch_number: stock.batch_number,
+      expiry_date: stock.expiry_date,
+      created_at: stock.received_date || 1.week.ago
+    )
+  end
+  puts "✅ Created inventory transactions"
+end
+
+puts ""
+puts "🎯 WMS Seeds summary:"
+puts "  🏭 Warehouses: #{Warehouse.count}"
+puts "  📍 Zones: #{Zone.count}"
+puts "  📦 Locations: #{Location.count}"
+puts "  ✅ Tasks: #{Task.count}"
+puts "  📊 Inventory Transactions: #{InventoryTransaction.count}"
+puts ""
+puts "✅ WMS seeding completed successfully! 🏭"
