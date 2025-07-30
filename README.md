@@ -267,6 +267,19 @@ heroku run rails db:migrate
 heroku run rails db:seed
 ```
 
+🎯 Seeds summary:
+  📂 Categories: 6
+  🪙 Products: 15
+  📦 Stock entries: 15
+  👤 Admins: 1
+  📋 Orders: 5
+  🛒 Order products: 11
+
+🔐 Admin credentials:
+  Email: admin@coinsapp.com
+  Password: password123
+  
+
 ### **Docker Production**
 ```bash
 # Build image
