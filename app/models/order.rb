@@ -43,9 +43,9 @@ class Order < ApplicationRecord
       end_date = Date.current
       start_date = (days_back - 1).days.ago.to_date
 
-      (start_date..end_date).each_with_object({}) do |date, hash|
+      (start_date..end_date).map do |date|
         revenue = delivered.where(created_at: date.all_day).sum(:total)
-        hash[date] = revenue
+        [date.to_s, revenue]
       end
     end
 
