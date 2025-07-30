@@ -85,7 +85,7 @@ bin/dev
 - **Frontend**: http://localhost:3000
 - **Admin Panel**: http://localhost:3000/admin
 - **Admin Credentials**: 
-  - Email: `admin@coinsapp.com`
+  - Email: `admin@wmsapp.com`
   - Password: `password123`
 
 ---
@@ -276,7 +276,7 @@ heroku run rails db:seed
   🛒 Order products: 11
 
 🔐 Admin credentials:
-  Email: admin@coinsapp.com
+  Email: admin@wmsapp.com
   Password: password123
   
 

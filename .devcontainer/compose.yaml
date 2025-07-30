@@ -1,4 +1,4 @@
-name: "coins_ecommerce_app"
+name: "wms_system_app"
 
 services:
   rails-app:

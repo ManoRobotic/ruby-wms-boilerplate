@@ -7,7 +7,7 @@ Admin.destroy_all
 
 puts "👤 Creating admin user..."
 admin = Admin.create!(
-  email: "admin@coinsapp.com",
+  email: "admin@wmsapp.com",
   password: "password123",
   password_confirmation: "password123",
   name: "Admin Principal",
@@ -297,7 +297,7 @@ puts "  📋 Orders: #{Order.count}"
 puts "  🛒 Order products: #{OrderProduct.count}"
 puts ""
 puts "🔐 Admin credentials:"
-puts "  Email: admin@coinsapp.com"
+puts "  Email: admin@wmsapp.com"
 puts "  Password: password123"
 puts ""
 puts "✅ Database seeded successfully! 🚀"

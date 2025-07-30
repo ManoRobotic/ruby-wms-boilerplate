@@ -1,5 +1,5 @@
 {
-  "name": "coins_ecommerce_app",
+  "name": "wms_system_app",
   "dockerComposeFile": "compose.yaml",
   "service": "rails-app",
   "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",

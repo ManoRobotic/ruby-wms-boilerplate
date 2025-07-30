@@ -2,7 +2,7 @@
 require "fileutils"
 
 APP_ROOT = File.expand_path("..", __dir__)
-APP_NAME = "coins-ecommerce-app"
+APP_NAME = "wms-system-app"
 
 def system!(*args)
   system(*args, exception: true)

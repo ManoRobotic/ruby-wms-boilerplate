@@ -91,7 +91,7 @@ jobs:
       - name: Run tests
         env:
           RAILS_ENV: test
-          DATABASE_URL: postgres://postgres:postgres@localhost:5432/coins_ecommerce_app_test
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/wms_system_app_test
           # REDIS_URL: redis://localhost:6379/0
         run: bin/rails db:test:prepare && bundle exec rspec
 

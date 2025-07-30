@@ -1,5 +1,5 @@
 {
-  "name": "coins-ecommerce-app",
+  "name": "wms_system_app",
   "private": true,
   "dependencies": {
     "@hotwired/stimulus": "^3.2.1",
