@@ -97,6 +97,17 @@ Rails.application.routes.draw do
     resources :products do
       resources :stocks
     end
+    
+    # Manual Printing
+    get 'manual_printing', to: 'manual_printing#index'
+    post 'manual_printing/connect_printer', to: 'manual_printing#connect_printer'
+    post 'manual_printing/print_test', to: 'manual_printing#print_test'
+    post 'manual_printing/calibrate_sensor', to: 'manual_printing#calibrate_sensor'
+    post 'manual_printing/printer_status', to: 'manual_printing#printer_status'
+    
+    # Scale Reading
+    post 'manual_printing/connect_scale', to: 'manual_printing#connect_scale'
+    post 'manual_printing/read_weight', to: 'manual_printing#read_weight'
   end
 
   resources :categories, only: [ :show ]

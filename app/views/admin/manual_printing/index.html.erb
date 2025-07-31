@@ -1,0 +1,201 @@
+<!-- Vista de Impresión Manual -->
+<div class="relative flex flex-col w-full px-6 text-gray-700 bg-white shadow-md lg:px-10 rounded-xl bg-clip-border">
+  <div class="relative mx-4 mt-4 overflow-hidden text-gray-700 bg-white rounded-none bg-clip-border">
+    <div class="flex flex-col items-center justify-between gap-8 mb-4 md:flex-row md:items-center">
+      <div>
+        <h2 class="block text-xl font-semibold text-center text-blue-gray-900 md:text-left md:mt-12">
+          <%= t('admin.sidebar.manual_printing') %>
+        </h2>
+        <p class="text-gray-600 mt-2">Control directo de impresora TSC TX200 via USB</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="px-4 overflow-auto mb-16" data-controller="printer">
+    <!-- Control y Configuración de Impresora -->
+    <h2 class="mb-6 text-2xl font-medium text-gray-800">Control y Configuración de Impresora</h2>
+
+    <div class="grid w-full gap-6 sm:grid-cols-1 md:grid-cols-3">
+      <!-- Estado y Conexión -->
+      <div class="relative flex flex-col w-full bg-white border rounded-lg shadow-sm border-slate-200">
+        <div class="px-1 pt-3 pb-2 mx-3 mb-0 border-b border-slate-200">
+          <span class="text-sm font-medium text-slate-600">
+            🖨️ Estado de Conexión
+          </span>
+        </div>
+        <div class="p-4">
+          <div id="connection-status" class="mb-4 p-3 rounded-lg bg-gray-50 border">
+            <div class="flex items-center">
+              <div data-printer-target="statusIndicator" class="w-3 h-3 rounded-full bg-red-500 mr-3"></div>
+              <span data-printer-target="statusText" class="text-gray-700">Impresora desconectada</span>
+            </div>
+          </div>
+          <button data-action="click->printer#connectPrinter" 
+                  data-printer-target="connectButton"
+                  type="button" 
+                  class="w-full px-4 py-2 bg-gray-900 hover:bg-gray-800 text-white font-bold rounded-lg shadow-md transition-all duration-200 disabled:opacity-50">
+            <i class="fas fa-plug mr-2"></i>
+            Conectar Impresora
+          </button>
+          <div class="mt-3 space-y-2">
+            <button data-action="click->printer#calibrateSensor" 
+                    data-printer-target="calibrateButton"
+                    type="button" 
+                    class="w-full px-3 py-1 border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium rounded text-sm transition-all duration-200 disabled:opacity-50" 
+                    disabled>
+              <i class="fas fa-cog mr-2"></i>
+              Calibrar Sensor
+            </button>
+            <button data-action="click->printer#checkStatus" 
+                    data-printer-target="statusButton"
+                    type="button" 
+                    class="w-full px-3 py-1 border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium rounded text-sm transition-all duration-200 disabled:opacity-50" 
+                    disabled>
+              <i class="fas fa-info-circle mr-2"></i>
+              Estado de Impresora
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Báscula Digital -->
+      <div class="relative flex flex-col w-full bg-white border rounded-lg shadow-sm border-slate-200" 
+           data-controller="scale-reader" 
+           data-scale-reader-max-weight-value="100">
+        <div class="px-1 pt-3 pb-2 mx-3 mb-0 border-b border-slate-200">
+          <span class="text-sm font-medium text-slate-600">
+            ⚖️ Báscula Digital
+          </span>
+        </div>
+        <div class="p-4">
+          <!-- Widget Circular -->
+          <div class="flex justify-center mb-4">
+            <div class="relative w-32 h-32">
+              <svg class="transform -rotate-90 w-32 h-32">
+                <circle cx="64" cy="64" r="56" stroke="#e5e7eb" stroke-width="8" fill="transparent"/>
+                <circle cx="64" cy="64" r="56" 
+                        data-scale-reader-target="progressCircle"
+                        stroke="#059669" 
+                        stroke-width="8" 
+                        fill="transparent"
+                        stroke-dasharray="351.86" 
+                        stroke-dashoffset="351.86"
+                        class="transition-all duration-500 ease-out"/>
+              </svg>
+              <div class="absolute inset-0 flex flex-col items-center justify-center">
+                <span data-scale-reader-target="weightDisplay" class="text-2xl font-bold text-slate-800">0.0</span>
+                <span class="text-xs text-slate-600">kg</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Status y Control -->
+          <div id="scale-status" class="mb-3 p-2 rounded bg-gray-50 border text-center">
+            <span data-scale-reader-target="scaleStatus" class="text-sm text-slate-600">Báscula desconectada</span>
+          </div>
+
+          <button data-action="click->scale-reader#connectScale" 
+                  data-scale-reader-target="connectButton"
+                  class="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg shadow-md transition-all duration-200 disabled:opacity-50">
+            <i class="fas fa-balance-scale mr-2"></i>
+            Conectar Báscula
+          </button>
+
+          <button data-action="click->scale-reader#readWeight" 
+                  data-scale-reader-target="readButton"
+                  class="w-full mt-2 px-3 py-1 border border-green-300 text-green-700 hover:bg-green-50 font-medium rounded text-sm transition-all duration-200 disabled:opacity-50" 
+                  disabled>
+            <i class="fas fa-sync mr-2"></i>
+            Leer Peso
+          </button>
+        </div>
+      </div>
+
+      <!-- Dimensiones del Papel -->
+      <div class="relative flex flex-col w-full bg-white border rounded-lg shadow-sm border-slate-200">
+        <div class="px-1 pt-3 pb-2 mx-3 mb-0 border-b border-slate-200">
+          <span class="text-sm font-medium text-slate-600">
+            📏 Dimensiones del Papel
+          </span>
+        </div>
+        <div class="p-4">
+          <%= form_with url: admin_manual_printing_print_test_path, method: :post, 
+                       local: false, id: "print-form", 
+                       class: "space-y-4",
+                       data: { controller: "print-form" } do |form| %>
+            
+            <!-- Nombre del Producto -->
+            <div class="field">
+              <%= form.label :product_name, "Nombre del Producto", class: "block text-sm font-medium text-slate-700 mb-1" %>
+              <%= form.text_field :product_name, placeholder: "Ej: Arroz Premium 1kg", 
+                  class: "w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+            </div>
+
+            <!-- Dimensiones del Papel -->
+            <div class="grid grid-cols-3 gap-3">
+              <div class="field">
+                <%= form.label :ancho_mm, "Ancho (mm)", class: "block text-sm font-medium text-slate-700 mb-1" %>
+                <%= form.number_field :ancho_mm, value: 80, min: 10, max: 200, step: 1,
+                    class: "w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+              </div>
+              <div class="field">
+                <%= form.label :alto_mm, "Alto (mm)", class: "block text-sm font-medium text-slate-700 mb-1" %>
+                <%= form.number_field :alto_mm, value: 50, min: 10, max: 200, step: 1,
+                    class: "w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+              </div>
+              <div class="field">
+                <%= form.label :gap_mm, "Gap (mm)", class: "block text-sm font-medium text-slate-700 mb-1" %>
+                <%= form.number_field :gap_mm, value: 2, min: 0, max: 10, step: 0.5,
+                    class: "w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+              </div>
+            </div>
+
+            <!-- Campo oculto para el peso -->
+            <%= form.hidden_field :current_weight, value: "0.0", data: { "print-form-target": "weightField" } %>
+
+            <button data-printer-target="printButton"
+                    type="submit" 
+                    class="w-full px-4 py-3 bg-gray-900 hover:bg-gray-800 text-white font-bold rounded-lg shadow-md transition-all duration-200 disabled:opacity-50" 
+                    disabled>
+              <i class="fas fa-print mr-2"></i>
+              Imprimir Etiqueta con Peso
+            </button>
+            <div class="text-sm text-slate-600 bg-slate-50 p-3 rounded border">
+              <p class="font-medium mb-2">La etiqueta incluirá:</p>
+              <ul class="list-disc list-inside space-y-1 text-xs">
+                <li>Nombre del producto</li>
+                <li>Peso actual: <span data-print-form-target="weightDisplay" class="font-semibold">0.0 kg</span></li>
+                <li>Dimensiones configuradas</li>
+                <li>Fecha y hora actual</li>
+                <li>Código de barras (opcional)</li>
+              </ul>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Registro de Actividad -->
+    <h2 class="mt-8 mb-6 text-2xl font-medium text-gray-800">Registro de Actividad</h2>
+    <div class="relative flex flex-col w-full bg-white border rounded-lg shadow-sm border-slate-200">
+      <div class="px-1 pt-3 pb-2 mx-3 mb-0 border-b border-slate-200">
+        <div class="flex justify-between items-center">
+          <span class="text-sm font-medium text-slate-600">
+            📄 Log del Sistema
+          </span>
+          <button data-action="click->printer#clearLog"
+                  type="button" 
+                  class="px-2 py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded transition-colors duration-200">
+            <i class="fas fa-trash mr-1"></i>
+            Limpiar
+          </button>
+        </div>
+      </div>
+      <div class="p-4">
+        <div id="activity-log" class="bg-gray-900 text-green-400 font-mono text-sm p-4 rounded border h-64 overflow-y-auto">
+          <div class="text-gray-500">Sistema de impresión inicializado...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

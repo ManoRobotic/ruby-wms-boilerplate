@@ -1,0 +1,65 @@
+#!/bin/bash
+
+# Script para instalar dependencias de la impresora TSC TX200
+
+echo "=== INSTALACIÓN DE DEPENDENCIAS PARA IMPRESORA TSC TX200 ==="
+
+# Verificar si Python3 está disponible
+if ! command -v python3 &> /dev/null; then
+    echo "❌ Python3 no está instalado"
+    echo "Instala Python3 primero: sudo apt-get install python3 python3-pip"
+    exit 1
+fi
+
+echo "✅ Python3 encontrado: $(python3 --version)"
+
+# Verificar si pip está disponible
+if ! command -v pip3 &> /dev/null; then
+    echo "❌ pip3 no está instalado"
+    echo "Instala pip3: sudo apt-get install python3-pip"
+    exit 1
+fi
+
+echo "✅ pip3 encontrado"
+
+# Instalar dependencias del sistema para USB
+echo "📦 Instalando dependencias del sistema..."
+sudo apt-get update
+sudo apt-get install -y libusb-1.0-0-dev libudev-dev
+
+# Instalar pyusb
+echo "🐍 Instalando pyusb..."
+pip3 install --user pyusb
+
+# Verificar instalación
+echo "🔍 Verificando instalación..."
+python3 -c "import usb.core; print('✅ pyusb instalado correctamente')" 2>/dev/null || {
+    echo "❌ Error en la instalación de pyusb"
+    echo "Intenta: pip3 install --user --upgrade pyusb"
+    exit 1
+}
+
+# Configurar permisos USB (opcional pero recomendado)
+echo "🔧 Configurando permisos USB..."
+sudo bash -c 'cat > /etc/udev/rules.d/99-tsc-printer.rules << EOF
+# TSC TX200 Printer
+SUBSYSTEM=="usb", ATTR{idVendor}=="1203", ATTR{idProduct}=="0230", MODE="0666", GROUP="plugdev"
+EOF'
+
+echo "🔄 Recargando reglas udev..."
+sudo udevadm control --reload-rules
+sudo udevadm trigger
+
+echo ""
+echo "✅ ¡Instalación completada!"
+echo ""
+echo "📝 Notas importantes:"
+echo "1. Conecta la impresora TSC TX200 via USB"
+echo "2. Enciende la impresora"
+echo "3. Si tienes problemas de permisos, ejecuta Rails con sudo o agrega tu usuario al grupo plugdev:"
+echo "   sudo usermod -a -G plugdev $USER"
+echo "4. Puede que necesites cerrar y abrir sesión para aplicar los cambios de grupo"
+echo ""
+echo "🖨️  La impresora TSC TX200 debería ser detectada como:"
+echo "   Vendor ID: 0x1203"
+echo "   Product ID: 0x0230"

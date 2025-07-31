@@ -1,0 +1,168 @@
+<% if notice.present? %>
+  <%= render "shared/succes_alert", notice: notice %>
+<% end %>
+
+<div class="w-full px-4 mt-8">
+  <div class="relative flex flex-col w-full text-gray-700 bg-white shadow-md rounded-xl bg-clip-border">
+    <div class="relative p-4 text-gray-700 bg-white bg-clip-border">
+      <div class="container mx-auto">
+        <div class="flex flex-col items-center gap-8 px-4 mb-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h1 class="mt-12 font-sans text-xl font-semibold leading-snug tracking-normal text-center md:text-left text-blue-gray-900">
+              <%= t('admin.sidebar.pick_lists') %>
+            </h1>
+          </div>
+          <div class="flex justify-center gap-2 shrink-0 md:w-auto">
+            <%= link_to 'Nueva Lista de Picking', new_admin_pick_list_path, class: "mt-12 flex items-center gap-3 rounded-lg bg-yellow-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85" %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status Cards -->
+    <div class="px-4 mb-6">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
+                <span class="text-white font-semibold text-sm"><%= @pick_lists.where(status: 'pending').count %></span>
+              </div>
+            </div>
+            <div class="ml-3">
+              <p class="text-sm font-medium text-yellow-800">Pendientes</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                <span class="text-white font-semibold text-sm"><%= @pick_lists.where(status: 'assigned').count %></span>
+              </div>
+            </div>
+            <div class="ml-3">
+              <p class="text-sm font-medium text-blue-800">Asignadas</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
+                <span class="text-white font-semibold text-sm"><%= @pick_lists.where(status: 'in_progress').count %></span>
+              </div>
+            </div>
+            <div class="ml-3">
+              <p class="text-sm font-medium text-purple-800">En Progreso</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                <span class="text-white font-semibold text-sm"><%= @pick_lists.where(status: 'completed').count %></span>
+              </div>
+            </div>
+            <div class="ml-3">
+              <p class="text-sm font-medium text-green-800">Completadas</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <section class="flex flex-col w-full py-16 bg-muted">
+      <div class="container mx-auto">
+        <div class="overflow-x-auto">
+          <table class="min-w-full bg-white border border-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Orden</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Almacén</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Items</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prioridad</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Asignado a</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <% @pick_lists.includes(:order, :admin, :warehouse, :pick_list_items).each do |pick_list| %>
+                <tr class="hover:bg-gray-50">
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    #<%= pick_list.id %>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <% if pick_list.order %>
+                      <%= link_to "##{pick_list.order.id}", admin_order_path(pick_list.order), class: "text-blue-600 hover:text-blue-900" %>
+                    <% else %>
+                      N/A
+                    <% end %>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <%= pick_list.warehouse.name %>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <%= pluralize(pick_list.pick_list_items.count, 'item') %>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <% priority_class = case pick_list.priority
+                       when 'urgent' then 'bg-red-100 text-red-800'
+                       when 'high' then 'bg-orange-100 text-orange-800'  
+                       when 'medium' then 'bg-yellow-100 text-yellow-800'
+                       else 'bg-gray-100 text-gray-800'
+                       end %>
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full <%= priority_class %>">
+                      <%= pick_list.priority.humanize %>
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <% status_class = case pick_list.status
+                       when 'completed' then 'bg-green-100 text-green-800'
+                       when 'in_progress' then 'bg-purple-100 text-purple-800'
+                       when 'assigned' then 'bg-blue-100 text-blue-800'
+                       when 'pending' then 'bg-yellow-100 text-yellow-800'
+                       else 'bg-gray-100 text-gray-800'
+                       end %>
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full <%= status_class %>">
+                      <%= pick_list.status.humanize %>
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <%= pick_list.admin&.email || 'Sin asignar' %>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <%= pick_list.created_at.strftime('%d/%m/%Y') %>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <%= link_to 'Ver', admin_pick_list_path(pick_list), class: "text-indigo-600 hover:text-indigo-900 mr-3" %>
+                    <% if pick_list.status == 'pending' %>
+                      <%= link_to 'Asignar', assign_admin_pick_list_path(pick_list), method: :patch, class: "text-blue-600 hover:text-blue-900 mr-3" %>
+                    <% elsif pick_list.status == 'assigned' %>
+                      <%= link_to 'Iniciar', start_admin_pick_list_path(pick_list), method: :patch, class: "text-green-600 hover:text-green-900 mr-3" %>
+                    <% elsif pick_list.status == 'in_progress' %>
+                      <%= link_to 'Completar', complete_admin_pick_list_path(pick_list), method: :patch, class: "text-purple-600 hover:text-purple-900 mr-3" %>
+                      <%= link_to 'Optimizar Ruta', optimize_route_admin_pick_list_path(pick_list), method: :patch, class: "text-orange-600 hover:text-orange-900 mr-3" %>
+                    <% end %>
+                    <% unless pick_list.status == 'completed' %>
+                      <%= link_to 'Cancelar', cancel_admin_pick_list_path(pick_list), method: :patch, 
+                          data: { confirm: '¿Estás seguro?' }, 
+                          class: "text-red-600 hover:text-red-900" %>
+                    <% end %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>

@@ -16,7 +16,14 @@
                     { path: admin_orders_path, icon: 'truck-fast', label: t('admin.sidebar.orders') },
                     { path: admin_products_path, icon: 'cart-shopping', label: t('admin.sidebar.products') },
                     { path: admin_categories_path, icon: 'list', label: t('admin.sidebar.categories') },
-                    { path: admin_categories_path, icon: 'printer', label: t('admin.sidebar.manual_printing') }
+                    { path: admin_warehouses_path, icon: 'warehouse', label: t('admin.sidebar.warehouses') },
+                    { path: admin_tasks_path, icon: 'tasks', label: t('admin.sidebar.tasks') },
+                    { path: admin_pick_lists_path, icon: 'clipboard-list', label: t('admin.sidebar.pick_lists') },
+                    { path: admin_inventory_transactions_path, icon: 'arrow-right-arrow-left', label: t('admin.sidebar.inventory_transactions') },
+                    { path: admin_receipts_path, icon: 'truck-ramp-box', label: t('admin.sidebar.receipts') },
+                    { path: admin_cycle_counts_path, icon: 'calculator', label: t('admin.sidebar.cycle_counts') },
+                    { path: admin_shipments_path, icon: 'shipping-fast', label: t('admin.sidebar.shipments') },
+                    { path: admin_manual_printing_path, icon: 'print', label: t('admin.sidebar.manual_printing') }
                 ].each do |item| %>
                     <li>
                         <%= link_to item[:path], class: "flex items-center p-3 rounded-lg hover:bg-gray-700 #{'bg-gray-700' if current_page?(item[:path])} sidebar-item" do %>
