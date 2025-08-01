@@ -160,6 +160,7 @@ es:
       locations: 'Ubicaciones'
       tasks: 'Tareas'
       pick_lists: 'Listas de Picking'
+      waves: 'Wave Management'
       inventory_transactions: 'Transacciones de Inventario'
       receipts: 'Recepciones'
       cycle_counts: 'Conteos Cíclicos'

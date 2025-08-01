@@ -1,0 +1,296 @@
+<% if notice.present? %>
+  <%= render "shared/succes_alert", notice: notice %>
+<% end %>
+
+<div class="w-full px-4 mt-8">
+  <div class="relative flex flex-col w-full text-gray-700 bg-white shadow-md rounded-xl bg-clip-border">
+    <!-- Header -->
+    <div class="relative p-4 text-gray-700 bg-white bg-clip-border">
+      <div class="container mx-auto">
+        <div class="flex flex-col items-center gap-8 px-4 mb-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h1 class="mt-12 font-sans text-xl font-semibold leading-snug tracking-normal text-center md:text-left text-blue-gray-900">
+              Wave: <%= @wave.name %>
+            </h1>
+            <p class="text-sm text-gray-600 mt-2">
+              Estado: <span class="px-2 py-1 rounded-full text-xs font-semibold 
+                <%= case @wave.status
+                    when 'planning' then 'bg-gray-100 text-gray-800'
+                    when 'ready_to_release' then 'bg-yellow-100 text-yellow-800'
+                    when 'released' then 'bg-blue-100 text-blue-800'
+                    when 'in_progress' then 'bg-purple-100 text-purple-800'
+                    when 'completed' then 'bg-green-100 text-green-800'
+                    when 'cancelled' then 'bg-red-100 text-red-800'
+                    else 'bg-gray-100 text-gray-800'
+                    end %>">
+                <%= @wave.status.humanize %>
+              </span>
+            </p>
+          </div>
+          <div class="flex justify-center gap-2 shrink-0 md:w-auto">
+            <%= link_to 'Volver', admin_warehouse_waves_path(@wave.warehouse), class: "mt-12 flex items-center gap-3 rounded-lg bg-gray-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85" %>
+            
+            <% if @wave.planning? %>
+              <%= link_to 'Editar', edit_admin_warehouse_wave_path(@wave.warehouse, @wave), class: "mt-12 flex items-center gap-3 rounded-lg bg-yellow-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85" %>
+            <% end %>
+            
+            <% if @wave.can_be_released? %>
+              <%= link_to 'Liberar Wave', release_admin_warehouse_wave_path(@wave.warehouse, @wave), method: :patch, 
+                  data: { 
+                    controller: "confirm",
+                    action: "click->confirm#confirm",
+                    confirm_message_value: "¿Liberar esta wave y generar listas de picking?",
+                    confirm_title_value: "Liberar Wave"
+                  }, 
+                  class: "mt-12 flex items-center gap-3 rounded-lg bg-green-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85" %>
+            <% end %>
+            
+            <% if @wave.can_be_started? %>
+              <%= link_to 'Iniciar', start_admin_warehouse_wave_path(@wave.warehouse, @wave), method: :patch, class: "mt-12 flex items-center gap-3 rounded-lg bg-blue-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85" %>
+            <% end %>
+            
+            <% if @wave.can_be_completed? %>
+              <%= link_to 'Completar', complete_admin_warehouse_wave_path(@wave.warehouse, @wave), method: :patch, class: "mt-12 flex items-center gap-3 rounded-lg bg-purple-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85" %>
+            <% end %>
+            
+            <% if @wave.active? %>
+              <%= link_to 'Cancelar', cancel_admin_warehouse_wave_path(@wave.warehouse, @wave), method: :patch, 
+                  data: { 
+                    controller: "confirm",
+                    action: "click->confirm#confirm",
+                    confirm_message_value: "¿Estás seguro de cancelar esta wave?",
+                    confirm_title_value: "Cancelar Wave"
+                  }, 
+                  class: "mt-12 flex items-center gap-3 rounded-lg bg-red-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85" %>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Wave Details -->
+    <div class="px-6 py-4 bg-gray-50">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Basic Info -->
+        <div class="bg-white rounded-lg p-6 shadow">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">Información Básica</h3>
+          <dl class="space-y-3">
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Tipo</dt>
+              <dd class="text-sm text-gray-900"><%= @wave.wave_type.humanize %></dd>
+            </div>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Estrategia</dt>
+              <dd class="text-sm text-gray-900"><%= @wave.strategy.humanize %></dd>
+            </div>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Prioridad</dt>
+              <dd class="text-sm text-gray-900"><%= @wave.priority %></dd>
+            </div>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Creado por</dt>
+              <dd class="text-sm text-gray-900"><%= @wave.admin&.name || @wave.admin&.email %></dd>
+            </div>
+          </dl>
+        </div>
+
+        <!-- Timing -->
+        <div class="bg-white rounded-lg p-6 shadow">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">Tiempos</h3>
+          <dl class="space-y-3">
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Inicio Planificado</dt>
+              <dd class="text-sm text-gray-900"><%= @wave.planned_start_time&.strftime("%d/%m/%Y %H:%M") || 'No definido' %></dd>
+            </div>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Inicio Real</dt>
+              <dd class="text-sm text-gray-900"><%= @wave.actual_start_time&.strftime("%d/%m/%Y %H:%M") || 'No iniciado' %></dd>
+            </div>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Fin Real</dt>
+              <dd class="text-sm text-gray-900"><%= @wave.actual_end_time&.strftime("%d/%m/%Y %H:%M") || 'No completado' %></dd>
+            </div>
+            <% if @metrics && @metrics[:actual_duration] %>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Duración</dt>
+              <dd class="text-sm text-gray-900"><%= @metrics[:actual_duration] %> minutos</dd>
+            </div>
+            <% end %>
+          </dl>
+        </div>
+
+        <!-- Metrics -->
+        <div class="bg-white rounded-lg p-6 shadow">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">Métricas</h3>
+          <dl class="space-y-3">
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Total Órdenes</dt>
+              <dd class="text-sm text-gray-900"><%= @wave.total_orders %></dd>
+            </div>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Total Ítems</dt>
+              <dd class="text-sm text-gray-900"><%= @wave.total_items %></dd>
+            </div>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Progreso</dt>
+              <dd class="text-sm text-gray-900">
+                <div class="flex items-center">
+                  <div class="w-24 bg-gray-200 rounded-full h-2">
+                    <div class="bg-blue-600 h-2 rounded-full" style="width: <%= @wave.completion_percentage %>%"></div>
+                  </div>
+                  <span class="ml-2"><%= @wave.completion_percentage %>%</span>
+                </div>
+              </dd>
+            </div>
+            <% if @metrics && @metrics[:efficiency_score] %>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Eficiencia</dt>
+              <dd class="text-sm text-gray-900"><%= @metrics[:efficiency_score] %>%</dd>
+            </div>
+            <% end %>
+          </dl>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notes -->
+    <% if @wave.notes.present? %>
+    <div class="px-6 py-4 bg-white border-b">
+      <h3 class="text-lg font-semibold text-gray-900 mb-2">Notas</h3>
+      <p class="text-sm text-gray-700"><%= @wave.notes %></p>
+    </div>
+    <% end %>
+
+    <!-- Orders in Wave -->
+    <div class="px-6 py-4 bg-white border-b">
+      <h3 class="text-lg font-semibold text-gray-900 mb-4">Órdenes en la Wave (<%= @wave.orders.count %>)</h3>
+      <% if @wave.orders.any? %>
+        <div class="overflow-x-auto">
+          <table class="min-w-full bg-white border border-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Orden</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ítems</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prioridad</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <% @wave.orders.includes(:order_products).each do |order| %>
+                <tr class="hover:bg-gray-50">
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm font-medium text-gray-900">#<%= order.id.first(8) %></div>
+                    <div class="text-sm text-gray-500"><%= order.created_at.strftime("%d/%m/%Y") %></div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <%= order.customer_email %>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                      <%= case order.status
+                          when 'pending' then 'bg-yellow-100 text-yellow-800'
+                          when 'processing' then 'bg-blue-100 text-blue-800'
+                          when 'shipped' then 'bg-green-100 text-green-800'
+                          when 'delivered' then 'bg-purple-100 text-purple-800'
+                          when 'cancelled' then 'bg-red-100 text-red-800'
+                          else 'bg-gray-100 text-gray-800'
+                          end %>">
+                      <%= order.status.humanize %>
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <%= order.order_products.sum(:quantity) %>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    $<%= order.total %>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <%= order.priority&.humanize || 'Medium' %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <div class="text-center py-8">
+          <p class="text-gray-500">No hay órdenes asignadas a esta wave.</p>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Pick Lists -->
+    <div class="px-6 py-4 bg-white">
+      <h3 class="text-lg font-semibold text-gray-900 mb-4">Listas de Picking (<%= @pick_lists.count %>)</h3>
+      <% if @pick_lists.any? %>
+        <div class="overflow-x-auto">
+          <table class="min-w-full bg-white border border-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lista</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Asignado a</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Progreso</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prioridad</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <% @pick_lists.each do |pick_list| %>
+                <tr class="hover:bg-gray-50">
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm font-medium text-gray-900"><%= pick_list.pick_list_number %></div>
+                    <div class="text-sm text-gray-500">Orden: #<%= pick_list.order_id.first(8) %></div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <%= pick_list.admin&.name || pick_list.admin&.email || 'Sin asignar' %>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                      <%= case pick_list.status
+                          when 'pending' then 'bg-yellow-100 text-yellow-800'
+                          when 'assigned' then 'bg-blue-100 text-blue-800'
+                          when 'in_progress' then 'bg-purple-100 text-purple-800'
+                          when 'completed' then 'bg-green-100 text-green-800'
+                          when 'cancelled' then 'bg-red-100 text-red-800'
+                          else 'bg-gray-100 text-gray-800'
+                          end %>">
+                      <%= pick_list.status.humanize %>
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                      <div class="w-16 bg-gray-200 rounded-full h-2">
+                        <% progress = pick_list.total_items > 0 ? (pick_list.picked_items.to_f / pick_list.total_items * 100).round : 0 %>
+                        <div class="bg-blue-600 h-2 rounded-full" style="width: <%= progress %>%"></div>
+                      </div>
+                      <span class="ml-2 text-sm text-gray-900"><%= pick_list.picked_items %>/<%= pick_list.total_items %></span>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <%= pick_list.priority.humanize %>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <%= link_to 'Ver', admin_pick_list_path(pick_list), class: "text-indigo-600 hover:text-indigo-900" %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <div class="text-center py-8">
+          <p class="text-gray-500">
+            <% if @wave.planning? %>
+              Las listas de picking se generarán cuando liberes la wave.
+            <% else %>
+              No hay listas de picking para esta wave.
+            <% end %>
+          </p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

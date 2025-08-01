@@ -1,0 +1,261 @@
+<% if notice.present? %>
+  <%= render "shared/succes_alert", notice: notice %>
+<% end %>
+
+<div class="w-full px-4 mt-8">
+  <div class="relative flex flex-col w-full text-gray-700 bg-white shadow-md rounded-xl bg-clip-border">
+    <!-- Header -->
+    <div class="relative p-4 text-gray-700 bg-white bg-clip-border">
+      <div class="container mx-auto">
+        <div class="flex flex-col items-center gap-8 px-4 mb-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h1 class="mt-12 font-sans text-xl font-semibold leading-snug tracking-normal text-center md:text-left text-blue-gray-900">
+              Wave Management - <%= @warehouse.name %>
+            </h1>
+            <p class="text-sm text-gray-600 mt-2">Gestión de oleadas de picking</p>
+          </div>
+          <div class="flex justify-center gap-2 shrink-0 md:w-auto">
+            <%= link_to 'Sugerencias', suggestions_admin_warehouse_waves_path(@warehouse), class: "mt-12 flex items-center gap-3 rounded-lg bg-purple-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85" %>
+            <%= link_to 'Wave Automática', auto_create_admin_warehouse_waves_path(@warehouse), method: :post, class: "mt-12 flex items-center gap-3 rounded-lg bg-green-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85" %>
+            <%= link_to 'Nueva Wave', new_admin_warehouse_wave_path(@warehouse), class: "mt-12 flex items-center gap-3 rounded-lg bg-yellow-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85" %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Statistics Dashboard -->
+    <div class="px-6 py-4 bg-gray-50">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="bg-white rounded-lg p-4 shadow">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                </svg>
+              </div>
+            </div>
+            <div class="ml-4">
+              <div class="text-sm font-medium text-gray-500">Waves Activas</div>
+              <div class="text-2xl font-bold text-gray-900"><%= @stats[:active_waves] %></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-lg p-4 shadow">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+              </div>
+            </div>
+            <div class="ml-4">
+              <div class="text-sm font-medium text-gray-500">Completadas Hoy</div>
+              <div class="text-2xl font-bold text-gray-900"><%= @stats[:completed_today] %></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-lg p-4 shadow">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
+                <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                </svg>
+              </div>
+            </div>
+            <div class="ml-4">
+              <div class="text-sm font-medium text-gray-500">Órdenes Pendientes</div>
+              <div class="text-2xl font-bold text-gray-900"><%= @stats[:pending_orders] %></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-lg p-4 shadow">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                </svg>
+              </div>
+            </div>
+            <div class="ml-4">
+              <div class="text-sm font-medium text-gray-500">Eficiencia Promedio</div>
+              <div class="text-2xl font-bold text-gray-900"><%= @stats[:avg_efficiency] %>%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="px-6 py-4 bg-white border-b">
+      <%= form_with url: admin_warehouse_waves_path(@warehouse), method: :get, local: true, class: "flex flex-wrap gap-4 items-end" do |form| %>
+        <div>
+          <%= form.label :status, "Estado", class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <%= form.select :status, options_for_select([
+            ['Todos', ''],
+            ['Planificando', 'planning'],
+            ['Lista para Liberar', 'ready_to_release'],
+            ['Liberada', 'released'],
+            ['En Progreso', 'in_progress'],
+            ['Completada', 'completed'],
+            ['Cancelada', 'cancelled']
+          ], params[:status]), {}, { class: "px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" } %>
+        </div>
+
+        <div>
+          <%= form.label :wave_type, "Tipo", class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <%= form.select :wave_type, options_for_select([
+            ['Todos', ''],
+            ['Estándar', 'standard'],
+            ['Express', 'express'],
+            ['Lote', 'batch'],
+            ['Por Zona', 'zone_based'],
+            ['Prioridad', 'priority'],
+            ['Urgente', 'hot']
+          ], params[:wave_type]), {}, { class: "px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" } %>
+        </div>
+
+        <div>
+          <%= form.submit "Filtrar", class: "px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500" %>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Waves Table -->
+    <section class="flex flex-col w-full py-8 bg-gray-50">
+      <div class="container mx-auto">
+        <div class="overflow-x-auto">
+          <table data-controller="table" 
+                 data-table-sortable-value="true"
+                 class="min-w-full bg-white border border-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Wave</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Órdenes</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ítems</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Progreso</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Inicio Planificado</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <% @waves.each do |wave| %>
+                <tr data-table-target="row" class="hover:bg-gray-50">
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                      <div>
+                        <div class="text-sm font-medium text-gray-900"><%= wave.name %></div>
+                        <div class="text-sm text-gray-500">Prioridad: <%= wave.priority %></div>
+                      </div>
+                    </div>
+                  </td>
+                  
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                      <%= case wave.status
+                          when 'planning' then 'bg-gray-100 text-gray-800'
+                          when 'ready_to_release' then 'bg-yellow-100 text-yellow-800'
+                          when 'released' then 'bg-blue-100 text-blue-800'
+                          when 'in_progress' then 'bg-purple-100 text-purple-800'
+                          when 'completed' then 'bg-green-100 text-green-800'
+                          when 'cancelled' then 'bg-red-100 text-red-800'
+                          else 'bg-gray-100 text-gray-800'
+                          end %>">
+                      <%= wave.status.humanize %>
+                    </span>
+                  </td>
+
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <%= wave.wave_type.humanize %>
+                  </td>
+
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <%= wave.total_orders %>
+                  </td>
+
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <%= wave.total_items %>
+                  </td>
+
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                      <div class="w-16 bg-gray-200 rounded-full h-2">
+                        <div class="bg-blue-600 h-2 rounded-full" style="width: <%= wave.completion_percentage %>%"></div>
+                      </div>
+                      <span class="ml-2 text-sm text-gray-900"><%= wave.completion_percentage %>%</span>
+                    </div>
+                  </td>
+
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <%= wave.planned_start_time&.strftime("%d/%m/%Y %H:%M") || 'No definido' %>
+                  </td>
+
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <div class="flex space-x-2">
+                      <%= link_to 'Ver', admin_warehouse_wave_path(@warehouse, wave), class: "text-indigo-600 hover:text-indigo-900" %>
+                      
+                      <% if wave.planning? %>
+                        <%= link_to 'Editar', edit_admin_warehouse_wave_path(@warehouse, wave), class: "text-yellow-600 hover:text-yellow-900" %>
+                      <% end %>
+                      
+                      <% if wave.can_be_released? %>
+                        <%= link_to 'Liberar', release_admin_warehouse_wave_path(@warehouse, wave), method: :patch, 
+                            data: { 
+                              controller: "confirm",
+                              action: "click->confirm#confirm",
+                              confirm_message_value: "¿Liberar esta wave y generar listas de picking?",
+                              confirm_title_value: "Liberar Wave"
+                            }, 
+                            class: "text-green-600 hover:text-green-900" %>
+                      <% end %>
+                      
+                      <% if wave.can_be_started? %>
+                        <%= link_to 'Iniciar', start_admin_warehouse_wave_path(@warehouse, wave), method: :patch, class: "text-blue-600 hover:text-blue-900" %>
+                      <% end %>
+                      
+                      <% if wave.can_be_completed? %>
+                        <%= link_to 'Completar', complete_admin_warehouse_wave_path(@warehouse, wave), method: :patch, class: "text-purple-600 hover:text-purple-900" %>
+                      <% end %>
+                      
+                      <% if wave.active? %>
+                        <%= link_to 'Cancelar', cancel_admin_warehouse_wave_path(@warehouse, wave), method: :patch, 
+                            data: { 
+                              controller: "confirm",
+                              action: "click->confirm#confirm",
+                              confirm_message_value: "¿Estás seguro de cancelar esta wave?",
+                              confirm_title_value: "Cancelar Wave"
+                            }, 
+                            class: "text-red-600 hover:text-red-900" %>
+                      <% end %>
+                    </div>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+
+          <% if @waves.empty? %>
+            <div class="text-center py-12">
+              <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+              </svg>
+              <h3 class="mt-2 text-sm font-medium text-gray-900">No hay waves</h3>
+              <p class="mt-1 text-sm text-gray-500">Comienza creando tu primera wave de picking.</p>
+              <div class="mt-6">
+                <%= link_to 'Nueva Wave', new_admin_warehouse_wave_path(@warehouse), class: "inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700" %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>

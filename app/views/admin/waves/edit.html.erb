@@ -1,0 +1,300 @@
+<% if notice.present? %>
+  <%= render "shared/succes_alert", notice: notice %>
+<% end %>
+
+<div class="w-full px-4 mt-8">
+  <div class="relative flex flex-col w-full text-gray-700 bg-white shadow-md rounded-xl bg-clip-border">
+    <!-- Header -->
+    <div class="relative p-4 text-gray-700 bg-white bg-clip-border">
+      <div class="container mx-auto">
+        <div class="flex flex-col items-center gap-8 px-4 mb-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h1 class="mt-12 font-sans text-xl font-semibold leading-snug tracking-normal text-center md:text-left text-blue-gray-900">
+              Editar Wave: <%= @wave.name %>
+            </h1>
+            <p class="text-sm text-gray-600 mt-2">
+              Estado: <span class="px-2 py-1 rounded-full text-xs font-semibold 
+                <%= case @wave.status
+                    when 'planning' then 'bg-gray-100 text-gray-800'
+                    when 'ready_to_release' then 'bg-yellow-100 text-yellow-800'
+                    when 'released' then 'bg-blue-100 text-blue-800'
+                    when 'in_progress' then 'bg-purple-100 text-purple-800'
+                    when 'completed' then 'bg-green-100 text-green-800'
+                    when 'cancelled' then 'bg-red-100 text-red-800'
+                    else 'bg-gray-100 text-gray-800'
+                    end %>">
+                <%= @wave.status.humanize %>
+              </span>
+            </p>
+          </div>
+          <div class="flex justify-center gap-2 shrink-0 md:w-auto">
+            <%= link_to 'Ver Wave', admin_warehouse_wave_path(@wave.warehouse, @wave), class: "mt-12 flex items-center gap-3 rounded-lg bg-blue-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85" %>
+            <%= link_to 'Volver', admin_warehouse_waves_path(@wave.warehouse), class: "mt-12 flex items-center gap-3 rounded-lg bg-gray-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85" %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <% unless @wave.planning? %>
+      <div class="px-6 py-4 bg-yellow-50 border-l-4 border-yellow-400">
+        <div class="flex">
+          <div class="flex-shrink-0">
+            <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+            </svg>
+          </div>
+          <div class="ml-3">
+            <p class="text-sm text-yellow-700">
+              <strong>Atención:</strong> Esta wave ya no está en estado de planificación. Algunas opciones pueden estar limitadas.
+            </p>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Form -->
+    <div class="px-6 py-4">
+      <%= form_with model: [@wave.warehouse, @wave], local: true, 
+          data: { 
+            controller: "form",
+            form_loading_class: "opacity-50 pointer-events-none",
+            form_invalid_class: "border-red-300",
+            form_valid_class: "border-green-300"
+          }, 
+          class: "space-y-6" do |form| %>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Basic Information -->
+          <div class="space-y-4">
+            <h3 class="text-lg font-semibold text-gray-900">Información Básica</h3>
+            
+            <div>
+              <%= form.label :name, "Nombre de la Wave", class: "block text-sm font-medium text-gray-700 mb-1" %>
+              <%= form.text_field :name, 
+                  class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
+                  disabled: !@wave.planning? %>
+              <% if @wave.errors[:name].any? %>
+                <p class="mt-1 text-sm text-red-600"><%= @wave.errors[:name].first %></p>
+              <% end %>
+            </div>
+
+            <div>
+              <%= form.label :wave_type, "Tipo de Wave", class: "block text-sm font-medium text-gray-700 mb-1" %>
+              <%= form.select :wave_type, [
+                ['Estándar', 'standard'],
+                ['Express', 'express'],
+                ['Lote', 'batch'],
+                ['Por Zona', 'zone_based'],
+                ['Prioridad', 'priority'],
+                ['Urgente', 'hot']
+              ], {}, { 
+                class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
+                disabled: !@wave.planning?
+              } %>
+              <% if @wave.errors[:wave_type].any? %>
+                <p class="mt-1 text-sm text-red-600"><%= @wave.errors[:wave_type].first %></p>
+              <% end %>
+            </div>
+
+            <div>
+              <%= form.label :strategy, "Estrategia", class: "block text-sm font-medium text-gray-700 mb-1" %>
+              <%= form.select :strategy, [
+                ['Por Zona', 'zone_based'],
+                ['Por Prioridad', 'priority_based'],
+                ['Ruta Más Corta', 'shortest_path'],
+                ['FIFO', 'fifo'],
+                ['Por Cliente', 'customer_based']
+              ], {}, { 
+                class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
+                disabled: !@wave.planning?
+              } %>
+              <% if @wave.errors[:strategy].any? %>
+                <p class="mt-1 text-sm text-red-600"><%= @wave.errors[:strategy].first %></p>
+              <% end %>
+            </div>
+
+            <div>
+              <%= form.label :priority, "Prioridad (1-10)", class: "block text-sm font-medium text-gray-700 mb-1" %>
+              <%= form.number_field :priority, 
+                  min: 1, max: 10,
+                  class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+              <p class="mt-1 text-xs text-gray-500">1 = Menor prioridad, 10 = Mayor prioridad</p>
+              <% if @wave.errors[:priority].any? %>
+                <p class="mt-1 text-sm text-red-600"><%= @wave.errors[:priority].first %></p>
+              <% end %>
+            </div>
+          </div>
+
+          <!-- Timing and Notes -->
+          <div class="space-y-4">
+            <h3 class="text-lg font-semibold text-gray-900">Planificación</h3>
+            
+            <div>
+              <%= form.label :planned_start_time, "Inicio Planificado", class: "block text-sm font-medium text-gray-700 mb-1" %>
+              <%= form.datetime_local_field :planned_start_time, 
+                  value: @wave.planned_start_time&.strftime("%Y-%m-%dT%H:%M"),
+                  class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+              <% if @wave.errors[:planned_start_time].any? %>
+                <p class="mt-1 text-sm text-red-600"><%= @wave.errors[:planned_start_time].first %></p>
+              <% end %>
+            </div>
+
+            <div>
+              <%= form.label :notes, "Notas", class: "block text-sm font-medium text-gray-700 mb-1" %>
+              <%= form.text_area :notes, 
+                  rows: 4,
+                  placeholder: "Instrucciones especiales o notas para esta wave...",
+                  class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+              <% if @wave.errors[:notes].any? %>
+                <p class="mt-1 text-sm text-red-600"><%= @wave.errors[:notes].first %></p>
+              <% end %>
+            </div>
+
+            <!-- Current Status Info -->
+            <div class="bg-gray-50 rounded-lg p-4">
+              <h4 class="text-sm font-medium text-gray-900 mb-2">Estado Actual</h4>
+              <dl class="space-y-1 text-sm">
+                <div class="flex justify-between">
+                  <dt class="text-gray-500">Órdenes:</dt>
+                  <dd class="text-gray-900"><%= @wave.total_orders %></dd>
+                </div>
+                <div class="flex justify-between">
+                  <dt class="text-gray-500">Ítems:</dt>
+                  <dd class="text-gray-900"><%= @wave.total_items %></dd>
+                </div>
+                <div class="flex justify-between">
+                  <dt class="text-gray-500">Progreso:</dt>
+                  <dd class="text-gray-900"><%= @wave.completion_percentage %>%</dd>
+                </div>
+              </dl>
+            </div>
+          </div>
+        </div>
+
+        <!-- Order Management -->
+        <% if @wave.planning? %>
+          <div class="mt-8">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Gestión de Órdenes</h3>
+            <p class="text-sm text-gray-600 mb-4">
+              Modifica las órdenes asignadas a esta wave. Las órdenes marcadas ya están asignadas.
+            </p>
+            
+            <% if @available_orders.any? %>
+              <div class="bg-gray-50 rounded-lg p-4 max-h-96 overflow-y-auto">
+                <div class="space-y-2">
+                  <% @available_orders.each do |order| %>
+                    <% is_assigned = @wave.orders.include?(order) %>
+                    <label class="flex items-center p-3 bg-white rounded-lg shadow-sm hover:bg-gray-50 cursor-pointer <%= 'ring-2 ring-blue-500 bg-blue-50' if is_assigned %>">
+                      <%= check_box_tag "order_ids[]", order.id, is_assigned, 
+                          class: "h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" %>
+                      <div class="ml-3 flex-1">
+                        <div class="flex items-center justify-between">
+                          <div>
+                            <p class="text-sm font-medium text-gray-900">
+                              #<%= order.id.first(8) %>
+                              <% if is_assigned %>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 ml-2">
+                                  Asignada
+                                </span>
+                              <% end %>
+                            </p>
+                            <p class="text-sm text-gray-500"><%= order.customer_email %></p>
+                          </div>
+                          <div class="text-right">
+                            <p class="text-sm text-gray-900">
+                              <%= order.order_products.sum(:quantity) %> ítems
+                            </p>
+                            <p class="text-sm text-gray-500">
+                              Prioridad: <%= order.priority&.humanize || 'Medium' %>
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </label>
+                  <% end %>
+                </div>
+              </div>
+              
+              <div class="mt-4 flex items-center justify-between">
+                <p class="text-sm text-gray-600">
+                  <%= @available_orders.count %> órdenes disponibles 
+                  (<%= @wave.orders.count %> ya asignadas)
+                </p>
+                <div class="flex gap-2">
+                  <button type="button" onclick="selectAllOrders()" 
+                          class="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200">
+                    Seleccionar Todas
+                  </button>
+                  <button type="button" onclick="selectNoneOrders()" 
+                          class="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200">
+                    Deseleccionar Todas
+                  </button>
+                </div>
+              </div>
+            <% else %>
+              <div class="text-center py-8 bg-gray-50 rounded-lg">
+                <p class="text-gray-500">No hay órdenes adicionales disponibles para asignar.</p>
+              </div>
+            <% end %>
+          </div>
+        <% else %>
+          <!-- Read-only order list for non-planning waves -->
+          <div class="mt-8">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Órdenes Asignadas</h3>
+            <p class="text-sm text-gray-600 mb-4">
+              Las órdenes no se pueden modificar después de que la wave haya sido liberada.
+            </p>
+            
+            <% if @wave.orders.any? %>
+              <div class="bg-gray-50 rounded-lg p-4 max-h-64 overflow-y-auto">
+                <div class="space-y-2">
+                  <% @wave.orders.each do |order| %>
+                    <div class="flex items-center p-3 bg-white rounded-lg shadow-sm">
+                      <div class="flex-1">
+                        <div class="flex items-center justify-between">
+                          <div>
+                            <p class="text-sm font-medium text-gray-900">#<%= order.id.first(8) %></p>
+                            <p class="text-sm text-gray-500"><%= order.customer_email %></p>
+                          </div>
+                          <div class="text-right">
+                            <p class="text-sm text-gray-900">
+                              <%= order.order_products.sum(:quantity) %> ítems
+                            </p>
+                            <p class="text-sm text-gray-500">
+                              Prioridad: <%= order.priority&.humanize || 'Medium' %>
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  <% end %>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+
+        <!-- Submit Buttons -->
+        <div class="flex items-center justify-end gap-4 pt-6 border-t">
+          <%= link_to "Cancelar", admin_warehouse_wave_path(@wave.warehouse, @wave), 
+              class: "px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" %>
+          <%= form.submit "Actualizar Wave", 
+              class: "px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500",
+              data: { action: "click->form#submit" } %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<script>
+function selectAllOrders() {
+  const checkboxes = document.querySelectorAll('input[name="order_ids[]"]');
+  checkboxes.forEach(checkbox => checkbox.checked = true);
+}
+
+function selectNoneOrders() {
+  const checkboxes = document.querySelectorAll('input[name="order_ids[]"]');
+  checkboxes.forEach(checkbox => checkbox.checked = false);
+}
+</script>

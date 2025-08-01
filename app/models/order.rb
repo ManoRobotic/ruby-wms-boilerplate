@@ -5,6 +5,7 @@ class Order < ApplicationRecord
 
     # WMS associations
     belongs_to :warehouse, optional: true
+    belongs_to :wave, optional: true
     has_many :pick_lists, dependent: :destroy
     has_many :shipments, dependent: :destroy
     has_many :inventory_transactions, as: :reference, dependent: :destroy

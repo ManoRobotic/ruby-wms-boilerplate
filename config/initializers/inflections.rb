@@ -14,3 +14,8 @@
 # ActiveSupport::Inflector.inflections(:en) do |inflect|
 #   inflect.acronym "RESTful"
 # end
+
+# Fix Rails singular/plural issues
+ActiveSupport::Inflector.inflections(:en) do |inflect|
+  inflect.irregular "wave", "waves"
+end
