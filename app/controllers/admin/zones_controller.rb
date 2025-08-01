@@ -1,6 +1,9 @@
 class Admin::ZonesController < AdminController
   before_action :set_warehouse
   before_action :set_zone, only: [ :show, :edit, :update, :destroy ]
+  before_action :authorize_zone_management!, except: [ :index, :show ]
+  before_action :authorize_zone_read!, only: [ :index, :show ]
+  before_action :check_warehouse_access!
 
   def index
     @zones = @warehouse.zones.includes(:locations)
@@ -63,5 +66,25 @@ class Admin::ZonesController < AdminController
 
   def zone_params
     params.require(:zone).permit(:name, :code, :zone_type, :description)
+  end
+
+  def authorize_zone_management!
+    unless current_admin || current_user&.can?("create_zones")
+      redirect_to admin_root_path, alert: "No tienes permisos para gestionar zonas."
+    end
+  end
+
+  def authorize_zone_read!
+    unless current_admin || current_user&.can?("read_zones")
+      redirect_to admin_root_path, alert: "No tienes permisos para ver zonas."
+    end
+  end
+
+  def check_warehouse_access!
+    if current_user && current_user.warehouse_id.present?
+      unless @warehouse.id == current_user.warehouse_id
+        redirect_to admin_root_path, alert: "No tienes acceso a este almacén."
+      end
+    end
   end
 end

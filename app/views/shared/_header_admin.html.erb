@@ -16,20 +16,30 @@
          aria-label="Sidebar">
         <div class="flex flex-col justify-between h-full px-3 py-4 overflow-y-auto bg-gray-800 rounded-r-lg md:rounded-none">
             <ul class="mt-16 space-y-2 font-medium text-white">
-                <% [
-                    { path: admin_path, icon: 'gauge-high', label: t('admin.sidebar.dashboard') },
-                    { path: admin_orders_path, icon: 'truck-fast', label: t('admin.sidebar.orders') },
-                    { path: admin_products_path, icon: 'cart-shopping', label: t('admin.sidebar.products') },
-                    { path: admin_categories_path, icon: 'list', label: t('admin.sidebar.categories') },
-                    { path: admin_warehouses_path, icon: 'warehouse', label: t('admin.sidebar.warehouses') },
-                    { path: admin_tasks_path, icon: 'tasks', label: t('admin.sidebar.tasks') },
-                    { path: admin_pick_lists_path, icon: 'clipboard-list', label: t('admin.sidebar.pick_lists') },
-                    { path: admin_inventory_transactions_path, icon: 'arrow-right-arrow-left', label: t('admin.sidebar.inventory_transactions') },
-                    { path: admin_receipts_path, icon: 'truck-ramp-box', label: t('admin.sidebar.receipts') },
-                    { path: admin_cycle_counts_path, icon: 'calculator', label: t('admin.sidebar.cycle_counts') },
-                    { path: admin_shipments_path, icon: 'shipping-fast', label: t('admin.sidebar.shipments') },
-                    { path: admin_manual_printing_path, icon: 'print', label: t('admin.sidebar.manual_printing') }
-                ].each do |item| %>
+                <% 
+                # Define all menu items with their required permissions
+                menu_items = [
+                    { path: admin_path, icon: 'gauge-high', label: t('admin.sidebar.dashboard'), permission: 'read_admin_dashboard' },
+                    { path: admin_orders_path, icon: 'truck-fast', label: t('admin.sidebar.orders'), permission: 'read_orders' },
+                    { path: admin_products_path, icon: 'cart-shopping', label: t('admin.sidebar.products'), permission: 'read_products' },
+                    { path: admin_categories_path, icon: 'list', label: t('admin.sidebar.categories'), permission: 'manage_categories' },
+                    { path: admin_warehouses_path, icon: 'warehouse', label: t('admin.sidebar.warehouses'), permission: 'read_warehouse' },
+                    { path: admin_tasks_path, icon: 'tasks', label: t('admin.sidebar.tasks'), permission: 'read_tasks' },
+                    { path: admin_pick_lists_path, icon: 'clipboard-list', label: t('admin.sidebar.pick_lists'), permission: 'read_pick_lists' },
+                    { path: admin_users_path, icon: 'users', label: t('admin.sidebar.users'), permission: 'manage_users' },
+                    { path: admin_inventory_transactions_path, icon: 'arrow-right-arrow-left', label: t('admin.sidebar.inventory_transactions'), permission: 'read_inventory' },
+                    { path: admin_receipts_path, icon: 'truck-ramp-box', label: t('admin.sidebar.receipts'), permission: 'manage_receipts' },
+                    { path: admin_cycle_counts_path, icon: 'calculator', label: t('admin.sidebar.cycle_counts'), permission: 'manage_inventory' },
+                    { path: admin_shipments_path, icon: 'shipping-fast', label: t('admin.sidebar.shipments'), permission: 'manage_shipments' },
+                    { path: admin_manual_printing_path, icon: 'print', label: t('admin.sidebar.manual_printing'), permission: 'manage_inventory' }
+                ]
+                
+                # Filter menu items based on user permissions
+                visible_items = menu_items.select do |item|
+                  current_admin || can?(item[:permission])
+                end
+                
+                visible_items.each do |item| %>
                     <li>
                         <%= link_to item[:path], 
                             data: { 

@@ -11,6 +11,26 @@ es:
     sessions:
       admin:
         signed_in: 'Inicio de sesión correcto'
+  users:
+    roles:
+      admin: 'Administrador'
+      supervisor: 'Supervisor'
+      picker: 'Recolector'
+      user: 'Usuario'
+    title: 'Usuarios'
+    new_user: 'Nuevo Usuario'
+    edit_user: 'Editar Usuario'
+    show_user: 'Ver Usuario'
+    name: 'Nombre'
+    email: 'Email'
+    role: 'Rol'
+    warehouse: 'Almacén'
+    active: 'Activo'
+    created: 'Usuario creado exitosamente.'
+    updated: 'Usuario actualizado exitosamente.'
+    deleted: 'Usuario eliminado exitosamente.'
+    deactivated: 'Usuario desactivado exitosamente.'
+    activated: 'Usuario activado exitosamente.'
   footer:
     info: '2024 CoinMex. Todos los derechos reservados.'
     about_coinmex: 'Sobre CoinMex'
@@ -168,6 +188,7 @@ es:
       logout: 'Cerrar Sesión'
       logout_confirm: '¿Estás seguro de que quieres cerrar sesión?'
       manual_printing: 'Impresión Manual'
+      users: 'Usuarios'
     categories:
       title: 'Categorías'
       new_category: 'Nueva Categoría'

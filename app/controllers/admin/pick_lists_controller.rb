@@ -1,11 +1,19 @@
 class Admin::PickListsController < AdminController
   before_action :set_pick_list, only: [ :show, :edit, :update, :destroy, :assign, :start, :complete, :cancel ]
+  before_action :authorize_pick_list_management!, except: [ :index, :show ]
+  before_action :authorize_pick_list_read!, only: [ :index, :show ]
+  before_action :check_pick_list_warehouse_access!, only: [ :show, :edit, :update, :destroy, :assign, :start, :complete, :cancel ]
 
   def index
     @pick_lists = PickList.includes(:order, :warehouse, :admin, :pick_list_items)
 
-    # Filters
-    @pick_lists = @pick_lists.by_warehouse(params[:warehouse_id]) if params[:warehouse_id].present?
+    # Filter by user's warehouse if not admin
+    if current_user && current_user.warehouse_id.present?
+      @pick_lists = @pick_lists.by_warehouse(current_user.warehouse_id)
+    end
+
+    # Additional filters
+    @pick_lists = @pick_lists.by_warehouse(params[:warehouse_id]) if params[:warehouse_id].present? && current_admin
     @pick_lists = @pick_lists.by_status(params[:status]) if params[:status].present?
     @pick_lists = @pick_lists.by_priority(params[:priority]) if params[:priority].present?
     @pick_lists = @pick_lists.by_admin(params[:admin_id]) if params[:admin_id].present?
@@ -140,5 +148,25 @@ class Admin::PickListsController < AdminController
 
   def pick_list_params
     params.require(:pick_list).permit(:order_id, :warehouse_id, :priority, :status)
+  end
+
+  def authorize_pick_list_management!
+    unless current_admin || current_user&.can?("create_pick_lists")
+      redirect_to admin_root_path, alert: "No tienes permisos para gestionar listas de picking."
+    end
+  end
+
+  def authorize_pick_list_read!
+    unless current_admin || current_user&.can?("read_pick_lists")
+      redirect_to admin_root_path, alert: "No tienes permisos para ver listas de picking."
+    end
+  end
+
+  def check_pick_list_warehouse_access!
+    if current_user && current_user.warehouse_id.present?
+      unless @pick_list.warehouse_id == current_user.warehouse_id
+        redirect_to admin_pick_lists_path, alert: "No tienes acceso a listas de picking de este almacén."
+      end
+    end
   end
 end

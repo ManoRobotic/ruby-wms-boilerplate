@@ -19,7 +19,7 @@ class Wave < ApplicationRecord
 
   # Scopes
   scope :active, -> { where(status: %w[planning ready_to_release released in_progress]) }
-  scope :completed, -> { where(status: 'completed') }
+  scope :completed, -> { where(status: "completed") }
   scope :by_warehouse, ->(warehouse_id) { where(warehouse_id: warehouse_id) }
   scope :by_status, ->(status) { where(status: status) }
   scope :by_priority, -> { order(:priority, :created_at) }
@@ -32,27 +32,27 @@ class Wave < ApplicationRecord
 
   # Status methods
   def planning?
-    status == 'planning'
+    status == "planning"
   end
 
   def ready_to_release?
-    status == 'ready_to_release'
+    status == "ready_to_release"
   end
 
   def released?
-    status == 'released'
+    status == "released"
   end
 
   def in_progress?
-    status == 'in_progress'
+    status == "in_progress"
   end
 
   def completed?
-    status == 'completed'
+    status == "completed"
   end
 
   def cancelled?
-    status == 'cancelled'
+    status == "cancelled"
   end
 
   def active?
@@ -85,7 +85,7 @@ class Wave < ApplicationRecord
 
   def completion_percentage
     return 0 unless pick_lists.any?
-    completed_pick_lists = pick_lists.where(status: 'completed').count
+    completed_pick_lists = pick_lists.where(status: "completed").count
     (completed_pick_lists.to_f / pick_lists.count * 100).round(1)
   end
 
@@ -98,31 +98,31 @@ class Wave < ApplicationRecord
   # Actions
   def release!
     return false unless can_be_released?
-    
+
     transaction do
-      update!(status: 'ready_to_release')
+      update!(status: "ready_to_release")
       generate_pick_lists
-      update!(status: 'released') if pick_lists.any?
+      update!(status: "released") if pick_lists.any?
     end
   end
 
   def start!
     return false unless can_be_started?
-    update!(status: 'in_progress', actual_start_time: Time.current)
+    update!(status: "in_progress", actual_start_time: Time.current)
   end
 
   def complete!
     return false unless can_be_completed?
-    update!(status: 'completed', actual_end_time: Time.current)
+    update!(status: "completed", actual_end_time: Time.current)
   end
 
   def cancel!
     return false if completed?
-    
+
     transaction do
-      pick_lists.update_all(status: 'cancelled')
+      pick_lists.update_all(status: "cancelled")
       orders.update_all(wave_id: nil)
-      update!(status: 'cancelled')
+      update!(status: "cancelled")
     end
   end
 
@@ -138,7 +138,7 @@ class Wave < ApplicationRecord
   end
 
   def all_pick_lists_completed?
-    pick_lists.any? && pick_lists.where.not(status: 'completed').empty?
+    pick_lists.any? && pick_lists.where.not(status: "completed").empty?
   end
 
   def generate_pick_lists
@@ -147,10 +147,10 @@ class Wave < ApplicationRecord
 
   def update_pick_lists_status
     case status
-    when 'cancelled'
-      pick_lists.update_all(status: 'cancelled')
-    when 'in_progress'
-      pick_lists.where(status: 'pending').update_all(status: 'in_progress')
+    when "cancelled"
+      pick_lists.update_all(status: "cancelled")
+    when "in_progress"
+      pick_lists.where(status: "pending").update_all(status: "in_progress")
     end
   end
 end

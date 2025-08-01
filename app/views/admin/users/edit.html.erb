@@ -1,0 +1,164 @@
+<% if notice.present? %>
+  <%= render "shared/succes_alert", notice: notice %>
+<% end %>
+
+<div class="w-full px-4 mt-8">
+  <div class="relative flex flex-col w-full text-gray-700 bg-white shadow-md rounded-xl bg-clip-border">
+    <!-- Header -->
+    <div class="relative p-4 text-gray-700 bg-white bg-clip-border">
+      <div class="container mx-auto">
+        <div class="flex flex-col items-center gap-8 px-4 mb-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h1 class="mt-12 font-sans text-xl font-semibold leading-snug tracking-normal text-center md:text-left text-blue-gray-900">
+              <%= t('users.edit_user') %>
+            </h1>
+            <p class="text-sm text-gray-600 mt-2">Editar información del usuario: <%= @user.name %></p>
+          </div>
+          <div class="flex justify-center gap-2 shrink-0 md:w-auto">
+            <%= link_to 'Ver', admin_user_path(@user), class: "mt-12 flex items-center gap-3 rounded-lg bg-green-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85" %>
+            <%= link_to 'Volver', admin_users_path, class: "mt-12 flex items-center gap-3 rounded-lg bg-gray-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85" %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form -->
+    <div class="px-6 py-4">
+      <%= form_with model: [:admin, @user], local: true, class: "space-y-6", 
+          data: { controller: "user-form" } do |form| %>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Basic Information -->
+          <div class="space-y-4">
+            <h3 class="text-lg font-semibold text-gray-900">Información Básica</h3>
+            
+            <div>
+              <%= form.label :name, t('users.name'), class: "block text-sm font-medium text-gray-700 mb-1" %>
+              <%= form.text_field :name, 
+                  placeholder: "Nombre completo del usuario",
+                  required: true,
+                  class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+              <% if @user.errors[:name].any? %>
+                <p class="mt-1 text-sm text-red-600"><%= @user.errors[:name].first %></p>
+              <% end %>
+            </div>
+
+            <div>
+              <%= form.label :email, t('users.email'), class: "block text-sm font-medium text-gray-700 mb-1" %>
+              <%= form.email_field :email, 
+                  placeholder: "usuario@ejemplo.com",
+                  required: true,
+                  class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+              <% if @user.errors[:email].any? %>
+                <p class="mt-1 text-sm text-red-600"><%= @user.errors[:email].first %></p>
+              <% end %>
+            </div>
+
+            <div>
+              <%= form.label :role, t('users.role'), class: "block text-sm font-medium text-gray-700 mb-1" %>
+              <%= form.select :role, [
+                ['Administrador', 'admin'],
+                ['Supervisor', 'supervisor'],
+                ['Recolector', 'picker'],
+                ['Usuario', 'user']
+              ], { prompt: 'Selecciona un rol' }, { 
+                required: true,
+                data: { 
+                  user_form_target: "role",
+                  action: "change->user-form#roleChanged"
+                },
+                class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+              } %>
+              <p class="mt-1 text-xs text-gray-500">
+                Administrador: Acceso completo | Supervisor: Gestión de almacén | Recolector: Tareas y picking | Usuario: Solo lectura
+              </p>
+              <% if @user.errors[:role].any? %>
+                <p class="mt-1 text-sm text-red-600"><%= @user.errors[:role].first %></p>
+              <% end %>
+            </div>
+          </div>
+
+          <!-- Warehouse Assignment -->
+          <div class="space-y-4">
+            <h3 class="text-lg font-semibold text-gray-900">Asignación de Almacén</h3>
+            
+            <div>
+              <%= form.label :warehouse_id, t('users.warehouse'), class: "block text-sm font-medium text-gray-700 mb-1" %>
+              <%= form.select :warehouse_id, 
+                  options_from_collection_for_select(@warehouses, :id, :name, @user.warehouse_id), 
+                  { prompt: 'Selecciona un almacén' }, 
+                  { 
+                    class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
+                    data: { 
+                      user_form_target: "warehouse",
+                      action: "change->user-form#warehouseChanged"
+                    }
+                  } %>
+              <p class="mt-1 text-xs text-gray-500">
+                Los administradores pueden acceder a todos los almacenes. Otros roles necesitan un almacén asignado.
+              </p>
+              <div class="hidden mt-1 text-sm text-red-600" data-user-form-target="warehouseError">
+                Este rol requiere seleccionar un almacén.
+              </div>
+              <% if @user.errors[:warehouse_id].any? %>
+                <p class="mt-1 text-sm text-red-600"><%= @user.errors[:warehouse_id].first %></p>
+              <% end %>
+            </div>
+
+            <div>
+              <%= form.label :active, t('users.active'), class: "block text-sm font-medium text-gray-700 mb-1" %>
+              <div class="flex items-center">
+                <%= form.check_box :active, { class: "h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" } %>
+                <span class="ml-2 text-sm text-gray-700">Usuario activo (puede iniciar sesión)</span>
+              </div>
+              <% if @user.errors[:active].any? %>
+                <p class="mt-1 text-sm text-red-600"><%= @user.errors[:active].first %></p>
+              <% end %>
+            </div>
+
+            <!-- Password Change Section -->
+            <div class="bg-yellow-50 rounded-lg p-4">
+              <div class="flex">
+                <div class="flex-shrink-0">
+                  <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                  </svg>
+                </div>
+                <div class="ml-3">
+                  <h3 class="text-sm font-medium text-yellow-800">Cambio de Contraseña</h3>
+                  <div class="mt-2 text-sm text-yellow-700">
+                    <p>Deja estos campos vacíos si no quieres cambiar la contraseña.</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="mt-4 space-y-3">
+                <div>
+                  <%= form.label :password, "Nueva contraseña", class: "block text-sm font-medium text-yellow-800" %>
+                  <%= form.password_field :password, 
+                      placeholder: "Nueva contraseña (opcional)",
+                      class: "w-full px-3 py-2 border border-yellow-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500" %>
+                </div>
+                
+                <div>
+                  <%= form.label :password_confirmation, "Confirmar nueva contraseña", class: "block text-sm font-medium text-yellow-800" %>
+                  <%= form.password_field :password_confirmation, 
+                      placeholder: "Confirmar nueva contraseña",
+                      class: "w-full px-3 py-2 border border-yellow-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500" %>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Submit Buttons -->
+        <div class="flex items-center justify-end gap-4 pt-6 border-t">
+          <%= link_to "Cancelar", admin_user_path(@user), 
+              class: "px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" %>
+          <%= form.submit "Actualizar Usuario", 
+              class: "px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

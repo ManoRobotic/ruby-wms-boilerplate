@@ -49,7 +49,7 @@ class CycleCount < ApplicationRecord
         warehouse: warehouse,
         location: location,
         product: item.product,
-        transaction_type: item.variance > 0 ? 'adjustment_in' : 'adjustment_out',
+        transaction_type: item.variance > 0 ? "adjustment_in" : "adjustment_out",
         quantity: item.variance.abs,
         admin: admin,
         reason: "Ajuste por conteo cíclico #{display_name}",

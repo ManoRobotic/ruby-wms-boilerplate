@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_08_01_204517) do
+ActiveRecord::Schema[8.0].define(version: 2025_08_01_210213) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -393,6 +393,26 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_01_204517) do
     t.index ["warehouse_id"], name: "index_tasks_on_warehouse_id"
   end
 
+  create_table "users", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "email", default: "", null: false
+    t.string "encrypted_password", default: "", null: false
+    t.string "reset_password_token"
+    t.datetime "reset_password_sent_at"
+    t.datetime "remember_created_at"
+    t.string "name", null: false
+    t.string "role", default: "user", null: false
+    t.boolean "active", default: true, null: false
+    t.uuid "warehouse_id"
+    t.text "permissions", default: "{}"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["active"], name: "index_users_on_active"
+    t.index ["email"], name: "index_users_on_email", unique: true
+    t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
+    t.index ["role"], name: "index_users_on_role"
+    t.index ["warehouse_id"], name: "index_users_on_warehouse_id"
+  end
+
   create_table "warehouses", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "name", limit: 100, null: false
     t.string "code", limit: 20, null: false
@@ -458,14 +478,14 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_01_204517) do
   add_foreign_key "order_products", "orders"
   add_foreign_key "order_products", "products"
   add_foreign_key "orders", "warehouses"
-  add_foreign_key "orders", "waves", column: "wave_id"
+  add_foreign_key "orders", "waves"
   add_foreign_key "pick_list_items", "locations"
   add_foreign_key "pick_list_items", "pick_lists"
   add_foreign_key "pick_list_items", "products"
   add_foreign_key "pick_lists", "admins"
   add_foreign_key "pick_lists", "orders"
   add_foreign_key "pick_lists", "warehouses"
-  add_foreign_key "pick_lists", "waves", column: "wave_id"
+  add_foreign_key "pick_lists", "waves"
   add_foreign_key "products", "categories"
   add_foreign_key "receipt_items", "locations"
   add_foreign_key "receipt_items", "products"
@@ -483,6 +503,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_01_204517) do
   add_foreign_key "tasks", "locations", column: "to_location_id"
   add_foreign_key "tasks", "products"
   add_foreign_key "tasks", "warehouses"
+  add_foreign_key "users", "warehouses"
   add_foreign_key "waves", "admins"
   add_foreign_key "waves", "warehouses"
   add_foreign_key "zones", "warehouses"

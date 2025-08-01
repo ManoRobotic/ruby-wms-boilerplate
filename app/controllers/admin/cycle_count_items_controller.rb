@@ -1,13 +1,13 @@
 class Admin::CycleCountItemsController < AdminController
   before_action :set_cycle_count
-  before_action :set_cycle_count_item, only: [:show, :edit, :update]
+  before_action :set_cycle_count_item, only: [ :show, :edit, :update ]
 
   def show
     @related_stock = Stock.find_by(
       product: @cycle_count_item.product,
       location: @cycle_count_item.location
     )
-    
+
     @recent_transactions = InventoryTransaction.where(
       product: @cycle_count_item.product,
       location: @cycle_count_item.location
@@ -16,28 +16,28 @@ class Admin::CycleCountItemsController < AdminController
 
   def edit
     # Only allow editing if cycle count is in progress
-    unless @cycle_count.status == 'in_progress'
-      redirect_to admin_cycle_count_path(@cycle_count), alert: 'No se puede editar este item.'
-      return
+    unless @cycle_count.status == "in_progress"
+      redirect_to admin_cycle_count_path(@cycle_count), alert: "No se puede editar este item."
+      nil
     end
   end
 
   def update
-    unless @cycle_count.status == 'in_progress'
-      redirect_to admin_cycle_count_path(@cycle_count), alert: 'No se puede editar este item.'
+    unless @cycle_count.status == "in_progress"
+      redirect_to admin_cycle_count_path(@cycle_count), alert: "No se puede editar este item."
       return
     end
 
     if @cycle_count_item.update(cycle_count_item_params)
       # Check if all items are counted
       if @cycle_count.all_items_counted?
-        @cycle_count.update(status: 'completed', completed_date: Date.current)
-        
+        @cycle_count.update(status: "completed", completed_date: Date.current)
+
         # Create inventory adjustments for variances
         @cycle_count.create_variance_adjustments!
       end
 
-      redirect_to admin_cycle_count_path(@cycle_count), notice: 'Conteo actualizado exitosamente.'
+      redirect_to admin_cycle_count_path(@cycle_count), notice: "Conteo actualizado exitosamente."
     else
       render :edit
     end

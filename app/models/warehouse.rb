@@ -10,6 +10,7 @@ class Warehouse < ApplicationRecord
   has_many :cycle_counts, dependent: :destroy
   has_many :shipments, dependent: :destroy
   has_many :orders, dependent: :nullify
+  has_many :users, dependent: :nullify
 
   # Validations
   validates :name, presence: true, length: { minimum: 2, maximum: 100 }

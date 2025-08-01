@@ -88,7 +88,7 @@
               <% @categories.each do |category| %>
                 <tr data-table-target="row" class="hover:bg-gray-50">
                   <td class="px-6 py-4 whitespace-nowrap">
-                    <img src="<%= category.image_url %>" alt="<%= category.name %>" class="object-cover w-12 h-12 rounded-full">
+                    <%= image_with_initials(category, "object-cover w-12 h-12 rounded-full") %>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     <%= category.name %>

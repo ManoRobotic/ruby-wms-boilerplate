@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  devise_for :users
   root "home#index"
 
   # Health checks (should be at the top for monitoring)
@@ -7,7 +8,8 @@ Rails.application.routes.draw do
   get "/health/readiness", to: "health#readiness"
 
   devise_for :admins, controllers: {
-    registrations: "admin/registrations"
+    registrations: "admin/registrations",
+    sessions: "admin/sessions"
   }
 
   authenticate :admin do
@@ -20,7 +22,7 @@ Rails.application.routes.draw do
       resources :waves do
         member do
           patch :release
-          patch :start  
+          patch :start
           patch :complete
           patch :cancel
         end
@@ -29,7 +31,7 @@ Rails.application.routes.draw do
           get :suggestions
         end
       end
-      
+
       resources :zones do
         resources :locations do
           member do
@@ -97,6 +99,14 @@ Rails.application.routes.draw do
       end
     end
 
+    # User management
+    resources :users do
+      member do
+        patch :activate
+        patch :deactivate
+      end
+    end
+
     # Original resources
     resources :orders do
       member do
@@ -110,17 +120,17 @@ Rails.application.routes.draw do
     resources :products do
       resources :stocks
     end
-    
+
     # Manual Printing
-    get 'manual_printing', to: 'manual_printing#index'
-    post 'manual_printing/connect_printer', to: 'manual_printing#connect_printer'
-    post 'manual_printing/print_test', to: 'manual_printing#print_test'
-    post 'manual_printing/calibrate_sensor', to: 'manual_printing#calibrate_sensor'
-    post 'manual_printing/printer_status', to: 'manual_printing#printer_status'
-    
+    get "manual_printing", to: "manual_printing#index"
+    post "manual_printing/connect_printer", to: "manual_printing#connect_printer"
+    post "manual_printing/print_test", to: "manual_printing#print_test"
+    post "manual_printing/calibrate_sensor", to: "manual_printing#calibrate_sensor"
+    post "manual_printing/printer_status", to: "manual_printing#printer_status"
+
     # Scale Reading
-    post 'manual_printing/connect_scale', to: 'manual_printing#connect_scale'
-    post 'manual_printing/read_weight', to: 'manual_printing#read_weight'
+    post "manual_printing/connect_scale", to: "manual_printing#connect_scale"
+    post "manual_printing/read_weight", to: "manual_printing#read_weight"
   end
 
   resources :categories, only: [ :show ]

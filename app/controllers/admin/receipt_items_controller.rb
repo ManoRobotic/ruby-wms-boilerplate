@@ -1,6 +1,6 @@
 class Admin::ReceiptItemsController < AdminController
   before_action :set_receipt
-  before_action :set_receipt_item, only: [:show, :edit, :update]
+  before_action :set_receipt_item, only: [ :show, :edit, :update ]
 
   def show
     @related_transactions = InventoryTransaction.where(
@@ -11,25 +11,25 @@ class Admin::ReceiptItemsController < AdminController
 
   def edit
     # Only allow editing if receipt is in receiving status
-    unless @receipt.status == 'receiving'
-      redirect_to admin_receipt_path(@receipt), alert: 'No se puede editar este item.'
-      return
+    unless @receipt.status == "receiving"
+      redirect_to admin_receipt_path(@receipt), alert: "No se puede editar este item."
+      nil
     end
   end
 
   def update
-    unless @receipt.status == 'receiving'
-      redirect_to admin_receipt_path(@receipt), alert: 'No se puede editar este item.'
+    unless @receipt.status == "receiving"
+      redirect_to admin_receipt_path(@receipt), alert: "No se puede editar este item."
       return
     end
 
     if @receipt_item.update(receipt_item_params)
       # Update receipt status if all items are received
       if @receipt.all_items_received?
-        @receipt.update(status: 'completed', completed_date: Date.current)
+        @receipt.update(status: "completed", completed_date: Date.current)
       end
 
-      redirect_to admin_receipt_path(@receipt), notice: 'Item actualizado exitosamente.'
+      redirect_to admin_receipt_path(@receipt), notice: "Item actualizado exitosamente."
     else
       render :edit
     end

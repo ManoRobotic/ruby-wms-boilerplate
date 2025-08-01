@@ -31,6 +31,12 @@
       <% product.images.each do |image| %>
         <%= image_tag image, class: "w-20 h-20 object-cover rounded-md" %>
       <% end %>
+    <% elsif product.image_url.present? %>
+      <%= image_tag product.image_url, class: "w-20 h-20 object-cover rounded-md" %>
+    <% else %>
+      <div class="w-20 h-20">
+        <%= image_with_initials(product, "w-full h-full object-cover rounded-md") %>
+      </div>
     <% end %>
   </div>
 

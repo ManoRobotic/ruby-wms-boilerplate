@@ -68,10 +68,10 @@ class Receipt < ApplicationRecord
 
   def items_completion_percentage
     return 0 if receipt_items.empty?
-    
+
     total_expected = receipt_items.sum(:expected_quantity)
     total_received = receipt_items.sum { |item| item.received_quantity || 0 }
-    
+
     return 0 if total_expected.zero?
     (total_received.to_f / total_expected * 100).round(2)
   end

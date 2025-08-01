@@ -1,0 +1,59 @@
+<div class="relative flex items-center justify-center min-h-screen overflow-hidden">
+  <!-- Blurred gradient background -->
+  <div class="absolute inset-0 z-0">
+    <div class="absolute inset-0 opacity-75 bg-gradient-to-br from-blue-400 via-purple-500 to-indigo-500"></div>
+    <div class="absolute inset-0 opacity-50 bg-gradient-to-tr from-blue-300 via-purple-400 to-indigo-500 mix-blend-overlay"></div>
+    <div class="absolute inset-0 backdrop-blur-3xl"></div>
+  </div>
+  
+  <div class="relative flex flex-col w-full max-w-xl p-8 mx-4 bg-white shadow-lg rounded-xl sm:mx-0 sm:max-w-md ">
+    <h4 class="block mb-2 text-2xl font-medium text-center text-slate-800">
+      Admin Login
+    </h4>
+    <p class="mb-4 font-light text-center text-slate-500">
+      Welcome back! Please enter your admin credentials.
+    </p>
+    
+    <form action="<%= session_path(resource_name) %>" method="post" class="mt-4 mb-2 w-full" data-turbo="false">
+      <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
+      <div class="flex flex-col gap-4 mb-4">
+        <div class="w-full">
+          <label for="admin_email" class="block mb-1 text-sm text-slate-600">Email</label>
+          <input type="email" name="admin[email]" id="admin_email" autofocus="true" autocomplete="email" class="w-full bg-transparent placeholder:text-slate-400 text-slate-700 text-base border border-slate-200 rounded-md px-4 py-3 transition duration-300 ease focus:outline-none focus:border-slate-400 hover:border-slate-300 shadow-sm focus:shadow" />
+        </div>
+        
+        <div class="w-full">
+          <label for="admin_password" class="block mb-1 text-sm text-slate-600">Password</label>
+          <input type="password" name="admin[password]" id="admin_password" autocomplete="current-password" class="w-full bg-transparent placeholder:text-slate-400 text-slate-700 text-base border border-slate-200 rounded-md px-4 py-3 transition duration-300 ease focus:outline-none focus:border-slate-400 hover:border-slate-300 shadow-sm focus:shadow" />
+        </div>
+      </div>
+      
+      <% if devise_mapping.rememberable? %>
+        <div class="inline-flex items-center mt-2">
+          <label class="relative flex items-center cursor-pointer">
+            <input type="checkbox" name="admin[remember_me]" id="admin_remember_me" value="1" class="peer h-5 w-5 cursor-pointer transition-all appearance-none rounded shadow hover:shadow-md border border-slate-300 checked:bg-slate-800 checked:border-slate-800" />
+            <input type="hidden" name="admin[remember_me]" value="0" />
+            <span class="absolute text-white transform -translate-x-1/2 -translate-y-1/2 opacity-0 pointer-events-none peer-checked:opacity-100 top-1/2 left-1/2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" stroke="currentColor" stroke-width="1">
+                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+              </svg>
+            </span>
+          </label>
+          <label for="admin_remember_me" class="cursor-pointer ml-2 text-slate-600 text-sm">Remember me</label>
+        </div>
+      <% end %>
+      
+      <div class="mt-6 actions">
+        <input type="submit" value="Admin Login" class="w-full rounded-md bg-slate-800 py-3 px-4 border border-transparent text-center text-sm text-white transition-all shadow-md hover:shadow-lg focus:bg-slate-700 focus:shadow-none active:bg-slate-700 hover:bg-slate-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" />
+      </div>
+    </form>
+    
+    <div class="flex justify-center mt-4">
+      <%- if devise_mapping.recoverable? && controller_name != 'passwords' && controller_name != 'registrations' %>
+        <%= link_to "Forgot your password?", new_password_path(resource_name), class: "text-sm font-semibold text-slate-700 underline hover:text-slate-900" %>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<%= render "admins/shared/links" %>

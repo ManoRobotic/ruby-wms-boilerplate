@@ -18,8 +18,8 @@ class CreateWaves < ActiveRecord::Migration[8.0]
       t.timestamps
     end
 
-    add_index :waves, [:warehouse_id, :status]
-    add_index :waves, [:status, :planned_start_time]
+    add_index :waves, [ :warehouse_id, :status ]
+    add_index :waves, [ :status, :planned_start_time ]
     add_index :waves, :priority
   end
 end

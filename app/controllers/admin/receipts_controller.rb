@@ -1,6 +1,6 @@
 class Admin::ReceiptsController < AdminController
   include StandardCrudResponses
-  before_action :set_receipt, only: [:show, :edit, :update, :destroy, :start_receiving, :complete]
+  before_action :set_receipt, only: [ :show, :edit, :update, :destroy, :start_receiving, :complete ]
 
   def index
     @receipts = Receipt.includes(:warehouse, :admin, :receipt_items)
@@ -28,7 +28,7 @@ class Admin::ReceiptsController < AdminController
     handle_create_response(
       @receipt,
       admin_receipts_path,
-      'Recepción creada exitosamente.',
+      "Recepción creada exitosamente.",
       :new,
       -> { @warehouses = Warehouse.active }
     )
@@ -40,7 +40,7 @@ class Admin::ReceiptsController < AdminController
 
   def update
     if @receipt.update(receipt_params)
-      redirect_to admin_receipt_path(@receipt), notice: 'Recepción actualizada exitosamente.'
+      redirect_to admin_receipt_path(@receipt), notice: "Recepción actualizada exitosamente."
     else
       @warehouses = Warehouse.active
       render :edit
@@ -48,27 +48,27 @@ class Admin::ReceiptsController < AdminController
   end
 
   def destroy
-    if @receipt.status == 'scheduled'
+    if @receipt.status == "scheduled"
       @receipt.destroy
-      redirect_to admin_receipts_path, notice: 'Recepción eliminada exitosamente.'
+      redirect_to admin_receipts_path, notice: "Recepción eliminada exitosamente."
     else
-      redirect_to admin_receipts_path, alert: 'No se puede eliminar una recepción en proceso o completada.'
+      redirect_to admin_receipts_path, alert: "No se puede eliminar una recepción en proceso o completada."
     end
   end
 
   def start_receiving
     if @receipt.start_receiving!
-      redirect_to admin_receipt_path(@receipt), notice: 'Recepción iniciada exitosamente.'
+      redirect_to admin_receipt_path(@receipt), notice: "Recepción iniciada exitosamente."
     else
-      redirect_to admin_receipts_path, alert: 'No se pudo iniciar la recepción.'
+      redirect_to admin_receipts_path, alert: "No se pudo iniciar la recepción."
     end
   end
 
   def complete
     if @receipt.complete!
-      redirect_to admin_receipt_path(@receipt), notice: 'Recepción completada exitosamente.'
+      redirect_to admin_receipt_path(@receipt), notice: "Recepción completada exitosamente."
     else
-      redirect_to admin_receipts_path, alert: 'No se pudo completar la recepción.'
+      redirect_to admin_receipts_path, alert: "No se pudo completar la recepción."
     end
   end
 
@@ -79,7 +79,7 @@ class Admin::ReceiptsController < AdminController
   end
 
   def receipt_params
-    params.require(:receipt).permit(:supplier_name, :warehouse_id, :reference_number, 
+    params.require(:receipt).permit(:supplier_name, :warehouse_id, :reference_number,
                                    :expected_date, :received_date, :status, :notes, :total_items)
   end
 end

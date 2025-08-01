@@ -1,0 +1,283 @@
+<% if notice.present? %>
+  <%= render "shared/succes_alert", notice: notice %>
+<% end %>
+
+<div class="w-full px-4 mt-8">
+  <div class="relative flex flex-col w-full text-gray-700 bg-white shadow-md rounded-xl bg-clip-border">
+    <!-- Header -->
+    <div class="relative p-4 text-gray-700 bg-white bg-clip-border">
+      <div class="container mx-auto">
+        <div class="flex flex-col items-center gap-8 px-4 mb-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h1 class="mt-12 font-sans text-xl font-semibold leading-snug tracking-normal text-center md:text-left text-blue-gray-900">
+              <%= t('users.title') %>
+            </h1>
+            <p class="text-sm text-gray-600 mt-2">Gestión de usuarios del sistema</p>
+          </div>
+          <div class="flex justify-center gap-2 shrink-0 md:w-auto">
+            <%= link_to t('users.new_user'), new_admin_user_path, class: "mt-12 flex items-center gap-3 rounded-lg bg-blue-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85" %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Statistics Dashboard -->
+    <div class="px-6 py-4 bg-gray-50">
+      <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
+        <div class="bg-white rounded-lg p-4 shadow">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+                </svg>
+              </div>
+            </div>
+            <div class="ml-4">
+              <div class="text-sm font-medium text-gray-500">Total</div>
+              <div class="text-2xl font-bold text-gray-900"><%= @stats[:total_users] %></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-lg p-4 shadow">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+              </div>
+            </div>
+            <div class="ml-4">
+              <div class="text-sm font-medium text-gray-500">Activos</div>
+              <div class="text-2xl font-bold text-gray-900"><%= @stats[:active_users] %></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-lg p-4 shadow">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                </svg>
+              </div>
+            </div>
+            <div class="ml-4">
+              <div class="text-sm font-medium text-gray-500">Admins</div>
+              <div class="text-2xl font-bold text-gray-900"><%= @stats[:admins] %></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-lg p-4 shadow">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div class="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
+                <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                </svg>
+              </div>
+            </div>
+            <div class="ml-4">
+              <div class="text-sm font-medium text-gray-500">Supervisores</div>
+              <div class="text-2xl font-bold text-gray-900"><%= @stats[:supervisors] %></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-lg p-4 shadow">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
+                <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
+                </svg>
+              </div>
+            </div>
+            <div class="ml-4">
+              <div class="text-sm font-medium text-gray-500">Recolectores</div>
+              <div class="text-2xl font-bold text-gray-900"><%= @stats[:pickers] %></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-lg p-4 shadow">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
+                <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                </svg>
+              </div>
+            </div>
+            <div class="ml-4">
+              <div class="text-sm font-medium text-gray-500">Usuarios</div>
+              <div class="text-2xl font-bold text-gray-900"><%= @stats[:regular_users] %></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="px-6 py-4 bg-white border-b">
+      <%= form_with url: admin_users_path, method: :get, local: true, class: "flex flex-wrap gap-4 items-end" do |form| %>
+        <div>
+          <%= form.label :role, "Rol", class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <%= form.select :role, options_for_select([
+            ['Todos', ''],
+            ['Administrador', 'admin'],
+            ['Supervisor', 'supervisor'],
+            ['Recolector', 'picker'],
+            ['Usuario', 'user']
+          ], params[:role]), {}, { class: "px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" } %>
+        </div>
+
+        <div>
+          <%= form.label :warehouse_id, "Almacén", class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <%= form.select :warehouse_id, options_from_collection_for_select(@warehouses, :id, :name, params[:warehouse_id]), 
+              { prompt: 'Todos los almacenes' }, 
+              { class: "px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" } %>
+        </div>
+
+        <div>
+          <%= form.label :active, "Estado", class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <%= form.select :active, options_for_select([
+            ['Todos', ''],
+            ['Activos', 'true'],
+            ['Inactivos', 'false']
+          ], params[:active]), {}, { class: "px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" } %>
+        </div>
+
+        <div>
+          <%= form.submit "Filtrar", class: "px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500" %>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Users Table -->
+    <section class="flex flex-col w-full py-8 bg-gray-50">
+      <div class="container mx-auto">
+        <div class="overflow-x-auto">
+          <table data-controller="table" 
+                 data-table-sortable-value="true"
+                 class="min-w-full bg-white border border-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuario</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rol</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Almacén</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha de creación</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <% @users.each do |user| %>
+                <tr data-table-target="row" class="hover:bg-gray-50">
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                      <div class="flex-shrink-0 h-10 w-10">
+                        <div class="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
+                          <span class="text-sm font-medium text-gray-700"><%= user.name.first(2).upcase %></span>
+                        </div>
+                      </div>
+                      <div class="ml-4">
+                        <div class="text-sm font-medium text-gray-900"><%= user.display_name %></div>
+                        <div class="text-sm text-gray-500"><%= user.email %></div>
+                      </div>
+                    </div>
+                  </td>
+                  
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                      <%= case user.role
+                          when 'admin' then 'bg-purple-100 text-purple-800'
+                          when 'supervisor' then 'bg-yellow-100 text-yellow-800'
+                          when 'picker' then 'bg-orange-100 text-orange-800'
+                          when 'user' then 'bg-gray-100 text-gray-800'
+                          else 'bg-gray-100 text-gray-800'
+                          end %>">
+                      <%= user.role_display %>
+                    </span>
+                  </td>
+
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <%= user.warehouse&.name || '-' %>
+                  </td>
+
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <% if user.active? %>
+                      <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                        Activo
+                      </span>
+                    <% else %>
+                      <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                        Inactivo
+                      </span>
+                    <% end %>
+                  </td>
+
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <%= user.created_at.strftime("%d/%m/%Y") %>
+                  </td>
+
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <div class="flex space-x-2">
+                      <%= link_to 'Ver', admin_user_path(user), class: "text-indigo-600 hover:text-indigo-900" %>
+                      <%= link_to 'Editar', edit_admin_user_path(user), class: "text-yellow-600 hover:text-yellow-900" %>
+                      
+                      <% if user.active? %>
+                        <%= button_to 'Desactivar', deactivate_admin_user_path(user), 
+                            method: :patch,
+                            data: { 
+                              controller: "confirm",
+                              action: "click->confirm#confirm",
+                              confirm_message_value: "¿Desactivar a #{user.display_name}?",
+                              confirm_title_value: "Desactivar Usuario"
+                            }, 
+                            class: "text-orange-600 hover:text-orange-900 bg-transparent border-none cursor-pointer p-0 underline",
+                            form_class: "inline" %>
+                      <% else %>
+                        <%= button_to 'Activar', activate_admin_user_path(user), 
+                            method: :patch,
+                            class: "text-green-600 hover:text-green-900 bg-transparent border-none cursor-pointer p-0 underline",
+                            form_class: "inline" %>
+                      <% end %>
+                      
+                      <%= link_to 'Eliminar', admin_user_path(user), 
+                          data: { 
+                            "turbo-method": "delete",
+                            controller: "confirm",
+                            action: "click->confirm#confirm",
+                            confirm_message_value: "¿Estás seguro de eliminar a #{user.display_name}? Esta acción no se puede deshacer.",
+                            confirm_title_value: "Eliminar Usuario"
+                          }, 
+                          class: "text-red-600 hover:text-red-900" %>
+                    </div>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+
+          <% if @users.empty? %>
+            <div class="text-center py-12">
+              <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+              </svg>
+              <h3 class="mt-2 text-sm font-medium text-gray-900">No hay usuarios</h3>
+              <p class="mt-1 text-sm text-gray-500">Comienza creando tu primer usuario.</p>
+              <div class="mt-6">
+                <%= link_to t('users.new_user'), new_admin_user_path, class: "inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700" %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>

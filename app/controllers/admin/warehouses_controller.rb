@@ -1,6 +1,8 @@
 class Admin::WarehousesController < AdminController
   include StandardCrudResponses
   before_action :set_warehouse, only: [ :show, :edit, :update, :destroy ]
+  before_action :authorize_warehouse_management!, except: [ :index, :show ]
+  before_action :authorize_warehouse_read!, only: [ :index, :show ]
 
   def index
     @warehouses = Warehouse.includes(:zones)
@@ -25,14 +27,14 @@ class Admin::WarehousesController < AdminController
 
   def create
     @warehouse = Warehouse.new(warehouse_params)
-    
+
     # Ensure active is set if not provided
     @warehouse.active = true if @warehouse.active.nil?
 
     respond_to do |format|
       if @warehouse.save
         format.html { redirect_to admin_warehouses_path, notice: "Almacén creado exitosamente." }
-        format.json { render :show, status: :created, location: [:admin, @warehouse] }
+        format.json { render :show, status: :created, location: [ :admin, @warehouse ] }
       else
         format.html { render :new, status: :unprocessable_entity }
         format.json { render json: @warehouse.errors, status: :unprocessable_entity }
@@ -70,5 +72,17 @@ class Admin::WarehousesController < AdminController
 
   def warehouse_params
     params.require(:warehouse).permit(:name, :code, :address, :active, :contact_info)
+  end
+
+  def authorize_warehouse_management!
+    unless current_admin || current_user&.can?("manage_warehouses")
+      redirect_to admin_root_path, alert: "No tienes permisos para gestionar almacenes."
+    end
+  end
+
+  def authorize_warehouse_read!
+    unless current_admin || current_user&.can?("read_warehouse")
+      redirect_to admin_root_path, alert: "No tienes permisos para ver almacenes."
+    end
   end
 end

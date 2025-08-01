@@ -554,7 +554,7 @@ if PickList.count.zero?
   admin = Admin.first
   warehouse = Warehouse.first
   pending_orders = Order.where(fulfillment_status: 'pending').limit(3)
-  
+
   pending_orders.each_with_index do |order, index|
     # Create basic pick list
     pick_list = PickList.new(
@@ -562,15 +562,15 @@ if PickList.count.zero?
       warehouse: warehouse,
       admin: admin,
       status: 'pending',
-      priority: ['low', 'medium', 'high'].sample,
+      priority: [ 'low', 'medium', 'high' ].sample,
       pick_list_number: "PL#{Date.current.strftime('%Y%m%d')}#{(index + 1).to_s.rjust(4, '0')}",
       total_items: order.order_products.sum(:quantity),
       picked_items: 0
     )
-    
+
     # Save without callbacks to avoid complex validations
     pick_list.save!(validate: false)
-    
+
     puts "✅ Created basic pick list #{pick_list.pick_list_number} for order ##{order.id}"
   end
 end
@@ -579,20 +579,20 @@ end
 if Receipt.count.zero?
   admin = Admin.first
   warehouses = Warehouse.all
-  
+
   5.times do |i|
     receipt = Receipt.new(
       reference_number: "RCP-#{Date.current.strftime('%Y%m%d')}-#{(i+1).to_s.rjust(3, '0')}",
       warehouse: warehouses.sample,
       admin: admin,
-      supplier_name: ["Proveedor Alpha", "Distribuidora Beta", "Importadora Gamma"].sample,
+      supplier_name: [ "Proveedor Alpha", "Distribuidora Beta", "Importadora Gamma" ].sample,
       status: 'pending',
       expected_date: rand(1..7).days.from_now,
       notes: "Recepción de mercancía #{i+1}"
     )
-    
+
     receipt.save!(validate: false)
-    
+
     puts "✅ Created receipt #{receipt.reference_number}"
   end
 end
@@ -602,7 +602,7 @@ if CycleCount.count.zero?
   admin = Admin.first
   warehouse = Warehouse.first
   locations = Location.active.limit(3)
-  
+
   locations.each_with_index do |location, i|
     cycle_count = CycleCount.new(
       warehouse: warehouse,
@@ -613,7 +613,7 @@ if CycleCount.count.zero?
       scheduled_date: Date.current + rand(1..30).days,
       notes: "Conteo programado para verificación de inventario"
     )
-    
+
     cycle_count.save!(validate: false)
     puts "✅ Created cycle count for #{location.coordinate_code}"
   end
@@ -624,7 +624,7 @@ if Shipment.count.zero?
   admin = Admin.first
   warehouse = Warehouse.first
   completed_orders = Order.limit(2)
-  
+
   completed_orders.each_with_index do |order, i|
     shipment = Shipment.new(
       warehouse: warehouse,
@@ -634,7 +634,7 @@ if Shipment.count.zero?
       tracking_number: "TRK#{SecureRandom.hex(6).upcase}",
       status: 'preparing'
     )
-    
+
     shipment.save!(validate: false)
     puts "✅ Created shipment #{shipment.tracking_number}"
   end
@@ -643,11 +643,11 @@ end
 # Add more comprehensive inventory transactions
 Stock.includes(:product, :location).limit(30).each do |stock|
   next unless stock.location
-  
+
   # Create some movement transactions
   if rand < 0.3 # 30% chance
-    movement_types = ['adjustment_in', 'adjustment_out', 'transfer_out', 'transfer_in']
-    
+    movement_types = [ 'adjustment_in', 'adjustment_out', 'transfer_out', 'transfer_in' ]
+
     InventoryTransaction.create!(
       warehouse: stock.location.warehouse,
       location: stock.location,
@@ -668,6 +668,6 @@ puts "✅ Complete WMS seeding finished successfully! 🏭🚀"
 puts ""
 puts "📋 Note: Advanced WMS features can be managed through the admin interface:"
 puts "   • Pick Lists - Generate from orders"
-puts "   • Receipts - Create inbound shipments" 
+puts "   • Receipts - Create inbound shipments"
 puts "   • Cycle Counts - Schedule inventory counts"
 puts "   • Shipments - Track outbound deliveries"

@@ -2,7 +2,9 @@ class AdminController < ApplicationController
   include ApiResponses
 
   layout "admin"
-  before_action :authenticate_admin!
+
+  # Solo permitir acceso a admins reales o usuarios con rol admin/supervisor
+  before_action :authenticate_admin_or_privileged_user!
   before_action :ensure_admin_permissions!
 
   def index
@@ -18,21 +20,26 @@ class AdminController < ApplicationController
     @revenue_by_day = Rails.cache.fetch("admin_revenue_by_day_#{Date.current}", expires_in: 1.hour) do
       Order.revenue_by_day(7)
     end
-    
+
     # Convert to array format for chart.js
-    @revenue_by_day_chart = @revenue_by_day.map { |date, revenue| [date.to_s, revenue] }
+    @revenue_by_day_chart = @revenue_by_day.map { |date, revenue| [ date.to_s, revenue ] }
 
     # Additional useful metrics
     @low_stock_products = Product.low_stock(5).limit(10) rescue []
     @best_selling_products = Product.best_selling(5) rescue []
-    
+
     # WMS Dashboard Metrics
     @wms_metrics = calculate_wms_metrics rescue {}
     @inventory_alerts = calculate_inventory_alerts rescue {}
     @task_metrics = calculate_task_metrics rescue {}
     @pick_list_metrics = calculate_pick_list_metrics rescue {}
     @warehouse_utilization = calculate_warehouse_utilization rescue []
-    @recent_transactions = InventoryTransaction.recent.limit(5) rescue []
+    # Filter recent transactions by user's warehouse if not admin
+    transactions_scope = InventoryTransaction.recent
+    if current_user && current_user.warehouse_id.present?
+      transactions_scope = transactions_scope.joins(:location).where(locations: { warehouse_id: current_user.warehouse_id })
+    end
+    @recent_transactions = transactions_scope.limit(5) rescue []
   end
 
   private
@@ -70,42 +77,61 @@ class AdminController < ApplicationController
       total_inventory_value: Product.inventory_valuation || 0,
       low_stock_products: Product.low_stock.count,
       pending_receipts: (Receipt.scheduled.count rescue 0),
-      active_shipments: (Shipment.where(status: ['shipped', 'in_transit']).count rescue 0)
+      active_shipments: (Shipment.where(status: [ "shipped", "in_transit" ]).count rescue 0)
     }
   end
-  
+
   def calculate_inventory_alerts
     {
       low_stock: Product.low_stock.count,
       overstock: (Product.overstock.count rescue 0),
       expiring_soon: (Stock.expiring_soon(30).group(:product_id).count.size rescue 0),
       expired: (Stock.expired.group(:product_id).count.size rescue 0),
-      negative_stock: (Stock.where('amount < 0').count rescue 0)
+      negative_stock: (Stock.where("amount < 0").count rescue 0)
     }
   end
-  
+
   def calculate_task_metrics
+    base_scope = Task
+
+    # Filter by warehouse if user is not admin
+    if current_user && current_user.warehouse_id.present?
+      base_scope = base_scope.where(warehouse_id: current_user.warehouse_id)
+    end
+
     {
-      pending: (Task.pending.count rescue 0),
-      in_progress: (Task.in_progress.count rescue 0),
-      completed_today: (Task.completed.where(completed_at: Date.current.beginning_of_day..Date.current.end_of_day).count rescue 0),
-      overdue: (Task.overdue.count rescue 0),
-      my_tasks: (Task.where(admin: current_admin, status: ['pending', 'assigned', 'in_progress']).count rescue 0)
+      pending: (base_scope.pending.count rescue 0),
+      in_progress: (base_scope.in_progress.count rescue 0),
+      completed_today: (base_scope.completed.where(completed_at: Date.current.beginning_of_day..Date.current.end_of_day).count rescue 0),
+      overdue: (base_scope.overdue.count rescue 0),
+      my_tasks: (current_user ? base_scope.where(admin: current_user, status: [ "pending", "assigned", "in_progress" ]).count : 0 rescue 0)
     }
   end
-  
+
   def calculate_pick_list_metrics
+    base_scope = PickList
+
+    # Filter by warehouse if user is not admin
+    if current_user && current_user.warehouse_id.present?
+      base_scope = base_scope.where(warehouse_id: current_user.warehouse_id)
+    end
+
     {
-      pending: (PickList.pending.count rescue 0),
-      in_progress: (PickList.in_progress.count rescue 0),
-      completed_today: (PickList.completed.where(completed_at: Date.current.beginning_of_day..Date.current.end_of_day).count rescue 0),
-      overdue: (PickList.overdue.count rescue 0)
+      pending: (base_scope.pending.count rescue 0),
+      in_progress: (base_scope.in_progress.count rescue 0),
+      completed_today: (base_scope.completed.where(completed_at: Date.current.beginning_of_day..Date.current.end_of_day).count rescue 0),
+      overdue: (base_scope.overdue.count rescue 0)
     }
   end
-  
+
   def calculate_warehouse_utilization
     warehouses = Warehouse.active.includes(:locations)
-    
+
+    # Filter by user's warehouse if not admin
+    if current_user && current_user.warehouse_id.present?
+      warehouses = warehouses.where(id: current_user.warehouse_id)
+    end
+
     warehouses.map do |warehouse|
       {
         name: warehouse.name,
@@ -116,12 +142,23 @@ class AdminController < ApplicationController
     end
   end
 
+  def authenticate_admin_or_privileged_user!
+    unless current_admin || (current_user&.admin? || current_user&.supervisor?)
+      redirect_to new_user_session_path, alert: "Necesitas permisos de administrador para acceder."
+    end
+  end
+
   def ensure_admin_permissions!
-    # Add role-based access control if needed
-    # For now, just ensure admin is active
-    unless current_admin&.email&.present?
+    # Para admins reales, verificar que estén activos
+    if current_admin && !current_admin.email.present?
       Rails.logger.warn "Unauthorized admin access attempt - Admin ID: #{current_admin&.id}, IP: #{request.remote_ip}, Path: #{request.path}"
       redirect_to root_path, alert: "Access denied"
+      return
+    end
+
+    # Para usuarios, verificar permisos específicos
+    if current_user && !current_user.can?("read_admin_dashboard")
+      redirect_to root_path, alert: "No tienes permisos para acceder al panel de administración."
     end
   end
 end

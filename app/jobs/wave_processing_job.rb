@@ -20,31 +20,31 @@ class WaveProcessingJob < ApplicationJob
           end
 
           # Update wave status
-          wave.update!(status: 'released')
-          
+          wave.update!(status: "released")
+
           # Notify completion
-          WaveNotificationJob.perform_later(wave, 'released')
-          
+          WaveNotificationJob.perform_later(wave, "released")
+
           Rails.logger.info "Successfully processed wave #{wave.id}: #{pick_lists.count} pick lists created"
         else
           # Mark as failed if no pick lists were generated
-          wave.update!(status: 'planning', notes: "Failed to generate pick lists: #{Time.current}")
+          wave.update!(status: "planning", notes: "Failed to generate pick lists: #{Time.current}")
           Rails.logger.error "Failed to generate pick lists for wave #{wave.id}"
         end
       end
     rescue StandardError => e
       Rails.logger.error "Error processing wave #{wave.id}: #{e.message}"
       Rails.logger.error e.backtrace.join("\n")
-      
+
       # Update wave with error status
       wave.update!(
-        status: 'planning',
+        status: "planning",
         notes: "Processing failed: #{e.message} at #{Time.current}"
       )
-      
+
       # Notify about the error
-      WaveNotificationJob.perform_later(wave, 'error', e.message)
-      
+      WaveNotificationJob.perform_later(wave, "error", e.message)
+
       raise e
     end
   end
@@ -55,16 +55,16 @@ class WaveProcessingJob < ApplicationJob
     return unless pick_list.wave&.orders&.any?
 
     # Get all order products from orders in this wave that should be in this pick list
-    order_products = if pick_list.wave.strategy == 'zone_based'
+    order_products = if pick_list.wave.strategy == "zone_based"
                        get_zone_based_order_products(pick_list)
-                     else
+    else
                        get_standard_order_products(pick_list)
-                     end
+    end
 
     order_products.each do |order_product|
       # Find best stock location for this product
       stock_allocation = find_best_stock_for_product(order_product.product, order_product.quantity, pick_list.warehouse)
-      
+
       next unless stock_allocation
 
       # Create pick list item
@@ -73,7 +73,7 @@ class WaveProcessingJob < ApplicationJob
         location: stock_allocation[:location],
         quantity_requested: order_product.quantity,
         quantity_picked: 0,
-        status: 'pending',
+        status: "pending",
         order_product: order_product,
         notes: "Auto-generated from wave #{pick_list.wave.name}"
       )
@@ -100,13 +100,13 @@ class WaveProcessingJob < ApplicationJob
              .joins("INNER JOIN stocks ON products.id = stocks.product_id")
              .joins("INNER JOIN locations ON stocks.location_id = locations.id")
              .where(locations: { zone: zone })
-             .select('order_products.*')
+             .select("order_products.*")
              .distinct
   end
 
   def get_standard_order_products(pick_list)
     # For other strategies, distribute order products among pick lists
-    if pick_list.wave.strategy == 'priority_based'
+    if pick_list.wave.strategy == "priority_based"
       # One order per pick list
       pick_list.order.order_products
     else
@@ -121,7 +121,7 @@ class WaveProcessingJob < ApplicationJob
     zone_counts = pick_list.order.order_products
                            .joins(product: { stocks: :location })
                            .joins("INNER JOIN zones ON locations.zone_id = zones.id")
-                           .group('zones.id')
+                           .group("zones.id")
                            .count
 
     return nil if zone_counts.empty?
@@ -136,7 +136,7 @@ class WaveProcessingJob < ApplicationJob
     available_stocks = product.stocks
                               .joins(:location)
                               .where(locations: { zone: warehouse.zones })
-                              .where('amount - reserved_quantity > 0')
+                              .where("amount - reserved_quantity > 0")
                               .order(:expiry_date, :created_at)
 
     total_available = 0
@@ -146,14 +146,14 @@ class WaveProcessingJob < ApplicationJob
       available_quantity = stock.amount - stock.reserved_quantity
       next if available_quantity <= 0
 
-      needed_from_this_stock = [quantity_needed - total_available, available_quantity].min
-      
+      needed_from_this_stock = [ quantity_needed - total_available, available_quantity ].min
+
       selected_stocks << {
         stock: stock,
         location: stock.location,
         quantity: needed_from_this_stock
       }
-      
+
       total_available += needed_from_this_stock
       break if total_available >= quantity_needed
     end
@@ -170,16 +170,16 @@ class WaveProcessingJob < ApplicationJob
   def reserve_stock(stock, quantity, pick_list_item)
     # Reserve the stock for this pick list item
     new_reserved = stock.reserved_quantity + quantity
-    
+
     if new_reserved <= stock.amount
       stock.update!(reserved_quantity: new_reserved)
-      
+
       # Create inventory transaction for the reservation
       InventoryTransaction.create!(
         product: stock.product,
         location: stock.location,
         quantity: quantity,
-        transaction_type: 'reservation',
+        transaction_type: "reservation",
         reference: pick_list_item,
         notes: "Reserved for pick list #{pick_list_item.pick_list.pick_list_number}"
       )

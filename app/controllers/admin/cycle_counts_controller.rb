@@ -1,5 +1,5 @@
 class Admin::CycleCountsController < AdminController
-  before_action :set_cycle_count, only: [:show, :edit, :update, :destroy, :start, :complete]
+  before_action :set_cycle_count, only: [ :show, :edit, :update, :destroy, :start, :complete ]
 
   def index
     @cycle_counts = CycleCount.includes(:warehouse, :admin, :location, :cycle_count_items)
@@ -25,7 +25,7 @@ class Admin::CycleCountsController < AdminController
     @cycle_count.admin = current_admin
 
     if @cycle_count.save
-      redirect_to admin_cycle_counts_path, notice: 'Conteo cíclico creado exitosamente.'
+      redirect_to admin_cycle_counts_path, notice: "Conteo cíclico creado exitosamente."
     else
       @warehouses = Warehouse.active
       @locations = Location.active
@@ -40,7 +40,7 @@ class Admin::CycleCountsController < AdminController
 
   def update
     if @cycle_count.update(cycle_count_params)
-      redirect_to admin_cycle_count_path(@cycle_count), notice: 'Conteo cíclico actualizado exitosamente.'
+      redirect_to admin_cycle_count_path(@cycle_count), notice: "Conteo cíclico actualizado exitosamente."
     else
       @warehouses = Warehouse.active
       @locations = Location.active
@@ -49,27 +49,27 @@ class Admin::CycleCountsController < AdminController
   end
 
   def destroy
-    if @cycle_count.status == 'scheduled'
+    if @cycle_count.status == "scheduled"
       @cycle_count.destroy
-      redirect_to admin_cycle_counts_path, notice: 'Conteo cíclico eliminado exitosamente.'
+      redirect_to admin_cycle_counts_path, notice: "Conteo cíclico eliminado exitosamente."
     else
-      redirect_to admin_cycle_counts_path, alert: 'No se puede eliminar un conteo en proceso o completado.'
+      redirect_to admin_cycle_counts_path, alert: "No se puede eliminar un conteo en proceso o completado."
     end
   end
 
   def start
     if @cycle_count.start!
-      redirect_to admin_cycle_count_path(@cycle_count), notice: 'Conteo cíclico iniciado exitosamente.'
+      redirect_to admin_cycle_count_path(@cycle_count), notice: "Conteo cíclico iniciado exitosamente."
     else
-      redirect_to admin_cycle_counts_path, alert: 'No se pudo iniciar el conteo cíclico.'
+      redirect_to admin_cycle_counts_path, alert: "No se pudo iniciar el conteo cíclico."
     end
   end
 
   def complete
     if @cycle_count.complete!
-      redirect_to admin_cycle_count_path(@cycle_count), notice: 'Conteo cíclico completado exitosamente.'
+      redirect_to admin_cycle_count_path(@cycle_count), notice: "Conteo cíclico completado exitosamente."
     else
-      redirect_to admin_cycle_counts_path, alert: 'No se pudo completar el conteo cíclico.'
+      redirect_to admin_cycle_counts_path, alert: "No se pudo completar el conteo cíclico."
     end
   end
 
@@ -80,7 +80,7 @@ class Admin::CycleCountsController < AdminController
   end
 
   def cycle_count_params
-    params.require(:cycle_count).permit(:warehouse_id, :location_id, :count_type, 
+    params.require(:cycle_count).permit(:warehouse_id, :location_id, :count_type,
                                        :scheduled_date, :status, :notes)
   end
 end

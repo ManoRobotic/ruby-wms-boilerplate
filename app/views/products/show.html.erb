@@ -11,19 +11,11 @@
     <div class="grid grid-cols-1 gap-12 lg:grid-cols-2">
       <!-- Image Gallery -->
       <div class="max-w-md mx-auto lg:max-w-lg">
-        <% if @product.image_url.present? %>
-          <div class="grid grid-cols-2 gap-4">
-            <% Array(@product.image_url).each do |image_url| %>
-              <div class="overflow-hidden rounded-full aspect-square">
-                <%= image_tag(image_url, class: "object-cover w-full h-full transition-transform duration-300 ease-in-out transform hover:scale-110") %>
-              </div>
-            <% end %>
+        <div class="grid grid-cols-1 gap-4">
+          <div class="overflow-hidden rounded-full aspect-square">
+            <%= image_with_initials(@product, "object-cover w-full h-full transition-transform duration-300 ease-in-out transform hover:scale-110") %>
           </div>
-        <% else %>
-          <p class="text-lg text-center text-slate-600">
-            <%= t('product.no_images') %>
-          </p>
-        <% end %>
+        </div>
       </div>
 
       <!-- Product Information -->

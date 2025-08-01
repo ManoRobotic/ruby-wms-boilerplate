@@ -1,0 +1,252 @@
+<% if notice.present? %>
+  <%= render "shared/succes_alert", notice: notice %>
+<% end %>
+
+<div class="w-full px-4 mt-8">
+  <div class="relative flex flex-col w-full text-gray-700 bg-white shadow-md rounded-xl bg-clip-border">
+    <!-- Header -->
+    <div class="relative p-4 text-gray-700 bg-white bg-clip-border">
+      <div class="container mx-auto">
+        <div class="flex flex-col items-center gap-8 px-4 mb-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h1 class="mt-12 font-sans text-xl font-semibold leading-snug tracking-normal text-center md:text-left text-blue-gray-900">
+              <%= t('users.show_user') %>
+            </h1>
+            <p class="text-sm text-gray-600 mt-2">Información detallada del usuario</p>
+          </div>
+          <div class="flex justify-center gap-2 shrink-0 md:w-auto">
+            <%= link_to 'Editar', edit_admin_user_path(@user), class: "mt-12 flex items-center gap-3 rounded-lg bg-blue-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85" %>
+            <%= link_to 'Volver', admin_users_path, class: "mt-12 flex items-center gap-3 rounded-lg bg-gray-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85" %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- User Details -->
+    <div class="px-6 py-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Basic Information -->
+        <div class="space-y-4">
+          <h3 class="text-lg font-semibold text-gray-900">Información Básica</h3>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"><%= t('users.name') %></label>
+            <div class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50">
+              <%= @user.name %>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"><%= t('users.email') %></label>
+            <div class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50">
+              <%= @user.email %>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"><%= t('users.role') %></label>
+            <div class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50">
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                <%= case @user.role
+                    when 'admin' then 'bg-purple-100 text-purple-800'
+                    when 'supervisor' then 'bg-blue-100 text-blue-800'
+                    when 'picker' then 'bg-green-100 text-green-800'
+                    when 'user' then 'bg-gray-100 text-gray-800'
+                    end %>">
+                <%= @user.role_display %>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Warehouse & Status -->
+        <div class="space-y-4">
+          <h3 class="text-lg font-semibold text-gray-900">Asignación y Estado</h3>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"><%= t('users.warehouse') %></label>
+            <div class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50">
+              <%= @user.warehouse&.name || 'Sin almacén asignado' %>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"><%= t('users.active') %></label>
+            <div class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50">
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                <%= @user.active? ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' %>">
+                <%= @user.active? ? 'Activo' : 'Inactivo' %>
+              </span>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Fecha de creación</label>
+            <div class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50">
+              <%= @user.created_at.strftime("%d/%m/%Y a las %H:%M") %>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Última actualización</label>
+            <div class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50">
+              <%= @user.updated_at.strftime("%d/%m/%Y a las %H:%M") %>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- User Statistics -->
+      <div class="mt-8">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Estadísticas del Usuario</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="bg-blue-50 rounded-lg p-4">
+            <div class="flex items-center">
+              <div class="flex-shrink-0">
+                <svg class="h-8 w-8 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+              </div>
+              <div class="ml-5 w-0 flex-1">
+                <dl>
+                  <dt class="text-sm font-medium text-gray-500 truncate">Tareas Completadas</dt>
+                  <dd class="text-lg font-medium text-gray-900"><%= @user_stats[:tasks_completed] %></dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-green-50 rounded-lg p-4">
+            <div class="flex items-center">
+              <div class="flex-shrink-0">
+                <svg class="h-8 w-8 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                </svg>
+              </div>
+              <div class="ml-5 w-0 flex-1">
+                <dl>
+                  <dt class="text-sm font-medium text-gray-500 truncate">Pick Lists Completadas</dt>
+                  <dd class="text-lg font-medium text-gray-900"><%= @user_stats[:pick_lists_completed] %></dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-yellow-50 rounded-lg p-4">
+            <div class="flex items-center">
+              <div class="flex-shrink-0">
+                <svg class="h-8 w-8 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+                </svg>
+              </div>
+              <div class="ml-5 w-0 flex-1">
+                <dl>
+                  <dt class="text-sm font-medium text-gray-500 truncate">Transacciones de Inventario</dt>
+                  <dd class="text-lg font-medium text-gray-900"><%= @user_stats[:inventory_transactions] %></dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex items-center justify-end gap-4 pt-6 border-t mt-8">
+        <% if @user.active? %>
+          <button onclick="handleDeactivateUser('<%= deactivate_admin_user_path(@user) %>')" 
+                  style="display: inline-block; margin-right: 8px;"
+                  class="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+            Desactivar Usuario
+          </button>
+        <% else %>
+          <button onclick="handleActivateUser('<%= activate_admin_user_path(@user) %>')" 
+                  style="display: inline-block; margin-right: 8px;"
+                  class="px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+            Activar Usuario
+          </button>
+        <% end %>
+        
+        <button onclick="handleDeleteUser('<%= admin_user_path(@user) %>')" 
+                style="display: inline-block;"
+                class="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+          Eliminar Usuario
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function handleDeactivateUser(url) {
+  if (confirm('¿Estás seguro de que quieres desactivar este usuario?')) {
+    fetch(url, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content,
+        'Accept': 'text/html'
+      },
+      credentials: 'same-origin'
+    })
+    .then(response => {
+      if (response.ok) {
+        window.location.reload();
+      } else {
+        alert('Error al desactivar el usuario');
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('Error al desactivar el usuario');
+    });
+  }
+}
+
+function handleActivateUser(url) {
+  fetch(url, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content,
+      'Accept': 'text/html'
+    },
+    credentials: 'same-origin'
+  })
+  .then(response => {
+    if (response.ok) {
+      window.location.reload();
+    } else {
+      alert('Error al activar el usuario');
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('Error al activar el usuario');
+  });
+}
+
+function handleDeleteUser(url) {
+  if (confirm('¿Estás seguro de que quieres eliminar este usuario? Esta acción no se puede deshacer.')) {
+    fetch(url, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content,
+        'Accept': 'text/html'
+      },
+      credentials: 'same-origin'
+    })
+    .then(response => {
+      if (response.ok) {
+        window.location.href = '<%= admin_users_path %>';
+      } else {
+        alert('Error al eliminar el usuario');
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('Error al eliminar el usuario');
+    });
+  }
+}
+</script>

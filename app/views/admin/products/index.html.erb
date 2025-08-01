@@ -84,7 +84,7 @@
               <% @admin_products.each do |admin_product| %>
                 <tr data-table-target="row" class="hover:bg-gray-50">
                   <td class="px-6 py-4 whitespace-nowrap">
-                    <img src="<%= admin_product.image_url %>" alt="<%= admin_product.name %>" class="object-cover w-12 h-12 rounded-full">
+                    <%= image_with_initials(admin_product, "object-cover w-12 h-12 rounded-full") %>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     <%= admin_product.name %>

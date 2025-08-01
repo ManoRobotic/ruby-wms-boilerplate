@@ -18,11 +18,11 @@ class Admin::InventoryTransactionsController < AdminController
       @transactions = @transactions.by_date_range(start_date, end_date)
     elsif params[:period].present?
       case params[:period]
-      when 'today'
+      when "today"
         @transactions = @transactions.today
-      when 'this_week'
+      when "this_week"
         @transactions = @transactions.this_week
-      when 'this_month'
+      when "this_month"
         @transactions = @transactions.this_month
       end
     else

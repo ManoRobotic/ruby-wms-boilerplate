@@ -4,11 +4,7 @@
     <% @main_categories.each do |category| %>
       <%= link_to category_path(category), class: "flex flex-col items-center bg-white shadow-lg border border-gray-200 rounded-lg transition-transform duration-300 hover:scale-105" do %>
         <div class="relative w-40 h-40 mt-6 overflow-hidden rounded-full">
-          <% if category.image_url.present? %>
-            <%= image_tag(category.image_url, class: "w-full h-full object-cover") %>
-          <% else %>
-            <%= image_tag("http://via.placeholder.com/512", class: "w-full h-full object-cover") %>
-          <% end %>
+          <%= image_with_initials(category, "w-full h-full object-cover") %>
         </div>
         <div class="px-6 py-4 text-center">
           <h3 class="mb-2 text-lg font-bold text-gray-800"><%= category.name %></h3>
