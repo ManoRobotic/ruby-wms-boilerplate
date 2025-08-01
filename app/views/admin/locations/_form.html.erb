@@ -1,0 +1,123 @@
+<%= form_with(model: [:admin, @warehouse, @zone, location], 
+              data: { 
+                controller: "form",
+                form_validate_on_input_value: false,
+                form_submit_once_value: true,
+                form_loading_class: "opacity-50 cursor-not-allowed",
+                form_invalid_class: "border-red-500 bg-red-50",
+                form_valid_class: "border-green-500 bg-green-50"
+              },
+              class: "space-y-6") do |form| %>
+  <% if location.errors.any? %>
+    <div id="error_explanation" class="bg-red-50 border border-red-200 rounded-md p-4">
+      <h2 class="text-red-800 font-medium mb-2">
+        <%= pluralize(location.errors.count, "error") %> prohibited this location from being saved:
+      </h2>
+      <ul class="text-red-700 text-sm list-disc list-inside">
+        <% location.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="field">
+      <%= form.label :code, "Código", class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <%= form.text_field :code, 
+          data: { form_target: "field" },
+          class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+    </div>
+
+    <div class="field">
+      <%= form.label :location_type, "Tipo", class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <%= form.select :location_type, 
+          options_for_select([
+            ['Rack', 'rack'],
+            ['Estante', 'shelf'],
+            ['Piso', 'floor'],
+            ['Área Temporal', 'temp_area'],
+            ['Muelle', 'dock']
+          ], location.location_type), 
+          { prompt: 'Selecciona un tipo' }, 
+          { class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" } %>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="field">
+      <%= form.label :capacity, "Capacidad", class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <%= form.number_field :capacity, 
+          step: 0.01,
+          min: 0,
+          data: { form_target: "field" },
+          class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+    </div>
+
+    <div class="field">
+      <%= form.label :current_volume, "Volumen Actual", class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <%= form.number_field :current_volume, 
+          step: 0.01,
+          min: 0,
+          data: { form_target: "field" },
+          class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+    </div>
+
+    <div class="field">
+      <%= form.label :max_weight, "Peso Máximo", class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <%= form.number_field :max_weight, 
+          step: 0.01,
+          min: 0,
+          data: { form_target: "field" },
+          class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="field">
+      <%= form.label :aisle, "Pasillo", class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <%= form.text_field :aisle, 
+          data: { form_target: "field" },
+          class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+    </div>
+
+    <div class="field">
+      <%= form.label :section, "Sección", class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <%= form.text_field :section, 
+          data: { form_target: "field" },
+          class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="field">
+      <%= form.label :level, "Nivel", class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <%= form.number_field :level, 
+          min: 0,
+          data: { form_target: "field" },
+          class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+    </div>
+
+    <div class="field">
+      <%= form.label :position, "Posición", class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <%= form.number_field :position, 
+          min: 0,
+          data: { form_target: "field" },
+          class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+    </div>
+
+    <div class="field">
+      <%= form.label :active, class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <div class="mt-2">
+        <%= form.check_box :active, { checked: location.active.nil? ? true : location.active }, class: "h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" %>
+        <%= form.label :active, "Ubicación activa", class: "ml-2 text-sm text-gray-700" %>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200">
+    <%= link_to 'Cancelar', admin_warehouse_zone_locations_path(@warehouse, @zone), class: "px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" %>
+    <%= form.submit data: { form_target: "submit" },
+        class: "px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" %>
+  </div>
+<% end %>
