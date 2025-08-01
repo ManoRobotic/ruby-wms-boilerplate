@@ -13,7 +13,16 @@
     </div>
 
     <div class="p-6">
-      <%= form_with(model: [:admin, @shipment], local: true, class: "space-y-6") do |form| %>
+      <%= form_with(model: [:admin, @shipment], 
+                    data: { 
+                      controller: "form",
+                      form_validate_on_input_value: false,
+                      form_submit_once_value: true,
+                      form_loading_class: "opacity-50 cursor-not-allowed",
+                      form_invalid_class: "border-red-500 bg-red-50",
+                      form_valid_class: "border-green-500 bg-green-50"
+                    },
+                    class: "space-y-6") do |form| %>
         <% if @shipment.errors.any? %>
           <div class="bg-red-50 border border-red-200 rounded-md p-4">
             <div class="flex">
@@ -93,7 +102,9 @@
 
         <div class="flex justify-end space-x-3">
           <%= link_to 'Cancelar', admin_shipments_path, class: "px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" %>
-          <%= form.submit "Crear Envío", class: "px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" %>
+          <%= form.submit "Crear Envío", 
+                  data: { form_target: "submit" },
+                  class: "px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" %>
         </div>
       <% end %>
     </div>

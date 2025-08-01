@@ -19,16 +19,23 @@ class Admin::WarehousesController < AdminController
   end
 
   def new
-    @warehouse = Warehouse.new
+    @warehouse = Warehouse.new(active: true)
   end
 
   def create
     @warehouse = Warehouse.new(warehouse_params)
+    
+    # Ensure active is set if not provided
+    @warehouse.active = true if @warehouse.active.nil?
 
-    if @warehouse.save
-      redirect_to admin_warehouses_path, notice: "Almacén creado exitosamente."
-    else
-      render :new, status: :unprocessable_entity
+    respond_to do |format|
+      if @warehouse.save
+        format.html { redirect_to admin_warehouses_path, notice: "Almacén creado exitosamente." }
+        format.json { render :show, status: :created, location: [:admin, @warehouse] }
+      else
+        format.html { render :new, status: :unprocessable_entity }
+        format.json { render json: @warehouse.errors, status: :unprocessable_entity }
+      end
     end
   end
 
@@ -59,6 +66,6 @@ class Admin::WarehousesController < AdminController
   end
 
   def warehouse_params
-    params.require(:warehouse).permit(:name, :code, :address, :active, contact_info: {})
+    params.require(:warehouse).permit(:name, :code, :address, :active, :contact_info)
   end
 end

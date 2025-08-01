@@ -1,4 +1,5 @@
 class Admin::ReceiptsController < AdminController
+  include StandardCrudResponses
   before_action :set_receipt, only: [:show, :edit, :update, :destroy, :start_receiving, :complete]
 
   def index
@@ -24,12 +25,13 @@ class Admin::ReceiptsController < AdminController
     @receipt = Receipt.new(receipt_params)
     @receipt.admin = current_admin
 
-    if @receipt.save
-      redirect_to admin_receipts_path, notice: 'Recepción creada exitosamente.'
-    else
-      @warehouses = Warehouse.active
-      render :new
-    end
+    handle_create_response(
+      @receipt,
+      admin_receipts_path,
+      'Recepción creada exitosamente.',
+      :new,
+      -> { @warehouses = Warehouse.active }
+    )
   end
 
   def edit

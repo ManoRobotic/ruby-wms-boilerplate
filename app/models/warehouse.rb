@@ -16,7 +16,6 @@ class Warehouse < ApplicationRecord
             uniqueness: { case_sensitive: false }
   validates :address, presence: true, length: { minimum: 10, maximum: 500 }
   validates :active, inclusion: { in: [ true, false ] }
-  validate :contact_info_present
 
   # Set default values
   before_validation :set_default_contact_info
@@ -35,9 +34,6 @@ class Warehouse < ApplicationRecord
     end
   end
 
-  def contact_info_present
-    errors.add(:contact_info, :blank) if contact_info.nil?
-  end
 
   public
 
@@ -116,11 +112,12 @@ class Warehouse < ApplicationRecord
 
   def ensure_contact_info_structure
     self.contact_info ||= {}
-    self.contact_info = contact_info.with_defaults(
+    defaults = {
       "phone" => "",
       "email" => "",
       "manager" => "",
       "hours" => ""
-    )
+    }
+    self.contact_info = defaults.merge(contact_info)
   end
 end

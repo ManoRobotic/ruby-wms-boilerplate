@@ -15,6 +15,9 @@ export default class extends Controller {
     if (this.validateOnInputValue) {
       this.setupRealTimeValidation()
     }
+    
+    // Set up form submit handler
+    this.element.addEventListener('submit', this.submit.bind(this))
   }
 
   setupRealTimeValidation() {
@@ -36,14 +39,22 @@ export default class extends Controller {
   }
 
   markFieldValid(field) {
-    field.classList.remove(this.invalidClass)
-    field.classList.add(this.validClass)
+    if (this.hasInvalidClass) {
+      field.classList.remove(this.invalidClass)
+    }
+    if (this.hasValidClass) {
+      field.classList.add(this.validClass)
+    }
     this.hideFieldError(field)
   }
 
   markFieldInvalid(field) {
-    field.classList.remove(this.validClass)
-    field.classList.add(this.invalidClass)
+    if (this.hasValidClass) {
+      field.classList.remove(this.validClass)
+    }
+    if (this.hasInvalidClass) {
+      field.classList.add(this.invalidClass)
+    }
     this.showFieldError(field)
   }
 
@@ -107,7 +118,11 @@ export default class extends Controller {
     if (this.hasSubmitTarget) {
       const submitButton = this.submitTarget
       submitButton.disabled = true
-      submitButton.classList.add(this.loadingClass)
+      
+      // Only add loading class if it's defined
+      if (this.hasLoadingClass) {
+        submitButton.classList.add(this.loadingClass)
+      }
       
       // Store original text
       this.originalSubmitText = submitButton.textContent
@@ -119,7 +134,11 @@ export default class extends Controller {
     if (this.hasSubmitTarget) {
       const submitButton = this.submitTarget
       submitButton.disabled = false
-      submitButton.classList.remove(this.loadingClass)
+      
+      // Only remove loading class if it's defined
+      if (this.hasLoadingClass) {
+        submitButton.classList.remove(this.loadingClass)
+      }
       
       if (this.originalSubmitText) {
         submitButton.textContent = this.originalSubmitText
@@ -132,7 +151,12 @@ export default class extends Controller {
   // Reset form state
   reset() {
     this.fieldTargets.forEach(field => {
-      field.classList.remove(this.invalidClass, this.validClass)
+      if (this.hasInvalidClass) {
+        field.classList.remove(this.invalidClass)
+      }
+      if (this.hasValidClass) {
+        field.classList.remove(this.validClass)
+      }
       this.hideFieldError(field)
     })
     

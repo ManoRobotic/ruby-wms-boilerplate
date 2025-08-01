@@ -25,12 +25,16 @@ class Admin::ShipmentsController < AdminController
     @shipment = Shipment.new(shipment_params)
     @shipment.admin = current_admin
 
-    if @shipment.save
-      redirect_to admin_shipments_path, notice: 'Envío creado exitosamente.'
-    else
-      @warehouses = Warehouse.active
-      @orders = Order.where(status: ['pending', 'processing', 'confirmed']).includes(:order_products)
-      render :new
+    respond_to do |format|
+      if @shipment.save
+        format.html { redirect_to admin_shipments_path, notice: 'Envío creado exitosamente.' }
+        format.json { render :show, status: :created, location: [:admin, @shipment] }
+      else
+        @warehouses = Warehouse.active
+        @orders = Order.where(status: ['pending', 'processing', 'confirmed']).includes(:order_products)
+        format.html { render :new, status: :unprocessable_entity }
+        format.json { render json: @shipment.errors, status: :unprocessable_entity }
+      end
     end
   end
 
@@ -40,12 +44,16 @@ class Admin::ShipmentsController < AdminController
   end
 
   def update
-    if @shipment.update(shipment_params)
-      redirect_to admin_shipment_path(@shipment), notice: 'Envío actualizado exitosamente.'
-    else
-      @warehouses = Warehouse.active
-      @orders = Order.where(status: ['pending', 'processing', 'confirmed']).includes(:order_products)
-      render :edit
+    respond_to do |format|
+      if @shipment.update(shipment_params)
+        format.html { redirect_to admin_shipment_path(@shipment), notice: 'Envío actualizado exitosamente.' }
+        format.json { render :show, status: :ok, location: [:admin, @shipment] }
+      else
+        @warehouses = Warehouse.active
+        @orders = Order.where(status: ['pending', 'processing', 'confirmed']).includes(:order_products)
+        format.html { render :edit, status: :unprocessable_entity }
+        format.json { render json: @shipment.errors, status: :unprocessable_entity }
+      end
     end
   end
 
