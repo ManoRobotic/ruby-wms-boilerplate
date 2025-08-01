@@ -2,7 +2,9 @@ class AdminController < ApplicationController
   include ApiResponses
 
   layout "admin"
-  before_action :authenticate_admin!
+  
+  # Solo permitir acceso a admins reales o usuarios con rol admin/supervisor
+  before_action :authenticate_admin_or_privileged_user!
   before_action :ensure_admin_permissions!
 
   def index
@@ -116,12 +118,23 @@ class AdminController < ApplicationController
     end
   end
 
+  def authenticate_admin_or_privileged_user!
+    unless current_admin || (current_user&.admin? || current_user&.supervisor?)
+      redirect_to new_user_session_path, alert: 'Necesitas permisos de administrador para acceder.'
+    end
+  end
+
   def ensure_admin_permissions!
-    # Add role-based access control if needed
-    # For now, just ensure admin is active
-    unless current_admin&.email&.present?
+    # Para admins reales, verificar que estén activos
+    if current_admin && !current_admin.email.present?
       Rails.logger.warn "Unauthorized admin access attempt - Admin ID: #{current_admin&.id}, IP: #{request.remote_ip}, Path: #{request.path}"
       redirect_to root_path, alert: "Access denied"
+      return
+    end
+    
+    # Para usuarios, verificar permisos específicos
+    if current_user && !current_user.can?('read_admin_dashboard')
+      redirect_to root_path, alert: "No tienes permisos para acceder al panel de administración."
     end
   end
 end

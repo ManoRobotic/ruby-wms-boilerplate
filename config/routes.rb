@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  devise_for :users
   root "home#index"
 
   # Health checks (should be at the top for monitoring)
@@ -94,6 +95,14 @@ Rails.application.routes.draw do
       member do
         patch :ship
         patch :deliver
+      end
+    end
+
+    # User management
+    resources :users do
+      member do
+        patch :activate
+        patch :deactivate
       end
     end
 

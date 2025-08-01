@@ -7,6 +7,26 @@ en:
     description: 'Categories description'
     explore_more: 'Explore more about this category'
     find_best: 'Find the best related to'
+  users:
+    roles:
+      admin: 'Administrator'
+      supervisor: 'Supervisor'
+      picker: 'Picker'
+      user: 'User'
+    title: 'Users'
+    new_user: 'New User'
+    edit_user: 'Edit User'
+    show_user: 'View User'
+    name: 'Name'
+    email: 'Email'
+    role: 'Role'
+    warehouse: 'Warehouse'
+    active: 'Active'
+    created: 'User created successfully.'
+    updated: 'User updated successfully.'
+    deleted: 'User deleted successfully.'
+    deactivated: 'User deactivated successfully.'
+    activated: 'User activated successfully.'
   devise:
     sessions:
       admin:
@@ -163,6 +183,7 @@ en:
       cycle_counts: 'Cycle Counts'
       shipments: 'Shipments'
       manual_printing: 'Manual Printing'
+      users: 'Users'
       logout: 'Sign Out'
       logout_confirm: 'Are you sure you want to sign out?'
     categories:
