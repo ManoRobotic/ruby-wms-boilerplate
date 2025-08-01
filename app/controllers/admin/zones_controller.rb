@@ -27,7 +27,7 @@ class Admin::ZonesController < AdminController
     if @zone.save
       redirect_to admin_warehouse_zone_path(@warehouse, @zone), notice: "Zone was successfully created."
     else
-      render :new
+      render :new, status: :unprocessable_entity
     end
   end
 
@@ -38,7 +38,7 @@ class Admin::ZonesController < AdminController
     if @zone.update(zone_params)
       redirect_to admin_warehouse_zone_path(@warehouse, @zone), notice: "Zone was successfully updated."
     else
-      render :edit
+      render :edit, status: :unprocessable_entity
     end
   end
 

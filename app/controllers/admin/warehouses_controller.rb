@@ -28,7 +28,7 @@ class Admin::WarehousesController < AdminController
     if @warehouse.save
       redirect_to admin_warehouses_path, notice: "Almacén creado exitosamente."
     else
-      render :new
+      render :new, status: :unprocessable_entity
     end
   end
 
@@ -37,9 +37,9 @@ class Admin::WarehousesController < AdminController
 
   def update
     if @warehouse.update(warehouse_params)
-      redirect_to admin_warehouse_path(@warehouse), notice: "Warehouse was successfully updated."
+      redirect_to admin_warehouse_path(@warehouse), notice: "Almacén actualizado exitosamente."
     else
-      render :edit
+      render :edit, status: :unprocessable_entity
     end
   end
 

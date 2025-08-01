@@ -71,20 +71,22 @@
     <section class="flex flex-col w-full py-16 bg-muted">
       <div class="container mx-auto">
         <div class="overflow-x-auto">
-          <table class="min-w-full bg-white border border-gray-200">
+          <table data-controller="table" 
+                 data-table-sortable-value="true"
+                 class="min-w-full bg-white border border-gray-200">
             <thead class="bg-gray-50">
               <tr>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Imagen</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descripción</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Productos</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                <th data-sortable="name" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">Nombre</th>
+                <th data-sortable="description" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">Descripción</th>
+                <th data-sortable="products" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">Productos</th>
+                <th data-sortable="status" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">Estado</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
               <% @categories.each do |category| %>
-                <tr class="hover:bg-gray-50">
+                <tr data-table-target="row" class="hover:bg-gray-50">
                   <td class="px-6 py-4 whitespace-nowrap">
                     <img src="<%= category.image_url %>" alt="<%= category.name %>" class="object-cover w-12 h-12 rounded-full">
                   </td>
@@ -106,7 +108,12 @@
                     <%= link_to 'Ver', admin_category_path(category), class: "text-indigo-600 hover:text-indigo-900 mr-3" %>
                     <%= link_to 'Editar', edit_admin_category_path(category), class: "text-yellow-600 hover:text-yellow-900 mr-3" %>
                     <%= link_to 'Eliminar', admin_category_path(category), method: :delete, 
-                        data: { confirm: '¿Estás seguro?' }, 
+                        data: { 
+                          controller: "confirm",
+                          action: "click->confirm#confirm",
+                          confirm_message_value: "¿Estás seguro de que deseas eliminar esta categoría?",
+                          confirm_title_value: "Eliminar Categoría"
+                        }, 
                         class: "text-red-600 hover:text-red-900" %>
                   </td>
                 </tr>

@@ -1,6 +1,9 @@
-<div class="bg-gray-100">
+<div class="bg-gray-100" data-controller="sidebar">
     <!-- Botón para abrir/cerrar el sidebar -->
-    <button id="sidebarToggle" type="button" class="fixed z-50 inline-flex items-center p-2 mt-3 ml-5 text-sm text-gray-500 rounded-lg lg:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600">
+    <button data-sidebar-target="toggle" 
+            data-action="click->sidebar#toggle"
+            type="button" 
+            class="fixed z-50 inline-flex items-center p-2 mt-3 ml-5 text-sm text-gray-500 rounded-lg lg:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600">
         <span class="sr-only"><%= t('admin.sidebar.open') %></span>
         <svg class="w-6 h-6" aria-hidden="true" fill="gray" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
             <path clip-rule="evenodd" fill-rule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z"></path>
@@ -8,7 +11,9 @@
     </button>
 
     <!-- Sidebar -->
-    <nav id="default-sidebar" class="fixed top-0 left-0 z-40 w-64 h-screen transition-transform -translate-x-full lg:translate-x-0" aria-label="Sidebar">
+    <nav data-sidebar-target="sidebar" 
+         class="fixed top-0 left-0 z-40 w-64 h-screen transition-transform -translate-x-full lg:translate-x-0" 
+         aria-label="Sidebar">
         <div class="flex flex-col justify-between h-full px-3 py-4 overflow-y-auto bg-gray-800 rounded-r-lg md:rounded-none">
             <ul class="mt-16 space-y-2 font-medium text-white">
                 <% [
@@ -26,7 +31,12 @@
                     { path: admin_manual_printing_path, icon: 'print', label: t('admin.sidebar.manual_printing') }
                 ].each do |item| %>
                     <li>
-                        <%= link_to item[:path], class: "flex items-center p-3 rounded-lg hover:bg-gray-700 #{'bg-gray-700' if current_page?(item[:path])} sidebar-item" do %>
+                        <%= link_to item[:path], 
+                            data: { 
+                              sidebar_target: "link",
+                              action: "click->sidebar#linkClicked"
+                            },
+                            class: "flex items-center p-3 rounded-lg hover:bg-gray-700 #{'bg-gray-700' if current_page?(item[:path])}" do %>
                             <%= icon('fa-solid', item[:icon], class: 'w-5 h-5 mr-2') %> 
                             <span><%= item[:label] %></span>
                         <% end %>
@@ -48,59 +58,3 @@
     </nav>
 </div>
 
-
-<script>
-    function initializeSidebar() {
-        const sidebar = document.getElementById("default-sidebar");
-        const toggleButton = document.getElementById("sidebarToggle");
-        const content = document.querySelector("main");
-        const sidebarLinks = document.querySelectorAll(".sidebar-item");
-
-        if (!sidebar || !toggleButton || !content) return;
-
-        let isSidebarOpen = localStorage.getItem("sidebarOpen") === "true" || window.innerWidth >= 1024;
-
-        const updateSidebarState = () => {
-            sidebar.classList.toggle("-translate-x-full", !isSidebarOpen);
-            content.classList.toggle("lg:ml-64", isSidebarOpen);
-            localStorage.setItem("sidebarOpen", isSidebarOpen);
-        };
-
-        const closeSidebarOnMobile = () => {
-            if (window.innerWidth < 1024 && isSidebarOpen) {
-                isSidebarOpen = false;
-                updateSidebarState();
-            }
-        };
-
-        if (!toggleButton.hasAttribute("data-initialized")) {
-            toggleButton.addEventListener("click", (event) => {
-                event.stopPropagation();
-                isSidebarOpen = !isSidebarOpen;
-                updateSidebarState();
-            });
-
-            sidebarLinks.forEach((link) => link.addEventListener("click", closeSidebarOnMobile));
-
-            document.addEventListener("click", (event) => {
-                if (window.innerWidth < 1024 && isSidebarOpen && !sidebar.contains(event.target) && event.target !== toggleButton) {
-                    closeSidebarOnMobile();
-                }
-            });
-
-            window.addEventListener("resize", () => {
-                isSidebarOpen = window.innerWidth >= 1024 || localStorage.getItem("sidebarOpen") === "true";
-                updateSidebarState();
-            });
-
-            window.addEventListener("scroll", closeSidebarOnMobile);
-
-            toggleButton.setAttribute("data-initialized", "true");
-        }
-
-        updateSidebarState();
-    }
-
-    document.addEventListener("DOMContentLoaded", initializeSidebar);
-    document.addEventListener("turbo:load", initializeSidebar);
-</script>

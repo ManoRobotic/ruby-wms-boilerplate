@@ -69,19 +69,21 @@
         <div class="mb-8">
           <h2 class="text-lg font-semibold text-gray-900 mb-4"><%= t('admin.orders.paid_orders') %></h2>
           <div class="overflow-x-auto">
-            <table class="min-w-full bg-white border border-gray-200">
+            <table data-controller="table" 
+                   data-table-sortable-value="true"
+                   class="min-w-full bg-white border border-gray-200">
               <thead class="bg-gray-50">
                 <tr>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Orden</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                  <th data-sortable="order" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">Orden</th>
+                  <th data-sortable="status" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">Estado</th>
+                  <th data-sortable="date" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">Fecha</th>
+                  <th data-sortable="total" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">Total</th>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
                 </tr>
               </thead>
               <tbody class="bg-white divide-y divide-gray-200">
                 <% @admin_orders.each do |admin_order| %>
-                  <tr class="hover:bg-gray-50">
+                  <tr data-table-target="row" class="hover:bg-gray-50">
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       #<%= admin_order.id.slice(1, 5) %>
                     </td>
@@ -111,19 +113,21 @@
         <div>
           <h2 class="text-lg font-semibold text-gray-900 mb-4"><%= t('admin.orders.unpaid_orders') %></h2>
           <div class="overflow-x-auto">
-            <table class="min-w-full bg-white border border-gray-200">
+            <table data-controller="table" 
+                   data-table-sortable-value="true"
+                   class="min-w-full bg-white border border-gray-200">
               <thead class="bg-gray-50">
                 <tr>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Orden</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                  <th data-sortable="order" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">Orden</th>
+                  <th data-sortable="status" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">Estado</th>
+                  <th data-sortable="date" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">Fecha</th>
+                  <th data-sortable="total" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">Total</th>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
                 </tr>
               </thead>
               <tbody class="bg-white divide-y divide-gray-200">
                 <% @not_fulfilled_orders.each do |admin_order| %>
-                  <tr class="hover:bg-gray-50">
+                  <tr data-table-target="row" class="hover:bg-gray-50">
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       #<%= admin_order.id.slice(1, 5) %>
                     </td>

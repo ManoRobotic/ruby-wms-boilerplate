@@ -30,7 +30,7 @@ class Admin::LocationsController < AdminController
       redirect_to admin_warehouse_zone_location_path(@warehouse, @zone, @location),
                   notice: "Location was successfully created."
     else
-      render :new
+      render :new, status: :unprocessable_entity
     end
   end
 
@@ -42,7 +42,7 @@ class Admin::LocationsController < AdminController
       redirect_to admin_warehouse_zone_location_path(@warehouse, @zone, @location),
                   notice: "Location was successfully updated."
     else
-      render :edit
+      render :edit, status: :unprocessable_entity
     end
   end
 

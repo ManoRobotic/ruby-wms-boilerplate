@@ -46,17 +46,19 @@
     <section class="flex flex-col w-full py-16 bg-muted">
       <div class="container mx-auto">
         <div class="overflow-x-auto">
-          <table class="min-w-full bg-white border border-gray-200">
+          <table data-controller="table" 
+                 data-table-sortable-value="true"
+                 class="min-w-full bg-white border border-gray-200">
             <thead class="bg-gray-50">
               <tr>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Producto</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ubicación</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cantidad</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Costo Unitario</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Razón</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Admin</th>
+                <th data-sortable="date" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">Fecha</th>
+                <th data-sortable="type" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">Tipo</th>
+                <th data-sortable="product" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">Producto</th>
+                <th data-sortable="location" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">Ubicación</th>
+                <th data-sortable="quantity" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">Cantidad</th>
+                <th data-sortable="cost" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">Costo Unitario</th>
+                <th data-sortable="reason" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">Razón</th>
+                <th data-sortable="admin" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">Admin</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
               </tr>
             </thead>
@@ -100,7 +102,12 @@
                   <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <%= link_to 'Ver', admin_inventory_transaction_path(transaction), class: "text-indigo-600 hover:text-indigo-900 mr-3" %>
                     <%= link_to 'Eliminar', admin_inventory_transaction_path(transaction), method: :delete, 
-                        data: { confirm: '¿Estás seguro?' }, 
+                        data: { 
+                          controller: "confirm",
+                          action: "click->confirm#confirm",
+                          confirm_message_value: "¿Estás seguro de que deseas eliminar esta transacción?",
+                          confirm_title_value: "Eliminar Transacción"
+                        }, 
                         class: "text-red-600 hover:text-red-900" %>
                   </td>
                 </tr>
