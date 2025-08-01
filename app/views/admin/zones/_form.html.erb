@@ -1,4 +1,4 @@
-<%= form_with(model: [@warehouse, @zone], local: true, class: "space-y-6") do |form| %>
+<%= form_with(model: [:admin, @warehouse, @zone], local: true, class: "space-y-6") do |form| %>
   <% if @zone.errors.any? %>
     <div class="bg-red-50 border border-red-200 rounded-md p-4">
       <div class="flex">

@@ -1,4 +1,188 @@
-<div>
-  <h1 class="font-bold text-4xl">Admin::Warehouses#show</h1>
-  <p>Find me in app/views/admin/warehouses/show.html.erb</p>
+<% if notice.present? %>
+  <%= render "shared/succes_alert", notice: notice %>
+<% end %>
+
+<div class="w-full px-4 mt-8">
+  <div class="relative flex flex-col w-full text-gray-700 bg-white shadow-md rounded-xl bg-clip-border">
+    <div class="relative p-4 text-gray-700 bg-white bg-clip-border">
+      <div class="container mx-auto">
+        <div class="flex flex-col items-center gap-8 px-4 mb-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h1 class="mt-12 font-sans text-xl font-semibold leading-snug tracking-normal text-center md:text-left text-blue-gray-900">
+              Almacén: <%= @warehouse.name %>
+            </h1>
+            <p class="text-sm text-gray-600 mt-2">Código: <%= @warehouse.code %></p>
+          </div>
+          <div class="flex justify-center gap-2 shrink-0 md:w-auto">
+            <%= link_to 'Editar', edit_admin_warehouse_path(@warehouse), class: "mt-12 flex items-center gap-3 rounded-lg bg-blue-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85" %>
+            <%= link_to 'Volver', admin_warehouses_path, class: "mt-12 flex items-center gap-3 rounded-lg bg-gray-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85" %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <section class="flex flex-col w-full py-8 bg-gray-50">
+      <div class="container mx-auto px-4">
+        <!-- Información General -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          <!-- Detalles del Almacén -->
+          <div class="lg:col-span-2 bg-white rounded-lg shadow p-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Información del Almacén</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-500">Nombre</label>
+                <p class="mt-1 text-sm text-gray-900"><%= @warehouse.name %></p>
+              </div>
+              
+              <div>
+                <label class="block text-sm font-medium text-gray-500">Código</label>
+                <p class="mt-1 text-sm text-gray-900"><%= @warehouse.code %></p>
+              </div>
+              
+              <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-gray-500">Dirección</label>
+                <p class="mt-1 text-sm text-gray-900"><%= @warehouse.address %></p>
+              </div>
+              
+              <div>
+                <label class="block text-sm font-medium text-gray-500">Estado</label>
+                <p class="mt-1">
+                  <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full <%= @warehouse.active? ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' %>">
+                    <%= @warehouse.active? ? 'Activo' : 'Inactivo' %>
+                  </span>
+                </p>
+              </div>
+              
+              <div>
+                <label class="block text-sm font-medium text-gray-500">Utilización</label>
+                <p class="mt-1 text-sm text-gray-900"><%= @utilization %>%</p>
+              </div>
+            </div>
+
+            <!-- Información de Contacto -->
+            <div class="mt-6">
+              <label class="block text-sm font-medium text-gray-500 mb-2">Información de Contacto</label>
+              <div class="bg-gray-50 rounded-md p-4">
+                <% if @warehouse.contact_info.present? %>
+                  <% @warehouse.contact_info.each do |key, value| %>
+                    <% if value.present? %>
+                      <div class="flex justify-between py-1">
+                        <span class="text-sm font-medium text-gray-600"><%= key.humanize %>:</span>
+                        <span class="text-sm text-gray-900"><%= value %></span>
+                      </div>
+                    <% end %>
+                  <% end %>
+                <% else %>
+                  <p class="text-sm text-gray-500 italic">Sin información de contacto</p>
+                <% end %>
+              </div>
+            </div>
+          </div>
+
+          <!-- Estadísticas -->
+          <div class="space-y-6">
+            <!-- Métricas Rápidas -->
+            <div class="bg-white rounded-lg shadow p-6">
+              <h3 class="text-lg font-semibold text-gray-900 mb-4">Estadísticas</h3>
+              
+              <div class="space-y-4">
+                <div class="flex justify-between items-center">
+                  <span class="text-sm font-medium text-gray-600">Zonas</span>
+                  <span class="text-2xl font-bold text-blue-600"><%= @zones_count %></span>
+                </div>
+                
+                <div class="flex justify-between items-center">
+                  <span class="text-sm font-medium text-gray-600">Ubicaciones</span>
+                  <span class="text-2xl font-bold text-green-600"><%= @locations_count %></span>
+                </div>
+                
+                <div class="flex justify-between items-center">
+                  <span class="text-sm font-medium text-gray-600">Tareas Activas</span>
+                  <span class="text-2xl font-bold text-orange-600"><%= @active_tasks %></span>
+                </div>
+                
+                <div class="flex justify-between items-center">
+                  <span class="text-sm font-medium text-gray-600">Listas de Pick Pendientes</span>
+                  <span class="text-2xl font-bold text-purple-600"><%= @pending_pick_lists %></span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Utilización -->
+            <div class="bg-white rounded-lg shadow p-6">
+              <h3 class="text-lg font-semibold text-gray-900 mb-4">Utilización del Almacén</h3>
+              
+              <div class="relative pt-1">
+                <div class="flex mb-2 items-center justify-between">
+                  <div>
+                    <span class="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-blue-600 bg-blue-200">
+                      Capacidad Utilizada
+                    </span>
+                  </div>
+                  <div class="text-right">
+                    <span class="text-xs font-semibold inline-block text-blue-600">
+                      <%= @utilization %>%
+                    </span>
+                  </div>
+                </div>
+                <div class="overflow-hidden h-2 mb-4 text-xs flex rounded bg-blue-200">
+                  <div style="width:<%= @utilization %>%" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-500"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Acciones Rápidas -->
+        <div class="bg-white rounded-lg shadow p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">Acciones Rápidas</h3>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <%= link_to admin_warehouse_zones_path(@warehouse), class: "flex items-center justify-center px-4 py-3 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50" do %>
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+              </svg>
+              Ver Zonas
+            <% end %>
+            
+            <%= link_to new_admin_warehouse_zone_path(@warehouse), class: "flex items-center justify-center px-4 py-3 border border-transparent rounded-md shadow-sm bg-blue-600 text-sm font-medium text-white hover:bg-blue-700" do %>
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+              </svg>
+              Nueva Zona
+            <% end %>
+            
+            <%= link_to admin_receipts_path(warehouse_id: @warehouse.id), class: "flex items-center justify-center px-4 py-3 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50" do %>
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+              </svg>
+              Ver Recepciones
+            <% end %>
+            
+            <%= link_to admin_shipments_path(warehouse_id: @warehouse.id), class: "flex items-center justify-center px-4 py-3 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50" do %>
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+              </svg>
+              Ver Envíos
+            <% end %>
+          </div>
+        </div>
+
+        <!-- Fechas -->
+        <div class="mt-6 bg-white rounded-lg shadow p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">Información del Sistema</h3>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
+            <div>
+              <span class="font-medium">Creado:</span> <%= @warehouse.created_at.strftime("%d/%m/%Y %H:%M") %>
+            </div>
+            <div>
+              <span class="font-medium">Última actualización:</span> <%= @warehouse.updated_at.strftime("%d/%m/%Y %H:%M") %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
 </div>

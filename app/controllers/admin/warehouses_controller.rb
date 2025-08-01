@@ -1,4 +1,5 @@
 class Admin::WarehousesController < AdminController
+  include StandardCrudResponses
   before_action :set_warehouse, only: [ :show, :edit, :update, :destroy ]
 
   def index
@@ -52,10 +53,12 @@ class Admin::WarehousesController < AdminController
 
   def destroy
     if @warehouse.zones.any?
-      redirect_to admin_warehouses_path, alert: "Cannot delete warehouse with existing zones."
+      redirect_to admin_warehouses_path, alert: "No se puede eliminar un almacén que tiene zonas asociadas."
+    elsif @warehouse.orders.any?
+      redirect_to admin_warehouses_path, alert: "No se puede eliminar un almacén que tiene órdenes asociadas."
     else
       @warehouse.destroy
-      redirect_to admin_warehouses_path, notice: "Warehouse was successfully deleted."
+      redirect_to admin_warehouses_path, notice: "Almacén eliminado exitosamente."
     end
   end
 
