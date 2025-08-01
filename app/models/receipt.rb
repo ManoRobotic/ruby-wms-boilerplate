@@ -13,6 +13,15 @@ class Receipt < ApplicationRecord
   validates :total_items, numericality: { greater_than_or_equal_to: 0 }
   validates :received_items, numericality: { greater_than_or_equal_to: 0 }
 
+  # Set default values
+  after_initialize :set_defaults
+
+  private
+
+  def set_defaults
+    self.received_items ||= 0 if new_record?
+  end
+
   # Enums
   STATUSES = %w[scheduled receiving completed cancelled].freeze
   validates :status, inclusion: { in: STATUSES }

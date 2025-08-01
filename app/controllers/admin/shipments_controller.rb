@@ -18,7 +18,7 @@ class Admin::ShipmentsController < AdminController
   def new
     @shipment = Shipment.new
     @warehouses = Warehouse.active
-    @orders = Order.where(status: 'confirmed').includes(:order_products)
+    @orders = Order.where(status: ['pending', 'processing', 'confirmed']).includes(:order_products)
   end
 
   def create
@@ -26,17 +26,17 @@ class Admin::ShipmentsController < AdminController
     @shipment.admin = current_admin
 
     if @shipment.save
-      redirect_to admin_shipment_path(@shipment), notice: 'Envío creado exitosamente.'
+      redirect_to admin_shipments_path, notice: 'Envío creado exitosamente.'
     else
       @warehouses = Warehouse.active
-      @orders = Order.where(status: 'confirmed').includes(:order_products)
+      @orders = Order.where(status: ['pending', 'processing', 'confirmed']).includes(:order_products)
       render :new
     end
   end
 
   def edit
     @warehouses = Warehouse.active
-    @orders = Order.where(status: 'confirmed').includes(:order_products)
+    @orders = Order.where(status: ['pending', 'processing', 'confirmed']).includes(:order_products)
   end
 
   def update
@@ -44,7 +44,7 @@ class Admin::ShipmentsController < AdminController
       redirect_to admin_shipment_path(@shipment), notice: 'Envío actualizado exitosamente.'
     else
       @warehouses = Warehouse.active
-      @orders = Order.where(status: 'confirmed').includes(:order_products)
+      @orders = Order.where(status: ['pending', 'processing', 'confirmed']).includes(:order_products)
       render :edit
     end
   end
@@ -82,6 +82,7 @@ class Admin::ShipmentsController < AdminController
 
   def shipment_params
     params.require(:shipment).permit(:order_id, :warehouse_id, :tracking_number, 
-                                    :carrier, :notes)
+                                    :carrier, :status, :shipped_date, :delivered_date,
+                                    :total_weight, :shipping_cost, :recipient_info)
   end
 end

@@ -16,7 +16,30 @@ class Warehouse < ApplicationRecord
             uniqueness: { case_sensitive: false }
   validates :address, presence: true, length: { minimum: 10, maximum: 500 }
   validates :active, inclusion: { in: [ true, false ] }
-  validates :contact_info, presence: true
+  validate :contact_info_present
+
+  # Set default values
+  before_validation :set_default_contact_info
+
+  private
+
+  def set_default_contact_info
+    if contact_info.blank?
+      self.contact_info = {}
+    elsif contact_info.is_a?(String)
+      begin
+        self.contact_info = JSON.parse(contact_info)
+      rescue JSON::ParserError
+        self.contact_info = { "info" => contact_info }
+      end
+    end
+  end
+
+  def contact_info_present
+    errors.add(:contact_info, :blank) if contact_info.nil?
+  end
+
+  public
 
   # Scopes
   scope :active, -> { where(active: true) }

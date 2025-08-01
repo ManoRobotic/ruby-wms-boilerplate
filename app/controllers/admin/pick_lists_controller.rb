@@ -25,9 +25,9 @@ class Admin::PickListsController < AdminController
 
   def show
     @pick_list_items = @pick_list.pick_list_items.includes(:product, :location)
-                                 .optimized_route
-    @completion_percentage = @pick_list.completion_percentage
-    @estimated_completion = @pick_list.estimated_completion_time
+                                 .order(:sequence_number, :id)
+    @completion_percentage = @pick_list.completion_percentage rescue 0
+    @estimated_completion = @pick_list.estimated_completion_time rescue nil
   end
 
   def new
@@ -41,7 +41,7 @@ class Admin::PickListsController < AdminController
     @pick_list.admin = current_admin
 
     if @pick_list.save
-      redirect_to admin_pick_list_path(@pick_list), notice: "Pick list was successfully created."
+      redirect_to admin_pick_lists_path, notice: "Lista de picking creada exitosamente."
     else
       @orders = Order.where(fulfillment_status: "pending").includes(:order_products)
       @warehouses = Warehouse.active

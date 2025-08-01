@@ -40,24 +40,27 @@
           </div>
 
           <div>
-            <%= form.label :cycle_type, "Tipo de Conteo", class: "block text-sm font-medium text-gray-700" %>
-            <%= form.select :cycle_type, options_for_select([
-              ['ABC', 'abc'],
-              ['Aleatorio', 'random'],
-              ['Por Zona', 'zone'],
-              ['Por Producto', 'product'],
-              ['Completo', 'full']
-            ], @cycle_count.cycle_type), { prompt: 'Selecciona un tipo' }, { class: "mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" } %>
+            <%= form.label :count_type, "Tipo de Conteo", class: "block text-sm font-medium text-gray-700" %>
+            <%= form.select :count_type, options_for_select([
+              ['Completo', 'full_count'],
+              ['Puntual', 'spot_count'],
+              ['ABC', 'abc_count']
+            ], @cycle_count.count_type), { prompt: 'Selecciona un tipo' }, { class: "mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" } %>
+          </div>
+
+          <div>
+            <%= form.label :location_id, "Ubicación", class: "block text-sm font-medium text-gray-700" %>
+            <%= form.select :location_id, options_from_collection_for_select(@locations, :id, :coordinate_code, @cycle_count.location_id), { prompt: 'Selecciona una ubicación' }, { class: "mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" } %>
           </div>
 
           <div>
             <%= form.label :status, "Estado", class: "block text-sm font-medium text-gray-700" %>
             <%= form.select :status, options_for_select([
-              ['Planificado', 'planned'],
+              ['Programado', 'scheduled'],
               ['En Progreso', 'in_progress'],
               ['Completado', 'completed'],
               ['Cancelado', 'cancelled']
-            ], @cycle_count.status || 'planned'), {}, { class: "mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" } %>
+            ], @cycle_count.status || 'scheduled'), {}, { class: "mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" } %>
           </div>
 
           <div>
@@ -65,24 +68,9 @@
             <%= form.date_field :scheduled_date, class: "mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" %>
           </div>
 
-          <div>
-            <%= form.label :assigned_to, "Asignado a", class: "block text-sm font-medium text-gray-700" %>
-            <%= form.select :assigned_to, options_from_collection_for_select(@admins, :id, :email, @cycle_count.assigned_to), { prompt: 'Selecciona un usuario' }, { class: "mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" } %>
-          </div>
-
-          <div>
-            <%= form.label :priority, "Prioridad", class: "block text-sm font-medium text-gray-700" %>
-            <%= form.select :priority, options_for_select([
-              ['Baja', 'low'],
-              ['Media', 'medium'],
-              ['Alta', 'high'],
-              ['Crítica', 'critical']
-            ], @cycle_count.priority), { prompt: 'Selecciona prioridad' }, { class: "mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" } %>
-          </div>
-
           <div class="md:col-span-2">
-            <%= form.label :instructions, "Instrucciones", class: "block text-sm font-medium text-gray-700" %>
-            <%= form.text_area :instructions, rows: 4, class: "mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" %>
+            <%= form.label :notes, "Notas", class: "block text-sm font-medium text-gray-700" %>
+            <%= form.text_area :notes, rows: 4, class: "mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" %>
           </div>
         </div>
 

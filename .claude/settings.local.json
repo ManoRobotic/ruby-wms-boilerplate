@@ -23,7 +23,8 @@
       "Bash(bundle exec rspec:*)",
       "Bash(curl:*)",
       "Bash(find:*)",
-      "Bash(bin/rubocop:*)"
+      "Bash(bin/rubocop:*)",
+      "Bash(ls:*)"
     ],
     "deny": []
   }

@@ -36,7 +36,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <%= form.label :order_id, "Orden", class: "block text-sm font-medium text-gray-700" %>
-            <%= form.select :order_id, options_from_collection_for_select(@orders, :id, :customer_email, @shipment.order_id), { prompt: 'Selecciona una orden' }, { class: "mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" } %>
+            <%= form.select :order_id, options_from_collection_for_select(@orders, :id, ->(order) { "##{order.id[0..7]} - #{order.customer_email}" }, @shipment.order_id), { prompt: 'Selecciona una orden' }, { class: "mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" } %>
           </div>
 
           <div>
@@ -57,18 +57,12 @@
           <div>
             <%= form.label :status, "Estado", class: "block text-sm font-medium text-gray-700" %>
             <%= form.select :status, options_for_select([
-              ['Creado', 'created'],
-              ['Preparado', 'prepared'],
+              ['Preparando', 'preparing'],
               ['Enviado', 'shipped'],
               ['En Tránsito', 'in_transit'],
               ['Entregado', 'delivered'],
-              ['Cancelado', 'cancelled']
-            ], @shipment.status || 'created'), {}, { class: "mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" } %>
-          </div>
-
-          <div>
-            <%= form.label :scheduled_date, "Fecha Programada", class: "block text-sm font-medium text-gray-700" %>
-            <%= form.date_field :scheduled_date, class: "mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" %>
+              ['Devuelto', 'returned']
+            ], @shipment.status || 'preparing'), {}, { class: "mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" } %>
           </div>
 
           <div>
@@ -77,18 +71,23 @@
           </div>
 
           <div>
-            <%= form.label :estimated_delivery, "Entrega Estimada", class: "block text-sm font-medium text-gray-700" %>
-            <%= form.date_field :estimated_delivery, class: "mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" %>
+            <%= form.label :delivered_date, "Fecha de Entrega", class: "block text-sm font-medium text-gray-700" %>
+            <%= form.date_field :delivered_date, class: "mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" %>
+          </div>
+
+          <div>
+            <%= form.label :total_weight, "Peso Total (kg)", class: "block text-sm font-medium text-gray-700" %>
+            <%= form.number_field :total_weight, step: 0.01, min: 0, class: "mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" %>
+          </div>
+
+          <div>
+            <%= form.label :shipping_cost, "Costo de Envío", class: "block text-sm font-medium text-gray-700" %>
+            <%= form.number_field :shipping_cost, step: 0.01, min: 0, class: "mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" %>
           </div>
 
           <div class="md:col-span-2">
-            <%= form.label :shipping_address, "Dirección de Envío", class: "block text-sm font-medium text-gray-700" %>
-            <%= form.text_area :shipping_address, rows: 3, class: "mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" %>
-          </div>
-
-          <div class="md:col-span-2">
-            <%= form.label :notes, "Notas", class: "block text-sm font-medium text-gray-700" %>
-            <%= form.text_area :notes, rows: 2, class: "mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" %>
+            <%= form.label :recipient_info, "Información del Destinatario", class: "block text-sm font-medium text-gray-700" %>
+            <%= form.text_area :recipient_info, rows: 3, class: "mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500", placeholder: "Nombre, dirección, teléfono, etc." %>
           </div>
         </div>
 

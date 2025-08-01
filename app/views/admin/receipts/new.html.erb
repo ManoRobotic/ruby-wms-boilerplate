@@ -45,8 +45,8 @@
           </div>
 
           <div>
-            <%= form.label :po_number, "Número de PO", class: "block text-sm font-medium text-gray-700" %>
-            <%= form.text_field :po_number, class: "mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" %>
+            <%= form.label :reference_number, "Número de Referencia", class: "block text-sm font-medium text-gray-700" %>
+            <%= form.text_field :reference_number, class: "mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" %>
           </div>
 
           <div>
@@ -62,11 +62,16 @@
           <div>
             <%= form.label :status, "Estado", class: "block text-sm font-medium text-gray-700" %>
             <%= form.select :status, options_for_select([
-              ['Esperado', 'expected'],
-              ['Parcial', 'partial'],
-              ['Completo', 'completed'],
+              ['Programado', 'scheduled'],
+              ['Recibiendo', 'receiving'],
+              ['Completado', 'completed'],
               ['Cancelado', 'cancelled']
-            ], @receipt.status || 'expected'), {}, { class: "mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" } %>
+            ], @receipt.status || 'scheduled'), {}, { class: "mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" } %>
+          </div>
+
+          <div>
+            <%= form.label :total_items, "Total de Artículos", class: "block text-sm font-medium text-gray-700" %>
+            <%= form.number_field :total_items, min: 0, value: 1, class: "mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" %>
           </div>
 
           <div class="md:col-span-2">

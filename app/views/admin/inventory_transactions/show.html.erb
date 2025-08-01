@@ -1,0 +1,113 @@
+<% if notice.present? %>
+  <%= render "shared/succes_alert", notice: notice %>
+<% end %>
+
+<div class="w-full px-4 mt-8">
+  <div class="relative flex flex-col w-full text-gray-700 bg-white shadow-md rounded-xl bg-clip-border">
+    <div class="relative p-4 text-gray-700 bg-white bg-clip-border">
+      <div class="container mx-auto">
+        <div class="flex flex-col items-center gap-8 px-4 mb-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h1 class="mt-12 font-sans text-xl font-semibold leading-snug tracking-normal text-center md:text-left text-blue-gray-900">
+              Transacción #<%= @transaction.id[0..7] %>
+            </h1>
+          </div>
+          <div class="flex justify-center gap-2 shrink-0 md:w-auto">
+            <%= link_to 'Volver', admin_inventory_transactions_path, class: "mt-12 flex items-center gap-3 rounded-lg bg-gray-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85" %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="p-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Información de la Transacción</h3>
+          <dl class="space-y-2">
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Tipo de Transacción</dt>
+              <dd class="text-sm text-gray-900">
+                <% type_class = case @transaction.transaction_type
+                   when 'receipt', 'putaway', 'adjustment_in' then 'bg-green-100 text-green-800'
+                   when 'pick', 'shipment', 'adjustment_out' then 'bg-red-100 text-red-800'
+                   when 'move', 'transfer' then 'bg-blue-100 text-blue-800'
+                   else 'bg-gray-100 text-gray-800'
+                   end %>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <%= type_class %>">
+                  <%= @transaction.transaction_type.humanize %>
+                </span>
+              </dd>
+            </div>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Cantidad</dt>
+              <dd class="text-sm text-gray-900">
+                <span class="<%= @transaction.quantity >= 0 ? 'text-green-600' : 'text-red-600' %>">
+                  <%= @transaction.quantity >= 0 ? '+' : '' %><%= @transaction.quantity %>
+                </span>
+              </dd>
+            </div>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Producto</dt>
+              <dd class="text-sm text-gray-900"><%= @transaction.product.name %></dd>
+            </div>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Almacén</dt>
+              <dd class="text-sm text-gray-900"><%= @transaction.warehouse.name %></dd>
+            </div>
+            <% if @transaction.location %>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Ubicación</dt>
+              <dd class="text-sm text-gray-900"><%= @transaction.location.coordinate_code %></dd>
+            </div>
+            <% end %>
+            <% if @transaction.unit_cost %>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Costo Unitario</dt>
+              <dd class="text-sm text-gray-900"><%= number_to_currency(@transaction.unit_cost) %></dd>
+            </div>
+            <% end %>
+            <% if @transaction.batch_number %>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Número de Lote</dt>
+              <dd class="text-sm text-gray-900"><%= @transaction.batch_number %></dd>
+            </div>
+            <% end %>
+          </dl>
+        </div>
+
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Información Administrativa</h3>
+          <dl class="space-y-2">
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Creado por</dt>
+              <dd class="text-sm text-gray-900"><%= @transaction.admin.email %></dd>
+            </div>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Fecha de Creación</dt>
+              <dd class="text-sm text-gray-900"><%= @transaction.created_at.strftime('%d/%m/%Y %H:%M') %></dd>
+            </div>
+            <% if @transaction.reference_id %>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Referencia</dt>
+              <dd class="text-sm text-gray-900"><%= @transaction.reference_id %></dd>
+            </div>
+            <% end %>
+            <% if @transaction.reference_type %>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Tipo de Referencia</dt>
+              <dd class="text-sm text-gray-900"><%= @transaction.reference_type %></dd>
+            </div>
+            <% end %>
+          </dl>
+        </div>
+
+        <% if @transaction.reason.present? %>
+        <div class="md:col-span-2 bg-gray-50 p-4 rounded-lg">
+          <h3 class="text-lg font-medium text-gray-900 mb-2">Razón</h3>
+          <p class="text-sm text-gray-700"><%= @transaction.reason %></p>
+        </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

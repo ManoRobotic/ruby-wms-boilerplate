@@ -26,7 +26,7 @@ class Admin::WarehousesController < AdminController
     @warehouse = Warehouse.new(warehouse_params)
 
     if @warehouse.save
-      redirect_to admin_warehouse_path(@warehouse), notice: "Warehouse was successfully created."
+      redirect_to admin_warehouses_path, notice: "Almacén creado exitosamente."
     else
       render :new
     end

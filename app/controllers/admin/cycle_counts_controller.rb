@@ -25,7 +25,7 @@ class Admin::CycleCountsController < AdminController
     @cycle_count.admin = current_admin
 
     if @cycle_count.save
-      redirect_to admin_cycle_count_path(@cycle_count), notice: 'Conteo cíclico creado exitosamente.'
+      redirect_to admin_cycle_counts_path, notice: 'Conteo cíclico creado exitosamente.'
     else
       @warehouses = Warehouse.active
       @locations = Location.active
@@ -81,6 +81,6 @@ class Admin::CycleCountsController < AdminController
 
   def cycle_count_params
     params.require(:cycle_count).permit(:warehouse_id, :location_id, :count_type, 
-                                       :scheduled_date, :notes)
+                                       :scheduled_date, :status, :notes)
   end
 end

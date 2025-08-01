@@ -25,7 +25,7 @@ class Admin::ReceiptsController < AdminController
     @receipt.admin = current_admin
 
     if @receipt.save
-      redirect_to admin_receipt_path(@receipt), notice: 'Recepción creada exitosamente.'
+      redirect_to admin_receipts_path, notice: 'Recepción creada exitosamente.'
     else
       @warehouses = Warehouse.active
       render :new
@@ -78,6 +78,6 @@ class Admin::ReceiptsController < AdminController
 
   def receipt_params
     params.require(:receipt).permit(:supplier_name, :warehouse_id, :reference_number, 
-                                   :expected_date, :notes, :total_items)
+                                   :expected_date, :received_date, :status, :notes, :total_items)
   end
 end

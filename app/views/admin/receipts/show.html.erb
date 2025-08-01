@@ -1,0 +1,143 @@
+<% if notice.present? %>
+  <%= render "shared/succes_alert", notice: notice %>
+<% end %>
+
+<div class="w-full px-4 mt-8">
+  <div class="relative flex flex-col w-full text-gray-700 bg-white shadow-md rounded-xl bg-clip-border">
+    <div class="relative p-4 text-gray-700 bg-white bg-clip-border">
+      <div class="container mx-auto">
+        <div class="flex flex-col items-center gap-8 px-4 mb-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h1 class="mt-12 font-sans text-xl font-semibold leading-snug tracking-normal text-center md:text-left text-blue-gray-900">
+              Recepción #<%= @receipt.id[0..7] %>
+            </h1>
+          </div>
+          <div class="flex justify-center gap-2 shrink-0 md:w-auto">
+            <%= link_to 'Editar', edit_admin_receipt_path(@receipt), class: "mt-12 flex items-center gap-3 rounded-lg bg-blue-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85 mr-2" %>
+            <%= link_to 'Volver', admin_receipts_path, class: "mt-12 flex items-center gap-3 rounded-lg bg-gray-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85" %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="p-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Información General</h3>
+          <dl class="space-y-2">
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Proveedor</dt>
+              <dd class="text-sm text-gray-900"><%= @receipt.supplier_name %></dd>
+            </div>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Número de PO</dt>
+              <dd class="text-sm text-gray-900"><%= @receipt.po_number || 'N/A' %></dd>
+            </div>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Almacén</dt>
+              <dd class="text-sm text-gray-900"><%= @receipt.warehouse.name %></dd>
+            </div>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Estado</dt>
+              <dd class="text-sm text-gray-900">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <%= 
+                  case @receipt.status
+                  when 'expected' then 'bg-yellow-100 text-yellow-800'
+                  when 'partial' then 'bg-blue-100 text-blue-800'
+                  when 'completed' then 'bg-green-100 text-green-800'
+                  when 'cancelled' then 'bg-red-100 text-red-800'
+                  else 'bg-gray-100 text-gray-800'
+                  end
+                %>">
+                  <%= @receipt.status.humanize %>
+                </span>
+              </dd>
+            </div>
+          </dl>
+        </div>
+
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Fechas</h3>
+          <dl class="space-y-2">
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Creado</dt>
+              <dd class="text-sm text-gray-900"><%= @receipt.created_at.strftime('%d/%m/%Y %H:%M') %></dd>
+            </div>
+            <% if @receipt.expected_date %>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Fecha Esperada</dt>
+              <dd class="text-sm text-gray-900"><%= @receipt.expected_date.strftime('%d/%m/%Y') %></dd>
+            </div>
+            <% end %>
+            <% if @receipt.received_date %>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Fecha Recibida</dt>
+              <dd class="text-sm text-gray-900"><%= @receipt.received_date.strftime('%d/%m/%Y') %></dd>
+            </div>
+            <% end %>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Creado por</dt>
+              <dd class="text-sm text-gray-900"><%= @receipt.admin.email %></dd>
+            </div>
+          </dl>
+        </div>
+
+        <% if @receipt.notes.present? %>
+        <div class="md:col-span-2 bg-gray-50 p-4 rounded-lg">
+          <h3 class="text-lg font-medium text-gray-900 mb-2">Notas</h3>
+          <p class="text-sm text-gray-700"><%= @receipt.notes %></p>
+        </div>
+        <% end %>
+      </div>
+
+      <!-- Receipt Items -->
+      <% if @receipt.receipt_items.any? %>
+      <div class="mt-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Artículos de la Recepción</h3>
+        <div class="overflow-x-auto">
+          <table class="min-w-full bg-white border border-gray-200 rounded-lg">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Producto</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cantidad Esperada</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cantidad Recibida</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <% @receipt.receipt_items.each do |item| %>
+                <tr>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <%= item.product.name %>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <%= item.expected_quantity %>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <%= item.received_quantity || 0 %>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <% if item.received_quantity && item.received_quantity >= item.expected_quantity %>
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        Completo
+                      </span>
+                    <% elsif item.received_quantity && item.received_quantity > 0 %>
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                        Parcial
+                      </span>
+                    <% else %>
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                        Pendiente
+                      </span>
+                    <% end %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <% end %>
+    </div>
+  </div>
+</div>
