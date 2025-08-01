@@ -17,6 +17,19 @@ Rails.application.routes.draw do
   namespace :admin do
     # WMS Resources
     resources :warehouses do
+      resources :waves do
+        member do
+          patch :release
+          patch :start  
+          patch :complete
+          patch :cancel
+        end
+        collection do
+          post :auto_create
+          get :suggestions
+        end
+      end
+      
       resources :zones do
         resources :locations do
           member do

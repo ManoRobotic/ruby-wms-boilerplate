@@ -4,6 +4,7 @@ class Warehouse < ApplicationRecord
   has_many :locations, through: :zones
   has_many :tasks, dependent: :destroy
   has_many :pick_lists, dependent: :destroy
+  has_many :waves, dependent: :destroy
   has_many :inventory_transactions, dependent: :destroy
   has_many :receipts, dependent: :destroy
   has_many :cycle_counts, dependent: :destroy

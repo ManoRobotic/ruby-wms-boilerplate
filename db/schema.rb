@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_07_30_230915) do
+ActiveRecord::Schema[8.0].define(version: 2025_08_01_204517) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -193,6 +193,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_30_230915) do
     t.string "tracking_number", limit: 100
     t.string "priority", default: "medium"
     t.text "notes"
+    t.uuid "wave_id"
     t.index ["fulfillment_status"], name: "index_orders_on_fulfillment_status"
     t.index ["order_type"], name: "index_orders_on_order_type"
     t.index ["payment_id"], name: "index_orders_on_payment_id"
@@ -200,6 +201,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_30_230915) do
     t.index ["requested_ship_date"], name: "index_orders_on_requested_ship_date"
     t.index ["status"], name: "index_orders_on_status"
     t.index ["warehouse_id"], name: "index_orders_on_warehouse_id"
+    t.index ["wave_id", "status"], name: "index_orders_on_wave_id_and_status"
+    t.index ["wave_id"], name: "index_orders_on_wave_id"
   end
 
   create_table "pick_list_items", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -238,6 +241,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_30_230915) do
     t.string "pick_list_number", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.uuid "wave_id"
     t.index ["admin_id", "status"], name: "idx_pick_lists_admin_status"
     t.index ["admin_id"], name: "index_pick_lists_on_admin_id"
     t.index ["order_id"], name: "idx_pick_lists_order"
@@ -250,6 +254,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_30_230915) do
     t.index ["status"], name: "index_pick_lists_on_status"
     t.index ["warehouse_id", "status"], name: "idx_pick_lists_warehouse_status"
     t.index ["warehouse_id"], name: "index_pick_lists_on_warehouse_id"
+    t.index ["wave_id", "status"], name: "index_pick_lists_on_wave_id_and_status"
+    t.index ["wave_id"], name: "index_pick_lists_on_wave_id"
   end
 
   create_table "products", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -399,6 +405,29 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_30_230915) do
     t.index ["code"], name: "index_warehouses_on_code", unique: true
   end
 
+  create_table "waves", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "name", null: false
+    t.uuid "warehouse_id", null: false
+    t.string "status", default: "planning", null: false
+    t.string "wave_type", default: "standard", null: false
+    t.integer "priority", default: 5
+    t.datetime "planned_start_time"
+    t.datetime "actual_start_time"
+    t.datetime "actual_end_time"
+    t.integer "total_orders", default: 0
+    t.integer "total_items", default: 0
+    t.string "strategy", default: "zone_based"
+    t.text "notes"
+    t.uuid "admin_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["admin_id"], name: "index_waves_on_admin_id"
+    t.index ["priority"], name: "index_waves_on_priority"
+    t.index ["status", "planned_start_time"], name: "index_waves_on_status_and_planned_start_time"
+    t.index ["warehouse_id", "status"], name: "index_waves_on_warehouse_id_and_status"
+    t.index ["warehouse_id"], name: "index_waves_on_warehouse_id"
+  end
+
   create_table "zones", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "warehouse_id", null: false
     t.string "name", limit: 100, null: false
@@ -429,12 +458,14 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_30_230915) do
   add_foreign_key "order_products", "orders"
   add_foreign_key "order_products", "products"
   add_foreign_key "orders", "warehouses"
+  add_foreign_key "orders", "waves", column: "wave_id"
   add_foreign_key "pick_list_items", "locations"
   add_foreign_key "pick_list_items", "pick_lists"
   add_foreign_key "pick_list_items", "products"
   add_foreign_key "pick_lists", "admins"
   add_foreign_key "pick_lists", "orders"
   add_foreign_key "pick_lists", "warehouses"
+  add_foreign_key "pick_lists", "waves", column: "wave_id"
   add_foreign_key "products", "categories"
   add_foreign_key "receipt_items", "locations"
   add_foreign_key "receipt_items", "products"
@@ -452,5 +483,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_30_230915) do
   add_foreign_key "tasks", "locations", column: "to_location_id"
   add_foreign_key "tasks", "products"
   add_foreign_key "tasks", "warehouses"
+  add_foreign_key "waves", "admins"
+  add_foreign_key "waves", "warehouses"
   add_foreign_key "zones", "warehouses"
 end

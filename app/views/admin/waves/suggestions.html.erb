@@ -1,0 +1,268 @@
+<% if notice.present? %>
+  <%= render "shared/succes_alert", notice: notice %>
+<% end %>
+
+<div class="w-full px-4 mt-8">
+  <div class="relative flex flex-col w-full text-gray-700 bg-white shadow-md rounded-xl bg-clip-border">
+    <!-- Header -->
+    <div class="relative p-4 text-gray-700 bg-white bg-clip-border">
+      <div class="container mx-auto">
+        <div class="flex flex-col items-center gap-8 px-4 mb-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h1 class="mt-12 font-sans text-xl font-semibold leading-snug tracking-normal text-center md:text-left text-blue-gray-900">
+              Sugerencias de Waves - <%= @warehouse.name %>
+            </h1>
+            <p class="text-sm text-gray-600 mt-2">Recomendaciones inteligentes para crear waves optimizadas</p>
+          </div>
+          <div class="flex justify-center gap-2 shrink-0 md:w-auto">
+            <%= link_to 'Volver', admin_warehouse_waves_path(@warehouse), class: "mt-12 flex items-center gap-3 rounded-lg bg-gray-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85" %>
+            <%= link_to 'Nueva Wave Manual', new_admin_warehouse_wave_path(@warehouse), class: "mt-12 flex items-center gap-3 rounded-lg bg-blue-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85" %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary Stats -->
+    <div class="px-6 py-4 bg-gray-50 border-b">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="bg-white rounded-lg p-4 shadow">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                </svg>
+              </div>
+            </div>
+            <div class="ml-4">
+              <div class="text-sm font-medium text-gray-500">Órdenes Pendientes</div>
+              <div class="text-2xl font-bold text-gray-900">
+                <%= @warehouse.orders.where(wave_id: nil, status: ['pending', 'processing', 'confirmed']).count %>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-lg p-4 shadow">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                </svg>
+              </div>
+            </div>
+            <div class="ml-4">
+              <div class="text-sm font-medium text-gray-500">Sugerencias</div>
+              <div class="text-2xl font-bold text-gray-900"><%= @suggestions.length %></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-lg p-4 shadow">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+              </div>
+            </div>
+            <div class="ml-4">
+              <div class="text-sm font-medium text-gray-500">Tiempo Estimado</div>
+              <div class="text-2xl font-bold text-gray-900">
+                <%= @suggestions.sum { |s| s[:estimated_time] } %> min
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-lg p-4 shadow">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
+                <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                </svg>
+              </div>
+            </div>
+            <div class="ml-4">
+              <div class="text-sm font-medium text-gray-500">Eficiencia Promedio</div>
+              <div class="text-2xl font-bold text-gray-900">
+                <%= @suggestions.empty? ? 0 : (@suggestions.sum { |s| s[:efficiency_score] } / @suggestions.length).round(1) %>%
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Suggestions List -->
+    <div class="px-6 py-4">
+      <% if @suggestions.any? %>
+        <div class="space-y-6">
+          <% @suggestions.each_with_index do |suggestion, index| %>
+            <div class="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+              <div class="p-6">
+                <div class="flex items-start justify-between">
+                  <div class="flex-1">
+                    <div class="flex items-center mb-2">
+                      <h3 class="text-lg font-semibold text-gray-900">
+                        <%= suggestion[:name] %>
+                      </h3>
+                      <span class="ml-3 px-2 py-1 text-xs font-semibold rounded-full 
+                        <%= case suggestion[:priority]
+                            when 1..3 then 'bg-green-100 text-green-800'
+                            when 4..6 then 'bg-yellow-100 text-yellow-800'
+                            when 7..10 then 'bg-red-100 text-red-800'
+                            else 'bg-gray-100 text-gray-800'
+                            end %>">
+                        Prioridad: <%= suggestion[:priority] %>
+                      </span>
+                      <span class="ml-2 px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                        <%= suggestion[:strategy].humanize %>
+                      </span>
+                    </div>
+                    
+                    <p class="text-sm text-gray-600 mb-4"><%= suggestion[:description] %></p>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                      <div class="text-center">
+                        <div class="text-2xl font-bold text-blue-600"><%= suggestion[:total_orders] %></div>
+                        <div class="text-xs text-gray-500">Órdenes</div>
+                      </div>
+                      <div class="text-center">
+                        <div class="text-2xl font-bold text-green-600"><%= suggestion[:total_items] %></div>
+                        <div class="text-xs text-gray-500">Ítems</div>
+                      </div>
+                      <div class="text-center">
+                        <div class="text-2xl font-bold text-purple-600"><%= suggestion[:estimated_time] %></div>
+                        <div class="text-xs text-gray-500">Min. Est.</div>
+                      </div>
+                      <div class="text-center">
+                        <div class="text-2xl font-bold text-orange-600"><%= suggestion[:efficiency_score] %>%</div>
+                        <div class="text-xs text-gray-500">Eficiencia</div>
+                      </div>
+                    </div>
+
+                    <!-- Reasons -->
+                    <div class="mb-4">
+                      <h4 class="text-sm font-medium text-gray-900 mb-2">Razones de la sugerencia:</h4>
+                      <ul class="list-disc list-inside text-sm text-gray-600 space-y-1">
+                        <% suggestion[:reasons].each do |reason| %>
+                          <li><%= reason %></li>
+                        <% end %>
+                      </ul>
+                    </div>
+
+                    <!-- Order Preview -->
+                    <% if suggestion[:order_preview].any? %>
+                      <div class="mb-4">
+                        <h4 class="text-sm font-medium text-gray-900 mb-2">
+                          Órdenes incluidas (mostrando <%= [suggestion[:order_preview].length, 5].min %> de <%= suggestion[:total_orders] %>):
+                        </h4>
+                        <div class="bg-gray-50 rounded-lg p-3">
+                          <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            <% suggestion[:order_preview].first(5).each do |order_info| %>
+                              <div class="text-xs bg-white rounded px-2 py-1 flex justify-between">
+                                <span class="font-medium">#<%= order_info[:id].first(8) %></span>
+                                <span class="text-gray-500"><%= order_info[:items] %> ítems</span>
+                              </div>
+                            <% end %>
+                          </div>
+                          <% if suggestion[:total_orders] > 5 %>
+                            <div class="text-xs text-gray-500 mt-2 text-center">
+                              + <%= suggestion[:total_orders] - 5 %> órdenes más
+                            </div>
+                          <% end %>
+                        </div>
+                      </div>
+                    <% end %>
+                  </div>
+                  
+                  <div class="ml-6 flex-shrink-0">
+                    <%= form_with url: auto_create_admin_warehouse_waves_path(@warehouse), method: :post, local: true do |form| %>
+                      <%= form.hidden_field :strategy, value: suggestion[:strategy] %>
+                      <%= form.hidden_field :wave_type, value: suggestion[:wave_type] %>
+                      <%= form.hidden_field :priority, value: suggestion[:priority] %>
+                      <%= form.hidden_field :max_orders, value: suggestion[:total_orders] %>
+                      <%= form.hidden_field :max_items, value: suggestion[:total_items] %>
+                      <%= form.hidden_field :planned_start_time, value: 1.hour.from_now.iso8601 %>
+                      
+                      <%= form.submit "Crear Wave", 
+                          class: "px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 text-sm font-medium",
+                          data: { 
+                            controller: "confirm",
+                            action: "click->confirm#confirm",
+                            confirm_message_value: "¿Crear wave '#{suggestion[:name]}' con #{suggestion[:total_orders]} órdenes?",
+                            confirm_title_value: "Crear Wave Sugerida"
+                          } %>
+                    <% end %>
+                  </div>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+
+        <!-- Create All Suggestions -->
+        <div class="mt-8 p-6 bg-blue-50 rounded-lg border border-blue-200">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-lg font-semibold text-blue-900">Crear Todas las Sugerencias</h3>
+              <p class="text-sm text-blue-700 mt-1">
+                Crear automáticamente todas las waves sugeridas con configuración optimizada.
+              </p>
+            </div>
+            <button onclick="createAllSuggestions()" 
+                    class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 font-medium"
+                    data-controller="confirm"
+                    data-action="click->confirm#confirm"
+                    data-confirm-message-value="¿Crear todas las <%= @suggestions.length %> waves sugeridas?"
+                    data-confirm-title-value="Crear Todas las Waves">
+              Crear Todas (<%= @suggestions.length %>)
+            </button>
+          </div>
+        </div>
+      <% else %>
+        <!-- No Suggestions Available -->
+        <div class="text-center py-12">
+          <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+          </svg>
+          <h3 class="mt-2 text-sm font-medium text-gray-900">No hay sugerencias disponibles</h3>
+          <p class="mt-1 text-sm text-gray-500">
+            No hay suficientes órdenes pendientes para generar sugerencias de waves.
+          </p>
+          <div class="mt-6">
+            <%= link_to 'Nueva Wave Manual', new_admin_warehouse_wave_path(@warehouse), 
+                class: "inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700" %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<% if @suggestions.any? %>
+<script>
+function createAllSuggestions() {
+  const forms = document.querySelectorAll('form[action*="auto_create"]');
+  let completedRequests = 0;
+  const totalRequests = forms.length;
+  
+  // Show loading state
+  const button = event.target;
+  const originalText = button.textContent;
+  button.textContent = 'Creando...';
+  button.disabled = true;
+  
+  forms.forEach((form, index) => {
+    // Add a delay between requests to avoid overwhelming the server
+    setTimeout(() => {
+      form.submit();
+    }, index * 500); // 500ms delay between each request
+  });
+}
+</script>
+<% end %>

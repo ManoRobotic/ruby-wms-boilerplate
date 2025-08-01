@@ -106,6 +106,11 @@
                   <span class="text-sm font-medium text-gray-600">Listas de Pick Pendientes</span>
                   <span class="text-2xl font-bold text-purple-600"><%= @pending_pick_lists %></span>
                 </div>
+                
+                <div class="flex justify-between items-center">
+                  <span class="text-sm font-medium text-gray-600">Waves Activas</span>
+                  <span class="text-2xl font-bold text-indigo-600"><%= @warehouse.waves.active.count %></span>
+                </div>
               </div>
             </div>
 
@@ -165,6 +170,13 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
               </svg>
               Ver Envíos
+            <% end %>
+            
+            <%= link_to admin_warehouse_waves_path(@warehouse), class: "flex items-center justify-center px-4 py-3 border border-transparent rounded-md shadow-sm bg-purple-600 text-sm font-medium text-white hover:bg-purple-700" do %>
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+              </svg>
+              Wave Management
             <% end %>
           </div>
         </div>

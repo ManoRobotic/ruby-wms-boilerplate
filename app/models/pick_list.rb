@@ -3,6 +3,7 @@ class PickList < ApplicationRecord
   belongs_to :admin
   belongs_to :order
   belongs_to :warehouse
+  belongs_to :wave, optional: true
   has_many :pick_list_items, dependent: :destroy
   has_many :products, through: :pick_list_items
   has_many :locations, through: :pick_list_items
