@@ -1,5 +1,4 @@
-class Admin::PickListsController < ApplicationController
-  before_action :authenticate_admin!
+class Admin::PickListsController < AdminController
   before_action :set_pick_list, only: [ :show, :edit, :update, :destroy, :assign, :start, :complete, :cancel ]
 
   def index

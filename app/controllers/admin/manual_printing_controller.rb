@@ -1,5 +1,4 @@
-class Admin::ManualPrintingController < ApplicationController
-  before_action :authenticate_admin!
+class Admin::ManualPrintingController < AdminController
 
   def index
     # Vista principal de impresión manual

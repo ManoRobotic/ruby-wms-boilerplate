@@ -1,5 +1,4 @@
-class Admin::LocationsController < ApplicationController
-  before_action :authenticate_admin!
+class Admin::LocationsController < AdminController
   before_action :set_warehouse_and_zone
   before_action :set_location, only: [ :show, :edit, :update, :destroy ]
 

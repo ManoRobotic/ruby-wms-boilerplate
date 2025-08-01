@@ -1,5 +1,4 @@
-class Admin::WarehousesController < ApplicationController
-  before_action :authenticate_admin!
+class Admin::WarehousesController < AdminController
   before_action :set_warehouse, only: [ :show, :edit, :update, :destroy ]
 
   def index

@@ -1,5 +1,4 @@
-class Admin::InventoryTransactionsController < ApplicationController
-  before_action :authenticate_admin!
+class Admin::InventoryTransactionsController < AdminController
   before_action :set_transaction, only: [ :show, :destroy ]
 
   def index

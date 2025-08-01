@@ -9,11 +9,55 @@
         <div class="flex flex-col items-center gap-8 px-4 mb-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h1 class="mt-12 font-sans text-xl font-semibold leading-snug tracking-normal text-center md:text-left text-blue-gray-900">
-              <%= t('admin.products.title') %>
+              Productos
             </h1>
           </div>
           <div class="flex justify-center gap-2 shrink-0 md:w-auto">
-            <%= link_to t('admin.products.new_product'), new_admin_product_path, class: "mt-12 flex items-center gap-3 rounded-lg bg-yellow-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85" %>
+            <%= link_to 'Nuevo Producto', new_admin_product_path, class: "mt-12 flex items-center gap-3 rounded-lg bg-yellow-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85" %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Product Status Cards -->
+    <div class="px-4 mb-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                <span class="text-white font-semibold text-sm"><%= @admin_products.count %></span>
+              </div>
+            </div>
+            <div class="ml-3">
+              <p class="text-sm font-medium text-blue-800">Total Productos</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                <span class="text-white font-semibold text-sm"><%= @admin_products.count %></span>
+              </div>
+            </div>
+            <div class="ml-3">
+              <p class="text-sm font-medium text-green-800">Productos Disponibles</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
+                <span class="text-white font-semibold text-sm"><%= @admin_products.joins(:stocks).where('stocks.amount < 10').distinct.count %></span>
+              </div>
+            </div>
+            <div class="ml-3">
+              <p class="text-sm font-medium text-yellow-800">Stock Bajo</p>
+            </div>
           </div>
         </div>
       </div>
@@ -21,26 +65,56 @@
 
     <section class="flex flex-col w-full py-16 bg-muted">
       <div class="container mx-auto">
-        <div id="categories" class="grid grid-cols-1 gap-8 px-4 sm:grid-cols-2 lg:grid-cols-3">
-          <% @admin_products.each do |admin_product| %>
-            <div class="p-6 transition-shadow border rounded-lg cursor-pointer group hover:shadow-lg">
-              <div class="flex flex-col items-center text-center">
-                <h4 class="mb-4 font-semibold group-hover:text-primary">
-                  <%= admin_product.name %>
-                </h4>
-                         <img
-                  src="<%= admin_product.image_url %>" 
-                  alt="<%= admin_product.name %>"
-                  class="object-cover w-24 h-24 mb-4 rounded-full"
-                />
-                <p><%= admin_product.description %></p>
-                <p data-label="Name" class="p-4 text-left">
-                  <%= t('admin.products.price') %>: <%= number_to_currency(admin_product.price) %>
-                </p>
-                <%= link_to t('admin.products.show_product'), admin_product_path(admin_product), class: "hover:bg-gray-400 rounded-lg py-2 px-4 bg-gray-200 inline-block font-medium mt-4" %>
-              </div>
-            </div>
-          <% end %>
+        <div class="overflow-x-auto">
+          <table class="min-w-full bg-white border border-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Imagen</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoría</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Precio</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <% @admin_products.each do |admin_product| %>
+                <tr class="hover:bg-gray-50">
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <img src="<%= admin_product.image_url %>" alt="<%= admin_product.name %>" class="object-cover w-12 h-12 rounded-full">
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    <%= admin_product.name %>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <%= admin_product.category&.name || 'Sin categoría' %>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <%= number_to_currency(admin_product.price) %>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <% total_stock = admin_product.stocks.sum(:amount) %>
+                    <span class="<%= total_stock < 10 ? 'text-red-600 font-semibold' : 'text-green-600' %>">
+                      <%= total_stock %>
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                      Disponible
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <%= link_to 'Ver', admin_product_path(admin_product), class: "text-indigo-600 hover:text-indigo-900 mr-3" %>
+                    <%= link_to 'Editar', edit_admin_product_path(admin_product), class: "text-yellow-600 hover:text-yellow-900 mr-3" %>
+                    <%= link_to 'Eliminar', admin_product_path(admin_product), method: :delete, 
+                        data: { confirm: '¿Estás seguro?' }, 
+                        class: "text-red-600 hover:text-red-900" %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
         </div>
       </div>
     </section>
