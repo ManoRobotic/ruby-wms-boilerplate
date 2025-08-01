@@ -1,0 +1,115 @@
+<div class="w-full px-4 mt-8">
+  <div class="relative flex flex-col w-full text-gray-700 bg-white shadow-md rounded-xl bg-clip-border">
+    <div class="relative p-4 text-gray-700 bg-white bg-clip-border">
+      <div class="container mx-auto">
+        <div class="flex flex-col items-center gap-8 px-4 mb-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h1 class="mt-12 font-sans text-xl font-semibold leading-snug tracking-normal text-center md:text-left text-blue-gray-900">
+              Zona: <%= @zone.name %>
+            </h1>
+          </div>
+          <div class="flex justify-center gap-2 shrink-0 md:w-auto">
+            <%= link_to 'Volver', admin_warehouse_zones_path(@warehouse), class: "mt-12 flex items-center gap-3 rounded-lg bg-gray-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85 mr-2" %>
+            <%= link_to 'Editar', edit_admin_warehouse_zone_path(@warehouse, @zone), class: "mt-12 flex items-center gap-3 rounded-lg bg-yellow-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85" %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="p-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Información de la Zona</h3>
+          <dl class="space-y-3">
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Código</dt>
+              <dd class="text-sm text-gray-900"><%= @zone.code %></dd>
+            </div>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Tipo</dt>
+              <dd class="text-sm text-gray-900">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                  <%= @zone.zone_type.humanize %>
+                </span>
+              </dd>
+            </div>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Descripción</dt>
+              <dd class="text-sm text-gray-900"><%= @zone.description %></dd>
+            </div>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Almacén</dt>
+              <dd class="text-sm text-gray-900"><%= @zone.warehouse.name %></dd>
+            </div>
+          </dl>
+        </div>
+
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Estadísticas</h3>
+          <dl class="space-y-3">
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Total de Ubicaciones</dt>
+              <dd class="text-sm text-gray-900"><%= @zone.locations.count %></dd>
+            </div>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Ubicaciones Activas</dt>
+              <dd class="text-sm text-gray-900"><%= @zone.locations.active.count %></dd>
+            </div>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Ubicaciones con Stock</dt>
+              <dd class="text-sm text-gray-900"><%= @zone.locations.joins(:stocks).distinct.count %></dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+
+      <div class="mt-8">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-medium text-gray-900">Ubicaciones en esta Zona</h3>
+          <%= link_to 'Gestionar Ubicaciones', admin_warehouse_zone_locations_path(@warehouse, @zone), class: "px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium" %>
+        </div>
+        
+        <div class="overflow-x-auto">
+          <table class="min-w-full bg-white border border-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Código</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pasillo</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Posición</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nivel</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Capacidad</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <% @zone.locations.limit(10).each do |location| %>
+                <tr class="hover:bg-gray-50">
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    <%= location.coordinate_code %>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <%= location.aisle %>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <%= location.bay %>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <%= location.level %>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <%= location.capacity %>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <%= location.active? ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' %>">
+                      <%= location.active? ? 'Activa' : 'Inactiva' %>
+                    </span>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -20,11 +20,26 @@
       </div>
     </div>
 
-    <!-- Action buttons -->
+    <!-- Filters and Action buttons -->
     <div class="px-4 mb-6">
-      <div class="flex flex-wrap gap-2">
-        <%= link_to 'Reporte de Movimientos', movement_report_admin_inventory_transactions_path, class: "px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium" %>
-        <%= link_to 'Resumen Diario', daily_summary_admin_inventory_transactions_path, class: "px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium" %>
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <!-- Period filters -->
+        <div class="flex flex-wrap gap-2">
+          <%= link_to 'Todas', admin_inventory_transactions_path, 
+              class: "px-3 py-1 text-sm rounded #{params[:period].blank? ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}" %>
+          <%= link_to 'Hoy', admin_inventory_transactions_path(period: 'today'), 
+              class: "px-3 py-1 text-sm rounded #{params[:period] == 'today' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}" %>
+          <%= link_to 'Esta Semana', admin_inventory_transactions_path(period: 'this_week'), 
+              class: "px-3 py-1 text-sm rounded #{params[:period] == 'this_week' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}" %>
+          <%= link_to 'Este Mes', admin_inventory_transactions_path(period: 'this_month'), 
+              class: "px-3 py-1 text-sm rounded #{params[:period] == 'this_month' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}" %>
+        </div>
+        
+        <!-- Action buttons -->
+        <div class="flex flex-wrap gap-2">
+          <%= link_to 'Reporte de Movimientos', movement_report_admin_inventory_transactions_path, class: "px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium" %>
+          <%= link_to 'Resumen Diario', daily_summary_admin_inventory_transactions_path, class: "px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium" %>
+        </div>
       </div>
     </div>
 
@@ -46,7 +61,7 @@
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
-              <% @inventory_transactions&.includes(:product, :location, :admin, :warehouse)&.each do |transaction| %>
+              <% @transactions&.each do |transaction| %>
                 <tr class="hover:bg-gray-50">
                   <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     <%= transaction.created_at.strftime('%d/%m/%Y %H:%M') %>

@@ -212,11 +212,13 @@ class PickList < ApplicationRecord
 
     order.order_products.includes(:product).each do |order_product|
       # Find best location for this product with sufficient stock
-      best_locations = Location.joins(:stocks, zone: :warehouse)
-                              .where(warehouse: warehouse)
-                              .where(stocks: { product: order_product.product, amount: 1.. })
+      best_locations = Location.joins(:stocks)
+                              .joins(zone: :warehouse)
+                              .where(warehouses: { id: warehouse.id })
+                              .where(stocks: { product: order_product.product })
+                              .where("stocks.amount > 0")
                               .where("stocks.amount - stocks.reserved_quantity >= ?", order_product.quantity)
-                              .order("zones.zone_type = ? DESC, stocks.expiry_date ASC NULLS LAST", "picking")
+                              .order(Arel.sql("zones.zone_type = 'picking' DESC, stocks.expiry_date ASC NULLS LAST"))
                               .limit(1)
 
       location = best_locations.first

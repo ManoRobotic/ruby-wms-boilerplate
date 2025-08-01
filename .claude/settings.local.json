@@ -19,7 +19,11 @@
       "WebFetch(domain:containers.dev)",
       "Bash(docker system prune:*)",
       "Bash(gem install:*)",
-      "Bash(touch:*)"
+      "Bash(touch:*)",
+      "Bash(bundle exec rspec:*)",
+      "Bash(curl:*)",
+      "Bash(find:*)",
+      "Bash(bin/rubocop:*)"
     ],
     "deny": []
   }

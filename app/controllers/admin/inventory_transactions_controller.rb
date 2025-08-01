@@ -16,8 +16,18 @@ class Admin::InventoryTransactionsController < AdminController
       start_date = Date.parse(params[:start_date]) rescue Date.current.beginning_of_month
       end_date = Date.parse(params[:end_date]) rescue Date.current
       @transactions = @transactions.by_date_range(start_date, end_date)
+    elsif params[:period].present?
+      case params[:period]
+      when 'today'
+        @transactions = @transactions.today
+      when 'this_week'
+        @transactions = @transactions.this_week
+      when 'this_month'
+        @transactions = @transactions.this_month
+      end
     else
-      @transactions = @transactions.this_month
+      # Show all transactions by default, limited to recent ones
+      @transactions = @transactions.limit(100)
     end
 
     @transactions = @transactions.recent.page(params[:page]).per(50)
