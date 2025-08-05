@@ -15,6 +15,16 @@
           </div>
           <div class="flex justify-center gap-2 shrink-0 md:w-auto">
             <%= link_to 'Editar', edit_admin_warehouse_path(@warehouse), class: "mt-12 flex items-center gap-3 rounded-lg bg-blue-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85" %>
+            <%= button_to 'Eliminar', admin_warehouse_path(@warehouse), 
+                method: :delete,
+                data: { 
+                  controller: "confirm",
+                  action: "click->confirm#confirm",
+                  confirm_message_value: "¿Estás seguro de eliminar el almacén #{@warehouse.name}? Esta acción no se puede deshacer.",
+                  confirm_title_value: "Eliminar Almacén"
+                }, 
+                class: "mt-12 flex items-center gap-3 rounded-lg bg-red-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg hover:bg-red-600 focus:opacity-85 active:opacity-85 border-none cursor-pointer",
+                form_class: "inline" %>
             <%= link_to 'Volver', admin_warehouses_path, class: "mt-12 flex items-center gap-3 rounded-lg bg-gray-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85" %>
           </div>
         </div>
