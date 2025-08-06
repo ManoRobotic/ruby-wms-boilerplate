@@ -114,6 +114,7 @@ Rails.application.routes.draw do
         patch :pack
         patch :ship
         patch :cancel
+        patch :mark_delivered
       end
     end
     resources :categories
