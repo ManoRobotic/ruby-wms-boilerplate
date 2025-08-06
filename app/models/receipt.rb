@@ -76,6 +76,23 @@ class Receipt < ApplicationRecord
     (total_received.to_f / total_expected * 100).round(2)
   end
 
+  # Status helper methods
+  def scheduled?
+    status == "scheduled"
+  end
+
+  def receiving?
+    status == "receiving"
+  end
+
+  def completed?
+    status == "completed"
+  end
+
+  def cancelled?
+    status == "cancelled"
+  end
+
   private
 
   def generate_reference_number

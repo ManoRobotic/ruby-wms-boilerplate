@@ -48,7 +48,7 @@ class Admin::ReceiptsController < AdminController
   end
 
   def destroy
-    if @receipt.status == "scheduled"
+    if @receipt.scheduled? || @receipt.cancelled?
       @receipt.destroy
       redirect_to admin_receipts_path, notice: "Recepción eliminada exitosamente."
     else
