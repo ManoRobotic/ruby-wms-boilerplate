@@ -61,4 +61,21 @@ class CycleCount < ApplicationRecord
   def total_variances
     cycle_count_items.where.not(variance: 0).count
   end
+
+  # Status helper methods
+  def scheduled?
+    status == "scheduled"
+  end
+
+  def in_progress?
+    status == "in_progress"
+  end
+
+  def completed?
+    status == "completed"
+  end
+
+  def cancelled?
+    status == "cancelled"
+  end
 end

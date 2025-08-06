@@ -76,15 +76,17 @@
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <%= link_to 'Ver', admin_cycle_count_path(cycle_count), class: "text-indigo-600 hover:text-indigo-900 mr-3" %>
-                    <% if cycle_count.status == 'pending' %>
-                      <%= link_to 'Iniciar', start_admin_cycle_count_path(cycle_count), method: :patch, class: "text-green-600 hover:text-green-900 mr-3" %>
+                    <% if cycle_count.status == 'scheduled' %>
+                      <%= button_to 'Iniciar', start_admin_cycle_count_path(cycle_count), method: :patch, class: "text-green-600 hover:text-green-900 mr-3 bg-transparent border-0 p-0", data: { turbo: false } %>
                     <% elsif cycle_count.status == 'in_progress' %>
-                      <%= link_to 'Completar', complete_admin_cycle_count_path(cycle_count), method: :patch, class: "text-purple-600 hover:text-purple-900 mr-3" %>
+                      <%= button_to 'Completar', complete_admin_cycle_count_path(cycle_count), method: :patch, class: "text-purple-600 hover:text-purple-900 mr-3 bg-transparent border-0 p-0", data: { turbo: false } %>
                     <% end %>
                     <%= link_to 'Editar', edit_admin_cycle_count_path(cycle_count), class: "text-yellow-600 hover:text-yellow-900 mr-3" %>
-                    <%= link_to 'Eliminar', admin_cycle_count_path(cycle_count), method: :delete, 
-                        data: { confirm: '¿Estás seguro?' }, 
-                        class: "text-red-600 hover:text-red-900" %>
+                    <% unless cycle_count.status == 'completed' %>
+                      <%= button_to 'Eliminar', admin_cycle_count_path(cycle_count), method: :delete, 
+                          data: { confirm: '¿Estás seguro?' }, 
+                          class: "text-red-600 hover:text-red-900 bg-transparent border-0 p-0" %>
+                    <% end %>
                   </td>
                 </tr>
               <% end %>
