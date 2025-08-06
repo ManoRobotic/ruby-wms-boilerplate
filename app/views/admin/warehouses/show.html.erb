@@ -15,16 +15,49 @@
           </div>
           <div class="flex justify-center gap-2 shrink-0 md:w-auto">
             <%= link_to 'Editar', edit_admin_warehouse_path(@warehouse), class: "mt-12 flex items-center gap-3 rounded-lg bg-blue-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85" %>
-            <%= button_to 'Eliminar', admin_warehouse_path(@warehouse), 
-                method: :delete,
-                data: { 
-                  controller: "confirm",
-                  action: "click->confirm#confirm",
-                  confirm_message_value: "¿Estás seguro de eliminar el almacén #{@warehouse.name}? Esta acción no se puede deshacer.",
-                  confirm_title_value: "Eliminar Almacén"
-                }, 
-                class: "mt-12 flex items-center gap-3 rounded-lg bg-red-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg hover:bg-red-600 focus:opacity-85 active:opacity-85 border-none cursor-pointer",
-                form_class: "inline" %>
+            <% 
+            # Check if warehouse can be deleted - only count ACTIVE dependencies
+            zones_count = @warehouse.zones.count
+            active_orders_count = @warehouse.orders.where.not(status: ['cancelled', 'delivered'])
+                                                    .where.not(fulfillment_status: ['cancelled', 'delivered']).count
+            active_tasks_count = @warehouse.tasks.where.not(status: ['completed', 'cancelled']).count rescue 0
+            active_pick_lists_count = @warehouse.pick_lists.where(status: ['pending', 'assigned', 'in_progress']).count
+            active_waves_count = @warehouse.waves.where.not(status: ['completed', 'cancelled']).count rescue 0
+            active_receipts_count = @warehouse.receipts.where.not(status: ['completed', 'cancelled']).count rescue 0
+            active_shipments_count = @warehouse.shipments.where.not(status: ['cancelled', 'delivered']).count rescue 0
+            
+            blocking_items = []
+            blocking_items << "#{zones_count} zona(s)" if zones_count > 0
+            blocking_items << "#{active_orders_count} orden(es) activa(s)" if active_orders_count > 0
+            blocking_items << "#{active_tasks_count} tarea(s) activa(s)" if active_tasks_count > 0
+            blocking_items << "#{active_pick_lists_count} lista(s) de picking activa(s)" if active_pick_lists_count > 0
+            blocking_items << "#{active_waves_count} wave(s) activa(s)" if active_waves_count > 0
+            blocking_items << "#{active_receipts_count} recepción(es) activa(s)" if active_receipts_count > 0
+            blocking_items << "#{active_shipments_count} envío(s) activo(s)" if active_shipments_count > 0
+            
+            can_delete = blocking_items.empty?
+            %>
+            
+            <% if can_delete %>
+              <%= button_to 'Eliminar', admin_warehouse_path(@warehouse), 
+                  method: :delete,
+                  data: { 
+                    controller: "confirm",
+                    action: "click->confirm#confirm",
+                    confirm_message_value: "¿Estás seguro de eliminar el almacén #{@warehouse.name}? Esta acción no se puede deshacer.",
+                    confirm_title_value: "Eliminar Almacén"
+                  }, 
+                  class: "mt-12 flex items-center gap-3 rounded-lg bg-red-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg hover:bg-red-600 focus:opacity-85 active:opacity-85 border-none cursor-pointer",
+                  form_class: "inline" %>
+            <% else %>
+              <div class="mt-12 flex items-center gap-3 rounded-lg bg-gray-400 py-2 px-4 text-white font-bold shadow-md cursor-not-allowed" 
+                   title="No se puede eliminar porque tiene: <%= blocking_items.join(', ') %>">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                </svg>
+                No se puede eliminar
+              </div>
+            <% end %>
             <%= link_to 'Volver', admin_warehouses_path, class: "mt-12 flex items-center gap-3 rounded-lg bg-gray-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85" %>
           </div>
         </div>
@@ -189,6 +222,70 @@
               Wave Management
             <% end %>
           </div>
+        </div>
+
+        <!-- Dependencies Check -->
+        <div class="mt-6 bg-white rounded-lg shadow p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">Estado de Eliminación</h3>
+          
+          <% 
+          # Check dependencies for deletion - only count ACTIVE ones
+          dependencies = [
+            { name: "Zonas", count: @warehouse.zones.count, link: admin_warehouse_zones_path(@warehouse) },
+            { name: "Órdenes activas", count: @warehouse.orders.where.not(status: ['cancelled', 'delivered']).where.not(fulfillment_status: ['cancelled', 'delivered']).count, link: admin_orders_path(warehouse_id: @warehouse.id) },
+            { name: "Tareas activas", count: (@warehouse.tasks.where.not(status: ['completed', 'cancelled']).count rescue 0), link: admin_tasks_path(warehouse_id: @warehouse.id) },
+            { name: "Listas de Picking activas", count: @warehouse.pick_lists.where(status: ['pending', 'assigned', 'in_progress']).count, link: admin_pick_lists_path(warehouse_id: @warehouse.id) },
+            { name: "Waves activas", count: (@warehouse.waves.where.not(status: ['completed', 'cancelled']).count rescue 0), link: admin_warehouse_waves_path(@warehouse) },
+            { name: "Recepciones activas", count: (@warehouse.receipts.where.not(status: ['completed', 'cancelled']).count rescue 0), link: admin_receipts_path(warehouse_id: @warehouse.id) },
+            { name: "Envíos activos", count: (@warehouse.shipments.where.not(status: ['cancelled', 'delivered']).count rescue 0), link: admin_shipments_path(warehouse_id: @warehouse.id) }
+          ]
+          
+          blocking_deps = dependencies.select { |dep| dep[:count] > 0 }
+          %>
+          
+          <% if blocking_deps.any? %>
+            <div class="bg-yellow-50 border border-yellow-200 rounded-md p-4 mb-4">
+              <div class="flex">
+                <div class="flex-shrink-0">
+                  <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+                <div class="ml-3">
+                  <h3 class="text-sm font-medium text-yellow-800">No se puede eliminar este almacén</h3>
+                  <div class="mt-2 text-sm text-yellow-700">
+                    <p>Este almacén tiene elementos asociados que deben eliminarse primero:</p>
+                    <ul class="list-disc list-inside mt-2 space-y-1">
+                      <% blocking_deps.each do |dep| %>
+                        <li>
+                          <strong><%= dep[:count] %></strong> <%= dep[:name].downcase %>
+                          <% if dep[:link] %>
+                            - <%= link_to "Ver", dep[:link], class: "text-yellow-600 hover:text-yellow-500 underline" %>
+                          <% end %>
+                        </li>
+                      <% end %>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          <% else %>
+            <div class="bg-green-50 border border-green-200 rounded-md p-4 mb-4">
+              <div class="flex">
+                <div class="flex-shrink-0">
+                  <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+                <div class="ml-3">
+                  <h3 class="text-sm font-medium text-green-800">Listo para eliminar</h3>
+                  <div class="mt-2 text-sm text-green-700">
+                    <p>Este almacén no tiene elementos asociados y puede eliminarse de forma segura.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          <% end %>
         </div>
 
         <!-- Fechas -->

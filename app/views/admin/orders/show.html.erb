@@ -6,15 +6,98 @@
 
     <%= render @admin_order %>
       <div class="mt-8">
+      <!-- Order Status Information -->
+      <div class="mb-6 p-4 bg-gray-50 rounded-lg">
+        <h3 class="text-lg font-medium text-gray-900 mb-2">Estado de la Orden</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-500">Estado Principal</label>
+            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+              <%= case @admin_order.status
+                  when 'pending' then 'bg-yellow-100 text-yellow-800'
+                  when 'processing' then 'bg-blue-100 text-blue-800'
+                  when 'shipped' then 'bg-indigo-100 text-indigo-800'
+                  when 'delivered' then 'bg-green-100 text-green-800'
+                  when 'cancelled' then 'bg-red-100 text-red-800'
+                  else 'bg-gray-100 text-gray-800'
+                  end %>">
+              <%= @admin_order.status&.humanize || 'No definido' %>
+            </span>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-500">Estado de Cumplimiento</label>
+            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+              <%= case @admin_order.fulfillment_status
+                  when 'pending' then 'bg-yellow-100 text-yellow-800'
+                  when 'allocated' then 'bg-blue-100 text-blue-800'
+                  when 'picked' then 'bg-purple-100 text-purple-800'
+                  when 'packed' then 'bg-indigo-100 text-indigo-800'
+                  when 'shipped' then 'bg-blue-100 text-blue-800'
+                  when 'delivered' then 'bg-green-100 text-green-800'
+                  when 'cancelled' then 'bg-red-100 text-red-800'
+                  else 'bg-gray-100 text-gray-800'
+                  end %>">
+              <%= @admin_order.fulfillment_status&.humanize || 'No definido' %>
+            </span>
+          </div>
+        </div>
+      </div>
+
       <%= link_to t('admin.common.edit_this', resource: 'order'), edit_admin_order_path(@admin_order), 
           class: "rounded-md bg-slate-800 py-2 px-4 border border-transparent text-center text-sm text-white transition-all shadow-md hover:shadow-lg focus:bg-slate-700 focus:shadow-none active:bg-slate-700 hover:bg-slate-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none ml-2" %>
 
       <%= link_to t('admin.common.back_to', resource: 'orders'), admin_orders_path, 
           class: "rounded-md bg-slate-800 py-2 px-4 border border-transparent text-center text-sm text-white transition-all shadow-md hover:shadow-lg focus:bg-slate-700 focus:shadow-none active:bg-slate-700 hover:bg-slate-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none ml-2" %>
 
+      <!-- Status Change Actions -->
+      <% unless @admin_order.cancelled? || @admin_order.delivered? || @admin_order.fulfillment_status.in?(['cancelled', 'delivered']) %>
+        <%= button_to 'Cancelar Orden', cancel_admin_order_path(@admin_order), method: :patch,
+            data: { confirm: '¿Estás seguro de cancelar esta orden?' },
+            class: "rounded-md bg-red-600 py-2 px-4 border border-transparent text-center text-sm text-white transition-all shadow-md hover:shadow-lg focus:bg-red-700 focus:shadow-none active:bg-red-700 hover:bg-red-700 active:shadow-none ml-2" %>
+        
+        <%= button_to 'Marcar como Entregada', mark_delivered_admin_order_path(@admin_order), method: :patch,
+            data: { confirm: '¿Estás seguro de marcar esta orden como entregada?' },
+            class: "rounded-md bg-green-600 py-2 px-4 border border-transparent text-center text-sm text-white transition-all shadow-md hover:shadow-lg focus:bg-green-700 focus:shadow-none active:bg-green-700 hover:bg-green-700 active:shadow-none ml-2" %>
+      <% end %>
+
       <div class="inline-block ml-2">
-        <%= button_to t('admin.common.destroy_this', resource: 'order'), [:admin, @admin_order], method: :delete, 
-            class: "rounded-md bg-slate-800 py-2 px-4 border border-transparent text-center text-sm text-white transition-all shadow-md hover:shadow-lg focus:bg-slate-700 focus:shadow-none active:bg-slate-700 hover:bg-slate-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none ml-2" %>
+        <% 
+        # Check both status fields
+        status_allows_deletion = @admin_order.cancelled? || @admin_order.delivered?
+        fulfillment_allows_deletion = @admin_order.fulfillment_status.in?(['cancelled', 'delivered'])
+        can_delete = status_allows_deletion || fulfillment_allows_deletion
+        
+        if can_delete
+          # Check for blocking dependencies - only active ones
+          blocking_items = []
+          active_pick_lists = @admin_order.pick_lists.where(status: ['pending', 'assigned', 'in_progress']).count
+          active_shipments = @admin_order.shipments.where.not(status: ['cancelled', 'delivered']).count
+          
+          blocking_items << "#{active_pick_lists} lista(s) de picking activa(s)" if active_pick_lists > 0
+          blocking_items << "#{active_shipments} envío(s) activo(s)" if active_shipments > 0
+          
+          can_delete = blocking_items.empty?
+          blocking_reason = blocking_items.any? ? "Tiene dependencias: #{blocking_items.join(', ')}" : nil
+        else
+          blocking_reason = "Solo se pueden eliminar órdenes canceladas o entregadas. Estado: #{@admin_order.status&.humanize || 'No definido'}, Fulfillment: #{@admin_order.fulfillment_status&.humanize || 'No definido'}"
+        end
+        %>
+        
+        <% if can_delete %>
+          <%= button_to t('admin.common.destroy_this', resource: 'order'), [:admin, @admin_order], method: :delete,
+              data: {
+                confirm: '¿Estás seguro de eliminar esta orden? Esta acción no se puede deshacer.',
+                turbo: false
+              },
+              class: "rounded-md bg-red-600 py-2 px-4 border border-transparent text-center text-sm text-white transition-all shadow-md hover:shadow-lg focus:bg-red-700 focus:shadow-none active:bg-red-700 hover:bg-red-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none ml-2" %>
+        <% else %>
+          <div class="inline-block">
+            <div class="rounded-md bg-gray-400 py-2 px-4 border border-transparent text-center text-sm text-white cursor-not-allowed ml-2" 
+                 title="<%= blocking_reason %>">
+              <%= t('admin.common.destroy_this', resource: 'order') %>
+            </div>
+          </div>
+        <% end %>
       </div>
     </div>
   </div>

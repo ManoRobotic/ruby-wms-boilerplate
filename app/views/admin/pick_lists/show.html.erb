@@ -1,0 +1,218 @@
+<% if notice.present? %>
+  <%= render "shared/succes_alert", notice: notice %>
+<% end %>
+
+<div class="w-full px-4 mt-8">
+  <div class="relative flex flex-col w-full text-gray-700 bg-white shadow-md rounded-xl bg-clip-border">
+    <div class="relative p-4 text-gray-700 bg-white bg-clip-border">
+      <div class="container mx-auto">
+        <div class="flex flex-col items-center gap-8 px-4 mb-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h1 class="mt-12 font-sans text-xl font-semibold leading-snug tracking-normal text-center md:text-left text-blue-gray-900">
+              Lista de Picking #<%= @pick_list.pick_list_number %>
+            </h1>
+            <p class="text-sm text-gray-600 mt-2">
+              <% status_class = case @pick_list.status
+                 when 'completed' then 'bg-green-100 text-green-800'
+                 when 'in_progress' then 'bg-purple-100 text-purple-800'
+                 when 'assigned' then 'bg-blue-100 text-blue-800'
+                 when 'pending' then 'bg-yellow-100 text-yellow-800'
+                 when 'cancelled' then 'bg-red-100 text-red-800'
+                 else 'bg-gray-100 text-gray-800'
+                 end %>
+              <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full <%= status_class %>">
+                <%= @pick_list.status.humanize %>
+              </span>
+              
+              <% priority_class = case @pick_list.priority
+                 when 'urgent' then 'bg-red-100 text-red-800'
+                 when 'high' then 'bg-orange-100 text-orange-800'  
+                 when 'medium' then 'bg-yellow-100 text-yellow-800'
+                 else 'bg-gray-100 text-gray-800'
+                 end %>
+              <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full <%= priority_class %> ml-2">
+                Prioridad: <%= @pick_list.priority.humanize %>
+              </span>
+            </p>
+          </div>
+          <div class="flex justify-center gap-2 shrink-0 md:w-auto">
+            <% if @pick_list.status == 'pending' %>
+              <%= button_to 'Asignar', assign_admin_pick_list_path(@pick_list), method: :patch, class: "mt-12 flex items-center gap-3 rounded-lg bg-blue-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85 mr-2" %>
+            <% elsif @pick_list.status == 'assigned' %>
+              <%= button_to 'Iniciar', start_admin_pick_list_path(@pick_list), method: :patch, class: "mt-12 flex items-center gap-3 rounded-lg bg-green-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85 mr-2" %>
+            <% elsif @pick_list.status == 'in_progress' %>
+              <%= button_to 'Completar', complete_admin_pick_list_path(@pick_list), method: :patch, class: "mt-12 flex items-center gap-3 rounded-lg bg-purple-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85 mr-2" %>
+              <%= button_to 'Optimizar Ruta', optimize_route_admin_pick_list_path(@pick_list), method: :patch, class: "mt-12 flex items-center gap-3 rounded-lg bg-orange-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85 mr-2" %>
+            <% end %>
+            <% unless @pick_list.status == 'completed' %>
+              <%= button_to 'Cancelar', cancel_admin_pick_list_path(@pick_list), method: :patch, 
+                  data: { confirm: '¿Estás seguro de cancelar esta lista de picking?' }, 
+                  class: "mt-12 flex items-center gap-3 rounded-lg bg-red-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85 mr-2" %>
+            <% end %>
+            <%= link_to 'Volver', admin_pick_lists_path, class: "mt-12 flex items-center gap-3 rounded-lg bg-gray-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85" %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="p-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Información General</h3>
+          <dl class="space-y-2">
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Número de Lista</dt>
+              <dd class="text-sm text-gray-900"><%= @pick_list.pick_list_number %></dd>
+            </div>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Orden</dt>
+              <dd class="text-sm text-gray-900">
+                <% if @pick_list.order %>
+                  <%= link_to "##{@pick_list.order.id}", admin_order_path(@pick_list.order), class: "text-blue-600 hover:text-blue-900" %>
+                <% else %>
+                  N/A
+                <% end %>
+              </dd>
+            </div>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Almacén</dt>
+              <dd class="text-sm text-gray-900"><%= @pick_list.warehouse.name %></dd>
+            </div>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Asignado a</dt>
+              <dd class="text-sm text-gray-900"><%= @pick_list.admin&.email || 'Sin asignar' %></dd>
+            </div>
+            <% if @pick_list.wave %>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Wave</dt>
+              <dd class="text-sm text-gray-900">
+                <%= link_to @pick_list.wave.wave_number, admin_warehouse_wave_path(@pick_list.warehouse, @pick_list.wave), class: "text-blue-600 hover:text-blue-900" %>
+              </dd>
+            </div>
+            <% end %>
+          </dl>
+        </div>
+
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Progreso</h3>
+          <dl class="space-y-2">
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Total de Items</dt>
+              <dd class="text-sm text-gray-900"><%= @pick_list.total_items %></dd>
+            </div>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Items Recogidos</dt>
+              <dd class="text-sm text-gray-900"><%= @pick_list.picked_items %></dd>
+            </div>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Porcentaje Completado</dt>
+              <dd class="text-sm text-gray-900">
+                <div class="flex items-center">
+                  <div class="flex-1 bg-gray-200 rounded-full h-2 mr-2">
+                    <div class="bg-blue-600 h-2 rounded-full" style="width: <%= @completion_percentage %>%"></div>
+                  </div>
+                  <span class="text-sm font-medium"><%= @completion_percentage %>%</span>
+                </div>
+              </dd>
+            </div>
+            <% if @pick_list.is_overdue? %>
+            <div>
+              <dt class="text-sm font-medium text-red-500">Estado</dt>
+              <dd class="text-sm text-red-600 font-medium">Atrasado</dd>
+            </div>
+            <% end %>
+            <% if @estimated_completion %>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Tiempo Estimado de Finalización</dt>
+              <dd class="text-sm text-gray-900"><%= @estimated_completion.strftime('%d/%m/%Y %H:%M') %></dd>
+            </div>
+            <% end %>
+          </dl>
+        </div>
+
+        <div class="md:col-span-2 bg-gray-50 p-4 rounded-lg">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Fechas</h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Creado</dt>
+              <dd class="text-sm text-gray-900"><%= @pick_list.created_at.strftime('%d/%m/%Y %H:%M') %></dd>
+            </div>
+            <% if @pick_list.started_at %>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Iniciado</dt>
+              <dd class="text-sm text-gray-900"><%= @pick_list.started_at.strftime('%d/%m/%Y %H:%M') %></dd>
+            </div>
+            <% end %>
+            <% if @pick_list.completed_at %>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Completado</dt>
+              <dd class="text-sm text-gray-900"><%= @pick_list.completed_at.strftime('%d/%m/%Y %H:%M') %></dd>
+            </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pick List Items -->
+      <% if @pick_list_items.any? %>
+      <div class="mt-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Items a Recoger</h3>
+        <div class="overflow-x-auto">
+          <table class="min-w-full bg-white border border-gray-200 rounded-lg">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Seq.</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Producto</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ubicación</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Solicitado</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Recogido</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <% @pick_list_items.each do |item| %>
+                <tr class="hover:bg-gray-50">
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    <%= item.sequence %>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <%= item.product.name %>
+                    <% if item.size.present? %>
+                      <br><span class="text-xs text-gray-500">Talla: <%= item.size %></span>
+                    <% end %>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <%= item.location.full_code %>
+                    <br><span class="text-xs text-gray-500"><%= item.location.zone.name %></span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <%= item.quantity_requested %>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <%= item.quantity_picked || 0 %>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <% if item.quantity_picked && item.quantity_picked >= item.quantity_requested %>
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        Completo
+                      </span>
+                    <% elsif item.quantity_picked && item.quantity_picked > 0 %>
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                        Parcial
+                      </span>
+                    <% else %>
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                        Pendiente
+                      </span>
+                    <% end %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <% end %>
+    </div>
+  </div>
+</div>
