@@ -29,4 +29,25 @@ class Shipment < ApplicationRecord
   def deliver!
     update(status: "delivered", delivered_date: Date.current)
   end
+
+  # Status helper methods
+  def preparing?
+    status == "preparing"
+  end
+
+  def shipped?
+    status == "shipped"
+  end
+
+  def in_transit?
+    status == "in_transit"
+  end
+
+  def delivered?
+    status == "delivered"
+  end
+
+  def returned?
+    status == "returned"
+  end
 end

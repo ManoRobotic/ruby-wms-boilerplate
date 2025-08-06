@@ -73,15 +73,20 @@
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <%= link_to 'Ver', admin_shipment_path(shipment), class: "text-indigo-600 hover:text-indigo-900 mr-3" %>
-                    <% if shipment.status == 'pending' %>
-                      <%= link_to 'Enviar', ship_admin_shipment_path(shipment), method: :patch, class: "text-green-600 hover:text-green-900 mr-3" %>
-                    <% elsif shipment.status == 'shipped' %>
-                      <%= link_to 'Marcar Entregado', deliver_admin_shipment_path(shipment), method: :patch, class: "text-purple-600 hover:text-purple-900 mr-3" %>
+                    <% if shipment.status == 'preparing' %>
+                      <%= button_to 'Enviar', ship_admin_shipment_path(shipment), method: :patch, class: "text-green-600 hover:text-green-900 mr-3 bg-transparent border-none p-0 cursor-pointer underline", form_class: "inline" %>
+                    <% elsif shipment.status.in?(['shipped', 'in_transit']) %>
+                      <%= button_to 'Marcar Entregado', deliver_admin_shipment_path(shipment), method: :patch, class: "text-purple-600 hover:text-purple-900 mr-3 bg-transparent border-none p-0 cursor-pointer underline", form_class: "inline" %>
                     <% end %>
                     <%= link_to 'Editar', edit_admin_shipment_path(shipment), class: "text-yellow-600 hover:text-yellow-900 mr-3" %>
-                    <%= link_to 'Eliminar', admin_shipment_path(shipment), method: :delete, 
-                        data: { confirm: '¿Estás seguro?' }, 
-                        class: "text-red-600 hover:text-red-900" %>
+                    <% if shipment.status == 'preparing' %>
+                      <%= button_to 'Eliminar', admin_shipment_path(shipment), method: :delete, 
+                          data: { confirm: '¿Estás seguro de eliminar este envío?', turbo: false }, 
+                          class: "text-red-600 hover:text-red-900 bg-transparent border-none p-0 cursor-pointer underline",
+                          form_class: "inline" %>
+                    <% else %>
+                      <span class="text-gray-400 cursor-not-allowed" title="Solo se pueden eliminar envíos en preparación">Eliminar</span>
+                    <% end %>
                   </td>
                 </tr>
               <% end %>

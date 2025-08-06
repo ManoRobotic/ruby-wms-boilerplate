@@ -1,0 +1,112 @@
+<div class="w-full px-4 mt-8">
+  <div class="relative flex flex-col w-full text-gray-700 bg-white shadow-md rounded-xl bg-clip-border">
+    <div class="relative p-4 text-gray-700 bg-white bg-clip-border">
+      <div class="container mx-auto">
+        <div class="flex flex-col items-center gap-8 px-4 mb-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h1 class="mt-12 font-sans text-xl font-semibold leading-snug tracking-normal text-center md:text-left text-blue-gray-900">
+              Editar Envío #<%= @shipment.id[0..7] %>
+            </h1>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="p-6">
+      <%= form_with(model: [:admin, @shipment], 
+                    data: { 
+                      controller: "form",
+                      form_validate_on_input_value: false,
+                      form_submit_once_value: true,
+                      form_loading_class: "opacity-50 cursor-not-allowed",
+                      form_invalid_class: "border-red-500 bg-red-50",
+                      form_valid_class: "border-green-500 bg-green-50"
+                    },
+                    class: "space-y-6") do |form| %>
+        <% if @shipment.errors.any? %>
+          <div class="bg-red-50 border border-red-200 rounded-md p-4">
+            <div class="flex">
+              <div class="ml-3">
+                <h3 class="text-sm font-medium text-red-800">
+                  <%= pluralize(@shipment.errors.count, "error") %> prevented this shipment from being saved:
+                </h3>
+                <div class="mt-2 text-sm text-red-700">
+                  <ul class="list-disc pl-5 space-y-1">
+                    <% @shipment.errors.full_messages.each do |message| %>
+                      <li><%= message %></li>
+                    <% end %>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% end %>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <%= form.label :order_id, "Orden", class: "block text-sm font-medium text-gray-700" %>
+            <%= form.select :order_id, options_from_collection_for_select(@orders, :id, ->(order) { "##{order.id[0..7]} - #{order.customer_email}" }, @shipment.order_id), { prompt: 'Selecciona una orden' }, { class: "mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" } %>
+          </div>
+
+          <div>
+            <%= form.label :warehouse_id, "Almacén", class: "block text-sm font-medium text-gray-700" %>
+            <%= form.select :warehouse_id, options_from_collection_for_select(@warehouses, :id, :name, @shipment.warehouse_id), { prompt: 'Selecciona un almacén' }, { class: "mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" } %>
+          </div>
+
+          <div>
+            <%= form.label :carrier, "Transportista", class: "block text-sm font-medium text-gray-700" %>
+            <%= form.text_field :carrier, class: "mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" %>
+          </div>
+
+          <div>
+            <%= form.label :tracking_number, "Número de Seguimiento", class: "block text-sm font-medium text-gray-700" %>
+            <%= form.text_field :tracking_number, class: "mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" %>
+          </div>
+
+          <div>
+            <%= form.label :status, "Estado", class: "block text-sm font-medium text-gray-700" %>
+            <%= form.select :status, options_for_select([
+              ['Preparando', 'preparing'],
+              ['Enviado', 'shipped'],
+              ['En Tránsito', 'in_transit'],
+              ['Entregado', 'delivered'],
+              ['Devuelto', 'returned']
+            ], @shipment.status), {}, { class: "mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" } %>
+          </div>
+
+          <div>
+            <%= form.label :shipped_date, "Fecha de Envío", class: "block text-sm font-medium text-gray-700" %>
+            <%= form.date_field :shipped_date, class: "mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" %>
+          </div>
+
+          <div>
+            <%= form.label :delivered_date, "Fecha de Entrega", class: "block text-sm font-medium text-gray-700" %>
+            <%= form.date_field :delivered_date, class: "mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" %>
+          </div>
+
+          <div>
+            <%= form.label :total_weight, "Peso Total (kg)", class: "block text-sm font-medium text-gray-700" %>
+            <%= form.number_field :total_weight, step: 0.01, min: 0, class: "mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" %>
+          </div>
+
+          <div>
+            <%= form.label :shipping_cost, "Costo de Envío", class: "block text-sm font-medium text-gray-700" %>
+            <%= form.number_field :shipping_cost, step: 0.01, min: 0, class: "mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" %>
+          </div>
+
+          <div class="md:col-span-2">
+            <%= form.label :recipient_info, "Información del Destinatario", class: "block text-sm font-medium text-gray-700" %>
+            <%= form.text_area :recipient_info, rows: 3, class: "mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500", placeholder: "Nombre, dirección, teléfono, etc." %>
+          </div>
+        </div>
+
+        <div class="flex justify-end space-x-3">
+          <%= link_to 'Cancelar', admin_shipment_path(@shipment), class: "px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" %>
+          <%= form.submit "Actualizar Envío", 
+                  data: { form_target: "submit" },
+                  class: "px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
