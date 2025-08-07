@@ -144,17 +144,23 @@
                   <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <%= link_to 'Ver', admin_pick_list_path(pick_list), class: "text-indigo-600 hover:text-indigo-900 mr-3" %>
                     <% if pick_list.status == 'pending' %>
-                      <%= button_to 'Asignar', assign_admin_pick_list_path(pick_list), method: :patch, class: "text-blue-600 hover:text-blue-900 mr-3 bg-transparent border-none p-0 cursor-pointer underline", form_class: "inline" %>
+                      <%= button_to 'Asignar', assign_admin_pick_list_path(pick_list), method: :patch, data: { turbo: false }, class: "text-blue-600 hover:text-blue-900 mr-3 bg-transparent border-none p-0 cursor-pointer underline", form_class: "inline" %>
                     <% elsif pick_list.status == 'assigned' %>
-                      <%= button_to 'Iniciar', start_admin_pick_list_path(pick_list), method: :patch, class: "text-green-600 hover:text-green-900 mr-3 bg-transparent border-none p-0 cursor-pointer underline", form_class: "inline" %>
+                      <%= button_to 'Iniciar', start_admin_pick_list_path(pick_list), method: :patch, data: { turbo: false }, class: "text-green-600 hover:text-green-900 mr-3 bg-transparent border-none p-0 cursor-pointer underline", form_class: "inline" %>
                     <% elsif pick_list.status == 'in_progress' %>
-                      <%= button_to 'Completar', complete_admin_pick_list_path(pick_list), method: :patch, class: "text-purple-600 hover:text-purple-900 mr-3 bg-transparent border-none p-0 cursor-pointer underline", form_class: "inline" %>
-                      <%= button_to 'Optimizar Ruta', optimize_route_admin_pick_list_path(pick_list), method: :patch, class: "text-orange-600 hover:text-orange-900 mr-3 bg-transparent border-none p-0 cursor-pointer underline", form_class: "inline" %>
+                      <%= button_to 'Completar', complete_admin_pick_list_path(pick_list), method: :patch, data: { turbo: false }, class: "text-purple-600 hover:text-purple-900 mr-3 bg-transparent border-none p-0 cursor-pointer underline", form_class: "inline" %>
+                      <%= button_to 'Optimizar Ruta', optimize_route_admin_pick_list_path(pick_list), method: :patch, data: { turbo: false }, class: "text-orange-600 hover:text-orange-900 mr-3 bg-transparent border-none p-0 cursor-pointer underline", form_class: "inline" %>
                     <% end %>
                     <% unless pick_list.status == 'completed' %>
                       <%= button_to 'Cancelar', cancel_admin_pick_list_path(pick_list), method: :patch, 
-                          data: { confirm: '¿Estás seguro?' }, 
+                          data: { confirm: '¿Estás seguro?', turbo: false }, 
                           class: "text-red-600 hover:text-red-900 bg-transparent border-none p-0 cursor-pointer underline",
+                          form_class: "inline" %>
+                    <% end %>
+                    <% if pick_list.pending? || pick_list.cancelled? || pick_list.completed? %>
+                      <%= button_to 'Eliminar', admin_pick_list_path(pick_list), method: :delete, 
+                          data: { confirm: '¿Estás seguro de eliminar esta lista de picking?', turbo: false }, 
+                          class: "text-gray-600 hover:text-gray-900 bg-transparent border-none p-0 cursor-pointer underline",
                           form_class: "inline" %>
                     <% end %>
                   </td>

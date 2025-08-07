@@ -1,8 +1,8 @@
 class Admin::PickListsController < AdminController
-  before_action :set_pick_list, only: [ :show, :edit, :update, :destroy, :assign, :start, :complete, :cancel ]
+  before_action :set_pick_list, only: [ :show, :edit, :update, :destroy, :assign, :start, :complete, :cancel, :optimize_route ]
   before_action :authorize_pick_list_management!, except: [ :index, :show ]
   before_action :authorize_pick_list_read!, only: [ :index, :show ]
-  before_action :check_pick_list_warehouse_access!, only: [ :show, :edit, :update, :destroy, :assign, :start, :complete, :cancel ]
+  before_action :check_pick_list_warehouse_access!, only: [ :show, :edit, :update, :destroy, :assign, :start, :complete, :cancel, :optimize_route ]
 
   def index
     @pick_lists = PickList.includes(:order, :warehouse, :admin, :pick_list_items)
@@ -33,7 +33,7 @@ class Admin::PickListsController < AdminController
 
   def show
     @pick_list_items = @pick_list.pick_list_items.includes(:product, :location)
-                                 .order(:sequence_number, :id)
+                                 .order(:sequence, :id)
     @completion_percentage = @pick_list.completion_percentage rescue 0
     @estimated_completion = @pick_list.estimated_completion_time rescue nil
   end
@@ -73,11 +73,12 @@ class Admin::PickListsController < AdminController
   end
 
   def destroy
-    if @pick_list.pending?
+    # Allow deletion if pending, cancelled, or completed
+    if @pick_list.pending? || @pick_list.cancelled? || @pick_list.completed?
       @pick_list.destroy
-      redirect_to admin_pick_lists_path, notice: "Pick list was successfully deleted."
+      redirect_to admin_pick_lists_path, notice: "Lista de picking eliminada exitosamente."
     else
-      redirect_to admin_pick_list_path(@pick_list), alert: "Cannot delete pick list that is not pending."
+      redirect_to admin_pick_lists_path, alert: "No se puede eliminar una lista de picking en progreso."
     end
   end
 
@@ -95,26 +96,26 @@ class Admin::PickListsController < AdminController
 
   def start
     if @pick_list.start!
-      redirect_to admin_pick_list_path(@pick_list), notice: "Pick list started successfully."
+      redirect_to admin_pick_list_path(@pick_list), notice: "Lista de picking iniciada exitosamente."
     else
-      redirect_to admin_pick_list_path(@pick_list), alert: "Could not start pick list."
+      redirect_to admin_pick_list_path(@pick_list), alert: "No se pudo iniciar la lista de picking. Estado actual: #{@pick_list.status}"
     end
   end
 
   def complete
     if @pick_list.complete!
-      redirect_to admin_pick_list_path(@pick_list), notice: "Pick list completed successfully."
+      redirect_to admin_pick_list_path(@pick_list), notice: "Lista de picking completada exitosamente."
     else
-      redirect_to admin_pick_list_path(@pick_list), alert: "Could not complete pick list. Ensure all items are picked."
+      redirect_to admin_pick_list_path(@pick_list), alert: "No se pudo completar la lista de picking. Estado actual: #{@pick_list.status}"
     end
   end
 
   def cancel
     reason = params[:cancellation_reason]
     if @pick_list.cancel!(reason)
-      redirect_to admin_pick_list_path(@pick_list), notice: "Pick list cancelled successfully."
+      redirect_to admin_pick_list_path(@pick_list), notice: "Lista de picking cancelada exitosamente."
     else
-      redirect_to admin_pick_list_path(@pick_list), alert: "Could not cancel pick list."
+      redirect_to admin_pick_list_path(@pick_list), alert: "No se pudo cancelar la lista de picking. Estado actual: #{@pick_list.status}"
     end
   end
 
