@@ -13,7 +13,7 @@
     </div>
 
     <div class="p-6">
-      <%= form_with(model: [:admin, @receipt], local: true, class: "space-y-6") do |form| %>
+      <%= form_with(model: [:admin, @receipt], local: true, class: "space-y-6", data: { turbo: false }) do |form| %>
         <% if @receipt.errors.any? %>
           <div class="bg-red-50 border border-red-200 rounded-md p-4">
             <div class="flex">
@@ -72,6 +72,11 @@
           <div>
             <%= form.label :total_items, "Total de Artículos", class: "block text-sm font-medium text-gray-700" %>
             <%= form.number_field :total_items, min: 0, class: "mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" %>
+          </div>
+
+          <div>
+            <%= form.label :received_items, "Artículos Recibidos", class: "block text-sm font-medium text-gray-700" %>
+            <%= form.number_field :received_items, min: 0, class: "mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" %>
           </div>
 
           <div class="md:col-span-2">

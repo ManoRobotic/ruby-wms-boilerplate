@@ -16,12 +16,6 @@ class Receipt < ApplicationRecord
   # Set default values
   after_initialize :set_defaults
 
-  private
-
-  def set_defaults
-    self.received_items ||= 0 if new_record?
-  end
-
   # Enums
   STATUSES = %w[scheduled receiving completed cancelled].freeze
   validates :status, inclusion: { in: STATUSES }
@@ -94,6 +88,10 @@ class Receipt < ApplicationRecord
   end
 
   private
+
+  def set_defaults
+    self.received_items ||= 0 if new_record?
+  end
 
   def generate_reference_number
     self.reference_number ||= "RCP#{Date.current.strftime('%Y%m%d')}#{SecureRandom.hex(3).upcase}"

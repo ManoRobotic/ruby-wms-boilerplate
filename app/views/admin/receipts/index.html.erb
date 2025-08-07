@@ -69,10 +69,14 @@
                       <%= button_to 'Completar', complete_admin_receipt_path(receipt), method: :patch, class: "text-purple-600 hover:text-purple-900 mr-3 bg-transparent border-0 p-0", data: { turbo: false } %>
                     <% end %>
                     <%= link_to 'Editar', edit_admin_receipt_path(receipt), class: "text-yellow-600 hover:text-yellow-900 mr-3" %>
-                    <% unless receipt.completed? || receipt.cancelled? %>
+                    <% if receipt.scheduled? || receipt.cancelled? %>
                       <%= button_to 'Eliminar', admin_receipt_path(receipt), method: :delete, 
                           data: { confirm: '¿Estás seguro?' }, 
                           class: "text-red-600 hover:text-red-900 bg-transparent border-0 p-0" %>
+                    <% else %>
+                      <span class="text-gray-400 text-sm" title="Solo se pueden eliminar recepciones programadas o canceladas">
+                        No eliminable
+                      </span>
                     <% end %>
                   </td>
                 </tr>

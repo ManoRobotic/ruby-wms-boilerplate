@@ -101,14 +101,20 @@
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <%= link_to 'Ver', admin_inventory_transaction_path(transaction), class: "text-indigo-600 hover:text-indigo-900 mr-3" %>
-                    <%= link_to 'Eliminar', admin_inventory_transaction_path(transaction), method: :delete, 
-                        data: { 
-                          controller: "confirm",
-                          action: "click->confirm#confirm",
-                          confirm_message_value: "¿Estás seguro de que deseas eliminar esta transacción?",
-                          confirm_title_value: "Eliminar Transacción"
-                        }, 
-                        class: "text-red-600 hover:text-red-900" %>
+                    <% recent_and_own = transaction.created_at > 24.hours.ago && current_admin == transaction.admin %>
+                    <% is_adjustment = transaction.transaction_type.include?('adjustment') %>
+                    <% if recent_and_own || is_adjustment %>
+                      <%= button_to 'Eliminar', admin_inventory_transaction_path(transaction), method: :delete, 
+                          data: { 
+                            confirm: "¿Estás seguro de que deseas eliminar esta transacción?",
+                            turbo: false
+                          }, 
+                          class: "text-red-600 hover:text-red-900 bg-transparent border-0 p-0" %>
+                    <% else %>
+                      <span class="text-gray-400 text-sm" title="<%= transaction.created_at <= 24.hours.ago ? 'Más de 24h' : 'No es tu transacción' %>">
+                        No eliminable
+                      </span>
+                    <% end %>
                   </td>
                 </tr>
               <% end %>

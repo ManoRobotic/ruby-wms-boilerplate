@@ -80,6 +80,6 @@ class Admin::ReceiptsController < AdminController
 
   def receipt_params
     params.require(:receipt).permit(:supplier_name, :warehouse_id, :reference_number,
-                                   :expected_date, :received_date, :status, :notes, :total_items)
+                                   :expected_date, :received_date, :status, :notes, :total_items, :received_items)
   end
 end

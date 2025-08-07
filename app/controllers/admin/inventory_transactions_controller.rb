@@ -73,13 +73,13 @@ class Admin::InventoryTransactionsController < AdminController
   end
 
   def destroy
-    if @transaction.created_at > 24.hours.ago && current_admin == @transaction.admin
+    if can_delete_transaction?(@transaction)
       @transaction.destroy
       redirect_to admin_inventory_transactions_path,
-                  notice: "Transaction was successfully deleted."
+                  notice: "Transacción eliminada exitosamente."
     else
-      redirect_to admin_inventory_transaction_path(@transaction),
-                  alert: "Cannot delete this transaction."
+      redirect_to admin_inventory_transactions_path,
+                  alert: deletion_error_message(@transaction)
     end
   end
 
@@ -176,6 +176,29 @@ class Admin::InventoryTransactionsController < AdminController
       report[:top_products].each do |product_name, quantity|
         csv << [ product_name, quantity ]
       end
+    end
+  end
+
+  # Validation methods for deletion
+  def can_delete_transaction?(transaction)
+    # Allow deletion if:
+    # 1. Transaction was created within last 24 hours AND by current admin, OR
+    # 2. Transaction is an adjustment type (more flexible for corrections), OR
+    # 3. Current admin has special permissions (you can extend this logic)
+    
+    recent_and_own = transaction.created_at > 24.hours.ago && current_admin == transaction.admin
+    is_adjustment = transaction.transaction_type.include?('adjustment')
+    
+    recent_and_own || is_adjustment
+  end
+
+  def deletion_error_message(transaction)
+    if transaction.created_at <= 24.hours.ago
+      "No se puede eliminar transacciones de más de 24 horas."
+    elsif current_admin != transaction.admin
+      "Solo el admin que creó la transacción puede eliminarla."
+    else
+      "No se puede eliminar esta transacción."
     end
   end
 end
