@@ -17,6 +17,15 @@ Rails.application.routes.draw do
   end
 
   namespace :admin do
+    # Production Orders
+    resources :production_orders do
+      member do
+        patch :start
+        patch :pause
+        patch :complete
+        patch :cancel
+      end
+    end
     # WMS Resources
     resources :warehouses do
       resources :waves do

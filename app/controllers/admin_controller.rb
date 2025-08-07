@@ -21,8 +21,13 @@ class AdminController < ApplicationController
       Order.revenue_by_day(7)
     end
 
-    # Convert to array format for chart.js
-    @revenue_by_day_chart = @revenue_by_day.map { |date, revenue| [ date.to_s, revenue ] }
+    # Convert to array format for chart.js - ensure we always have data
+    @revenue_by_day_chart = if @revenue_by_day && @revenue_by_day.any?
+      @revenue_by_day.map { |date, revenue| [ date.to_s, revenue || 0 ] }
+    else
+      # Generate default data with zeros for the last 7 days
+      (6.days.ago.to_date..Date.current).map { |date| [date.to_s, 0] }
+    end
 
     # Additional useful metrics
     @low_stock_products = Product.low_stock(5).limit(10) rescue []
@@ -149,11 +154,14 @@ class AdminController < ApplicationController
   end
 
   def ensure_admin_permissions!
-    # Para admins reales, verificar que estén activos
-    if current_admin && !current_admin.email.present?
-      Rails.logger.warn "Unauthorized admin access attempt - Admin ID: #{current_admin&.id}, IP: #{request.remote_ip}, Path: #{request.path}"
-      redirect_to root_path, alert: "Access denied"
-      return
+    # Para admins reales, verificar que tengan email válido y estén activos
+    if current_admin
+      if current_admin.email.blank? || !current_admin.persisted?
+        Rails.logger.warn "Unauthorized admin access attempt - Admin ID: #{current_admin&.id}, Email: #{current_admin&.email}, IP: #{request.remote_ip}, Path: #{request.path}"
+        sign_out current_admin
+        redirect_to new_admin_session_path, alert: "Sesión inválida. Por favor, inicia sesión nuevamente."
+        return
+      end
     end
 
     # Para usuarios, verificar permisos específicos

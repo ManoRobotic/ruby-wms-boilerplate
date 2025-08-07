@@ -74,7 +74,10 @@ class Order < ApplicationRecord
       start_date = (days_back - 1).days.ago.to_date
 
       (start_date..end_date).each_with_object({}) do |date, hash|
-        revenue = delivered.where(created_at: date.all_day).sum(:total)
+        # Include processed, shipped, and delivered orders for revenue calculation
+        revenue = where(status: [:processing, :shipped, :delivered])
+                    .where(created_at: date.all_day)
+                    .sum(:total)
         hash[date] = revenue
       end
     end

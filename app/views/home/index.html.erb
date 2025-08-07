@@ -1,98 +1,163 @@
-<div class="flex flex-col min-h-screen bg-stone-50">
-  <main class="container flex-grow px-4 py-8 mx-auto">
-    <!-- Hero Section -->
-    <section class="py-20 text-center text-slate-800">
-      <h1 class="mb-4 text-5xl font-bold tracking-tight"><%= t('home.hero.title') %></h1>
-      <p class="mb-8 text-xl text-slate-600"><%= t('home.hero.subtitle') %></p>
-      <%= link_to t('home.hero.buy_now'), root_path, class: "inline-block px-8 py-4 text-lg font-semibold text-white transition duration-300 bg-emerald-600 rounded-full hover:bg-emerald-700" %>
-    </section>
+<!-- WMS Landing Page -->
+<div class="bg-gradient-to-br from-blue-50 via-white to-gray-50">
+  <!-- Hero Section -->
+  <section class="py-20 lg:py-32">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center">
+        <h1 class="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
+          Sistema de Gestión de
+          <span class="text-blue-600">Almacenes</span>
+        </h1>
+        <p class="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto">
+          Optimiza tus operaciones logísticas con control total de inventario, 
+          trazabilidad completa y gestión inteligente de ubicaciones.
+        </p>
+        <div class="flex flex-col sm:flex-row justify-center gap-4">
+          <%= link_to "Iniciar Sesión", new_admin_session_path, 
+              class: "bg-blue-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-all duration-200 transform hover:scale-105" %>
+          <%= link_to "Acceso Usuario", new_user_session_path, 
+              class: "border-2 border-blue-600 text-blue-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-blue-50 transition-all duration-200" %>
+        </div>
+      </div>
+    </div>
+  </section>
 
-    <!-- Coins Price Card -->
-    <%= render 'shared/coins_price_card'%>
+  <!-- Features Section -->
+  <section class="py-20 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-16">
+        <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+          Características Principales
+        </h2>
+        <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+          Todo lo que necesitas para gestionar tu almacén de manera eficiente
+        </p>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div class="text-center p-8 bg-gradient-to-br from-blue-50 to-white rounded-xl shadow-lg">
+          <%= icon('fa-solid', 'boxes-stacked', class: 'w-16 h-16 text-blue-600 mx-auto mb-4') %>
+          <h3 class="text-xl font-semibold text-gray-900 mb-3">Control de Inventario</h3>
+          <p class="text-gray-600">Seguimiento en tiempo real de todos tus productos con alertas automáticas de stock bajo.</p>
+        </div>
+        
+        <div class="text-center p-8 bg-gradient-to-br from-green-50 to-white rounded-xl shadow-lg">
+          <%= icon('fa-solid', 'map-location-dot', class: 'w-16 h-16 text-green-600 mx-auto mb-4') %>
+          <h3 class="text-xl font-semibold text-gray-900 mb-3">Gestión de Ubicaciones</h3>
+          <p class="text-gray-600">Organiza tu almacén con zonas, ubicaciones y códigos de coordenadas inteligentes.</p>
+        </div>
+        
+        <div class="text-center p-8 bg-gradient-to-br from-purple-50 to-white rounded-xl shadow-lg">
+          <%= icon('fa-solid', 'clipboard-list', class: 'w-16 h-16 text-purple-600 mx-auto mb-4') %>
+          <h3 class="text-xl font-semibold text-gray-900 mb-3">Pick Lists Optimizadas</h3>
+          <p class="text-gray-600">Genera rutas de picking eficientes para maximizar la productividad del personal.</p>
+        </div>
+        
+        <div class="text-center p-8 bg-gradient-to-br from-orange-50 to-white rounded-xl shadow-lg">
+          <%= icon('fa-solid', 'route', class: 'w-16 h-16 text-orange-600 mx-auto mb-4') %>
+          <h3 class="text-xl font-semibold text-gray-900 mb-3">Trazabilidad Completa</h3>
+          <p class="text-gray-600">Rastrea cada movimiento de inventario con historial detallado y reportes.</p>
+        </div>
+        
+        <div class="text-center p-8 bg-gradient-to-br from-red-50 to-white rounded-xl shadow-lg">
+          <%= icon('fa-solid', 'users-gear', class: 'w-16 h-16 text-red-600 mx-auto mb-4') %>
+          <h3 class="text-xl font-semibold text-gray-900 mb-3">Multi-Usuario</h3>
+          <p class="text-gray-600">Sistema multi-tenant con roles y permisos específicos para cada empresa.</p>
+        </div>
+        
+        <div class="text-center p-8 bg-gradient-to-br from-cyan-50 to-white rounded-xl shadow-lg">
+          <%= icon('fa-solid', 'chart-line', class: 'w-16 h-16 text-cyan-600 mx-auto mb-4') %>
+          <h3 class="text-xl font-semibold text-gray-900 mb-3">Reportes Avanzados</h3>
+          <p class="text-gray-600">Analytics en tiempo real con KPIs y métricas de rendimiento del almacén.</p>
+        </div>
+      </div>
+    </div>
+  </section>
 
-    <!-- Image Slider  -->
-    <section class="relative mt-12 mb-16" data-controller="slider">
-      <div class="relative overflow-hidden rounded-2xl">
-        <div data-slider-target="slider" class="flex transition-transform duration-300 ease-in-out">
-          <div class="flex-shrink-0 w-full">
-            <img src="https://laopinion.com/wp-content/uploads/sites/3/2024/04/costco-tambien-vende-monedas-de-oro-vale-la-prena-comprarlas-589412678-e1713820525314.jpg?w=1200?height=400&width=800" alt="Moneda de oro antigua" class="object-cover w-full h-64 md:h-96">
-          </div>
-          <div class="flex-shrink-0 w-full">
-            <img src="https://images.unsplash.com/photo-1621862623900-832ef4dd24aa?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8N3x8bW9uZWRhcyUyMGRlJTIwcGxhdGF8ZW58MHx8MHx8fDA%3D?height=400&width=800" alt="Moneda de plata rara" class="object-cover w-full h-64 md:h-96">
-          </div>
-          <div class="flex-shrink-0 w-full">
-            <img src="https://museobancodemexico.mx/imgs/Cabecera-Colecci%C3%B3n-Numismatica.jpg?height=400&width=800" alt="Moneda conmemorativa" class="object-cover w-full h-64 md:h-96">
+  <!-- Benefits Section -->
+  <section class="py-20 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-16">
+        <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+          ¿Por qué elegir nuestro WMS?
+        </h2>
+        <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+          Diseñado para empresas modernas que buscan eficiencia y control
+        </p>
+      </div>
+      
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        <div>
+          <div class="space-y-8">
+            <div class="flex items-start space-x-4">
+              <div class="flex-shrink-0 w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                <%= icon('fa-solid', 'rocket', class: 'w-6 h-6 text-blue-600') %>
+              </div>
+              <div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">Implementación Rápida</h3>
+                <p class="text-gray-600">Sistema listo para usar con configuración mínima. Comienza a gestionar tu almacén el mismo día.</p>
+              </div>
+            </div>
+            
+            <div class="flex items-start space-x-4">
+              <div class="flex-shrink-0 w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                <%= icon('fa-solid', 'shield-halved', class: 'w-6 h-6 text-green-600') %>
+              </div>
+              <div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">Datos Seguros</h3>
+                <p class="text-gray-600">Arquitectura multi-tenant segura que garantiza la privacidad y separación de datos entre empresas.</p>
+              </div>
+            </div>
+            
+            <div class="flex items-start space-x-4">
+              <div class="flex-shrink-0 w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                <%= icon('fa-solid', 'mobile-screen', class: 'w-6 h-6 text-purple-600') %>
+              </div>
+              <div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">Acceso Móvil</h3>
+                <p class="text-gray-600">Interfaz responsive que funciona perfectamente en dispositivos móviles y tablets para trabajar desde cualquier lugar.</p>
+              </div>
+            </div>
           </div>
         </div>
-        <button 
-          data-action="click->slider#previousSlide" 
-          class="absolute p-2 transition duration-300 transform -translate-y-1/2 bg-white bg-opacity-75 rounded-full shadow-md top-1/2 left-4 focus:outline-none hover:bg-opacity-100">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-slate-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-        <button 
-          data-action="click->slider#nextSlide" 
-          class="absolute p-2 transition duration-300 transform -translate-y-1/2 bg-white bg-opacity-75 rounded-full shadow-md top-1/2 right-4 focus:outline-none hover:bg-opacity-100">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-slate-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
-      </div>
-    </section>
-
-    <!-- Popular Coins -->
-    <section class="mb-16">
-      <h2 class="mb-8 text-3xl font-bold tracking-tight text-slate-800"><%= t('home.popular_coins.title') %></h2>
-      <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
-        <% @products.each do |product| %>
-          <div class="flex flex-col overflow-hidden transition duration-300 bg-white rounded-lg shadow-sm hover:shadow-md">
-            <div class="flex items-center justify-center w-40 h-40 mx-auto mt-6 overflow-hidden rounded-full bg-stone-100">
-              <%= image_with_initials(product, "object-cover w-full h-full") %>
+        
+        <div class="relative">
+          <div class="bg-white rounded-2xl shadow-2xl p-8 transform rotate-2">
+            <div class="bg-blue-600 text-white px-4 py-2 rounded-lg text-center mb-6">
+              <h4 class="font-semibold">Dashboard WMS</h4>
             </div>
-            <div class="flex flex-col justify-between flex-grow p-6">
-              <div>
-                <h3 class="mb-2 text-xl font-semibold text-center text-slate-800"><%= product.name %></h3>
-                <p class="mb-4 text-sm text-center text-slate-600"><%= product.description %></p>
+            <div class="space-y-4">
+              <div class="h-4 bg-gray-200 rounded-full">
+                <div class="h-4 bg-blue-600 rounded-full" style="width: 75%"></div>
               </div>
-              <div class="flex flex-col space-y-2">
-                <%= link_to t('home.popular_coins.view_details'), product_path(product), 
-                  class: "w-full px-4 py-2 text-sm font-medium text-center text-white transition duration-300 bg-emerald-600 rounded-full hover:bg-emerald-700" %>
-                <button 
-                  class="w-full px-4 py-2 text-sm font-medium text-center transition duration-300 rounded-full text-emerald-700 bg-emerald-100 hover:bg-emerald-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                  <%= product.active ? '' : 'disabled' %>>
-                  <%= product.active ? t('home.popular_coins.add_to_cart') : t('home.popular_coins.not_available') %>
-                </button>
+              <div class="h-4 bg-gray-200 rounded-full">
+                <div class="h-4 bg-green-500 rounded-full" style="width: 60%"></div>
+              </div>
+              <div class="h-4 bg-gray-200 rounded-full">
+                <div class="h-4 bg-orange-500 rounded-full" style="width: 90%"></div>
               </div>
             </div>
           </div>
-        <% end %>
+        </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <!-- Categories -->
-    <section>
-      <h2 class="mb-8 text-3xl font-bold tracking-tight text-slate-800"><%= t('home.categories.title') %></h2>
-      <div class="grid grid-cols-1 gap-8 md:grid-cols-3">
-        <% @main_categories.each do |category| %>
-          <%= link_to category_path(category), class: "flex flex-col overflow-hidden transition duration-300 bg-white rounded-lg shadow-sm hover:shadow-md" do %>
-            <div class="flex items-center justify-center w-40 h-40 mx-auto mt-6 overflow-hidden rounded-full bg-stone-100">
-              <%= image_with_initials(category, "object-cover w-full h-full") %>
-            </div>
-            <div class="p-6 text-center">
-              <h3 class="mb-2 text-xl font-semibold text-slate-800">
-                <%= category.name %>
-              </h3>
-              <p class="mb-4 text-sm font-medium uppercase text-slate-500">
-                <%= t('categories.explore_more') %>
-              </p>
-              <p class="text-base text-slate-600">
-                <%= t('categories.find_best') %> <%= category.name %>.
-              </p>
-            </div>
-          <% end %>
-        <% end %>
+  <!-- CTA Section -->
+  <section class="py-20 bg-blue-600">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <h2 class="text-3xl md:text-4xl font-bold text-white mb-6">
+        ¿Listo para optimizar tu almacén?
+      </h2>
+      <p class="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
+        Únete a las empresas que ya confían en nuestro sistema para gestionar sus operaciones logísticas.
+      </p>
+      <div class="flex flex-col sm:flex-row justify-center gap-4">
+        <%= link_to "Comenzar Ahora", new_admin_session_path, 
+            class: "bg-white text-blue-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition-all duration-200 transform hover:scale-105" %>
+        <%= link_to "Solicitar Demo", "#", 
+            class: "border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-blue-600 transition-all duration-200" %>
       </div>
-    </section>
-  </main>
+    </div>
+  </section>
 </div>

@@ -3,7 +3,7 @@ class Admin::CategoriesController < AdminController
 
   # GET /admin/categories or /admin/categories.json
   def index
-    @categories = Category.all
+    @categories = Category.all.page(params[:page]).per(20)
   end
 
   # GET /admin/categories/1 or /admin/categories/1.json

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title><%= t('app_name') %><%= t('meta_title') %></title>
+    <title>WMS - Warehouse Management System</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <%= csrf_meta_tags %>
@@ -18,11 +18,41 @@
     <%= javascript_importmap_tags %>
   </head>
 
-<body class="h-full">
+<body class="h-full bg-gray-50">
+  <%# Auto-redirect authenticated users to admin dashboard %>
+  <% if user_signed_in? || admin_signed_in? %>
+    <% content_for :head do %>
+      <meta http-equiv="refresh" content="0; url=<%= admin_path %>">
+    <% end %>
+    <script>
+      window.location.href = '<%= admin_path %>';
+    </script>
+  <% end %>
 
   <main class="flex flex-col min-h-screen">
     <% unless devise_controller? %>
-      <%= render 'shared/header_user' %>
+      <!-- WMS Landing Header -->
+      <header class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="flex justify-between h-16">
+            <div class="flex items-center">
+              <div class="flex-shrink-0">
+                <%= icon('fa-solid', 'warehouse', class: 'h-8 w-8 text-blue-600') %>
+              </div>
+              <div class="ml-3">
+                <h1 class="text-xl font-semibold text-gray-900">WMS</h1>
+                <p class="text-sm text-gray-500">Warehouse Management System</p>
+              </div>
+            </div>
+            <div class="flex items-center space-x-4">
+              <%= link_to "Acceso Admin", new_admin_session_path, 
+                  class: "bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors" %>
+              <%= link_to "Acceso Usuario", new_user_session_path, 
+                  class: "text-blue-600 hover:text-blue-700 px-4 py-2 border border-blue-600 rounded-md hover:bg-blue-50 transition-colors" %>
+            </div>
+          </div>
+        </div>
+      </header>
     <% end %>
 
     <div class="flex-grow">
@@ -30,14 +60,44 @@
     </div>
 
     <% unless devise_controller? %>
-      <footer class="mt-auto bg-blue-500">
-        <%= render 'shared/footer' %>
+      <!-- WMS Footer -->
+      <footer class="bg-gray-900 text-white">
+        <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div class="col-span-1 md:col-span-2">
+              <div class="flex items-center">
+                <%= icon('fa-solid', 'warehouse', class: 'h-8 w-8 text-blue-400') %>
+                <span class="ml-3 text-xl font-bold">WMS System</span>
+              </div>
+              <p class="mt-4 text-gray-400 max-w-md">
+                Sistema integral de gestión de almacenes diseñado para optimizar operaciones logísticas y control de inventario.
+              </p>
+            </div>
+            <div>
+              <h3 class="text-sm font-semibold uppercase tracking-wide">Características</h3>
+              <ul class="mt-4 space-y-2 text-sm text-gray-400">
+                <li>Control de Inventario</li>
+                <li>Gestión de Ubicaciones</li>
+                <li>Pick Lists Inteligentes</li>
+                <li>Trazabilidad Completa</li>
+              </ul>
+            </div>
+            <div>
+              <h3 class="text-sm font-semibold uppercase tracking-wide">Soporte</h3>
+              <ul class="mt-4 space-y-2 text-sm text-gray-400">
+                <li>Multi-tenant</li>
+                <li>Reportes en Tiempo Real</li>
+                <li>Integración API</li>
+                <li>Soporte 24/7</li>
+              </ul>
+            </div>
+          </div>
+          <div class="mt-8 pt-8 border-t border-gray-700 text-center text-sm text-gray-400">
+            <p>&copy; 2024 WMS System. Sistema profesional de gestión de almacenes.</p>
+          </div>
+        </div>
       </footer>
     <% end %>
   </main>
 </body>
-
-
-
-
 </html>

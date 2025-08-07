@@ -47,10 +47,17 @@ class Admin::ZonesController < AdminController
 
   def destroy
     if @zone.locations.any?
-      redirect_to admin_warehouse_zones_path(@warehouse), alert: "Cannot delete zone with existing locations."
+      redirect_to admin_warehouse_zones_path(@warehouse), alert: "No se puede eliminar la zona porque tiene ubicaciones activas."
+    elsif @zone.cycle_counts.any?
+      redirect_to admin_warehouse_zones_path(@warehouse), alert: "No se puede eliminar la zona porque tiene conteos cíclicos asociados."
     else
-      @zone.destroy
-      redirect_to admin_warehouse_zones_path(@warehouse), notice: "Zone was successfully deleted."
+      begin
+        @zone.destroy!
+        redirect_to admin_warehouse_zones_path(@warehouse), notice: "Zona eliminada exitosamente."
+      rescue => e
+        Rails.logger.error "Failed to delete zone #{@zone.id}: #{e.message}"
+        redirect_to admin_warehouse_zones_path(@warehouse), alert: "Error al eliminar la zona: #{e.message}"
+      end
     end
   end
 
