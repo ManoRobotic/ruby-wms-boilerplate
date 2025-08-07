@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_08_07_054527) do
+ActiveRecord::Schema[8.0].define(version: 2025_08_07_060545) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -274,6 +274,31 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_07_054527) do
     t.index ["wave_id"], name: "index_pick_lists_on_wave_id"
   end
 
+  create_table "production_orders", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "order_number", null: false
+    t.string "status", default: "pending", null: false
+    t.string "priority", default: "medium", null: false
+    t.uuid "warehouse_id", null: false
+    t.uuid "product_id", null: false
+    t.string "admin_id"
+    t.integer "quantity_requested", null: false
+    t.integer "quantity_produced", default: 0
+    t.datetime "start_date"
+    t.datetime "end_date"
+    t.datetime "estimated_completion"
+    t.datetime "actual_completion"
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["admin_id"], name: "index_production_orders_on_admin_id"
+    t.index ["created_at"], name: "index_production_orders_on_created_at"
+    t.index ["order_number"], name: "index_production_orders_on_order_number", unique: true
+    t.index ["priority"], name: "index_production_orders_on_priority"
+    t.index ["product_id"], name: "index_production_orders_on_product_id"
+    t.index ["status"], name: "index_production_orders_on_status"
+    t.index ["warehouse_id"], name: "index_production_orders_on_warehouse_id"
+  end
+
   create_table "products", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "name", null: false
     t.text "description", null: false
@@ -503,6 +528,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_07_054527) do
   add_foreign_key "pick_lists", "orders"
   add_foreign_key "pick_lists", "warehouses"
   add_foreign_key "pick_lists", "waves"
+  add_foreign_key "production_orders", "products"
+  add_foreign_key "production_orders", "warehouses"
   add_foreign_key "products", "categories"
   add_foreign_key "receipt_items", "locations"
   add_foreign_key "receipt_items", "products"

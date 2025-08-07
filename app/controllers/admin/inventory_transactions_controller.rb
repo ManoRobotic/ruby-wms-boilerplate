@@ -4,6 +4,14 @@ class Admin::InventoryTransactionsController < AdminController
   def index
     @transactions = InventoryTransaction.includes(:warehouse, :location, :product, :admin)
 
+    # Search
+    if params[:search].present?
+      search_term = "%#{params[:search]}%"
+      @transactions = @transactions.joins(:product, :location)
+                                  .where("products.name ILIKE ? OR locations.coordinate_code ILIKE ? OR inventory_transactions.reason ILIKE ?", 
+                                        search_term, search_term, search_term)
+    end
+
     # Filters
     @transactions = @transactions.by_warehouse(params[:warehouse_id]) if params[:warehouse_id].present?
     @transactions = @transactions.by_location(params[:location_id]) if params[:location_id].present?

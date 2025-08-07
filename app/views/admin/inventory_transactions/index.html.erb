@@ -19,25 +19,55 @@
       </div>
     </div>
 
-    <!-- Filters and Action buttons -->
+    <!-- Advanced Filters -->
     <div class="px-4 mb-6">
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <!-- Period filters -->
+      <%= render 'shared/table_filters', 
+          search_placeholder: 'Buscar por producto, ubicación o referencia...',
+          filters: [
+            {
+              name: :warehouse_id,
+              type: 'select',
+              label: 'Almacén',
+              options: Warehouse.all.pluck(:name, :id),
+              prompt: 'Todos los almacenes'
+            },
+            {
+              name: :transaction_type,
+              type: 'select', 
+              label: 'Tipo de Transacción',
+              options: InventoryTransaction::TRANSACTION_TYPES.map { |t| [t.humanize, t] },
+              prompt: 'Todos los tipos'
+            },
+            {
+              name: :period,
+              type: 'select',
+              label: 'Período',
+              options: [
+                ['Hoy', 'today'],
+                ['Esta semana', 'this_week'], 
+                ['Este mes', 'this_month']
+              ],
+              prompt: 'Sin filtro de período'
+            },
+            {
+              name: :start_date,
+              type: 'date',
+              label: 'Fecha desde'
+            },
+            {
+              name: :end_date,
+              type: 'date', 
+              label: 'Fecha hasta'
+            }
+          ] %>
+          
+      <!-- Action buttons section -->
+      <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-6">
         <div class="flex flex-wrap gap-2">
-          <%= link_to 'Todas', admin_inventory_transactions_path, 
-              class: "px-3 py-1 text-sm rounded #{params[:period].blank? ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}" %>
-          <%= link_to 'Hoy', admin_inventory_transactions_path(period: 'today'), 
-              class: "px-3 py-1 text-sm rounded #{params[:period] == 'today' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}" %>
-          <%= link_to 'Esta Semana', admin_inventory_transactions_path(period: 'this_week'), 
-              class: "px-3 py-1 text-sm rounded #{params[:period] == 'this_week' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}" %>
-          <%= link_to 'Este Mes', admin_inventory_transactions_path(period: 'this_month'), 
-              class: "px-3 py-1 text-sm rounded #{params[:period] == 'this_month' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}" %>
-        </div>
-        
-        <!-- Action buttons -->
-        <div class="flex flex-wrap gap-2">
-          <%= link_to 'Reporte de Movimientos', movement_report_admin_inventory_transactions_path, class: "px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium" %>
-          <%= link_to 'Resumen Diario', daily_summary_admin_inventory_transactions_path, class: "px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium" %>
+          <%= link_to 'Reporte de Movimientos', movement_report_admin_inventory_transactions_path, 
+              class: "px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors" %>
+          <%= link_to 'Resumen Diario', daily_summary_admin_inventory_transactions_path, 
+              class: "px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors" %>
         </div>
       </div>
     </div>
@@ -120,6 +150,10 @@
             </tbody>
           </table>
         </div>
+        
+        <!-- Pagination -->
+        <%= render 'shared/table_pagination', collection: @transactions %>
+        
       </div>
     </section>
   </div>

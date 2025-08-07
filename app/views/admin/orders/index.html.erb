@@ -111,6 +111,8 @@
               </tbody>
             </table>
           </div>
+          <!-- Pagination for Paid Orders -->
+          <%= render 'shared/table_pagination', collection: @admin_orders %>
         </div>
 
         <!-- Órdenes Pendientes -->
@@ -159,6 +161,8 @@
               </tbody>
             </table>
           </div>
+          <!-- Pagination for Unpaid Orders -->
+          <%= render 'shared/table_pagination', collection: @not_fulfilled_orders %>
         </div>
       </div>
     </section>
