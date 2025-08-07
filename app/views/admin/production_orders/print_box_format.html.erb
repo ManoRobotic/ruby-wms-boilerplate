@@ -1,0 +1,147 @@
+<% content_for(:title, "Formato Caja - #{@production_order.order_number}") %>
+
+<div class="max-w-4xl mx-auto p-6 flex">
+  <!-- Main Content -->
+  <div class="flex-1 pr-4">
+  <!-- Header -->
+  <div class="text-center mb-8">
+    <h1 class="text-2xl font-bold mb-2">FORMATO CAJA</h1>
+    <h2 class="text-xl font-semibold">Orden de Producción: <%= @production_order.order_number %></h2>
+    <p class="text-sm text-gray-600 mt-2">Fecha: <%= Time.current.strftime("%d/%m/%Y %H:%M") %></p>
+  </div>
+
+  <!-- Production Info -->
+  <div class="grid grid-cols-2 gap-6 mb-8">
+    <div class="border border-gray-300 p-4">
+      <h3 class="font-semibold mb-3 text-center">INFORMACIÓN DEL PRODUCTO</h3>
+      <div class="space-y-2">
+        <div class="flex justify-between">
+          <span class="font-medium">Producto:</span>
+          <span><%= @production_order.product.name %></span>
+        </div>
+        <div class="flex justify-between">
+          <span class="font-medium">Almacén:</span>
+          <span><%= @production_order.warehouse.name %></span>
+        </div>
+        <div class="flex justify-between">
+          <span class="font-medium">Cantidad Solicitada:</span>
+          <span><%= @production_order.quantity_requested %></span>
+        </div>
+        <div class="flex justify-between">
+          <span class="font-medium">Prioridad:</span>
+          <span><%= @production_order.priority.humanize %></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="border border-gray-300 p-4">
+      <h3 class="font-semibold mb-3 text-center">FORMATO CAJA</h3>
+      <div class="space-y-4">
+        <div>
+          <label class="font-medium block mb-1">Bolsa:</label>
+          <div class="border-b border-gray-300 h-6">
+            <%= @production_order.bag_size.present? ? @production_order.bag_size : "" %>
+          </div>
+        </div>
+        
+        <div>
+          <label class="font-medium block mb-1">Medida bolsa:</label>
+          <div class="border-b border-gray-300 h-6">
+            <%= @production_order.bag_measurement.present? ? @production_order.bag_measurement : "" %>
+          </div>
+        </div>
+        
+        <div>
+          <label class="font-medium block mb-1">Número de piezas:</label>
+          <div class="border-b border-gray-300 h-6">
+            <%= @production_order.pieces_count.present? ? @production_order.pieces_count : "" %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Box Format Specific Info -->
+  <div class="border border-gray-300 p-4 mb-8">
+    <h3 class="font-semibold mb-3 text-center">INFORMACIÓN DE EMPAQUE</h3>
+    <div class="grid grid-cols-2 gap-6">
+      <div>
+        <label class="font-medium block mb-1">Cantidad de paquetes:</label>
+        <div class="border-b border-gray-300 h-8">
+          <%= @production_order.package_count.present? ? @production_order.package_count : "" %>
+        </div>
+      </div>
+      
+      <div>
+        <label class="font-medium block mb-1">Medida de paquetes:</label>
+        <div class="border-b border-gray-300 h-8">
+          <%= @production_order.package_measurement.present? ? @production_order.package_measurement : "" %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Additional Info -->
+  <div class="border border-gray-300 p-4 mb-8">
+    <h3 class="font-semibold mb-3">NOTAS ADICIONALES</h3>
+    <div class="min-h-20 border-b border-gray-300">
+      <%= @production_order.notes if @production_order.notes.present? %>
+    </div>
+  </div>
+
+  <!-- Checklist for packages -->
+  <div class="border border-gray-300 p-4 mb-8">
+    <h3 class="font-semibold mb-3">CONTROL DE PAQUETES</h3>
+    <div class="grid grid-cols-4 gap-4">
+      <% 10.times do |i| %>
+        <div class="flex items-center space-x-2">
+          <input type="checkbox" class="w-4 h-4 border-2 border-gray-400" disabled>
+          <label class="text-sm">Paquete <%= i + 1 %></label>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Signatures -->
+  <div class="grid grid-cols-3 gap-8 mt-12">
+    <div class="text-center">
+      <div class="border-b-2 border-gray-800 mb-2 h-16"></div>
+      <p class="font-medium">RESPONSABLE DE PRODUCCIÓN</p>
+      <p class="text-sm">Nombre y Firma</p>
+    </div>
+    
+    <div class="text-center">
+      <div class="border-b-2 border-gray-800 mb-2 h-16"></div>
+      <p class="font-medium">CONTROL DE CALIDAD</p>
+      <p class="text-sm">Nombre y Firma</p>
+    </div>
+    
+    <div class="text-center">
+      <div class="border-b-2 border-gray-800 mb-2 h-16"></div>
+      <p class="font-medium">SUPERVISOR</p>
+      <p class="text-sm">Nombre y Firma</p>
+    </div>
+  </div>
+  
+  <!-- Footer -->
+  <div class="text-center text-xs text-gray-500 mt-8">
+    <p>Sistema de Gestión de Almacén - Formato de Impresión Caja</p>
+  </div>
+  </div>
+
+  <!-- Barcode Section -->
+  <div class="w-20 flex flex-col items-center justify-center border-l border-gray-300 pl-2">
+    <div class="transform -rotate-90 origin-center mb-4">
+      <div class="text-xs font-medium whitespace-nowrap mb-2">
+        <%= @production_order.order_number %>
+      </div>
+    </div>
+    
+    <div class="transform -rotate-90 origin-center">
+      <img src="<%= vertical_barcode_image(@production_order.barcode_data_for_box_format) %>" 
+           alt="Código de barras <%= @production_order.order_number %>"
+           class="max-w-none"
+           style="width: 300px;">
+    </div>
+  </div>
+</div>

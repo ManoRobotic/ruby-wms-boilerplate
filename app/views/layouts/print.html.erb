@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Impresión - <%= yield(:title) || "Orden de Producción" %></title>
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    
+    <%= stylesheet_link_tag "tailwind", "inter-font" %>
+    
+    <style media="print">
+      @page {
+        margin: 0.5in;
+        size: A4;
+      }
+      
+      body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        font-size: 12px;
+        line-height: 1.4;
+        color: #000;
+      }
+      
+      .no-print {
+        display: none !important;
+      }
+      
+      .page-break {
+        page-break-before: always;
+      }
+    </style>
+  </head>
+
+  <body class="bg-white text-black">
+    <%= yield %>
+    
+    <div class="no-print fixed bottom-4 right-4">
+      <button onclick="window.print()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+        Imprimir
+      </button>
+      <button onclick="window.close()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 ml-2">
+        Cerrar
+      </button>
+    </div>
+  </body>
+</html>
