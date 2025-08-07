@@ -2,7 +2,7 @@ import { Controller } from "@hotwired/stimulus"
 
 // Connects to data-controller="scale-reader"
 export default class extends Controller {
-  static targets = ["progressCircle", "weightDisplay", "scaleStatus", "connectButton", "readButton"]
+  static targets = ["progressCircle", "weightDisplay", "scaleStatus", "connectButton", "readButton", "scaleIndicator"]
   static values = { maxWeight: Number }
 
   connect() {
@@ -129,22 +129,23 @@ export default class extends Controller {
   updateStatus(message, type) {
     this.scaleStatusTarget.textContent = message
     
-    // Actualizar clases CSS según el tipo
-    const statusContainer = this.scaleStatusTarget.parentElement
-    statusContainer.className = "mb-3 p-2 rounded border text-center"
-    
-    switch (type) {
-      case 'connected':
-        statusContainer.classList.add('bg-green-50', 'border-green-200', 'text-green-700')
-        break
-      case 'connecting':
-        statusContainer.classList.add('bg-blue-50', 'border-blue-200', 'text-blue-700')
-        break
-      case 'error':
-        statusContainer.classList.add('bg-red-50', 'border-red-200', 'text-red-700')
-        break
-      default:
-        statusContainer.classList.add('bg-gray-50', 'border-gray-200', 'text-gray-700')
+    // Solo cambiar el color del indicador, mantener el estilo del contenedor
+    if (this.hasScaleIndicatorTarget) {
+      this.scaleIndicatorTarget.className = "w-3 h-3 rounded-full mr-3"
+      
+      switch (type) {
+        case 'connected':
+          this.scaleIndicatorTarget.classList.add('bg-green-500')
+          break
+        case 'connecting':
+          this.scaleIndicatorTarget.classList.add('bg-blue-500')
+          break
+        case 'error':
+          this.scaleIndicatorTarget.classList.add('bg-red-500')
+          break
+        default:
+          this.scaleIndicatorTarget.classList.add('bg-red-500')
+      }
     }
   }
 
