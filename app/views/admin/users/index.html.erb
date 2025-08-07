@@ -244,19 +244,28 @@
                       <% else %>
                         <%= button_to 'Activar', activate_admin_user_path(user), 
                             method: :patch,
+                            data: { 
+                              controller: "confirm",
+                              action: "click->confirm#confirm",
+                              confirm_message_value: "¿Activar a #{user.display_name}?",
+                              confirm_title_value: "Activar Usuario",
+                              turbo: false
+                            },
                             class: "text-green-600 hover:text-green-900 bg-transparent border-none cursor-pointer p-0 underline",
                             form_class: "inline" %>
                       <% end %>
                       
-                      <%= link_to 'Eliminar', admin_user_path(user), 
+                      <%= button_to 'Eliminar', admin_user_path(user), 
+                          method: :delete,
                           data: { 
-                            "turbo-method": "delete",
                             controller: "confirm",
                             action: "click->confirm#confirm",
                             confirm_message_value: "¿Estás seguro de eliminar a #{user.display_name}? Esta acción no se puede deshacer.",
-                            confirm_title_value: "Eliminar Usuario"
+                            confirm_title_value: "Eliminar Usuario",
+                            turbo: false
                           }, 
-                          class: "text-red-600 hover:text-red-900" %>
+                          class: "text-red-600 hover:text-red-900 bg-transparent border-none cursor-pointer p-0 underline",
+                          form_class: "inline" %>
                     </div>
                   </td>
                 </tr>
