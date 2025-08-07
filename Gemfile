@@ -59,6 +59,10 @@ gem "money-rails", "~> 1.15"
 # Structured logging
 gem "ougai", "~> 2.0"
 
+# Barcode generation
+gem "barby", "~> 0.6.8"
+gem "chunky_png", "~> 1.3"
+
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem

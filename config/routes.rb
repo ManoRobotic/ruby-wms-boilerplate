@@ -24,8 +24,14 @@ Rails.application.routes.draw do
         patch :pause
         patch :complete
         patch :cancel
+        get :print_bag_format
+        get :print_box_format
       end
     end
+
+    # Barcode scanning
+    get "production_orders/scan_barcode", to: "production_orders#scan_barcode_page"
+    post "production_orders/scan_barcode", to: "production_orders#scan_barcode"
     # WMS Resources
     resources :warehouses do
       resources :waves do
@@ -132,7 +138,7 @@ Rails.application.routes.draw do
     end
 
     # Notifications
-    resources :notifications, only: [:index, :show, :destroy] do
+    resources :notifications, only: [ :index, :show, :destroy ] do
       member do
         patch :mark_read
       end
