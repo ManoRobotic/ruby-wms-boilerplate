@@ -1,6 +1,6 @@
 class Admin::NotificationsController < ApplicationController
   before_action :authenticate_admin_or_user!
-  before_action :set_notification, only: [:show, :mark_read, :destroy]
+  before_action :set_notification, only: [ :show, :mark_read, :destroy ]
 
   def index
     @notifications = current_user_notifications.recent.page(params[:page]).per(20)
@@ -8,7 +8,7 @@ class Admin::NotificationsController < ApplicationController
 
   def show
     @notification.mark_as_read! if @notification.unread?
-    
+
     if @notification.action_url.present?
       redirect_to @notification.action_url
     else
@@ -18,27 +18,27 @@ class Admin::NotificationsController < ApplicationController
 
   def mark_read
     @notification.mark_as_read!
-    
+
     respond_to do |format|
-      format.json { render json: { status: 'success' } }
+      format.json { render json: { status: "success" } }
       format.html { redirect_back(fallback_location: admin_notifications_path) }
     end
   end
 
   def mark_all_read
     current_user_notifications.unread.update_all(read_at: Time.current)
-    
+
     respond_to do |format|
-      format.json { render json: { status: 'success' } }
+      format.json { render json: { status: "success" } }
       format.html { redirect_back(fallback_location: admin_notifications_path) }
     end
   end
 
   def destroy
     @notification.destroy
-    
+
     respond_to do |format|
-      format.json { render json: { status: 'success' } }
+      format.json { render json: { status: "success" } }
       format.html { redirect_back(fallback_location: admin_notifications_path) }
     end
   end

@@ -86,13 +86,13 @@ class Admin::TasksController < AdminController
     Rails.logger.info "Task ID: #{params[:id]}"
     Rails.logger.info "User ID: #{params[:user_id]}"
     Rails.logger.info "All params: #{params.inspect}"
-    
+
     # If user_id is provided, assign to that user, otherwise assign to current admin
     if params[:user_id].present?
       Rails.logger.info "Finding user with ID: #{params[:user_id]}"
       user = User.find(params[:user_id])
       Rails.logger.info "Found user: #{user.display_name} (#{user.email})"
-      
+
       Rails.logger.info "Attempting to assign task #{@task.id} to user #{user.id}"
       if @task.assign_to_user!(user)
         Rails.logger.info "Task assigned successfully"

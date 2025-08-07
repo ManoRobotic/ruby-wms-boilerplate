@@ -56,28 +56,28 @@ class Admin::WarehousesController < AdminController
   def destroy
     # Check all possible dependencies - only count ACTIVE ones
     zones_count = @warehouse.zones.count
-    
+
     # Only count orders that are not cancelled or delivered (check both status fields)
-    active_orders_count = @warehouse.orders.where.not(status: ['cancelled', 'delivered'])
-                                            .where.not(fulfillment_status: ['cancelled', 'delivered']).count
-    
+    active_orders_count = @warehouse.orders.where.not(status: [ "cancelled", "delivered" ])
+                                            .where.not(fulfillment_status: [ "cancelled", "delivered" ]).count
+
     # Only count active tasks
-    active_tasks_count = @warehouse.tasks.where.not(status: ['completed', 'cancelled']).count rescue 0
-    
+    active_tasks_count = @warehouse.tasks.where.not(status: [ "completed", "cancelled" ]).count rescue 0
+
     # Only count active pick lists
-    active_pick_lists_count = @warehouse.pick_lists.where(status: ['pending', 'assigned', 'in_progress']).count
-    
+    active_pick_lists_count = @warehouse.pick_lists.where(status: [ "pending", "assigned", "in_progress" ]).count
+
     # Only count active waves
-    active_waves_count = @warehouse.waves.where.not(status: ['completed', 'cancelled']).count rescue 0
-    
+    active_waves_count = @warehouse.waves.where.not(status: [ "completed", "cancelled" ]).count rescue 0
+
     # Only count active receipts
-    active_receipts_count = @warehouse.receipts.where.not(status: ['completed', 'cancelled']).count rescue 0
-    
+    active_receipts_count = @warehouse.receipts.where.not(status: [ "completed", "cancelled" ]).count rescue 0
+
     # Only count active shipments
-    active_shipments_count = @warehouse.shipments.where.not(status: ['cancelled', 'delivered']).count rescue 0
-    
+    active_shipments_count = @warehouse.shipments.where.not(status: [ "cancelled", "delivered" ]).count rescue 0
+
     blocking_reasons = []
-    
+
     blocking_reasons << "#{zones_count} zona(s)" if zones_count > 0
     blocking_reasons << "#{active_orders_count} orden(es) activa(s)" if active_orders_count > 0
     blocking_reasons << "#{active_tasks_count} tarea(s) activa(s)" if active_tasks_count > 0
@@ -85,7 +85,7 @@ class Admin::WarehousesController < AdminController
     blocking_reasons << "#{active_waves_count} wave(s) activa(s)" if active_waves_count > 0
     blocking_reasons << "#{active_receipts_count} recepción(es) activa(s)" if active_receipts_count > 0
     blocking_reasons << "#{active_shipments_count} envío(s) activo(s)" if active_shipments_count > 0
-    
+
     if blocking_reasons.any?
       reasons_text = blocking_reasons.join(", ")
       alert_message = "No se puede eliminar el almacén '#{@warehouse.name}' porque tiene asociado(s): #{reasons_text}. " +

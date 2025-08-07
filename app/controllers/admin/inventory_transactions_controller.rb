@@ -8,7 +8,7 @@ class Admin::InventoryTransactionsController < AdminController
     if params[:search].present?
       search_term = "%#{params[:search]}%"
       @transactions = @transactions.joins(:product, :location)
-                                  .where("products.name ILIKE ? OR locations.coordinate_code ILIKE ? OR inventory_transactions.reason ILIKE ?", 
+                                  .where("products.name ILIKE ? OR locations.coordinate_code ILIKE ? OR inventory_transactions.reason ILIKE ?",
                                         search_term, search_term, search_term)
     end
 
@@ -193,10 +193,10 @@ class Admin::InventoryTransactionsController < AdminController
     # 1. Transaction was created within last 24 hours AND by current admin, OR
     # 2. Transaction is an adjustment type (more flexible for corrections), OR
     # 3. Current admin has special permissions (you can extend this logic)
-    
+
     recent_and_own = transaction.created_at > 24.hours.ago && current_admin == transaction.admin
-    is_adjustment = transaction.transaction_type.include?('adjustment')
-    
+    is_adjustment = transaction.transaction_type.include?("adjustment")
+
     recent_and_own || is_adjustment
   end
 

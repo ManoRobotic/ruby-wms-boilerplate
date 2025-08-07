@@ -44,8 +44,8 @@ class Notification < ApplicationRecord
   def self.create_task_assignment(user:, task:)
     create!(
       user: user,
-      notification_type: 'task_assigned',
-      title: 'Nueva tarea asignada',
+      notification_type: "task_assigned",
+      title: "Nueva tarea asignada",
       message: "Se te ha asignado la tarea: #{task.display_name}",
       action_url: "/admin/tasks/#{task.id}",
       data: {
@@ -60,8 +60,8 @@ class Notification < ApplicationRecord
   def self.create_task_status_change(user:, task:, old_status:, new_status:)
     create!(
       user: user,
-      notification_type: 'task_status_changed',
-      title: 'Estado de tarea actualizado',
+      notification_type: "task_status_changed",
+      title: "Estado de tarea actualizado",
       message: "La tarea #{task.display_name} cambió de #{old_status} a #{new_status}",
       action_url: "/admin/tasks/#{task.id}",
       data: {
@@ -76,8 +76,8 @@ class Notification < ApplicationRecord
   def self.create_order_alert(admin:, order:, message:)
     create!(
       user: admin,
-      notification_type: 'order_updated',
-      title: 'Nueva orden recibida',
+      notification_type: "order_updated",
+      title: "Nueva orden recibida",
       message: message,
       action_url: "/admin/orders/#{order.id}",
       data: {
@@ -90,7 +90,7 @@ class Notification < ApplicationRecord
   def self.create_system_alert(admin:, title:, message:, action_url: nil)
     create!(
       user: admin,
-      notification_type: 'system',
+      notification_type: "system",
       title: title,
       message: message,
       action_url: action_url,
@@ -101,8 +101,8 @@ class Notification < ApplicationRecord
   def self.create_inventory_alert(admin:, product:, warehouse:, message:)
     create!(
       user: admin,
-      notification_type: 'inventory_alert',
-      title: 'Alerta de inventario',
+      notification_type: "inventory_alert",
+      title: "Alerta de inventario",
       message: message,
       action_url: "/admin/inventory_transactions",
       data: {

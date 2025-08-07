@@ -23,7 +23,7 @@ module ApplicationHelper
   def image_with_initials(object, css_classes = "object-cover w-12 h-12 rounded-full")
     # Check for different image storage methods
     image_source = get_image_source(object)
-    
+
     if image_source.present?
       image_tag(image_source, alt: object.name, class: css_classes)
     else
@@ -63,7 +63,7 @@ module ApplicationHelper
 
   def extract_initials(name)
     return "?" if name.blank?
-    
+
     words = name.strip.split(/\s+/)
     if words.length >= 2
       "#{words.first[0].upcase}#{words.last[0].upcase}"

@@ -24,7 +24,11 @@
       "Bash(curl:*)",
       "Bash(find:*)",
       "Bash(bin/rubocop:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(bundle:*)",
+      "Bash(mv:*)"
     ],
     "deny": []
   }

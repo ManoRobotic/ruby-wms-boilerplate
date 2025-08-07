@@ -99,14 +99,14 @@ class PickList < ApplicationRecord
     # Simple completion without strict validation for now
     begin
       update!(status: "completed")
-      
+
       # Update order status if possible
       begin
         order.update!(fulfillment_status: "picked")
       rescue => order_error
         Rails.logger.warn "Could not update order status: #{order_error.message}"
       end
-      
+
       true
     rescue => e
       Rails.logger.error "Failed to complete pick list: #{e.message}"

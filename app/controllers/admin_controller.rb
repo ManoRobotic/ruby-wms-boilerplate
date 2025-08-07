@@ -26,7 +26,7 @@ class AdminController < ApplicationController
       @revenue_by_day.map { |date, revenue| [ date.to_s, revenue || 0 ] }
     else
       # Generate default data with zeros for the last 7 days
-      (6.days.ago.to_date..Date.current).map { |date| [date.to_s, 0] }
+      (6.days.ago.to_date..Date.current).map { |date| [ date.to_s, 0 ] }
     end
 
     # Additional useful metrics

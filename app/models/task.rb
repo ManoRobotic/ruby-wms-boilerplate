@@ -1,20 +1,20 @@
 class Task < ApplicationRecord
   # Associations
   # Note: admin_id can reference either Admin or User, so no belongs_to association
-  
+
   # Custom method to get the assigned person (Admin or User)
   def assigned_to
     Admin.find_by(id: admin_id) || User.find_by(id: admin_id)
   end
-  
+
   belongs_to :warehouse
   belongs_to :location, optional: true
   belongs_to :product, optional: true
   belongs_to :from_location, class_name: "Location", optional: true
   belongs_to :to_location, class_name: "Location", optional: true
-  
+
   # Inventory transactions created by completing this task
-  has_many :inventory_transactions, -> { where(reference_type: 'Task') },
+  has_many :inventory_transactions, -> { where(reference_type: "Task") },
            foreign_key: :reference_id
 
   # Validations
@@ -100,12 +100,12 @@ class Task < ApplicationRecord
     return false unless can_be_assigned_to?(admin)
 
     result = update(admin_id: admin.id, status: "assigned", assigned_at: Time.current)
-    
+
     # Create notification if assignment was successful and assigned to a User
     if result && admin.is_a?(User)
       Notification.create_task_assignment(user: admin, task: self)
     end
-    
+
     result
   end
 
@@ -115,7 +115,7 @@ class Task < ApplicationRecord
     Rails.logger.info "Task pending?: #{pending?}"
     Rails.logger.info "Warehouse present?: #{warehouse.present?}"
     Rails.logger.info "Warehouse: #{warehouse&.name}"
-    
+
     unless pending? && warehouse.present?
       Rails.logger.error "Pre-condition failed: pending=#{pending?}, warehouse_present=#{warehouse.present?}"
       return false
@@ -126,13 +126,13 @@ class Task < ApplicationRecord
       result = update!(admin_id: user.id, status: "assigned", assigned_at: Time.current)
       Rails.logger.info "Update result: #{result}"
       Rails.logger.info "Task after update - admin_id: #{admin_id}, status: #{status}"
-      
+
       # Create notification for task assignment
       if result
         Notification.create_task_assignment(user: user, task: self)
         Rails.logger.info "Notification created for task assignment"
       end
-      
+
       true
     rescue => e
       Rails.logger.error "Exception during update: #{e.class} - #{e.message}"
@@ -316,15 +316,15 @@ class Task < ApplicationRecord
 
   def create_status_change_notification
     return unless admin_id.present? && saved_change_to_status?
-    
+
     assigned_user = assigned_to
     return unless assigned_user.is_a?(User)
-    
+
     old_status, new_status = saved_change_to_status
-    
+
     # Don't create notification for initial assignment (handled by assign_to! methods)
-    return if old_status == 'pending' && new_status == 'assigned'
-    
+    return if old_status == "pending" && new_status == "assigned"
+
     Notification.create_task_status_change(
       user: assigned_user,
       task: self,

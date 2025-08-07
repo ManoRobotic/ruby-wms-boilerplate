@@ -2,9 +2,9 @@ class Admin::UsersController < AdminController
   include StandardCrudResponses
   before_action :set_user, only: [ :show, :edit, :update, :destroy, :activate, :deactivate ]
   # before_action :authorize_user_management!
-  
+
   # Temporary skip authorization for creating first admin user
-  skip_before_action :verify_authenticity_token, only: [:create]
+  skip_before_action :verify_authenticity_token, only: [ :create ]
 
   def index
     @users = User.includes(:warehouse)
@@ -123,12 +123,12 @@ class Admin::UsersController < AdminController
     permitted = [ :name, :email, :role, :warehouse_id, :active ]
     permitted += [ :password, :password_confirmation ] if params[:user][:password].present?
     user_params = params.require(:user).permit(permitted)
-    
+
     # Convert empty warehouse_id to nil for admins
-    if user_params[:role] == 'admin' && user_params[:warehouse_id].blank?
+    if user_params[:role] == "admin" && user_params[:warehouse_id].blank?
       user_params[:warehouse_id] = nil
     end
-    
+
     user_params
   end
 
