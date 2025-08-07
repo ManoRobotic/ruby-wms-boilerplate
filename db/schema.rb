@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_08_07_060545) do
+ActiveRecord::Schema[8.0].define(version: 2025_08_07_172743) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -290,6 +290,11 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_07_060545) do
     t.text "notes"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "bag_size"
+    t.string "bag_measurement"
+    t.integer "pieces_count"
+    t.integer "package_count"
+    t.string "package_measurement"
     t.index ["admin_id"], name: "index_production_orders_on_admin_id"
     t.index ["created_at"], name: "index_production_orders_on_created_at"
     t.index ["order_number"], name: "index_production_orders_on_order_number", unique: true

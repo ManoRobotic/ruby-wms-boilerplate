@@ -195,6 +195,21 @@
             Eliminar
           <% end %>
         <% end %>
+
+        <!-- Printing Options -->
+        <%= link_to print_bag_format_admin_production_order_path(@production_order), 
+            target: "_blank",
+            class: "inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-purple-600 border border-transparent rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500" do %>
+          <%= icon('fa-solid', 'print', class: 'w-4 h-4 mr-2') %>
+          Imprimir Formato Bolsa
+        <% end %>
+
+        <%= link_to print_box_format_admin_production_order_path(@production_order), 
+            target: "_blank",
+            class: "inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" do %>
+          <%= icon('fa-solid', 'print', class: 'w-4 h-4 mr-2') %>
+          Imprimir Formato Caja
+        <% end %>
       </div>
       
     </div>

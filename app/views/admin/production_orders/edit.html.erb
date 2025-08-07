@@ -88,6 +88,53 @@
           </div>
         </div>
 
+        <!-- Printing Format Fields -->
+        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 border-t border-gray-200 pt-6">
+          <div class="md:col-span-2">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Información de Impresión</h3>
+          </div>
+
+          <!-- Bag Size -->
+          <div>
+            <%= form.label :bag_size, "Bolsa", class: "block text-sm font-medium text-gray-700 mb-2" %>
+            <%= form.text_field :bag_size, 
+                class: "block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm",
+                placeholder: "Tipo de bolsa" %>
+          </div>
+
+          <!-- Bag Measurement -->
+          <div>
+            <%= form.label :bag_measurement, "Medida bolsa", class: "block text-sm font-medium text-gray-700 mb-2" %>
+            <%= form.text_field :bag_measurement, 
+                class: "block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm",
+                placeholder: "Dimensiones de la bolsa" %>
+          </div>
+
+          <!-- Pieces Count -->
+          <div>
+            <%= form.label :pieces_count, "Número de piezas", class: "block text-sm font-medium text-gray-700 mb-2" %>
+            <%= form.number_field :pieces_count, 
+                class: "block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm",
+                min: 0, step: 1 %>
+          </div>
+
+          <!-- Package Count (for box format) -->
+          <div>
+            <%= form.label :package_count, "Cantidad de paquetes", class: "block text-sm font-medium text-gray-700 mb-2" %>
+            <%= form.number_field :package_count, 
+                class: "block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm",
+                min: 0, step: 1 %>
+          </div>
+
+          <!-- Package Measurement -->
+          <div class="md:col-span-2">
+            <%= form.label :package_measurement, "Medida de paquetes", class: "block text-sm font-medium text-gray-700 mb-2" %>
+            <%= form.text_field :package_measurement, 
+                class: "block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm",
+                placeholder: "Dimensiones de los paquetes" %>
+          </div>
+        </div>
+
         <!-- Current Status -->
         <div class="bg-gray-50 rounded-lg p-4">
           <h3 class="text-sm font-medium text-gray-900 mb-2">Estado Actual</h3>
