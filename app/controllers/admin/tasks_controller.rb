@@ -5,7 +5,7 @@ class Admin::TasksController < AdminController
   before_action :check_task_warehouse_access!, only: [ :show, :edit, :update, :destroy, :assign, :start, :complete, :cancel ]
 
   def index
-    @tasks = Task.includes(:warehouse, :location, :product, :admin)
+    @tasks = Task.includes(:warehouse, :location, :product)
 
     # Filter by user's warehouse if not admin
     if current_user && current_user.warehouse_id.present?
@@ -45,7 +45,7 @@ class Admin::TasksController < AdminController
 
   def create
     @task = Task.new(task_params)
-    @task.admin = current_admin
+    @task.admin_id = current_admin.id
 
     if @task.save
       redirect_to admin_task_path(@task), notice: "Task was successfully created."
@@ -72,20 +72,54 @@ class Admin::TasksController < AdminController
   end
 
   def destroy
-    if @task.pending?
+    if @task.pending? || @task.cancelled?
       @task.destroy
-      redirect_to admin_tasks_path, notice: "Task was successfully deleted."
+      redirect_to admin_tasks_path, notice: "Tarea eliminada exitosamente."
     else
-      redirect_to admin_task_path(@task), alert: "Cannot delete task that is not pending."
+      redirect_to admin_tasks_path, alert: "Solo se pueden eliminar tareas pendientes o canceladas."
     end
   end
 
   # WMS Actions
   def assign
-    if @task.assign_to!(current_admin)
-      redirect_to admin_task_path(@task), notice: "Task assigned successfully."
+    Rails.logger.info "=== ASSIGN ACTION CALLED ==="
+    Rails.logger.info "Task ID: #{params[:id]}"
+    Rails.logger.info "User ID: #{params[:user_id]}"
+    Rails.logger.info "All params: #{params.inspect}"
+    
+    # If user_id is provided, assign to that user, otherwise assign to current admin
+    if params[:user_id].present?
+      Rails.logger.info "Finding user with ID: #{params[:user_id]}"
+      user = User.find(params[:user_id])
+      Rails.logger.info "Found user: #{user.display_name} (#{user.email})"
+      
+      Rails.logger.info "Attempting to assign task #{@task.id} to user #{user.id}"
+      if @task.assign_to_user!(user)
+        Rails.logger.info "Task assigned successfully"
+        respond_to do |format|
+          format.html { redirect_to admin_tasks_path, notice: "Tarea asignada exitosamente a #{user.display_name}." }
+          format.json { render json: { success: true, message: "Tarea asignada exitosamente a #{user.display_name}." } }
+        end
+      else
+        Rails.logger.error "Failed to assign task to user"
+        respond_to do |format|
+          format.html { redirect_to admin_tasks_path, alert: "No se pudo asignar la tarea al usuario." }
+          format.json { render json: { success: false, message: "No se pudo asignar la tarea al usuario." }, status: 422 }
+        end
+      end
     else
-      redirect_to admin_task_path(@task), alert: "Could not assign task."
+      Rails.logger.info "No user_id provided, assigning to current admin"
+      if @task.assign_to!(current_admin)
+        respond_to do |format|
+          format.html { redirect_to admin_task_path(@task), notice: "Tarea asignada exitosamente." }
+          format.json { render json: { success: true, message: "Tarea asignada exitosamente." } }
+        end
+      else
+        respond_to do |format|
+          format.html { redirect_to admin_task_path(@task), alert: "No se pudo asignar la tarea." }
+          format.json { render json: { success: false, message: "No se pudo asignar la tarea." }, status: 422 }
+        end
+      end
     end
   end
 

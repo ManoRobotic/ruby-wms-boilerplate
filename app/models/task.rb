@@ -1,11 +1,21 @@
 class Task < ApplicationRecord
   # Associations
-  belongs_to :admin
+  # Note: admin_id can reference either Admin or User, so no belongs_to association
+  
+  # Custom method to get the assigned person (Admin or User)
+  def assigned_to
+    Admin.find_by(id: admin_id) || User.find_by(id: admin_id)
+  end
+  
   belongs_to :warehouse
   belongs_to :location, optional: true
   belongs_to :product, optional: true
   belongs_to :from_location, class_name: "Location", optional: true
   belongs_to :to_location, class_name: "Location", optional: true
+  
+  # Inventory transactions created by completing this task
+  has_many :inventory_transactions, -> { where(reference_type: 'Task') },
+           foreign_key: :reference_id
 
   # Validations
   validates :task_type, presence: true
@@ -88,7 +98,32 @@ class Task < ApplicationRecord
   def assign_to!(admin)
     return false unless can_be_assigned_to?(admin)
 
-    update(admin: admin, status: "assigned", assigned_at: Time.current)
+    update(admin_id: admin.id, status: "assigned", assigned_at: Time.current)
+  end
+
+  def assign_to_user!(user)
+    Rails.logger.info "=== ASSIGN_TO_USER! DEBUG ==="
+    Rails.logger.info "Task status: #{status}"
+    Rails.logger.info "Task pending?: #{pending?}"
+    Rails.logger.info "Warehouse present?: #{warehouse.present?}"
+    Rails.logger.info "Warehouse: #{warehouse&.name}"
+    
+    unless pending? && warehouse.present?
+      Rails.logger.error "Pre-condition failed: pending=#{pending?}, warehouse_present=#{warehouse.present?}"
+      return false
+    end
+
+    begin
+      Rails.logger.info "Attempting to update task with admin_id: #{user.id}"
+      result = update!(admin_id: user.id, status: "assigned", assigned_at: Time.current)
+      Rails.logger.info "Update result: #{result}"
+      Rails.logger.info "Task after update - admin_id: #{admin_id}, status: #{status}"
+      true
+    rescue => e
+      Rails.logger.error "Exception during update: #{e.class} - #{e.message}"
+      Rails.logger.error "Backtrace: #{e.backtrace.first(3)}"
+      false
+    end
   end
 
   def start!

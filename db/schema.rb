@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_08_01_210213) do
+ActiveRecord::Schema[8.0].define(version: 2025_08_07_040503) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -497,7 +497,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_01_210213) do
   add_foreign_key "shipments", "warehouses"
   add_foreign_key "stocks", "locations"
   add_foreign_key "stocks", "products"
-  add_foreign_key "tasks", "admins"
   add_foreign_key "tasks", "locations"
   add_foreign_key "tasks", "locations", column: "from_location_id"
   add_foreign_key "tasks", "locations", column: "to_location_id"

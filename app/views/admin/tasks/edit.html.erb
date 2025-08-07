@@ -5,7 +5,7 @@
         <div class="flex flex-col items-center gap-8 px-4 mb-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h1 class="mt-12 font-sans text-xl font-semibold leading-snug tracking-normal text-center md:text-left text-blue-gray-900">
-              Nueva Tarea
+              Editar Tarea #<%= @task.id[0..7] %>
             </h1>
           </div>
         </div>
@@ -41,7 +41,10 @@
               ['Putaway', 'putaway'],
               ['Replenishment', 'replenishment'],
               ['Cycle Count', 'cycle_count'],
-              ['Move', 'move']
+              ['Move', 'move'],
+              ['Adjustment', 'adjustment'],
+              ['Receiving', 'receiving'],
+              ['Shipping', 'shipping']
             ], @task.task_type), { prompt: 'Selecciona un tipo' }, { class: "mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" } %>
           </div>
 
@@ -56,20 +59,24 @@
           </div>
 
           <div>
+            <%= form.label :status, "Estado", class: "block text-sm font-medium text-gray-700" %>
+            <%= form.select :status, options_for_select([
+              ['Pendiente', 'pending'],
+              ['Asignada', 'assigned'],
+              ['En Progreso', 'in_progress'],
+              ['Completada', 'completed'],
+              ['Cancelada', 'cancelled']
+            ], @task.status), {}, { class: "mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" } %>
+          </div>
+
+          <div>
             <%= form.label :warehouse_id, "Almacén", class: "block text-sm font-medium text-gray-700" %>
             <%= form.select :warehouse_id, options_from_collection_for_select(@warehouses, :id, :name, @task.warehouse_id), { prompt: 'Selecciona un almacén' }, { class: "mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" } %>
           </div>
 
           <div>
             <%= form.label :product_id, "Producto", class: "block text-sm font-medium text-gray-700" %>
-            <% if @products.any? %>
-              <%= form.select :product_id, options_from_collection_for_select(@products, :id, :name, @task.product_id), { prompt: 'Selecciona un producto' }, { class: "mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" } %>
-            <% else %>
-              <select class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 bg-gray-100" disabled>
-                <option>No hay productos disponibles</option>
-              </select>
-              <p class="mt-1 text-sm text-red-600">No hay productos activos disponibles. Crear productos primero.</p>
-            <% end %>
+            <%= form.select :product_id, options_from_collection_for_select(@products, :id, :name, @task.product_id), { prompt: 'Selecciona un producto' }, { class: "mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" } %>
           </div>
 
           <div>
@@ -84,8 +91,8 @@
         </div>
 
         <div class="flex justify-end space-x-3">
-          <%= link_to 'Cancelar', admin_tasks_path, class: "px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" %>
-          <%= form.submit "Crear Tarea", class: "px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" %>
+          <%= link_to 'Cancelar', admin_task_path(@task), class: "px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" %>
+          <%= form.submit "Actualizar Tarea", class: "px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" %>
         </div>
       <% end %>
     </div>
