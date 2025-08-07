@@ -33,8 +33,8 @@ admin = Admin.create!(
   email: "admin@wmsapp.com",
   password: "password123",
   password_confirmation: "password123",
-  name: "Admin Principal",
-  address: "Ciudad de México, México"
+  name: "Super Admin",
+  address: "Guadalajara, México"
 )
 puts "✅ Admin created: #{admin.email}"
 

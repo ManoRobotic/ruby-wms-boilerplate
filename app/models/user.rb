@@ -95,7 +95,7 @@ class User < ApplicationRecord
       read_admin_dashboard read_warehouse read_zones read_locations read_inventory
       create_zones create_locations create_tasks create_pick_lists
       manage_inventory manage_receipts manage_shipments manage_waves
-      read_orders read_products read_reports manage_users manage_warehouses
+      read_orders read_products read_reports manage_warehouses
     ]
 
     case action.to_s
