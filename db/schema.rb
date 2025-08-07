@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_08_07_040503) do
+ActiveRecord::Schema[8.0].define(version: 2025_08_07_054527) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -162,6 +162,22 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_07_040503) do
     t.index ["zone_id", "aisle", "bay", "level", "position"], name: "index_locations_on_coordinates", unique: true
     t.index ["zone_id"], name: "idx_locations_zone"
     t.index ["zone_id"], name: "index_locations_on_zone_id"
+  end
+
+  create_table "notifications", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "user_id", null: false
+    t.string "title", null: false
+    t.text "message", null: false
+    t.string "notification_type", null: false
+    t.datetime "read_at"
+    t.text "data"
+    t.string "action_url"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_at"], name: "index_notifications_on_created_at"
+    t.index ["notification_type"], name: "index_notifications_on_notification_type"
+    t.index ["read_at"], name: "index_notifications_on_read_at"
+    t.index ["user_id"], name: "index_notifications_on_user_id"
   end
 
   create_table "order_products", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -475,6 +491,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_07_040503) do
   add_foreign_key "inventory_transactions", "products"
   add_foreign_key "inventory_transactions", "warehouses"
   add_foreign_key "locations", "zones"
+  add_foreign_key "notifications", "users"
   add_foreign_key "order_products", "orders"
   add_foreign_key "order_products", "products"
   add_foreign_key "orders", "warehouses"

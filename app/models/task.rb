@@ -65,6 +65,7 @@ class Task < ApplicationRecord
   before_save :set_assigned_at
   before_save :set_completed_at
   after_update :create_inventory_transaction, if: :completed_and_affects_inventory?
+  after_update :create_status_change_notification, if: :saved_change_to_status?
 
   # Instance methods
   def display_name
@@ -98,7 +99,14 @@ class Task < ApplicationRecord
   def assign_to!(admin)
     return false unless can_be_assigned_to?(admin)
 
-    update(admin_id: admin.id, status: "assigned", assigned_at: Time.current)
+    result = update(admin_id: admin.id, status: "assigned", assigned_at: Time.current)
+    
+    # Create notification if assignment was successful and assigned to a User
+    if result && admin.is_a?(User)
+      Notification.create_task_assignment(user: admin, task: self)
+    end
+    
+    result
   end
 
   def assign_to_user!(user)
@@ -118,6 +126,13 @@ class Task < ApplicationRecord
       result = update!(admin_id: user.id, status: "assigned", assigned_at: Time.current)
       Rails.logger.info "Update result: #{result}"
       Rails.logger.info "Task after update - admin_id: #{admin_id}, status: #{status}"
+      
+      # Create notification for task assignment
+      if result
+        Notification.create_task_assignment(user: user, task: self)
+        Rails.logger.info "Notification created for task assignment"
+      end
+      
       true
     rescue => e
       Rails.logger.error "Exception during update: #{e.class} - #{e.message}"
@@ -296,6 +311,25 @@ class Task < ApplicationRecord
       reference_type: "Task",
       reference_id: id,
       reason: "Task completion: #{display_name}"
+    )
+  end
+
+  def create_status_change_notification
+    return unless admin_id.present? && saved_change_to_status?
+    
+    assigned_user = assigned_to
+    return unless assigned_user.is_a?(User)
+    
+    old_status, new_status = saved_change_to_status
+    
+    # Don't create notification for initial assignment (handled by assign_to! methods)
+    return if old_status == 'pending' && new_status == 'assigned'
+    
+    Notification.create_task_status_change(
+      user: assigned_user,
+      task: self,
+      old_status: old_status,
+      new_status: new_status
     )
   end
 end

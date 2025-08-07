@@ -122,6 +122,16 @@ Rails.application.routes.draw do
       resources :stocks
     end
 
+    # Notifications
+    resources :notifications, only: [:index, :show, :destroy] do
+      member do
+        patch :mark_read
+      end
+      collection do
+        post :mark_all_read
+      end
+    end
+
     # Manual Printing
     get "manual_printing", to: "manual_printing#index"
     post "manual_printing/connect_printer", to: "manual_printing#connect_printer"

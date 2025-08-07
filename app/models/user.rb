@@ -10,6 +10,7 @@ class User < ApplicationRecord
   has_many :pick_lists, foreign_key: :admin_id, dependent: :nullify
   has_many :inventory_transactions, foreign_key: :admin_id, dependent: :nullify
   has_many :waves, foreign_key: :admin_id, dependent: :nullify
+  has_many :notifications, dependent: :destroy
 
   # Validations
   validates :name, presence: true
@@ -76,6 +77,15 @@ class User < ApplicationRecord
 
   def role_display
     I18n.t("users.roles.#{role}", default: role.humanize)
+  end
+
+  # Notification methods
+  def unread_notifications_count
+    notifications.unread.count
+  end
+
+  def recent_notifications(limit = 10)
+    notifications.recent.limit(limit)
   end
 
   private

@@ -126,6 +126,7 @@ class Order < ApplicationRecord
     before_save :normalize_email
     before_save :set_wms_defaults
     after_create :generate_payment_id_if_blank
+    after_create :notify_admins_of_new_order
 
     private
 
@@ -144,5 +145,18 @@ class Order < ApplicationRecord
       self.fulfillment_status ||= "pending"
       self.priority ||= "medium"
       self.warehouse ||= Warehouse.main_warehouse if sales_order?
+    end
+
+    def notify_admins_of_new_order
+      # Notify all admins of new order
+      Admin.find_each do |admin|
+        Notification.create_order_alert(
+          admin: admin,
+          order: self,
+          message: "Nueva orden ##{payment_id} por #{formatted_total} de #{customer_email}"
+        )
+      rescue => e
+        Rails.logger.error "Failed to create notification for admin #{admin.id}: #{e.message}"
+      end
     end
 end
