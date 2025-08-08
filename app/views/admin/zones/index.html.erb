@@ -2,71 +2,120 @@
   <%= render "shared/succes_alert", notice: notice %>
 <% end %>
 
-<div class="w-full px-4 mt-8">
+<div class="w-full px-4 mt-8" data-controller="warehouse" data-warehouse-warehouse-id-value="<%= @warehouse.id %>">
   <div class="relative flex flex-col w-full text-gray-700 bg-white shadow-md rounded-xl bg-clip-border">
     <div class="relative p-4 text-gray-700 bg-white bg-clip-border">
       <div class="container mx-auto">
         <div class="flex flex-col items-center gap-8 px-4 mb-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h1 class="mt-12 font-sans text-xl font-semibold leading-snug tracking-normal text-center md:text-left text-blue-gray-900">
-              Zonas - <%= @warehouse.name %>
+              <%= @warehouse.name %> - <span data-warehouse-target="sectionTitle">Seleccione una zona</span>
             </h1>
+            <div class="flex items-center mt-2">
+              <span class="text-gray-600" data-warehouse-target="sectionDate"></span>
+              <a href="#" class="ml-4 text-blue-500 hover:text-blue-700">Mostrar todo</a>
+            </div>
           </div>
           <div class="flex justify-center gap-2 shrink-0 md:w-auto">
-            <%= link_to 'Volver a Almacenes', admin_warehouses_path, class: "mt-12 flex items-center gap-3 rounded-lg bg-gray-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85 mr-2" %>
-            <%= link_to 'Nueva Zona', new_admin_warehouse_zone_path(@warehouse), class: "mt-12 flex items-center gap-3 rounded-lg bg-blue-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85" %>
+            <%= link_to 'Volver a Almacenes', admin_warehouses_path, 
+                class: "mt-12 flex items-center gap-3 rounded-lg bg-gray-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85 mr-2" %>
+            <%= link_to 'Nueva Zona', new_admin_warehouse_zone_path(@warehouse), 
+                class: "mt-12 flex items-center gap-3 rounded-lg bg-blue-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85" %>
           </div>
         </div>
       </div>
     </div>
 
-    <section class="flex flex-col w-full py-16 bg-muted">
-      <div class="container mx-auto">
-        <div class="overflow-x-auto">
-          <table class="min-w-full bg-white border border-gray-200">
-            <thead class="bg-gray-50">
-              <tr>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Código</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descripción</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ubicaciones</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
-              </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-              <% @zones.each do |zone| %>
-                <tr class="hover:bg-gray-50">
-                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    <%= zone.name %>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <%= zone.code %>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                      <%= zone.zone_type.humanize %>
-                    </span>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <%= zone.description %>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <%= pluralize(zone.locations.count, 'ubicación', 'ubicaciones') %>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <%= link_to 'Ubicaciones', admin_warehouse_zone_locations_path(@warehouse, zone), class: "text-green-600 hover:text-green-900 mr-3" %>
-                    <%= link_to 'Ver', admin_warehouse_zone_path(@warehouse, zone), class: "text-indigo-600 hover:text-indigo-900 mr-3" %>
-                    <%= link_to 'Editar', edit_admin_warehouse_zone_path(@warehouse, zone), class: "text-yellow-600 hover:text-yellow-900 mr-3" %>
-                    <%= link_to 'Eliminar', admin_warehouse_zone_path(@warehouse, zone), method: :delete, 
-                        data: { confirm: '¿Estás seguro?' }, 
-                        class: "text-red-600 hover:text-red-900" %>
-                  </td>
-                </tr>
-              <% end %>
-            </tbody>
-          </table>
+    <section class="flex flex-col w-full py-4 bg-muted">
+      <div class="container mx-auto px-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6" data-warehouse-target="locationsGrid">
+          <div class="text-center py-8 text-gray-500 col-span-3">
+            Seleccione una zona para ver sus ubicaciones
+          </div>
         </div>
+        
+        <div class="flex items-center mt-2 space-x-6">
+          <div class="flex items-center">
+            <div class="w-4 h-4 bg-amber-200 rounded mr-2"></div>
+            <span class="text-sm text-gray-700">Ubicación libre</span>
+          </div>
+          <div class="flex items-center">
+            <div class="w-4 h-4 bg-amber-500 rounded mr-2"></div>
+            <span class="text-sm text-gray-700">Ubicación ocupada</span>
+          </div>
+          <div class="flex items-center">
+            <div class="w-4 h-4 bg-blue-200 rounded mr-2"></div>
+            <span class="text-sm text-gray-700">Seleccionada</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="px-6 py-4 border-t border-gray-200">
+      <div class="flex justify-between items-center mb-3">
+        <h2 class="text-lg font-semibold">Zonas del almacén</h2>
+        <div class="flex space-x-2">
+          <%= link_to "Exportar CSV", admin_warehouse_zones_path(@warehouse, format: :csv), 
+              class: "px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600" %>
+          <%= link_to "Filtrar", "#", 
+              class: "px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300" %>
+        </div>
+      </div>
+      
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200 text-sm">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
+              <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Código</th>
+              <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+              <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actualización</th>
+              <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ocupación</th>
+              <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ubicaciones</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <% @sections_data.each do |section| %>
+              <tr class="hover:bg-gray-50 cursor-pointer" 
+                  data-action="click->warehouse#loadZoneLocations"
+                  data-zone-id="<%= section[:zone_id] %>"
+                  data-section-id="<%= section[:id] %>"
+                  data-section-name="<%= section[:name] %>"
+                  data-section-date="<%= section[:date] %>"
+                  data-section-usage="<%= section[:usage] %>"
+                  data-section-type="<%= section[:zone_type] %>">
+                <td class="px-4 py-2 whitespace-nowrap"><%= section[:name] %></td>
+                <td class="px-4 py-2 whitespace-nowrap"><%= section[:id] %></td>
+                <td class="px-4 py-2 whitespace-nowrap">
+                  <span class="px-2 py-1 text-xs font-semibold rounded-full 
+                    <%= zone_type_badge_color(section[:zone_type]) %>">
+                    <%= section[:zone_type].humanize %>
+                  </span>
+                </td>
+                <td class="px-4 py-2 whitespace-nowrap">📧 <%= section[:date] %></td>
+                <td class="px-4 py-2 whitespace-nowrap">
+                  <div class="flex items-center">
+                    <div class="w-16 bg-gray-200 rounded-full h-2.5 mr-2">
+                      <div class="bg-amber-500 h-2.5 rounded-full" 
+                           style="width: <%= section[:usage].to_i %>%"></div>
+                    </div>
+                    <span>💬️ <%= section[:usage] %></span>
+                  </div>
+                </td>
+                <td class="px-4 py-2 whitespace-nowrap">
+                  <%= link_to admin_warehouse_zone_locations_path(@warehouse, section[:zone_id]), 
+                      class: "text-blue-500 hover:text-blue-700" do %>
+                    Ver ubicaciones
+                  <% end %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+      
+      <div class="mt-4">
+        <%= paginate @zones %>
       </div>
     </section>
   </div>
