@@ -72,6 +72,14 @@ class Location < ApplicationRecord
     barcode.present? ? "#{coordinate_code} (#{barcode})" : coordinate_code
   end
 
+  def last_updated_formatted
+    stocks.maximum(:updated_at)&.strftime("%d/%m/%Y %H:%M")
+  end
+
+  def product_names
+    stocks.joins(:product).pluck("products.name").uniq.join(", ")
+  end
+
   def available_capacity
     capacity - current_volume
   end

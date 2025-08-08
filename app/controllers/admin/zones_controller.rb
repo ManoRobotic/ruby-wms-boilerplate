@@ -12,6 +12,52 @@ class Admin::ZonesController < AdminController
 
     @zones = @zones.by_type(params[:zone_type]) if params[:zone_type].present?
     @zones = @zones.search(params[:search]) if params[:search].present?
+
+    @sections_data = @zones.map do |zone|
+      total_locations = zone.locations.count
+      occupied_locations = zone.locations.joins(:stocks).distinct.count
+      usage_percentage = total_locations > 0 ? (occupied_locations * 100 / total_locations) : 0
+
+      {
+        id: zone.code,
+        name: zone.name,
+        date: zone.updated_at.strftime("%d/%m/%Y"),
+        status: "Usada",
+        usage: "#{usage_percentage}%",
+        zone_id: zone.id,
+        zone_type: zone.zone_type
+      }
+    end
+  end
+
+  def locations
+      @zone = @warehouse.zones.find(params[:id])
+      @locations = @zone.locations
+                      .left_joins(:stocks)
+                      .select(
+                        "locations.*",
+                        "COUNT(stocks.id) AS stocks_count",
+                        "MAX(stocks.updated_at) AS last_updated",
+                        "STRING_AGG(products.name, ', ') AS product_names"
+                      )
+                      .left_joins(stocks: :product)
+                      .group("locations.id")
+                      .order(:aisle, :bay, :level, :position)
+
+      render json: @locations.as_json(
+        only: [ :id, :aisle, :bay, :level, :position, :location_type ],
+        methods: [ :full_code, :last_updated_formatted ],
+        include: {
+          stocks: {
+            only: [ :id, :quantity ],
+            include: {
+              product: {
+                only: [ :name, :sku ]
+              }
+            }
+          }
+        }
+      )
   end
 
   def show
