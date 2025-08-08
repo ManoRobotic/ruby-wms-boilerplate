@@ -2,15 +2,22 @@
   <%= render "shared/succes_alert", notice: notice %>
 <% end %>
 
-<div class="w-full px-4 mt-8">
+<div class="w-full px-4 mt-8" 
+     data-controller="production-order" 
+     data-order-id="<%= @production_order.id %>">
   <div class="relative flex flex-col w-full text-gray-700 bg-white shadow-md rounded-xl bg-clip-border">
     <div class="relative p-6 text-gray-700 bg-white bg-clip-border">
       
       <!-- Header -->
       <div class="flex items-center justify-between mb-6">
         <div>
-          <h1 class="text-2xl font-bold text-gray-900">Orden de Producción #<%= @production_order.order_number %></h1>
-          <p class="text-gray-600 mt-1">Creada el <%= @production_order.created_at.strftime("%d/%m/%Y a las %H:%M") %></p>
+          <h1 class="text-2xl font-bold text-gray-900">
+            <%= @production_order.no_opro.present? ? "Orden No. #{@production_order.no_opro}" : "Orden ##{@production_order.order_number}" %>
+          </h1>
+          <p class="text-gray-600 mt-1">Producto: <%= @production_order.product.name %></p>
+          <p class="text-sm text-gray-500">
+            <%= @production_order.fecha_completa&.strftime("%d/%m/%Y") || @production_order.created_at.strftime("%d/%m/%Y a las %H:%M") %>
+          </p>
         </div>
         
         <div class="flex space-x-3">
@@ -78,8 +85,8 @@
             </div>
             
             <div>
-              <dt class="text-sm font-medium text-gray-500">Producto</dt>
-              <dd class="text-sm text-gray-900"><%= @production_order.product.name %></dd>
+              <dt class="text-sm font-medium text-gray-500">Lote de Referencia</dt>
+              <dd class="text-sm text-gray-900"><%= @production_order.lote_referencia || 'N/A' %></dd>
             </div>
             
             <div class="grid grid-cols-2 gap-4">
@@ -88,8 +95,19 @@
                 <dd class="text-sm text-gray-900 font-semibold"><%= @production_order.quantity_requested %></dd>
               </div>
               <div>
-                <dt class="text-sm font-medium text-gray-500">Cantidad Producida</dt>
-                <dd class="text-sm text-gray-900 font-semibold"><%= @production_order.quantity_produced || 0 %></dd>
+                <dt class="text-sm font-medium text-gray-500">Carga</dt>
+                <dd class="text-sm text-gray-900"><%= @production_order.carga_copr&.to_f || 'N/A' %></dd>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Año</dt>
+                <dd class="text-sm text-gray-900"><%= @production_order.ano || 'N/A' %></dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Mes</dt>
+                <dd class="text-sm text-gray-900"><%= @production_order.mes || 'N/A' %></dd>
               </div>
             </div>
           </dl>
@@ -143,6 +161,88 @@
           </div>
         </div>
       <% end %>
+
+      <!-- Weight Control Section -->
+      <div class="mt-6">
+        <div class="bg-blue-50 rounded-lg p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">Control de Peso y Impresión</h3>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Weight Section -->
+            <div>
+              <h4 class="text-md font-medium text-gray-900 mb-3">Gestión de Peso</h4>
+              <div class="space-y-3">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">Peso Actual</label>
+                  <div class="flex items-center space-x-2 mt-1">
+                    <input type="number" 
+                           data-production-order-target="weightInput"
+                           class="block w-32 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                           placeholder="0.00"
+                           step="0.01"
+                           value="<%= @production_order.peso || '' %>">
+                    <span class="text-sm text-gray-600">kg</span>
+                  </div>
+                  <% if @production_order.peso.present? %>
+                    <p class="text-sm text-green-600 mt-1">
+                      Peso guardado: <%= @production_order.peso %> kg
+                    </p>
+                  <% end %>
+                </div>
+                
+                <div class="flex flex-col space-y-2">
+                  <button class="w-full px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+                          data-action="click->production-order#connectScale">
+                    <%= icon('fa-solid', 'scale-balanced', class: 'w-4 h-4 mr-2') %>
+                    Conectar Báscula
+                  </button>
+                  <button class="w-full px-4 py-2 bg-green-600 text-white text-sm rounded hover:bg-green-700"
+                          data-action="click->production-order#readWeight">
+                    <%= icon('fa-solid', 'weight-scale', class: 'w-4 h-4 mr-2') %>
+                    Leer Peso
+                  </button>
+                  <button class="w-full px-4 py-2 bg-purple-600 text-white text-sm rounded hover:bg-purple-700"
+                          data-action="click->production-order#saveWeight">
+                    <%= icon('fa-solid', 'save', class: 'w-4 h-4 mr-2') %>
+                    Guardar Peso
+                  </button>
+                </div>
+                
+                <div>
+                  <p class="text-sm text-gray-600" data-production-order-target="weightStatus">
+                    <%= @production_order.peso.present? ? "Peso guardado: #{@production_order.peso} kg" : "Sin peso registrado" %>
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Printing Section -->
+            <div>
+              <h4 class="text-md font-medium text-gray-900 mb-3">Impresión</h4>
+              <div class="space-y-3">
+                <button class="w-full px-4 py-2 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700"
+                        data-action="click->production-order#printOrder">
+                  <%= icon('fa-solid', 'print', class: 'w-4 h-4 mr-2') %>
+                  Imprimir Orden de Producción
+                </button>
+                
+                <div class="text-sm text-gray-600">
+                  <p class="mb-2">Información a imprimir:</p>
+                  <ul class="list-disc list-inside space-y-1 text-xs">
+                    <li>No. OPRO: <%= @production_order.no_opro || @production_order.order_number %></li>
+                    <li>Producto: <%= @production_order.product.name %></li>
+                    <li>Cantidad: <%= @production_order.quantity_requested %></li>
+                    <li>Lote: <%= @production_order.lote_referencia || 'N/A' %></li>
+                    <% if @production_order.peso.present? %>
+                      <li>Peso: <%= @production_order.peso %> kg</li>
+                    <% end %>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <!-- Action Buttons -->
       <div class="flex flex-wrap gap-3 mt-8 pt-6 border-t border-gray-200">
