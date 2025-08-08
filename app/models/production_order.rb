@@ -64,6 +64,10 @@ class ProductionOrder < ApplicationRecord
     status == "in_progress" && quantity_produced.present? && quantity_produced > 0
   end
 
+  def can_be_cancelled?
+    !completed? && !cancelled?
+  end
+
   def start!
     return false unless can_be_started?
     update(status: "in_progress", start_date: Time.current)
