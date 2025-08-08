@@ -1,8 +1,8 @@
 class Admin::ZonesController < AdminController
   before_action :set_warehouse
-  before_action :set_zone, only: [ :show, :edit, :update, :destroy ]
-  before_action :authorize_zone_management!, except: [ :index, :show ]
-  before_action :authorize_zone_read!, only: [ :index, :show ]
+  before_action :set_zone, only: [ :show, :edit, :update, :destroy, :locations ]
+  before_action :authorize_zone_management!, except: [ :index, :show, :locations ]
+  before_action :authorize_zone_read!, only: [ :index, :show, :locations ]
   before_action :check_warehouse_access!
 
   def index
@@ -31,33 +31,46 @@ class Admin::ZonesController < AdminController
   end
 
   def locations
-      @zone = @warehouse.zones.find(params[:id])
-      @locations = @zone.locations
-                      .left_joins(:stocks)
-                      .select(
-                        "locations.*",
-                        "COUNT(stocks.id) AS stocks_count",
-                        "MAX(stocks.updated_at) AS last_updated",
-                        "STRING_AGG(products.name, ', ') AS product_names"
-                      )
-                      .left_joins(stocks: :product)
-                      .group("locations.id")
-                      .order(:aisle, :bay, :level, :position)
+    @zone = @warehouse.zones.find(params[:id])
+    
+    # Simplificar la consulta para evitar problemas con STRING_AGG
+    @locations = @zone.locations
+                    .includes(stocks: :product)
+                    .order(:aisle, :bay, :level, :position)
 
-      render json: @locations.as_json(
-        only: [ :id, :aisle, :bay, :level, :position, :location_type ],
-        methods: [ :full_code, :last_updated_formatted ],
-        include: {
-          stocks: {
-            only: [ :id, :quantity ],
-            include: {
-              product: {
-                only: [ :name, :sku ]
-              }
+    locations_data = @locations.map do |location|
+      stocks_count = location.stocks.count
+      product_names = location.stocks.includes(:product).map { |s| s.product&.name }.compact.join(', ')
+      last_updated = location.stocks.maximum(:updated_at)
+      
+      {
+        id: location.id,
+        aisle: location.aisle,
+        bay: location.bay,
+        level: location.level,
+        position: location.position,
+        location_type: location.location_type,
+        full_code: location.full_code,
+        last_updated_formatted: last_updated&.strftime("%d/%m/%Y"),
+        stocks_count: stocks_count,
+        product_names: product_names,
+        stocks: location.stocks.includes(:product).map do |stock|
+          {
+            id: stock.id,
+            quantity: stock.quantity,
+            product: {
+              name: stock.product&.name,
+              sku: stock.product&.sku
             }
           }
-        }
-      )
+        end
+      }
+    end
+
+    respond_to do |format|
+      format.json { render json: locations_data }
+      format.html { redirect_to admin_warehouse_zones_path(@warehouse) }
+    end
   end
 
   def show

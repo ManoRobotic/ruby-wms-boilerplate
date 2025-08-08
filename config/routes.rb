@@ -53,6 +53,9 @@ Rails.application.routes.draw do
       end
 
       resources :zones do
+        member do
+          get :locations
+        end
         resources :locations do
           member do
             get :cycle_count
