@@ -26,26 +26,44 @@
       </div>
     </div>
 
-    <section class="flex flex-col w-full py-4 bg-muted">
+    <!-- Visual Warehouse Layout -->
+    <section class="flex flex-col w-full py-8 bg-gray-100">
       <div class="container mx-auto px-4">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6" data-warehouse-target="locationsGrid">
-          <div class="text-center py-8 text-gray-500 col-span-3">
-            Seleccione una zona para ver sus ubicaciones
+        <!-- Zone Visual Grid -->
+        <div class="bg-white rounded-lg p-6 mb-6">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-semibold">Vista Visual del Almacén</h3>
+            <div class="flex space-x-2" data-warehouse-target="actionButtons" style="display: none;">
+              <button class="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-sm"
+                      data-action="click->warehouse#showAddLocationModal">
+                ➕ Agregar Ubicación
+              </button>
+              <button class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
+                      data-action="click->warehouse#toggleDeleteMode">
+                🗑️ Eliminar Ubicaciones
+              </button>
+              <button class="px-3 py-1 bg-gray-500 text-white rounded hover:bg-gray-600 text-sm"
+                      data-action="click->warehouse#showLocationsList">
+                📋 Ver Lista
+              </button>
+            </div>
+          </div>
+          <div class="warehouse-grid" data-warehouse-target="locationsGrid">
+            <div class="text-center py-8 text-gray-500">
+              Seleccione una zona para ver sus ubicaciones
+            </div>
           </div>
         </div>
         
-        <div class="flex items-center mt-2 space-x-6">
+        <!-- Legend -->
+        <div class="flex items-center justify-center space-x-8 bg-white rounded-lg p-4">
           <div class="flex items-center">
-            <div class="w-4 h-4 bg-amber-200 rounded mr-2"></div>
-            <span class="text-sm text-gray-700">Ubicación libre</span>
+            <div class="w-6 h-6 bg-yellow-100 rounded mr-3 border-2 border-yellow-200"></div>
+            <span class="text-sm font-medium text-gray-700">Espacio Libre</span>
           </div>
           <div class="flex items-center">
-            <div class="w-4 h-4 bg-amber-500 rounded mr-2"></div>
-            <span class="text-sm text-gray-700">Ubicación ocupada</span>
-          </div>
-          <div class="flex items-center">
-            <div class="w-4 h-4 bg-blue-200 rounded mr-2"></div>
-            <span class="text-sm text-gray-700">Seleccionada</span>
+            <div class="w-6 h-6 bg-yellow-400 rounded mr-3 border-2 border-yellow-500"></div>
+            <span class="text-sm font-medium text-gray-700">Espacio Ocupado</span>
           </div>
         </div>
       </div>

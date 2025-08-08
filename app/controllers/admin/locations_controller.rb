@@ -27,10 +27,15 @@ class Admin::LocationsController < AdminController
     @location = @zone.locations.build(location_params)
 
     if @location.save
-      redirect_to admin_warehouse_zone_location_path(@warehouse, @zone, @location),
-                  notice: "Location was successfully created."
+      respond_to do |format|
+        format.html { redirect_to admin_warehouse_zone_location_path(@warehouse, @zone, @location), notice: "Location was successfully created." }
+        format.json { render json: @location, status: :created }
+      end
     else
-      render :new, status: :unprocessable_entity
+      respond_to do |format|
+        format.html { render :new, status: :unprocessable_entity }
+        format.json { render json: @location.errors, status: :unprocessable_entity }
+      end
     end
   end
 
@@ -48,12 +53,16 @@ class Admin::LocationsController < AdminController
 
   def destroy
     if @location.stocks.any?
-      redirect_to admin_warehouse_zone_locations_path(@warehouse, @zone),
-                  alert: "Cannot delete location with existing stock."
+      respond_to do |format|
+        format.html { redirect_to admin_warehouse_zone_locations_path(@warehouse, @zone), alert: "Cannot delete location with existing stock." }
+        format.json { render json: { error: "Cannot delete location with existing stock." }, status: :unprocessable_entity }
+      end
     else
       @location.destroy
-      redirect_to admin_warehouse_zone_locations_path(@warehouse, @zone),
-                  notice: "Location was successfully deleted."
+      respond_to do |format|
+        format.html { redirect_to admin_warehouse_zone_locations_path(@warehouse, @zone), notice: "Location was successfully deleted." }
+        format.json { render json: { message: "Location was successfully deleted." }, status: :ok }
+      end
     end
   end
 
