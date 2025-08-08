@@ -1,5 +1,5 @@
 class Admin::ProductionOrdersController < AdminController
-  before_action :set_production_order, only: [ :show, :edit, :update, :destroy, :start, :pause, :complete, :cancel, :print_bag_format, :print_box_format ]
+  before_action :set_production_order, only: [ :show, :edit, :update, :destroy, :start, :pause, :complete, :cancel, :print_bag_format, :print_box_format, :update_weight, :modal_details ]
 
   def index
     @production_orders = ProductionOrder.includes(:warehouse, :product)
@@ -179,6 +179,76 @@ class Admin::ProductionOrdersController < AdminController
     end
   end
 
+  def import_excel
+    begin
+      file_path = Rails.root.join("FE BASE DE DATOS.xlsx")
+
+      unless File.exist?(file_path)
+        redirect_to admin_production_orders_path, alert: "Archivo FE BASE DE DATOS.xlsx no encontrado"
+        return
+      end
+
+      import_service = ExcelImportService.new(file_path)
+      results = import_service.import_production_orders
+
+      if results[:errors].empty?
+        redirect_to admin_production_orders_path,
+                    notice: "Importación exitosa: #{results[:created]} creados, #{results[:updated]} actualizados"
+      else
+        error_message = "Importación completada con errores: #{results[:created]} creados, #{results[:updated]} actualizados, #{results[:errors].size} errores"
+        redirect_to admin_production_orders_path, alert: error_message
+      end
+
+    rescue => e
+      redirect_to admin_production_orders_path, alert: "Error al importar: #{e.message}"
+    end
+  end
+
+  def update_weight
+    peso = params[:peso]
+
+    if peso.present? && @production_order.update(peso: peso.to_f)
+      render json: {
+        success: true,
+        message: "Peso actualizado: #{peso} kg",
+        peso: @production_order.peso
+      }
+    else
+      render json: {
+        success: false,
+        error: "Error al actualizar el peso"
+      }
+    end
+  end
+
+  def modal_details
+    render json: {
+      id: @production_order.id,
+      order_number: @production_order.order_number,
+      no_opro: @production_order.no_opro,
+      product_name: @production_order.product.name,
+      warehouse_name: @production_order.warehouse.name,
+      status: @production_order.status,
+      priority: @production_order.priority,
+      quantity_requested: @production_order.quantity_requested,
+      quantity_produced: @production_order.quantity_produced || 0,
+      lote_referencia: @production_order.lote_referencia,
+      carga_copr: @production_order.carga_copr,
+      peso: @production_order.peso,
+      ano: @production_order.ano,
+      mes: @production_order.mes,
+      fecha_completa: @production_order.fecha_completa&.strftime("%d/%m/%Y"),
+      created_at: @production_order.created_at.strftime("%d/%m/%Y %H:%M"),
+      updated_at: @production_order.updated_at.strftime("%d/%m/%Y %H:%M"),
+      progress_percentage: @production_order.progress_percentage,
+      notes: @production_order.notes,
+      can_be_started: @production_order.can_be_started?,
+      can_be_paused: @production_order.can_be_paused?,
+      can_be_completed: @production_order.can_be_completed?,
+      can_be_cancelled: @production_order.can_be_cancelled?
+    }
+  end
+
   private
 
   def set_production_order
@@ -189,7 +259,8 @@ class Admin::ProductionOrdersController < AdminController
     params.require(:production_order).permit(
       :warehouse_id, :product_id, :quantity_requested, :quantity_produced,
       :priority, :estimated_completion, :notes, :bag_size, :bag_measurement,
-      :pieces_count, :package_count, :package_measurement
+      :pieces_count, :package_count, :package_measurement, :peso, :lote_referencia,
+      :no_opro, :carga_copr, :ano, :mes, :fecha_completa
     )
   end
 end
