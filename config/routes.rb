@@ -26,6 +26,11 @@ Rails.application.routes.draw do
         patch :cancel
         get :print_bag_format
         get :print_box_format
+        patch :update_weight
+        get :modal_details
+      end
+      collection do
+        post :import_excel
       end
     end
 
