@@ -1,7 +1,7 @@
 module BarcodeHelper
   def generate_barcode_image(data, options = {})
-    require 'base64' unless defined?(Base64)
-    
+    require "base64" unless defined?(Base64)
+
     # Create barcode
     barcode = Barby::Code128B.new(data)
 
