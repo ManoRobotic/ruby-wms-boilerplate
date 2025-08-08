@@ -61,6 +61,9 @@ gem "ougai", "~> 2.0"
 
 # Barcode generation
 gem "barby", "~> 0.6.8"
+
+# Excel file processing
+gem "roo", "~> 2.10"
 gem "chunky_png", "~> 1.3"
 
 
