@@ -17,81 +17,16 @@
 
     <!-- Layout 2 Columnas -->
     <div class="px-6 pb-6">
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6" data-controller="printer">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6" 
+           data-controller="serial printer print-form" 
+           data-serial-base-url-value="/api/serial"
+           data-serial-auto-connect-value="true"
+           data-action="serial:weightRead->print-form#updateWeight serial:labelPrinted->print-form#onLabelPrinted">
       
       <!-- Columna Izquierda: Hardware y Terminal -->
       <div class="space-y-6">
-        <!-- Control de Hardware -->
-        <div class="bg-white rounded-lg border border-gray-200 p-4">
-          <h2 class="text-lg font-medium text-gray-900 mb-4">Control de Hardware</h2>
-          <div class="space-y-4">
-            <!-- Impresora -->
-            <div>
-              <h3 class="text-sm font-medium text-gray-700 mb-3">🖨️ Impresora TSC TX200</h3>
-              <div id="connection-status" class="mb-3 p-3 rounded-md bg-gray-50 border">
-                <div class="flex items-center">
-                  <div data-printer-target="statusIndicator" class="w-3 h-3 rounded-full bg-red-500 mr-3"></div>
-                  <span data-printer-target="statusText" class="text-gray-700 text-sm">Impresora desconectada</span>
-                </div>
-              </div>
-              <button data-action="click->printer#connectPrinter" 
-                      data-printer-target="connectButton"
-                      type="button" 
-                      class="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md transition-colors duration-200 disabled:opacity-50 mb-2">
-                Conectar Impresora
-              </button>
-              <div class="grid grid-cols-2 gap-2">
-                <button data-action="click->printer#calibrateSensor" 
-                        data-printer-target="calibrateButton"
-                        type="button" 
-                        class="px-3 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm rounded-md transition-colors duration-200 disabled:opacity-50" 
-                        disabled>
-                  Calibrar
-                </button>
-                <button data-action="click->printer#checkStatus" 
-                        data-printer-target="statusButton"
-                        type="button" 
-                        class="px-3 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm rounded-md transition-colors duration-200 disabled:opacity-50" 
-                        disabled>
-                  Estado
-                </button>
-              </div>
-            </div>
-
-            <!-- Báscula -->
-            <div data-controller="scale-reader" data-scale-reader-max-weight-value="100">
-              <h3 class="text-sm font-medium text-gray-700 mb-3">⚖️ Báscula Digital</h3>
-              
-              <div class="text-center mb-4">
-                <div class="inline-flex items-center justify-center w-24 h-24 rounded-full border-2 border-gray-200 mb-3">
-                  <div class="text-center">
-                    <span data-scale-reader-target="weightDisplay" class="text-xl font-bold text-gray-800">0.0</span>
-                    <div class="text-xs text-gray-500">kg</div>
-                  </div>
-                </div>
-              </div>
-              <div id="scale-status" class="mb-3 p-3 rounded-md bg-gray-50 border">
-                <div class="flex items-center">
-                  <div data-scale-reader-target="scaleIndicator" class="w-3 h-3 rounded-full bg-red-500 mr-3"></div>
-                  <span data-scale-reader-target="scaleStatus" class="text-gray-700 text-sm">Báscula desconectada</span>
-                </div>
-              </div>
-              <div class="space-y-2">
-                <button data-action="click->scale-reader#connectScale" 
-                        data-scale-reader-target="connectButton"
-                        class="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-md transition-colors duration-200 disabled:opacity-50">
-                  Conectar Báscula
-                </button>
-                <button data-action="click->scale-reader#readWeight" 
-                        data-scale-reader-target="readButton"
-                        class="w-full px-3 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm rounded-md transition-colors duration-200 disabled:opacity-50" 
-                        disabled>
-                  Leer Peso
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <!-- Panel de Comunicación Serial -->
+        <%= render 'admin/serial/panel' %>
       </div>
 
       <!-- Columna Derecha: Configuración de Etiqueta -->

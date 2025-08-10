@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  serial-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.serial
+    ports:
+      - "5000:5000"
+    devices:
+      - "/dev/ttyUSB0:/dev/ttyUSB0"  # Para puerto serial USB
+      - "/dev/ttyACM0:/dev/ttyACM0"  # Para dispositivos Arduino/CDC
+    privileged: true  # Necesario para acceso a USB
+    volumes:
+      - /dev:/dev
+      - ./logs:/app/logs
+      - ./credentials.json:/app/credentials.json:ro  # Para Google Sheets
+    environment:
+      - PYTHONUNBUFFERED=1
+      - FLASK_ENV=development
+    restart: unless-stopped
+    networks:
+      - wms-network
+
+  # Servicio principal de Rails (referencia)
+  app:
+    # ... configuración existente ...
+    depends_on:
+      - serial-server
+    environment:
+      - SERIAL_SERVER_URL=http://serial-server:5000
+    networks:
+      - wms-network
+
+networks:
+  wms-network:
+    external: true

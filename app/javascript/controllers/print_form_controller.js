@@ -7,9 +7,6 @@ export default class extends Controller {
   connect() {
     console.log("Print form controller connected")
     
-    // Escuchar actualizaciones de peso desde el scale reader
-    document.addEventListener('scale:weight-updated', this.updateWeight.bind(this))
-    
     // Agregar event listeners para los radio buttons
     this.addFormatListeners()
     
@@ -20,21 +17,62 @@ export default class extends Controller {
     this.validatePrintButton()
   }
 
+  // Método actualizado para manejar eventos del controlador serial
   updateWeight(event) {
-    const weight = event.detail.weight || 0.0
+    const weight = event.detail.weight || "0.0"
+    const numericWeight = parseFloat(weight.toString().replace(/[^\d.-]/g, '')) || 0.0
+    
+    console.log(`Received weight from serial: ${weight}, parsed: ${numericWeight}`)
     
     // Actualizar campo oculto del formulario
-    this.weightFieldTarget.value = weight.toFixed(1)
+    this.weightFieldTarget.value = numericWeight.toFixed(1)
     
-    // Actualizar display visual en la lista
+    // Actualizar display visual
     this.weightDisplayTargets.forEach(display => {
-      display.textContent = `${weight.toFixed(1)} kg`
+      display.textContent = `${numericWeight.toFixed(1)} kg`
     })
     
     // Validar si se puede imprimir
     this.validatePrintButton()
     
-    console.log(`Weight updated in form: ${weight} kg`)
+    // Ocultar warning de peso si hay peso válido
+    const warningDiv = document.getElementById('weight-warning')
+    if (numericWeight > 0 && warningDiv) {
+      warningDiv.classList.add('hidden')
+    }
+  }
+
+  // Método para manejar cuando se imprime una etiqueta
+  onLabelPrinted(event) {
+    const content = event.detail.content
+    console.log(`Label printed: ${content}`)
+    
+    // Mostrar mensaje de éxito
+    this.showMessage(`Etiqueta impresa: ${content}`, 'success')
+    
+    // Opcionalmente resetear el formulario
+    // this.resetForm()
+  }
+
+  // Método auxiliar para mostrar mensajes
+  showMessage(message, type = 'info') {
+    // Crear elemento de mensaje temporal
+    const messageDiv = document.createElement('div')
+    messageDiv.className = `fixed top-4 right-4 p-4 rounded-md shadow-lg z-50 ${
+      type === 'success' ? 'bg-green-500 text-white' : 
+      type === 'error' ? 'bg-red-500 text-white' : 
+      'bg-blue-500 text-white'
+    }`
+    messageDiv.textContent = message
+    
+    document.body.appendChild(messageDiv)
+    
+    // Remover después de 3 segundos
+    setTimeout(() => {
+      if (document.body.contains(messageDiv)) {
+        document.body.removeChild(messageDiv)
+      }
+    }, 3000)
   }
 
   addFormatListeners() {
@@ -88,22 +126,92 @@ export default class extends Controller {
     }
   }
 
-  // Interceptar el submit del formulario para validar peso
-  submitForm(event) {
+  // Interceptar el submit del formulario para enviar a través del servicio serial
+  async submitForm(event) {
+    event.preventDefault()
+    
     const currentWeight = parseFloat(this.weightFieldTarget.value)
     
     if (currentWeight <= 0) {
-      event.preventDefault()
+      this.showMessage('Debe capturar el peso antes de imprimir', 'error')
       this.validatePrintButton()
-      console.log('Form submission prevented: No weight captured')
       return false
     }
     
-    console.log('Form submitted with weight:', currentWeight)
-    return true
+    // Obtener datos del formulario
+    const formData = new FormData(event.target)
+    const printData = {
+      product_name: formData.get('product_name') || 'Producto',
+      barcode_data: formData.get('barcode_data') || '',
+      current_weight: currentWeight.toFixed(1),
+      print_format: formData.get('print_format') || 'bag',
+      ancho_mm: formData.get('ancho_mm') || '80',
+      alto_mm: formData.get('alto_mm') || '50',
+      gap_mm: formData.get('gap_mm') || '2'
+    }
+    
+    // Generar contenido de etiqueta
+    const labelContent = this.generateLabelContent(printData)
+    
+    try {
+      // Obtener referencia al controlador serial
+      const serialController = this.getSerialController()
+      
+      if (!serialController) {
+        throw new Error('Controlador serial no disponible')
+      }
+      
+      // Imprimir usando el servicio Flask
+      this.showMessage('Imprimiendo etiqueta...', 'info')
+      const success = await serialController.printCustomLabel(
+        labelContent, 
+        parseInt(printData.ancho_mm), 
+        parseInt(printData.alto_mm)
+      )
+      
+      if (success) {
+        this.showMessage('Etiqueta impresa correctamente', 'success')
+        console.log('Label printed successfully:', labelContent)
+      } else {
+        throw new Error('Error en impresión')
+      }
+      
+    } catch (error) {
+      console.error('Print error:', error)
+      this.showMessage(`Error al imprimir: ${error.message}`, 'error')
+    }
+    
+    return false
+  }
+
+  // Generar contenido de etiqueta basado en el formato
+  generateLabelContent(data) {
+    const timestamp = new Date().toLocaleString()
+    
+    switch (data.print_format) {
+      case 'bag':
+        return `${data.product_name}\nPeso: ${data.current_weight}kg\nCódigo: ${data.barcode_data}\n${timestamp}`
+      
+      case 'box':
+        return `CAJA: ${data.product_name}\nPeso Total: ${data.current_weight}kg\nBarcode: ${data.barcode_data}\nFecha: ${timestamp}`
+      
+      case 'custom':
+        return `${data.product_name}\n${data.current_weight}kg\n${data.barcode_data}\n${data.ancho_mm}x${data.alto_mm}mm\n${timestamp}`
+      
+      default:
+        return `${data.product_name} - ${data.current_weight}kg - ${data.barcode_data}`
+    }
+  }
+
+  // Obtener referencia al controlador serial
+  getSerialController() {
+    const serialElement = document.querySelector('[data-controller*="serial"]')
+    if (!serialElement) return null
+    
+    return this.application.getControllerForElementAndIdentifier(serialElement, 'serial')
   }
 
   disconnect() {
-    document.removeEventListener('scale:weight-updated', this.updateWeight.bind(this))
+    // Cleanup si es necesario
   }
 }

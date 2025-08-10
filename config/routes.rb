@@ -176,6 +176,28 @@ Rails.application.routes.draw do
 
   post "webhooks/mercadopago" => "webhooks#mercadopago"
 
+  # API routes for serial communication
+  namespace :api do
+    resources :serial, only: [] do
+      collection do
+        get :health
+        get :ports
+        post :connect_scale
+        post :disconnect_scale
+        post :start_scale
+        post :stop_scale
+        get :read_weight
+        get :last_reading
+        get :latest_readings
+        get :get_weight_now
+        post :connect_printer
+        post :print_label
+        post :test_printer
+        post :disconnect_printer
+      end
+    end
+  end
+
   post "/checkout", to: "checkouts#create"
   get "/checkout/success", to: "checkouts#success"
   get "/checkout/failure", to: "checkouts#failure"
@@ -183,4 +205,7 @@ Rails.application.routes.draw do
 
   resources :products, only: [ :show ]
   resources :templates
+  
+  # Test page for serial system
+  get '/test_serial', to: proc { |env| [200, {}, [File.read(Rails.root.join('test_serial_system.html'))]] }
 end

@@ -12,6 +12,14 @@ services:
     # USB device access - privileged mode for macOS compatibility
     privileged: true
 
+    # Mount devices for serial/USB access
+    devices:
+      - "/dev:/dev"
+    
+    # Environment for serial server
+    environment:
+      - SERIAL_SERVER_URL=http://localhost:5000
+
     # Overrides default command so things don't shut down after the process ends.
     command: sleep infinity
 

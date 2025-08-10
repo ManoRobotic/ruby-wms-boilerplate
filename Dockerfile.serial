@@ -1,0 +1,39 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Instalar dependencias del sistema
+RUN apt-get update && apt-get install -y \
+    udev \
+    libusb-1.0-0-dev \
+    pkg-config \
+    gcc \
+    libudev-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copiar requirements
+COPY requirements.txt .
+
+# Instalar dependencias de Python
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Crear directorio para logs
+RUN mkdir -p /app/logs
+
+# Copiar código fuente
+COPY serial_server.py .
+COPY scaner.py .
+
+# Configurar permisos para acceso a dispositivos USB
+RUN groupadd -r serialusers && useradd -r -g serialusers serialuser
+RUN usermod -a -G dialout serialuser
+RUN usermod -a -G plugdev serialuser
+
+# Exponer puerto
+EXPOSE 5000
+
+# Configurar usuario
+USER serialuser
+
+# Comando por defecto
+CMD ["python", "serial_server.py"]
