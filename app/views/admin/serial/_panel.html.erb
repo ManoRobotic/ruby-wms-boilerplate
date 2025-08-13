@@ -22,7 +22,7 @@
       <div class="scale-section">
         <h4 class="font-medium text-gray-700 mb-2">Báscula</h4>
         
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-1 gap-4">
           <div>
             <label for="serial_port" class="block text-sm font-medium text-gray-700 mb-1">Puerto</label>
             <select data-serial-target="port" id="serial_port" 
@@ -68,7 +68,7 @@
           <span data-serial-target="printerStatus" class="printer-status info">Desconectada</span>
         </div>
         
-        <div class="grid grid-cols-3 gap-2">
+        <div class="grid grid-cols-2 gap-2">
           <button data-action="click->serial#connectPrinter" 
                   class="btn btn-primary">
             Conectar
@@ -78,13 +78,6 @@
                   data-alto="50"
                   class="btn btn-secondary">
             Test TSC
-          </button>
-          <button data-action="click->serial#printLabel" 
-                  data-content="Etiqueta de prueba"
-                  data-ancho="80"
-                  data-alto="50"
-                  class="btn btn-outline">
-            Imprimir
           </button>
         </div>
       </div>

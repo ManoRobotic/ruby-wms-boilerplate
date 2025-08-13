@@ -34,6 +34,32 @@ class Admin::NotificationsController < ApplicationController
     end
   end
 
+  def poll
+    last_poll = params[:last_poll]&.to_datetime || 1.hour.ago
+    new_notifications = current_user_notifications
+                       .where("created_at > ?", last_poll)
+                       .recent
+                       .limit(10)
+
+    notifications_data = new_notifications.map do |notification|
+      {
+        id: notification.id,
+        title: notification.title,
+        message: notification.message,
+        notification_type: notification.notification_type,
+        created_at: notification.created_at.iso8601,
+        read: notification.read?,
+        action_url: notification.action_url
+      }
+    end
+
+    render json: {
+      notifications: notifications_data,
+      unread_count: current_user_notifications.unread.count,
+      last_poll: Time.current.iso8601
+    }
+  end
+
   def destroy
     @notification.destroy
 
@@ -53,6 +79,7 @@ class Admin::NotificationsController < ApplicationController
     if current_user
       current_user.notifications
     elsif current_admin
+      # For Admins, show only their own notifications via the admin User record
       current_admin.notifications
     else
       Notification.none

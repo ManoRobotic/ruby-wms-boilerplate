@@ -109,24 +109,42 @@
                                                         <%= icon('fa-solid', 'shopping-cart', class: 'w-5 h-5 text-orange-600') %>
                                                     <% when 'inventory_alert' %>
                                                         <%= icon('fa-solid', 'exclamation-triangle', class: 'w-5 h-5 text-yellow-600') %>
+                                                    <% when 'production_order_created' %>
+                                                        <%= icon('fa-solid', 'industry', class: 'w-5 h-5 text-blue-600') %>
                                                     <% when 'system' %>
                                                         <%= icon('fa-solid', 'cog', class: 'w-5 h-5 text-purple-600') %>
                                                     <% else %>
                                                         <%= icon('fa-solid', 'info-circle', class: 'w-5 h-5 text-gray-600') %>
                                                     <% end %>
                                                 </div>
-                                                <div class="flex-1 min-w-0 cursor-pointer"
-                                                     data-action="click->notifications#markAsRead">
-                                                    <p class="text-sm font-medium text-gray-900">
-                                                        <%= notification.title %>
-                                                    </p>
-                                                    <p class="text-sm text-gray-600">
-                                                        <%= notification.message %>
-                                                    </p>
-                                                    <p class="text-xs text-gray-500 mt-1">
-                                                        <%= notification.time_ago %>
-                                                    </p>
-                                                </div>
+                                                <% if notification.action_url.present? %>
+                                                    <%= link_to notification.action_url, 
+                                                        class: "flex-1 min-w-0 cursor-pointer block", 
+                                                        data: { action: "click->notifications#markAsRead" } do %>
+                                                        <p class="text-sm font-medium text-gray-900">
+                                                            <%= notification.title %>
+                                                        </p>
+                                                        <p class="text-sm text-gray-600">
+                                                            <%= notification.message %>
+                                                        </p>
+                                                        <p class="text-xs text-gray-500 mt-1">
+                                                            <%= notification.time_ago %>
+                                                        </p>
+                                                    <% end %>
+                                                <% else %>
+                                                    <div class="flex-1 min-w-0 cursor-pointer"
+                                                         data-action="click->notifications#markAsRead">
+                                                        <p class="text-sm font-medium text-gray-900">
+                                                            <%= notification.title %>
+                                                        </p>
+                                                        <p class="text-sm text-gray-600">
+                                                            <%= notification.message %>
+                                                        </p>
+                                                        <p class="text-xs text-gray-500 mt-1">
+                                                            <%= notification.time_ago %>
+                                                        </p>
+                                                    </div>
+                                                <% end %>
                                                 <% unless notification.read? %>
                                                     <div class="flex-shrink-0 unread-indicator">
                                                         <div class="w-2 h-2 bg-blue-600 rounded-full"></div>

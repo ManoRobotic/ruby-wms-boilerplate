@@ -130,26 +130,6 @@
       </div>
       </div>
 
-      <!-- Registro de Actividad - Full Width -->
-      <div class="mt-6 bg-white rounded-lg border border-gray-200" data-controller="printer">
-        <div class="flex items-center justify-between p-4 border-b border-gray-200">
-          <h2 class="text-lg font-medium text-gray-900">Registro de Actividad</h2>
-          <button data-action="click->printer#clearLog"
-                  type="button" 
-                  class="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-sm rounded-md transition-colors">
-            Limpiar
-          </button>
-        </div>
-        <div class="p-4">
-          <div id="activity-log" class="bg-gray-900 font-mono text-sm p-4 rounded-md h-64 overflow-y-auto border">
-            <div class="text-gray-500">
-              <span class="text-blue-400">[SISTEMA]</span> 
-              <span class="text-gray-400"><%= Time.current.strftime("%H:%M:%S") %></span>
-              Sistema de impresión inicializado...
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 </div>

@@ -152,6 +152,7 @@ Rails.application.routes.draw do
       end
       collection do
         post :mark_all_read
+        get :poll
       end
     end
 

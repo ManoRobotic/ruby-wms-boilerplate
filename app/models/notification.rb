@@ -1,10 +1,10 @@
 class Notification < ApplicationRecord
-  belongs_to :user
+  belongs_to :user, optional: true
 
   # Validations
   validates :title, presence: true, length: { maximum: 255 }
   validates :message, presence: true, length: { maximum: 1000 }
-  validates :notification_type, presence: true, inclusion: { in: %w[task_assigned task_status_changed order_updated inventory_alert system admin_alert] }
+  validates :notification_type, presence: true, inclusion: { in: %w[task_assigned task_status_changed order_updated inventory_alert system admin_alert production_order_created] }
 
   # Serialized data
   serialize :data, coder: JSON
@@ -109,6 +109,23 @@ class Notification < ApplicationRecord
         product_id: product.id,
         warehouse_id: warehouse.id,
         product_name: product.name
+      }
+    )
+  end
+
+  def self.create_production_order_notification(user:, production_order:)
+    create!(
+      user: user,
+      notification_type: "production_order_created",
+      title: "Nueva orden de producción creada",
+      message: "Se ha creado la orden de producción #{production_order.no_opro || production_order.order_number} para el producto #{production_order.product.name}",
+      action_url: "/admin/production_orders/#{production_order.id}",
+      data: {
+        production_order_id: production_order.id,
+        order_number: production_order.no_opro || production_order.order_number,
+        product_name: production_order.product.name,
+        quantity: production_order.quantity_requested,
+        status: production_order.status
       }
     )
   end

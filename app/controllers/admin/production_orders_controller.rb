@@ -47,8 +47,44 @@ class Admin::ProductionOrdersController < AdminController
     @production_order.admin_id = current_user&.id || current_admin&.id
 
     if @production_order.save
-      redirect_to admin_production_order_path(@production_order),
-                  notice: "Orden de producción creada exitosamente."
+      # Send notifications to all users who should be notified about production orders
+      notification_data = {
+        production_order_id: @production_order.id,
+        order_number: @production_order.no_opro || @production_order.order_number,
+        product_name: @production_order.product.name,
+        quantity: @production_order.quantity_requested,
+        status: @production_order.status
+      }.to_json
+
+      # Create individual notifications for each relevant user
+      User.where(role: ['admin', 'manager', 'supervisor', 'operador']).find_each do |user|
+        Notification.create!(
+          user_id: user.id,
+          notification_type: "production_order_created",
+          title: "Nueva orden de producción creada",
+          message: "Se ha creado la orden de producción #{@production_order.no_opro || @production_order.order_number} para el producto #{@production_order.product.name}",
+          action_url: "/admin/production_orders/#{@production_order.id}",
+          data: notification_data
+        )
+      end
+
+      respond_to do |format|
+        format.html do
+          redirect_to admin_production_order_path(@production_order),
+                      notice: "Orden de producción creada exitosamente."
+        end
+        format.json do
+          render json: {
+            status: 'success',
+            message: 'Orden de producción creada exitosamente',
+            production_order: {
+              id: @production_order.id,
+              order_number: @production_order.no_opro || @production_order.order_number,
+              product_name: @production_order.product.name
+            }
+          }
+        end
+      end
     else
       render :new, status: :unprocessable_entity
     end
