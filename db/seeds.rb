@@ -38,6 +38,57 @@ admin = Admin.create!(
 )
 puts "✅ Admin created: #{admin.email}"
 
+puts "👤 Creating WMS users..."
+# Create a warehouse first to assign to users
+first_warehouse = Warehouse.first || Warehouse.create!(
+  name: 'Centro de Distribución Principal',
+  code: 'CDP01', 
+  address: 'Av. Industrial 1234, Zona Industrial, CDMX 12345',
+  active: true,
+  contact_info: {
+    phone: '+52-55-1234-5678',
+    email: 'cdp@wmsapp.com',
+    manager: 'Carlos Rodríguez',
+    hours: '24/7'
+  }
+)
+
+# Create operador user
+operador = User.create!(
+  email: "operador@wmsapp.com",
+  password: "password123", 
+  password_confirmation: "password123",
+  name: "Juan Operador",
+  role: "operador",
+  warehouse: first_warehouse,
+  active: true
+)
+puts "✅ Operador created: #{operador.email}"
+
+# Create supervisor user
+supervisor = User.create!(
+  email: "supervisor@wmsapp.com",
+  password: "password123",
+  password_confirmation: "password123", 
+  name: "María Supervisora",
+  role: "supervisor",
+  warehouse: first_warehouse,
+  active: true
+)
+puts "✅ Supervisor created: #{supervisor.email}"
+
+# Create picker user
+picker = User.create!(
+  email: "picker@wmsapp.com",
+  password: "password123",
+  password_confirmation: "password123",
+  name: "Carlos Picker", 
+  role: "picker",
+  warehouse: first_warehouse,
+  active: true
+)
+puts "✅ Picker created: #{picker.email}"
+
 puts "📂 Creating categories..."
 categories = Category.create!([
   {
@@ -316,12 +367,15 @@ puts "  📂 Categories: #{Category.count}"
 puts "  🪙 Products: #{Product.count}"
 puts "  📦 Stock entries: #{Stock.count}"
 puts "  👤 Admins: #{Admin.count}"
+puts "  👥 Users: #{User.count}"
 puts "  📋 Orders: #{Order.count}"
 puts "  🛒 Order products: #{OrderProduct.count}"
 puts ""
-puts "🔐 Admin credentials:"
-puts "  Email: admin@wmsapp.com"
-puts "  Password: password123"
+puts "🔐 Login credentials:"
+puts "  Admin: admin@wmsapp.com / password123"
+puts "  Operador: operador@wmsapp.com / password123"
+puts "  Supervisor: supervisor@wmsapp.com / password123"  
+puts "  Picker: picker@wmsapp.com / password123"
 puts ""
 puts "✅ Database seeded successfully! 🚀"
 

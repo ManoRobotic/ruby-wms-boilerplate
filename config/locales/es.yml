@@ -34,6 +34,7 @@ es:
       supervisor: 'Supervisor'
       picker: 'Recolector'
       user: 'Usuario'
+      operador: 'Operador'
     title: 'Usuarios'
     new_user: 'Nuevo Usuario'
     edit_user: 'Editar Usuario'

@@ -42,7 +42,7 @@ class AdminController < ApplicationController
     # Filter recent transactions by user's warehouse if not admin
     transactions_scope = InventoryTransaction.recent
     if current_user && current_user.warehouse_id.present?
-      transactions_scope = transactions_scope.joins(:location).where(locations: { warehouse_id: current_user.warehouse_id })
+      transactions_scope = transactions_scope.joins(location: :zone).where(zones: { warehouse_id: current_user.warehouse_id })
     end
     @recent_transactions = transactions_scope.limit(5) rescue []
   end
@@ -148,7 +148,7 @@ class AdminController < ApplicationController
   end
 
   def authenticate_admin_or_privileged_user!
-    unless current_admin || (current_user&.admin? || current_user&.supervisor?)
+    unless current_admin || (current_user&.admin? || current_user&.supervisor? || current_user&.operador?)
       redirect_to new_user_session_path, alert: "Necesitas permisos de administrador para acceder."
     end
   end

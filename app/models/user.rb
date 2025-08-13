@@ -14,7 +14,7 @@ class User < ApplicationRecord
 
   # Validations
   validates :name, presence: true
-  validates :role, presence: true, inclusion: { in: %w[admin user supervisor picker] }
+  validates :role, presence: true, inclusion: { in: %w[admin user supervisor picker operador] }
   validates :warehouse_id, presence: true, unless: :admin?
 
   # Scopes
@@ -25,6 +25,7 @@ class User < ApplicationRecord
   scope :users, -> { where(role: "user") }
   scope :supervisors, -> { where(role: "supervisor") }
   scope :pickers, -> { where(role: "picker") }
+  scope :operadores, -> { where(role: "operador") }
 
   # Serialized permissions
   serialize :permissions, coder: JSON
@@ -46,6 +47,10 @@ class User < ApplicationRecord
     role == "picker"
   end
 
+  def operador?
+    role == "operador"
+  end
+
   def warehouse_admin?
     supervisor? || admin?
   end
@@ -61,6 +66,8 @@ class User < ApplicationRecord
       picker_permissions(action, resource)
     when "user"
       user_permissions(action, resource)
+    when "operador"
+      operador_permissions(action, resource)
     else
       false
     end
@@ -130,6 +137,21 @@ class User < ApplicationRecord
 
     case action.to_s
     when *user_permissions
+      true
+    else
+      false
+    end
+  end
+
+  def operador_permissions(action, resource)
+    operador_permissions = %w[
+      read_orders read_products read_inventory read_locations
+      read_production_orders manage_inventory manage_manual_printing
+      read_admin_dashboard
+    ]
+
+    case action.to_s
+    when *operador_permissions
       true
     else
       false

@@ -4,9 +4,9 @@ class Rack::Attack
   # Configuration
   Rack::Attack.cache.store = ActiveSupport::Cache::MemoryStore.new
 
-  # Allow local traffic
+  # Allow local traffic and development IPs
   safelist("allow-localhost") do |req|
-    req.ip == "127.0.0.1" || req.ip == "::1"
+    ["127.0.0.1", "::1", "140.82.114.6"].include?(req.ip) || Rails.env.development?
   end
 
   # Allow health checks
@@ -14,9 +14,9 @@ class Rack::Attack
     req.path.start_with?("/health")
   end
 
-  # Throttle general requests by IP
-  throttle("general/ip", limit: 300, period: 5.minutes) do |req|
-    req.ip unless req.path.start_with?("/assets")
+  # Throttle general requests by IP (more permissive in development)
+  throttle("general/ip", limit: Rails.env.development? ? 1000 : 300, period: 5.minutes) do |req|
+    req.ip unless req.path.start_with?("/assets") || Rails.env.development?
   end
 
   # Throttle API requests more strictly

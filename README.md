@@ -101,12 +101,15 @@ bin/dev
 
 ### **3. Ready! 🎉**
 - **WMS Dashboard**: http://localhost:3000/admin
-- **Admin Credentials**: 
-  - Email: `admin@wmsapp.com`
-  - Password: `password123`
+- **System Users**: 
+  - **Admin**: `admin@wmsapp.com` / `password123` (Full system access)
+  - **Operador**: `operador@wmsapp.com` / `password123` (Production Orders + Products + Manual Printing)
+  - **Supervisor**: `supervisor@wmsapp.com` / `password123` (Warehouse management)
+  - **Picker**: `picker@wmsapp.com` / `password123` (Task execution)
 - **Sample Data Includes**:
   - 2 Warehouses with 10 zones and 90 locations
   - 15 Products with WMS fields (SKU, dimensions, reorder points)
+  - 4 System users with different roles and permissions
   - 10 Sample tasks (picking, putaway, replenishment, cycle count)
   - Inventory transactions and movement history
 
@@ -307,8 +310,13 @@ The comprehensive WMS admin panel includes:
 
 ### **Access Control**
 - **URL**: `/admin` 
-- **Authentication**: Devise with admin user management
-- **Security**: Role-based access, Brakeman scanned (0 vulnerabilities)
+- **Authentication**: Devise with role-based user management
+- **User Roles**: 
+  - **Admin**: Complete system access
+  - **Operador**: Production orders, products, manual printing
+  - **Supervisor**: Warehouse operations management
+  - **Picker**: Task execution and inventory updates
+- **Security**: Role-based permissions, Brakeman scanned (0 vulnerabilities)
 - **Responsive**: Mobile-optimized for warehouse floor operations
 
 ---
@@ -366,9 +374,11 @@ heroku run rails db:seed
   🔄 Inventory transactions: Movement history
   👤 Admin users: 1
 
-🔐 Admin credentials:
-  Email: admin@wmsapp.com
-  Password: password123
+🔐 System credentials:
+  **Admin**: admin@wmsapp.com / password123
+  **Operador**: operador@wmsapp.com / password123 (Orders + Products + Manual Printing)
+  **Supervisor**: supervisor@wmsapp.com / password123 (Warehouse Management)
+  **Picker**: picker@wmsapp.com / password123 (Task Execution)
   
 
 ### **Docker Production**

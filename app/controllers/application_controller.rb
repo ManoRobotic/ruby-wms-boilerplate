@@ -30,6 +30,8 @@ class ApplicationController < ActionController::Base
         resource.warehouse ? admin_warehouse_path(resource.warehouse) : admin_warehouses_path
       when "picker"
         admin_tasks_path
+      when "operador"
+        admin_root_path
       else
         root_path
       end

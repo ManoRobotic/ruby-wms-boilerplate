@@ -13,6 +13,7 @@ en:
       supervisor: 'Supervisor'
       picker: 'Picker'
       user: 'User'
+      operador: 'Operator'
     title: 'Users'
     new_user: 'New User'
     edit_user: 'Edit User'
