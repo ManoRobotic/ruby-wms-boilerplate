@@ -17,7 +17,7 @@
         <div class="flex flex-col h-full px-3 py-4 bg-gray-800 rounded-r-lg md:rounded-none">
             <!-- Main Navigation Menu -->
             <div class="flex-1">
-                <ul class="mt-10 space-y-1.5 font-medium text-white">
+                <ul class="mt-6 space-y-1 font-medium text-white">
                     <% 
                     # Define all menu items with their required permissions
                     menu_items = [
@@ -49,8 +49,8 @@
                                   sidebar_target: "link",
                                   action: "click->sidebar#linkClicked"
                                 },
-                                class: "flex items-center p-2.5 rounded-lg hover:bg-gray-700 #{'bg-gray-700' if current_page?(item[:path])}" do %>
-                                <%= icon('fa-solid', item[:icon], class: 'w-4.5 h-4.5 mr-2.5') %> 
+                                class: "flex items-center p-2 rounded-lg hover:bg-gray-700 #{'bg-gray-700' if current_page?(item[:path])}" do %>
+                                <%= icon('fa-solid', item[:icon], class: 'w-4 h-4 mr-2.5') %> 
                                 <span class="text-sm"><%= item[:label] %></span>
                             <% end %>
                         </li>
@@ -59,19 +59,19 @@
             </div>
             
             <!-- Bottom Section: Notifications and User Profile -->
-            <div class="mt-auto mb-3 space-y-2 text-white">
-                <div class="border-t border-gray-600 my-3"></div>
+            <div class="mt-auto mb-2 space-y-1 text-white flex-shrink-0">
+                <div class="border-t border-gray-600 my-2"></div>
                     <!-- Notifications -->
                     <% current_user_or_admin_instance = current_user || current_admin %>
                     <% if current_user_or_admin_instance %>
                         <div class="relative" data-controller="dropdown">
                             <button data-dropdown-target="trigger" 
                                     data-action="click->dropdown#toggle"
-                                    class="flex items-center w-full p-2.5 rounded-lg hover:bg-gray-700 focus:outline-none">
+                                    class="flex items-center w-full p-2 rounded-lg hover:bg-gray-700 focus:outline-none">
                                 <%= icon('fa-solid', 'bell', class: 'w-4 h-4 mr-2') %>
                                 <span class="text-sm">Notificaciones</span>
                                 <% if current_user_or_admin_instance.unread_notifications_count > 0 %>
-                                    <span class="notification-count ml-auto bg-red-500 text-xs rounded-full px-2 py-1 min-w-[20px] text-center">
+                                    <span class="notification-count ml-auto bg-red-500 text-xs rounded-full px-1 py-0.5 min-w-[16px] text-center">
                                         <%= current_user_or_admin_instance.unread_notifications_count %>
                                     </span>
                                 <% end %>
@@ -80,7 +80,8 @@
                             
                             <!-- Notifications Dropdown -->
                             <div data-dropdown-target="menu" 
-                                 class="hidden absolute bottom-full left-0 right-0 mb-2 bg-white rounded-lg shadow-lg border z-50 max-h-80 overflow-y-auto">
+                                 class="hidden absolute bottom-full left-0 right-0 mb-2 bg-white rounded-lg shadow-lg border z-50"
+                                 style="bottom: 100%; max-height: 40vh; overflow-y: auto;">
                                 <div class="p-3 border-b border-gray-200">
                                     <h3 class="font-semibold text-gray-900">Notificaciones</h3>
                                     <% if current_user_or_admin_instance.unread_notifications_count > 0 %>
@@ -148,26 +149,23 @@
                     <div class="relative" data-controller="dropdown">
                         <button data-dropdown-target="trigger" 
                                 data-action="click->dropdown#toggle"
-                                class="flex items-center w-full p-2.5 rounded-lg hover:bg-gray-700 focus:outline-none group">
+                                class="flex items-center w-full p-2 rounded-lg hover:bg-gray-700 focus:outline-none group">
                             <!-- Avatar -->
                             <div class="flex-shrink-0 w-7 h-7 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 flex items-center justify-center mr-2">
                                 <% current_user_display = current_user || current_admin %>
-                                <span class="text-xs font-semibold text-white">
+                                <span class="text-sm font-semibold text-white">
                                     <%= current_user_display&.display_name&.first&.upcase || current_user_display&.email&.first&.upcase || "?" %>
                                 </span>
                             </div>
                             
                             <!-- User Info -->
                             <div class="flex-1 text-left">
-                                <div class="text-xs font-medium text-white truncate">
+                                <div class="text-sm font-medium text-white truncate">
                                     <%= current_user_display&.display_name || current_user_display&.email || "Usuario" %>
                                 </div>
                                 <div class="text-xs text-gray-300 truncate">
                                     <% if current_user %>
                                         <%= current_user.role_display %>
-                                        <% if current_user.warehouse %>
-                                            • <%= current_user.warehouse.name %>
-                                        <% end %>
                                     <% elsif current_admin %>
                                         Admin
                                     <% end %>
@@ -182,7 +180,8 @@
                         
                         <!-- User Menu Dropdown -->
                         <div data-dropdown-target="menu" 
-                             class="hidden absolute bottom-full left-0 right-0 mb-2 bg-white rounded-lg shadow-lg border z-50">
+                             class="hidden absolute bottom-full left-0 right-0 mb-2 bg-white rounded-lg shadow-lg border z-50"
+                             style="bottom: 100%; max-height: 30vh; overflow-y: auto;">
                             <div class="p-3 border-b border-gray-200">
                                 <div class="flex items-center space-x-3">
                                     <div class="w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 flex items-center justify-center">
