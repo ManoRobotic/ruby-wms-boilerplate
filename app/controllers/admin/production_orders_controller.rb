@@ -47,6 +47,8 @@ class Admin::ProductionOrdersController < AdminController
     @production_order.admin_id = current_user&.id || current_admin&.id
 
     if @production_order.save
+      Rails.logger.info "🎉 Production Order created successfully: #{@production_order.id}"
+      
       # Send notifications to all users who should be notified about production orders
       notification_data = {
         production_order_id: @production_order.id,
@@ -68,15 +70,34 @@ class Admin::ProductionOrdersController < AdminController
         )
       end
 
+      # Broadcast real-time notifications via ActionCable
+      broadcast_notifications(@production_order)
+      Rails.logger.info "📡 Notifications broadcast sent"
+
       respond_to do |format|
         format.html do
-          redirect_to admin_production_order_path(@production_order),
+          toast_data = {
+            type: 'success',
+            title: 'Orden creada!',
+            message: "Orden #{@production_order.no_opro || @production_order.order_number} creada exitosamente",
+            duration: 15000
+          }
+          flash[:toast] = toast_data
+          Rails.logger.info "🍞 Flash toast set: #{toast_data.inspect}"
+          
+          # Use Turbo to show toast and then redirect
+          redirect_to admin_production_orders_path,
                       notice: "Orden de producción creada exitosamente."
         end
         format.json do
           render json: {
             status: 'success',
             message: 'Orden de producción creada exitosamente',
+            toast: {
+              type: 'success',
+              title: 'Orden creada!',
+              message: "Orden #{@production_order.no_opro || @production_order.order_number} creada exitosamente"
+            },
             production_order: {
               id: @production_order.id,
               order_number: @production_order.no_opro || @production_order.order_number,
@@ -286,6 +307,44 @@ class Admin::ProductionOrdersController < AdminController
   end
 
   private
+
+  def broadcast_notifications(production_order)
+    # Prepare notification data
+    notification_data = {
+      title: "Orden creada!",
+      message: "Orden #{production_order.no_opro || production_order.order_number} para #{production_order.product.name}",
+      type: "success",
+      duration: 15000, # 15 seconds
+      action_url: "/admin/production_orders/#{production_order.id}",
+      timestamp: Time.current.iso8601
+    }
+
+    # Send to all relevant users via ActionCable
+    User.where(role: ['admin', 'manager', 'supervisor', 'operador']).find_each do |user|
+      ActionCable.server.broadcast(
+        "notifications_#{user.id}",
+        {
+          type: 'new_notification',
+          notification: notification_data
+        }
+      )
+    end
+    
+    # Also send to admin sessions - find admins by their current session
+    Admin.find_each do |admin|
+      # Try to find corresponding admin user for broadcasting
+      admin_user = User.find_by(email: admin.email, role: 'admin')
+      if admin_user
+        ActionCable.server.broadcast(
+          "notifications_#{admin_user.id}",
+          {
+            type: 'new_notification',
+            notification: notification_data
+          }
+        )
+      end
+    end
+  end
 
   def set_production_order
     @production_order = ProductionOrder.find(params[:id])

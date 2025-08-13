@@ -4,6 +4,8 @@ export default class extends Controller {
   static targets = ["count"]
   
   connect() {
+    console.log('🔔 NotificationsController connected!')
+    
     // Listen for new notifications
     document.addEventListener('notification:new', this.handleNewNotification.bind(this))
     document.addEventListener('toast:show', this.handleToastShow.bind(this))
@@ -11,18 +13,101 @@ export default class extends Controller {
     
     // Initialize toast container
     this.createToastContainer()
+    console.log('📦 Toast container created')
     
-    // Start polling for new notifications
+    // Make showToast available globally
+    window.showNotificationToast = (type, title, message, duration) => {
+      console.log('🌍 Global showNotificationToast called:', { type, title, message, duration })
+      this.showToast(type, title, message, duration)
+    }
+    console.log('🌍 showNotificationToast attached to window')
+    
+    // Connect to ActionCable for real-time notifications
+    this.connectToCable()
+    
+    // Start polling for new notifications (fallback)
     this.startPolling()
+    
+    // Start immediate polling for real-time toasts
+    this.startImmediatePolling()
+    
+    // Test toast on load (temporal para debug) - comentado por ahora
+    // setTimeout(() => {
+    //   this.showToast('info', 'Sistema Cargado', 'NotificationsController iniciado correctamente', 5000)
+    // }, 1000)
   }
   
   disconnect() {
     document.removeEventListener('notification:new', this.handleNewNotification.bind(this))
     document.removeEventListener('toast:show', this.handleToastShow.bind(this))
     document.removeEventListener('notifications:poll', this.handleImmediatePoll.bind(this))
+    this.disconnectFromCable()
     this.stopPolling()
+    this.stopImmediatePolling()
+    
+    // Clean up global reference
+    if (window.showNotificationToast) {
+      delete window.showNotificationToast
+    }
   }
   
+  connectToCable() {
+    // Import ActionCable consumer
+    const consumer = (window.App && window.App.cable) || window.createConsumer?.('/cable')
+    
+    if (!consumer) {
+      console.warn('ActionCable consumer not available')
+      return
+    }
+
+    // Subscribe to notifications channel
+    this.subscription = consumer.subscriptions.create("NotificationsChannel", {
+      received: (data) => {
+        if (data.type === 'new_notification' && data.notification) {
+          console.log('📡 WebSocket notification received:', data.notification)
+          // Show toast immediately when receiving WebSocket message via global function
+          if (window.showToast) {
+            window.showToast(
+              data.notification.type || 'notification',
+              data.notification.title,
+              data.notification.message,
+              data.notification.duration || 15000
+            )
+          } else {
+            // Fallback: dispatch event
+            const event = new CustomEvent('toast:show', {
+              detail: {
+                type: data.notification.type || 'notification',
+                title: data.notification.title,
+                message: data.notification.message,
+                duration: data.notification.duration || 15000
+              }
+            })
+            document.dispatchEvent(event)
+          }
+          
+          // Update notification count
+          this.incrementNotificationCount()
+        }
+      },
+      
+      connected: () => {
+        console.log('Connected to NotificationsChannel')
+      },
+      
+      disconnected: () => {
+        console.log('Disconnected from NotificationsChannel')
+      }
+    })
+  }
+
+  disconnectFromCable() {
+    if (this.subscription) {
+      this.subscription.unsubscribe()
+      this.subscription = null
+    }
+  }
+
   createToastContainer() {
     if (!document.querySelector('#toast-container')) {
       const container = document.createElement('div')
@@ -47,49 +132,80 @@ export default class extends Controller {
     this.showToast(type, title, message, duration)
   }
   
-  showToast(type, title, message, duration = 5000) {
+  showToast(type, title, message, duration = 15000) {
+    console.log('🍞 showToast called:', { type, title, message, duration })
+    
     const container = document.querySelector('#toast-container')
-    if (!container) return
+    if (!container) {
+      console.error('❌ Toast container not found!')
+      return
+    }
+    console.log('✅ Toast container found:', container)
     
     const toast = document.createElement('div')
-    toast.className = `transform transition-all duration-300 ease-in-out translate-x-full opacity-0 max-w-sm w-full bg-white shadow-lg rounded-lg pointer-events-auto ring-1 ring-black ring-opacity-5 overflow-hidden`
+    toast.className = `transform transition-all duration-300 ease-in-out translate-x-full opacity-0 flex items-center w-full max-w-xs p-4 mb-4 text-gray-500 bg-white rounded-lg shadow-sm dark:text-gray-400 dark:bg-gray-800`
+    toast.setAttribute('role', 'alert')
     
     const typeConfig = {
-      success: { iconBg: 'bg-green-100', iconColor: 'text-green-600', icon: '✓' },
-      error: { iconBg: 'bg-red-100', iconColor: 'text-red-600', icon: '✕' },
-      warning: { iconBg: 'bg-yellow-100', iconColor: 'text-yellow-600', icon: '⚠' },
-      info: { iconBg: 'bg-blue-100', iconColor: 'text-blue-600', icon: 'ℹ' },
-      notification: { iconBg: 'bg-purple-100', iconColor: 'text-purple-600', icon: '🔔' }
+      success: { 
+        iconBg: 'text-green-500 bg-green-100 dark:bg-green-800 dark:text-green-200',
+        icon: `<svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z"/>
+              </svg>`
+      },
+      error: { 
+        iconBg: 'text-red-500 bg-red-100 dark:bg-red-800 dark:text-red-200',
+        icon: `<svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 11.793a1 1 0 1 1-1.414 1.414L10 11.414l-2.293 2.293a1 1 0 0 1-1.414-1.414L8.586 10 6.293 7.707a1 1 0 0 1 1.414-1.414L10 8.586l2.293-2.293a1 1 0 0 1 1.414 1.414L11.414 10l2.293 2.293Z"/>
+              </svg>`
+      },
+      warning: { 
+        iconBg: 'text-orange-500 bg-orange-100 dark:bg-orange-700 dark:text-orange-200',
+        icon: `<svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM10 15a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm1-4a1 1 0 0 1-2 0V6a1 1 0 0 1 2 0v5Z"/>
+              </svg>`
+      },
+      info: { 
+        iconBg: 'text-blue-500 bg-blue-100 dark:bg-blue-800 dark:text-blue-200',
+        icon: `<svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+              </svg>`
+      },
+      notification: { 
+        iconBg: 'text-purple-500 bg-purple-100 dark:bg-purple-800 dark:text-purple-200',
+        icon: `<svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+              </svg>`
+      }
     }
     
     const config = typeConfig[type] || typeConfig.info
     
+    // Create unique toast ID
+    const toastId = `toast-${type}-${Date.now()}`
+    toast.id = toastId
+    
     toast.innerHTML = `
-      <div class="flex items-start p-4">
-        <div class="flex-shrink-0">
-          <div class="${config.iconBg} rounded-full p-2">
-            <span class="${config.iconColor} text-sm font-semibold">${config.icon}</span>
-          </div>
-        </div>
-        <div class="ml-3 flex-1">
-          ${title ? `<p class="text-sm font-medium text-gray-900">${title}</p>` : ''}
-          <p class="text-sm text-gray-500">${message}</p>
-        </div>
-        <div class="ml-4 flex-shrink-0 flex">
-          <button class="toast-close bg-white rounded-md inline-flex text-gray-400 hover:text-gray-500 focus:outline-none">
-            <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
-            </svg>
-          </button>
-        </div>
+      <div class="inline-flex items-center justify-center shrink-0 w-8 h-8 ${config.iconBg} rounded-lg">
+        ${config.icon}
+        <span class="sr-only">${type} icon</span>
       </div>
+      <div class="ms-3 text-sm font-normal">${title ? title + ': ' : ''}${message}</div>
+      <button type="button" class="toast-close ms-auto -mx-1.5 -my-1.5 bg-white text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex items-center justify-center h-8 w-8 dark:text-gray-500 dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700" data-dismiss-target="#${toastId}" aria-label="Close">
+        <span class="sr-only">Close</span>
+        <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+        </svg>
+      </button>
     `
     
     container.appendChild(toast)
+    console.log('✅ Toast appended to container')
     
     setTimeout(() => {
       toast.classList.remove('translate-x-full', 'opacity-0')
       toast.classList.add('translate-x-0', 'opacity-100')
+      console.log('🎬 Toast animated in')
     }, 100)
     
     const closeBtn = toast.querySelector('.toast-close')
@@ -98,6 +214,8 @@ export default class extends Controller {
     if (duration > 0) {
       setTimeout(() => this.removeToast(toast), duration)
     }
+    
+    console.log('🎉 Toast setup complete')
   }
   
   removeToast(toast) {
@@ -134,9 +252,13 @@ export default class extends Controller {
   }
 
   markAsRead(event) {
-    const notificationId = event.currentTarget.dataset.notificationId
+    const notificationElement = event.currentTarget.closest('.notification-item')
+    const notificationId = notificationElement?.dataset.notificationId
     
-    if (!notificationId) return
+    if (!notificationId) {
+      console.error('No notification ID found')
+      return
+    }
     
     fetch(`/admin/notifications/${notificationId}/mark_read`, {
       method: 'PATCH',
@@ -147,16 +269,26 @@ export default class extends Controller {
     })
     .then(response => {
       if (response.ok) {
-        const notificationElement = event.currentTarget.closest('.notification-item')
-        if (notificationElement) {
-          notificationElement.classList.remove('bg-blue-50')
-          const unreadIndicator = notificationElement.querySelector('.unread-indicator')
-          if (unreadIndicator) {
-            unreadIndicator.remove()
-          }
+        // Remove unread styling immediately
+        notificationElement.classList.remove('bg-blue-50')
+        const unreadIndicator = notificationElement.querySelector('.unread-indicator')
+        if (unreadIndicator) {
+          unreadIndicator.remove()
         }
+        
+        // Update notification counter
         this.updateNotificationCount()
-        this.showToast('success', 'Notificación marcada como leída')
+        
+        // Show success toast
+        this.showToast('success', 'Notificación marcada como leída', '', 3000)
+        
+        // If the notification had an action_url, navigate to it after marking as read
+        const actionLink = event.currentTarget.closest('a[href]')
+        if (actionLink && actionLink.href && !event.ctrlKey && !event.metaKey) {
+          setTimeout(() => {
+            window.location.href = actionLink.href
+          }, 500)
+        }
       }
     })
     .catch(error => {
@@ -264,6 +396,51 @@ export default class extends Controller {
   handleImmediatePoll(event) {
     // Force an immediate poll for notifications
     this.pollForNotifications()
+  }
+  
+  startImmediatePolling() {
+    this.lastImmediateCheck = new Date().toISOString()
+    this.immediatePollingInterval = setInterval(() => {
+      this.pollForImmediateNotifications()
+    }, 2000) // Poll every 2 seconds for immediate notifications
+  }
+  
+  stopImmediatePolling() {
+    if (this.immediatePollingInterval) {
+      clearInterval(this.immediatePollingInterval)
+      this.immediatePollingInterval = null
+    }
+  }
+  
+  async pollForImmediateNotifications() {
+    try {
+      const response = await fetch(`/admin/notifications/poll_immediate?last_check=${encodeURIComponent(this.lastImmediateCheck)}`, {
+        method: 'GET',
+        headers: {
+          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+          'Content-Type': 'application/json',
+        }
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        this.lastImmediateCheck = data.last_check
+        
+        // Show toasts for immediate notifications
+        data.immediate_notifications.forEach(notification => {
+          this.showToast('notification', notification.title, notification.message, notification.duration || 10000)
+          // Update notification counter
+          this.incrementNotificationCount()
+        })
+        
+        // Also poll for regular notifications if we got immediate ones
+        if (data.immediate_notifications.length > 0) {
+          this.pollForNotifications()
+        }
+      }
+    } catch (error) {
+      console.error('Error polling for immediate notifications:', error)
+    }
   }
 }
 

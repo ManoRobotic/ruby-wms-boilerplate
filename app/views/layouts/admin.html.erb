@@ -18,9 +18,35 @@
     <%= javascript_importmap_tags %>
   </head>
 
-  <body data-controller="notifications">
+  <body data-controller="notifications toast">
     <main>
       <%= render 'shared/header_admin' %>
+      
+      <%# Handle flash toasts %>
+      <% if flash[:toast] %>
+        <script>
+          document.addEventListener('DOMContentLoaded', function() {
+            console.log('🔥 Flash toast detected!');
+            const toastData = <%= flash[:toast].to_json.html_safe %>;
+            console.log('📊 Toast data:', toastData);
+            
+            setTimeout(() => {
+              if (window.showToast) {
+                console.log('✅ showToast found, calling...');
+                window.showToast(toastData.type, toastData.title, toastData.message, toastData.duration);
+              } else {
+                console.error('❌ showToast not found!');
+                // Fallback: dispatch event
+                const event = new CustomEvent('toast:show', {
+                  detail: toastData
+                });
+                document.dispatchEvent(event);
+              }
+            }, 100);
+          });
+        </script>
+      <% end %>
+      
       <%= yield %>
     </main>
   </body>

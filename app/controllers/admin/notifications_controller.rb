@@ -60,6 +60,29 @@ class Admin::NotificationsController < ApplicationController
     }
   end
 
+  def poll_immediate
+    # Check for immediate notifications from cache
+    last_check = params[:last_check]&.to_datetime || 5.seconds.ago
+    
+    immediate_notifications = []
+    
+    # Simple approach: check recent cache keys
+    (0..30).each do |i|
+      timestamp = (Time.current - i.seconds).to_i
+      key = "new_notification_#{timestamp}"
+      notification_data = Rails.cache.read(key)
+      
+      if notification_data && notification_data[:created_at].to_datetime > last_check
+        immediate_notifications << notification_data
+      end
+    end
+
+    render json: {
+      immediate_notifications: immediate_notifications,
+      last_check: Time.current.iso8601
+    }
+  end
+
   def destroy
     @notification.destroy
 

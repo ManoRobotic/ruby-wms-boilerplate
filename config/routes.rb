@@ -1,4 +1,6 @@
 Rails.application.routes.draw do
+  # ActionCable WebSocket endpoint
+  mount ActionCable.server => '/cable'
   devise_for :users
   root "home#index"
 
@@ -153,6 +155,7 @@ Rails.application.routes.draw do
       collection do
         post :mark_all_read
         get :poll
+        get :poll_immediate
       end
     end
 

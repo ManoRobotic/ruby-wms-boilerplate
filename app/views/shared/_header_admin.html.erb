@@ -96,7 +96,6 @@
                                 <div class="max-h-60 overflow-y-auto">
                                     <% current_user_or_admin_instance.recent_notifications.each do |notification| %>
                                         <div class="notification-item p-3 border-b border-gray-100 hover:bg-gray-50 <%= 'bg-blue-50' unless notification.read? %>"
-                                             data-controller="notifications"
                                              data-notification-id="<%= notification.id %>">
                                             <div class="flex items-start space-x-3">
                                                 <div class="flex-shrink-0">
