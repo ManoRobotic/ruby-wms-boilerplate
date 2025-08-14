@@ -2,8 +2,8 @@
   <%= render "shared/succes_alert", notice: notice %>
 <% end %>
 
-<div class="w-full px-4 mt-4 mb-4" data-controller="production-order">
-  <div class="relative flex flex-col w-full text-gray-700 bg-white shadow-md rounded-xl bg-clip-border">
+<div class="w-full px-4 mt-8 mb-8" data-controller="production-order">
+  <div class="relative flex flex-col w-full px-6 text-gray-700 bg-white shadow-md lg:px-10 rounded-xl bg-clip-border">
     <div class="relative p-4 text-gray-700 bg-white bg-clip-border">
       <div class="container mx-auto">
         <div class="flex flex-col items-center gap-8 px-4 mb-4 md:flex-row md:items-center md:justify-between">
@@ -13,25 +13,16 @@
             </h1>
           </div>
           <div class="flex justify-center gap-2 shrink-0 md:w-auto">
-            <!-- Toast Test Button (TEMPORAL) -->
-            <button onclick="testToast()" 
-                class="mt-12 flex items-center gap-3 rounded-lg bg-yellow-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85">
-              🍞 Test Toast
-            </button>
-            
             <%= form_with url: import_excel_admin_production_orders_path, method: :post, local: true, 
                 class: "inline-block mt-12" do |form| %>
-              <%= form.submit "Importar Excel", 
+              <%= form.submit "Actualizar", 
                   class: "flex items-center gap-3 rounded-lg bg-purple-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85 cursor-pointer",
                   data: { confirm: "¿Estás seguro de que quieres importar los datos desde merged.xlsx?" } %>
             <% end %>
-            <%= link_to admin_production_orders_scan_barcode_path, 
-                class: "mt-12 flex items-center gap-3 rounded-lg bg-green-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85" do %>
-              <%= icon('fa-solid', 'qrcode', class: 'w-4 h-4') %>
-              Escáner
-            <% end %>
-            <%= link_to 'Nueva Orden de Producción', new_admin_production_order_path, 
-                class: "mt-12 flex items-center gap-3 rounded-lg bg-blue-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85" %>
+               <% if current_admin %>
+                 <%= link_to 'Nueva Orden de Producción', new_admin_production_order_path, 
+                     class: "mt-12 flex items-center gap-3 rounded-lg bg-blue-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85" %>
+               <% end %>
           </div>
         </div>
       </div>
@@ -257,25 +248,3 @@
   </div>
 </div>
 
-<script>
-  function testToast() {
-    console.log('🧪 testToast called');
-    
-    // Try multiple approaches
-    if (window.showToast) {
-      console.log('📢 Using window.showToast');
-      window.showToast('success', 'Test Toast!', 'Esto es una prueba del sistema de toasts', 15000);
-    } else {
-      console.log('📣 Using custom event');
-      const event = new CustomEvent('toast:show', {
-        detail: {
-          type: 'success',
-          title: 'Test Toast!',
-          message: 'Esto es una prueba del sistema de toasts',
-          duration: 15000
-        }
-      });
-      document.dispatchEvent(event);
-    }
-  }
-</script>
