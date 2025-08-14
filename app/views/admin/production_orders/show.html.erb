@@ -2,314 +2,248 @@
   <%= render "shared/succes_alert", notice: notice %>
 <% end %>
 
-<div class="w-full px-4 mt-8" 
+<div class="w-full px-4 py-4" 
      data-controller="production-order" 
      data-order-id="<%= @production_order.id %>">
-  <div class="relative flex flex-col w-full text-gray-700 bg-white shadow-md rounded-xl bg-clip-border">
-    <div class="relative p-6 text-gray-700 bg-white bg-clip-border">
+  <div class="bg-white shadow-sm rounded-lg border border-gray-200">
+    <div class="p-4">
       
       <!-- Header -->
-      <div class="flex flex-col gap-4 mb-6 sm:flex-row sm:items-start sm:justify-between">
+      <div class="flex flex-col gap-3 mb-4 lg:flex-row lg:items-start lg:justify-between">
         <div class="flex-1">
-          <h1 class="text-xl sm:text-2xl font-bold text-gray-900 break-words">
+          <h1 class="text-lg font-semibold text-gray-900 mb-1">
             <%= @production_order.no_opro.present? ? "Orden No. #{@production_order.no_opro}" : "Orden ##{@production_order.order_number}" %>
           </h1>
-          <p class="text-gray-600 mt-1 text-sm sm:text-base">Producto: <%= @production_order.product.name %></p>
-          <p class="text-xs sm:text-sm text-gray-500">
+          <p class="text-sm text-gray-600">
+            Producto: <%= @production_order.product.name %>
+          </p>
+          <p class="text-xs text-gray-500">
             <%= @production_order.fecha_completa&.strftime("%d/%m/%Y") || @production_order.created_at.strftime("%d/%m/%Y a las %H:%M") %>
           </p>
         </div>
         
-        <div class="flex flex-col gap-2 sm:flex-row sm:gap-3 shrink-0">
+        <div class="flex gap-2 shrink-0">
           <%= link_to admin_production_orders_path, 
-              class: "w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 flex items-center justify-center gap-2" do %>
-            <%= icon('fa-solid', 'arrow-left', class: 'w-4 h-4') %>
+              class: "px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 flex items-center gap-1" do %>
+            <%= icon('fa-solid', 'arrow-left', class: 'w-3 h-3') %>
             Volver
           <% end %>
           
           <%= link_to edit_admin_production_order_path(@production_order), 
-              class: "w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 flex items-center justify-center gap-2" do %>
-            <%= icon('fa-solid', 'edit', class: 'w-4 h-4') %>
+              class: "px-3 py-1.5 text-xs font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 flex items-center gap-1" do %>
+            <%= icon('fa-solid', 'edit', class: 'w-3 h-3') %>
             Editar
           <% end %>
         </div>
       </div>
 
-      <!-- Status and Priority Badges -->
-      <div class="flex flex-wrap items-center gap-3 mb-6">
-        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs sm:text-sm font-medium
-          <%= case @production_order.status
-              when 'pending' then 'bg-yellow-100 text-yellow-800'
-              when 'scheduled' then 'bg-blue-100 text-blue-800'
-              when 'in_progress' then 'bg-green-100 text-green-800'
-              when 'paused' then 'bg-orange-100 text-orange-800'
-              when 'completed' then 'bg-gray-100 text-gray-800'
-              when 'cancelled' then 'bg-red-100 text-red-800'
-              end %>">
-          <%= @production_order.status.humanize %>
-        </span>
+      <!-- Status and Progress -->
+      <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-4">
+        <!-- Status -->
+        <div class="flex items-center gap-2">
+          <span class="text-xs text-gray-500">Estado:</span>
+          <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium
+            <%= case @production_order.status
+                when 'pending' then 'bg-yellow-100 text-yellow-800'
+                when 'scheduled' then 'bg-blue-100 text-blue-800'
+                when 'in_progress' then 'bg-green-100 text-green-800'
+                when 'paused' then 'bg-orange-100 text-orange-800'
+                when 'completed' then 'bg-gray-100 text-gray-800'
+                when 'cancelled' then 'bg-red-100 text-red-800'
+                end %>">
+            <%= @production_order.status.humanize %>
+          </span>
+        </div>
         
-        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs sm:text-sm font-medium
-          <%= case @production_order.priority
-              when 'low' then 'bg-gray-100 text-gray-800'
-              when 'medium' then 'bg-blue-100 text-blue-800'
-              when 'high' then 'bg-orange-100 text-orange-800'
-              when 'urgent' then 'bg-red-100 text-red-800'
-              end %>">
-          Prioridad: <%= @production_order.priority.humanize %>
-        </span>
+        <!-- Priority -->
+        <div class="flex items-center gap-2">
+          <span class="text-xs text-gray-500">Prioridad:</span>
+          <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium
+            <%= case @production_order.priority
+                when 'low' then 'bg-gray-100 text-gray-800'
+                when 'medium' then 'bg-blue-100 text-blue-800'
+                when 'high' then 'bg-orange-100 text-orange-800'
+                when 'urgent' then 'bg-red-100 text-red-800'
+                end %>">
+            <%= @production_order.priority.humanize %>
+          </span>
+        </div>
+
+        <!-- Progress -->
+        <div class="lg:col-span-2">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-xs text-gray-500">Progreso</span>
+            <span class="text-xs font-medium text-gray-900"><%= @production_order.progress_percentage %>%</span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-2">
+            <div class="bg-blue-600 h-2 rounded-full" style="width: <%= @production_order.progress_percentage %>%"></div>
+          </div>
+        </div>
       </div>
 
-      <!-- Progress Bar -->
-      <div class="mb-6">
-        <div class="flex items-center justify-between mb-2">
-          <span class="text-sm font-medium text-gray-700">Progreso de Producción</span>
-          <span class="text-sm font-medium text-gray-900"><%= @production_order.progress_percentage %>%</span>
-        </div>
-        <div class="w-full bg-gray-200 rounded-full h-3">
-          <div class="bg-blue-600 h-3 rounded-full" style="width: <%= @production_order.progress_percentage %>%"></div>
-        </div>
-      </div>
-
-      <!-- Main Content -->
-      <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+      <!-- Main Content Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
         
         <!-- Production Details -->
-        <div class="bg-gray-50 rounded-lg p-4 sm:p-6">
-          <h3 class="text-base sm:text-lg font-semibold text-gray-900 mb-4">Detalles de Producción</h3>
+        <div class="bg-gray-50 rounded-lg p-3">
+          <h3 class="text-sm font-medium text-gray-900 mb-3">Detalles de Producción</h3>
           
-          <dl class="space-y-3">
-            <div>
-              <dt class="text-xs sm:text-sm font-medium text-gray-500">Almacén</dt>
-              <dd class="text-sm text-gray-900 break-words"><%= @production_order.warehouse.name %></dd>
+          <div class="space-y-2 text-xs">
+            <div class="flex justify-between">
+              <span class="text-gray-500">Almacén:</span>
+              <span class="text-gray-900 font-medium"><%= @production_order.warehouse.name %></span>
             </div>
             
-            <div>
-              <dt class="text-xs sm:text-sm font-medium text-gray-500">Lote de Referencia</dt>
-              <dd class="text-sm text-gray-900 break-words"><%= @production_order.lote_referencia || 'N/A' %></dd>
+            <div class="flex justify-between">
+              <span class="text-gray-500">Lote:</span>
+              <span class="text-gray-900 font-medium"><%= @production_order.lote_referencia || 'N/A' %></span>
             </div>
             
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <dt class="text-xs sm:text-sm font-medium text-gray-500">Cantidad Solicitada</dt>
-                <dd class="text-sm text-gray-900 font-semibold"><%= @production_order.quantity_requested %></dd>
-              </div>
-              <div>
-                <dt class="text-xs sm:text-sm font-medium text-gray-500">Carga</dt>
-                <dd class="text-sm text-gray-900"><%= @production_order.carga_copr&.to_f || 'N/A' %></dd>
-              </div>
+            <div class="flex justify-between">
+              <span class="text-gray-500">Cantidad:</span>
+              <span class="text-gray-900 font-semibold"><%= @production_order.quantity_requested %></span>
             </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <dt class="text-xs sm:text-sm font-medium text-gray-500">Año</dt>
-                <dd class="text-sm text-gray-900"><%= @production_order.ano || 'N/A' %></dd>
-              </div>
-              <div>
-                <dt class="text-xs sm:text-sm font-medium text-gray-500">Mes</dt>
-                <dd class="text-sm text-gray-900"><%= @production_order.mes || 'N/A' %></dd>
-              </div>
+            
+            <div class="flex justify-between">
+              <span class="text-gray-500">Carga:</span>
+              <span class="text-gray-900 font-medium"><%= @production_order.carga_copr&.to_f || 'N/A' %></span>
             </div>
-          </dl>
+            
+            <div class="flex justify-between">
+              <span class="text-gray-500">Año:</span>
+              <span class="text-gray-900 font-medium"><%= @production_order.ano || 'N/A' %></span>
+            </div>
+            
+            <div class="flex justify-between">
+              <span class="text-gray-500">Mes:</span>
+              <span class="text-gray-900 font-medium"><%= @production_order.mes || 'N/A' %></span>
+            </div>
+          </div>
         </div>
 
         <!-- Timeline -->
-        <div class="bg-gray-50 rounded-lg p-4 sm:p-6">
-          <h3 class="text-base sm:text-lg font-semibold text-gray-900 mb-4">Cronología</h3>
+        <div class="bg-gray-50 rounded-lg p-3">
+          <h3 class="text-sm font-medium text-gray-900 mb-3">Cronología</h3>
           
-          <dl class="space-y-3">
+          <div class="space-y-2 text-xs">
             <div>
-              <dt class="text-xs sm:text-sm font-medium text-gray-500">Fecha de Creación</dt>
-              <dd class="text-sm text-gray-900"><%= @production_order.created_at.strftime("%d/%m/%Y %H:%M") %></dd>
+              <span class="text-gray-500">Creación:</span>
+              <span class="text-gray-900 font-medium block"><%= @production_order.created_at.strftime("%d/%m/%Y %H:%M") %></span>
             </div>
             
             <% if @production_order.start_date.present? %>
               <div>
-                <dt class="text-xs sm:text-sm font-medium text-gray-500">Fecha de Inicio</dt>
-                <dd class="text-sm text-gray-900"><%= @production_order.start_date.strftime("%d/%m/%Y %H:%M") %></dd>
+                <span class="text-gray-500">Inicio:</span>
+                <span class="text-gray-900 font-medium block"><%= @production_order.start_date.strftime("%d/%m/%Y %H:%M") %></span>
               </div>
             <% end %>
             
             <% if @production_order.estimated_completion.present? %>
               <div>
-                <dt class="text-xs sm:text-sm font-medium text-gray-500">Finalización Estimada</dt>
-                <dd class="text-sm text-gray-900 <%= 'text-red-600' if @production_order.is_overdue? %>">
+                <span class="text-gray-500">Est. Finalización:</span>
+                <span class="text-gray-900 font-medium block <%= 'text-red-600' if @production_order.is_overdue? %>">
                   <%= @production_order.estimated_completion.strftime("%d/%m/%Y %H:%M") %>
                   <% if @production_order.is_overdue? %>
-                    <span class="text-xs">(Atrasado)</span>
+                    <span class="text-red-600">(Atrasado)</span>
                   <% end %>
-                </dd>
+                </span>
               </div>
             <% end %>
             
             <% if @production_order.actual_completion.present? %>
               <div>
-                <dt class="text-xs sm:text-sm font-medium text-gray-500">Finalización Real</dt>
-                <dd class="text-sm text-gray-900"><%= @production_order.actual_completion.strftime("%d/%m/%Y %H:%M") %></dd>
+                <span class="text-gray-500">Finalización:</span>
+                <span class="text-gray-900 font-medium block"><%= @production_order.actual_completion.strftime("%d/%m/%Y %H:%M") %></span>
               </div>
             <% end %>
-          </dl>
-        </div>
-      </div>
-
-      <!-- Notes Section -->
-      <% if @production_order.notes.present? %>
-        <div class="mt-6">
-          <h3 class="text-lg font-semibold text-gray-900 mb-3">Notas</h3>
-          <div class="bg-gray-50 rounded-lg p-4">
-            <p class="text-sm text-gray-700 whitespace-pre-wrap"><%= @production_order.notes %></p>
           </div>
         </div>
-      <% end %>
 
-      <!-- Weight Control Section -->
-      <div class="mt-6">
-        <div class="bg-blue-50 rounded-lg p-6">
-          <h3 class="text-lg font-semibold text-gray-900 mb-4">Control de Peso y Impresión</h3>
+        <!-- Weight Control Section -->
+        <div class="bg-blue-50 rounded-lg p-3">
+          <h3 class="text-sm font-medium text-gray-900 mb-3">Control de Peso</h3>
           
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- Weight Section -->
+          <div class="space-y-3">
             <div>
-              <h4 class="text-sm sm:text-base font-medium text-gray-900 mb-3">Gestión de Peso</h4>
-              <div class="space-y-3">
-                <div>
-                  <label class="block text-xs sm:text-sm font-medium text-gray-700">Peso Actual</label>
-                  <div class="flex items-center space-x-2 mt-1">
-                    <input type="number" 
-                           data-production-order-target="weightInput"
-                           class="block w-24 sm:w-32 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
-                           placeholder="0.00"
-                           step="0.01"
-                           value="<%= @production_order.peso || '' %>">
-                    <span class="text-xs sm:text-sm text-gray-600">kg</span>
-                  </div>
-                  <% if @production_order.peso.present? %>
-                    <p class="text-xs sm:text-sm text-green-600 mt-1">
-                      Peso guardado: <%= @production_order.peso %> kg
-                    </p>
-                  <% end %>
-                </div>
-                
-                <div class="flex flex-col space-y-2">
-                  <button class="w-full px-3 py-2 bg-blue-600 text-white text-xs sm:text-sm rounded hover:bg-blue-700 flex items-center justify-center gap-2"
-                          data-action="click->production-order#connectScale">
-                    <%= icon('fa-solid', 'scale-balanced', class: 'w-3 h-3 sm:w-4 sm:h-4') %>
-                    Conectar Báscula
-                  </button>
-                  <button class="w-full px-3 py-2 bg-green-600 text-white text-xs sm:text-sm rounded hover:bg-green-700 flex items-center justify-center gap-2"
-                          data-action="click->production-order#readWeight">
-                    <%= icon('fa-solid', 'weight-scale', class: 'w-3 h-3 sm:w-4 sm:h-4') %>
-                    Leer Peso
-                  </button>
-                  <button class="w-full px-3 py-2 bg-purple-600 text-white text-xs sm:text-sm rounded hover:bg-purple-700 flex items-center justify-center gap-2"
-                          data-action="click->production-order#saveWeight">
-                    <%= icon('fa-solid', 'save', class: 'w-3 h-3 sm:w-4 sm:h-4') %>
-                    Guardar Peso
-                  </button>
-                </div>
-                
-                <div>
-                  <p class="text-xs sm:text-sm text-gray-600" data-production-order-target="weightStatus">
-                    <%= @production_order.peso.present? ? "Peso guardado: #{@production_order.peso} kg" : "Sin peso registrado" %>
-                  </p>
-                </div>
-              </div>
+              <label class="block text-xs text-gray-500 mb-2">Peso Actual (kg)</label>
+              <input type="number" 
+                     data-production-order-target="weightInput"
+                     class="block w-full text-sm rounded-md border-gray-300 focus:border-blue-500 focus:ring-blue-500 py-2 px-3"
+                     placeholder="0.00"
+                     step="0.01"
+                     value="<%= @production_order.peso || '' %>">
+              <% if @production_order.peso.present? %>
+                <p class="text-xs text-green-600 mt-2 flex items-center gap-1">
+                  <%= icon('fa-solid', 'check-circle', class: 'w-3 h-3') %>
+                  Guardado: <%= @production_order.peso %> kg
+                </p>
+              <% end %>
             </div>
-
-            <!-- Printing Section -->
-            <div>
-              <h4 class="text-sm sm:text-base font-medium text-gray-900 mb-3">Impresión</h4>
-              <div class="space-y-3">
-                <button class="w-full px-3 py-2 bg-indigo-600 text-white text-xs sm:text-sm rounded hover:bg-indigo-700 flex items-center justify-center gap-2"
-                        data-action="click->production-order#printOrder">
-                  <%= icon('fa-solid', 'print', class: 'w-3 h-3 sm:w-4 sm:h-4') %>
-                  Imprimir Orden de Producción
-                </button>
-                
-                <div class="text-xs sm:text-sm text-gray-600">
-                  <p class="mb-2">Información a imprimir:</p>
-                  <ul class="list-disc list-inside space-y-1 text-xs">
-                    <li class="break-words">No. OPRO: <%= @production_order.no_opro || @production_order.order_number %></li>
-                    <li class="break-words">Producto: <%= @production_order.product.name %></li>
-                    <li>Cantidad: <%= @production_order.quantity_requested %></li>
-                    <li class="break-words">Lote: <%= @production_order.lote_referencia || 'N/A' %></li>
-                    <% if @production_order.peso.present? %>
-                      <li>Peso: <%= @production_order.peso %> kg</li>
-                    <% end %>
-                  </ul>
-                </div>
-              </div>
+            
+            <div class="flex flex-col sm:flex-row gap-2">
+              <button class="flex-1 px-3 py-2 bg-blue-600 text-white text-xs font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 flex items-center justify-center gap-2 transition-colors"
+                      data-action="click->production-order#connectScale">
+                <%= icon('fa-solid', 'link', class: 'w-3 h-3') %>
+                <span class="hidden sm:inline">Conectar</span>
+                <span class="sm:hidden">Conectar</span>
+              </button>
+              <button class="flex-1 px-3 py-2 bg-green-600 text-white text-xs font-medium rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-1 flex items-center justify-center gap-2 transition-colors"
+                      data-action="click->production-order#readWeight">
+                <%= icon('fa-solid', 'eye', class: 'w-3 h-3') %>
+                <span class="hidden sm:inline">Leer</span>
+                <span class="sm:hidden">Leer</span>
+              </button>
+              <button class="flex-1 px-3 py-2 bg-purple-600 text-white text-xs font-medium rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-1 flex items-center justify-center gap-2 transition-colors"
+                      data-action="click->production-order#saveWeight">
+                <%= icon('fa-solid', 'save', class: 'w-3 h-3') %>
+                <span class="hidden sm:inline">Guardar</span>
+                <span class="sm:hidden">Guardar</span>
+              </button>
+            </div>
+            
+            <div class="bg-white rounded-md p-2 border border-blue-100">
+              <p class="text-xs text-gray-600 flex items-center gap-1" data-production-order-target="weightStatus">
+                <%= icon('fa-solid', 'info-circle', class: 'w-3 h-3 text-blue-500') %>
+                <%= @production_order.peso.present? ? "Peso registrado: #{@production_order.peso} kg" : "Sin peso registrado" %>
+              </p>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Action Buttons -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 mt-8 pt-6 border-t border-gray-200">
-        <% if @production_order.can_be_started? %>
-          <%= link_to start_admin_production_order_path(@production_order), 
-              method: :patch,
-              class: "inline-flex items-center justify-center px-3 py-2 text-xs sm:text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500",
-              data: { confirm: "¿Estás seguro de iniciar esta orden de producción?" } do %>
-            <%= icon('fa-solid', 'play', class: 'w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2') %>
-            Iniciar Producción
-          <% end %>
+      <!-- Notes and Print Section -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
+        <!-- Notes -->
+        <% if @production_order.notes.present? %>
+          <div class="bg-amber-50 rounded-lg p-3">
+            <h3 class="text-sm font-medium text-gray-900 mb-2">Notas</h3>
+            <p class="text-xs text-gray-700 whitespace-pre-wrap"><%= @production_order.notes %></p>
+          </div>
         <% end %>
-
-        <% if @production_order.can_be_paused? %>
-          <%= link_to pause_admin_production_order_path(@production_order), 
-              method: :patch,
-              class: "inline-flex items-center justify-center px-3 py-2 text-xs sm:text-sm font-medium text-white bg-orange-600 border border-transparent rounded-md hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500",
-              data: { confirm: "¿Estás seguro de pausar esta orden de producción?" } do %>
-            <%= icon('fa-solid', 'pause', class: 'w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2') %>
-            Pausar
-          <% end %>
-        <% end %>
-
-        <% if @production_order.can_be_completed? %>
-          <%= link_to complete_admin_production_order_path(@production_order), 
-              method: :patch,
-              class: "inline-flex items-center justify-center px-3 py-2 text-xs sm:text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500",
-              data: { confirm: "¿Estás seguro de completar esta orden de producción?" } do %>
-            <%= icon('fa-solid', 'check', class: 'w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2') %>
-            <span class="hidden sm:inline">Marcar como </span>Completada
-          <% end %>
-        <% end %>
-
-        <% if @production_order.can_be_cancelled? %>
-          <%= link_to cancel_admin_production_order_path(@production_order), 
-              method: :patch,
-              class: "inline-flex items-center justify-center px-3 py-2 text-xs sm:text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500",
-              data: { confirm: "¿Estás seguro de cancelar esta orden de producción?" } do %>
-            <%= icon('fa-solid', 'times', class: 'w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2') %>
-            Cancelar
-          <% end %>
-        <% end %>
-
-        <% if @production_order.can_be_started? || @production_order.pending? %>
-          <%= link_to admin_production_order_path(@production_order), 
-              method: :delete,
-              class: "inline-flex items-center justify-center px-3 py-2 text-xs sm:text-sm font-medium text-red-600 bg-white border border-red-300 rounded-md hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500",
-              data: { confirm: "¿Estás seguro de eliminar esta orden de producción? Esta acción no se puede deshacer." } do %>
-            <%= icon('fa-solid', 'trash', class: 'w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2') %>
-            Eliminar
-          <% end %>
-        <% end %>
-
-        <!-- Printing Options -->
-        <%= link_to print_bag_format_admin_production_order_path(@production_order), 
-            target: "_blank",
-            class: "inline-flex items-center justify-center px-3 py-2 text-xs sm:text-sm font-medium text-white bg-purple-600 border border-transparent rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500" do %>
-          <%= icon('fa-solid', 'print', class: 'w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2') %>
-          <span class="hidden sm:inline">Formato </span>Bolsa
-        <% end %>
-
-        <%= link_to print_box_format_admin_production_order_path(@production_order), 
-            target: "_blank",
-            class: "inline-flex items-center justify-center px-3 py-2 text-xs sm:text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" do %>
-          <%= icon('fa-solid', 'print', class: 'w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2') %>
-          <span class="hidden sm:inline">Formato </span>Caja
-        <% end %>
+        
+        <!-- Print Section -->
+        <div class="bg-gray-50 rounded-lg p-3">
+          <h3 class="text-sm font-medium text-gray-900 mb-3">Impresión</h3>
+          
+          <button class="w-full px-3 py-2 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700 flex items-center justify-center gap-2 mb-3"
+                  data-action="click->production-order#printOrder">
+            <%= icon('fa-solid', 'print', class: 'w-4 h-4') %>
+            Imprimir Orden
+          </button>
+          
+          <div class="text-xs text-gray-600">
+            <p class="mb-1 font-medium">Se imprimirá:</p>
+            <ul class="space-y-0.5 text-xs">
+              <li>• No. OPRO: <%= @production_order.no_opro || @production_order.order_number %></li>
+              <li>• Producto: <%= @production_order.product.name %></li>
+              <li>• Cantidad: <%= @production_order.quantity_requested %></li>
+              <li>• Lote: <%= @production_order.lote_referencia || 'N/A' %></li>
+              <% if @production_order.peso.present? %>
+                <li>• Peso: <%= @production_order.peso %> kg</li>
+              <% end %>
+            </ul>
+          </div>
+        </div>
       </div>
       
     </div>
