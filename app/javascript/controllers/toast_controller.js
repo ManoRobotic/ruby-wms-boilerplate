@@ -42,6 +42,18 @@ export default class extends Controller {
     }
     console.log('✅ Toast container found:', container)
     
+    // Prevent duplicate toasts by checking if one with same content exists
+    const existingToasts = container.querySelectorAll('div[role="alert"]')
+    const duplicateExists = Array.from(existingToasts).some(toast => {
+      const messageEl = toast.querySelector('.text-sm')
+      return messageEl && messageEl.textContent.includes(message)
+    })
+    
+    if (duplicateExists) {
+      console.log('⏭️ Skipping duplicate toast')
+      return
+    }
+    
     const toast = document.createElement('div')
     toast.className = `transform transition-all duration-300 ease-in-out translate-x-full opacity-0 flex items-center w-full max-w-xs p-4 mb-4 text-gray-500 bg-white rounded-lg shadow-sm dark:text-gray-400 dark:bg-gray-800`
     toast.setAttribute('role', 'alert')

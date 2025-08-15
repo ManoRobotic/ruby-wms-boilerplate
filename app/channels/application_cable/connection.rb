@@ -9,7 +9,19 @@ module ApplicationCable
     private
 
     def find_verified_user_or_admin
-      # Try to find current user via session
+      # Try to find current user via Devise warden session
+      if (user_id = session.dig('warden.user.user.key', 0, 0))
+        user = User.find_by(id: user_id)
+        return user if user
+      end
+      
+      # Try to find current admin via Devise warden session
+      if (admin_id = session.dig('warden.user.admin.key', 0, 0))
+        admin = Admin.find_by(id: admin_id)
+        return admin if admin
+      end
+      
+      # Fallback to old format
       if (user = User.find_by(id: session[:user_id]))
         user
       elsif (admin = Admin.find_by(id: session[:admin_id]))

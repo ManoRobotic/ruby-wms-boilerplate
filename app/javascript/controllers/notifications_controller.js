@@ -4,7 +4,17 @@ export default class extends Controller {
   static targets = ["count"]
   
   connect() {
-    console.log('🔔 NotificationsController connected!')
+    this.controllerId = Math.random().toString(36).substr(2, 9)
+    console.log(`🔔 NotificationsController connected! ID: ${this.controllerId}`)
+    
+    // Check if another notifications controller is already active
+    if (window.activeNotificationsController) {
+      console.warn(`⚠️ Another NotificationsController already active. Skipping this one: ${this.controllerId}`)
+      return
+    }
+    
+    window.activeNotificationsController = this.controllerId
+    console.log(`✅ NotificationsController ${this.controllerId} is now active`)
     
     // Listen for new notifications
     document.addEventListener('notification:new', this.handleNewNotification.bind(this))
@@ -13,41 +23,29 @@ export default class extends Controller {
     
     // Initialize toast container
     this.createToastContainer()
-    console.log('📦 Toast container created')
-    
-    // Make showToast available globally
-    window.showNotificationToast = (type, title, message, duration) => {
-      console.log('🌍 Global showNotificationToast called:', { type, title, message, duration })
-      this.showToast(type, title, message, duration)
-    }
-    console.log('🌍 showNotificationToast attached to window')
     
     // Connect to ActionCable for real-time notifications
     this.connectToCable()
-    
-    // Start polling for new notifications (fallback)
-    this.startPolling()
-    
-    // Start immediate polling for real-time toasts
-    this.startImmediatePolling()
-    
-    // Test toast on load (temporal para debug) - comentado por ahora
-    // setTimeout(() => {
-    //   this.showToast('info', 'Sistema Cargado', 'NotificationsController iniciado correctamente', 5000)
-    // }, 1000)
   }
   
   disconnect() {
-    document.removeEventListener('notification:new', this.handleNewNotification.bind(this))
-    document.removeEventListener('toast:show', this.handleToastShow.bind(this))
-    document.removeEventListener('notifications:poll', this.handleImmediatePoll.bind(this))
-    this.disconnectFromCable()
-    this.stopPolling()
-    this.stopImmediatePolling()
+    console.log(`🔌 NotificationsController ${this.controllerId} disconnecting`)
     
-    // Clean up global reference
-    if (window.showNotificationToast) {
-      delete window.showNotificationToast
+    if (window.activeNotificationsController === this.controllerId) {
+      window.activeNotificationsController = null
+      console.log(`✅ NotificationsController ${this.controllerId} deactivated`)
+      
+      document.removeEventListener('notification:new', this.handleNewNotification.bind(this))
+      document.removeEventListener('toast:show', this.handleToastShow.bind(this))
+      document.removeEventListener('notifications:poll', this.handleImmediatePoll.bind(this))
+      this.disconnectFromCable()
+      this.stopPolling()
+      this.stopImmediatePolling()
+      
+      // Clean up global reference
+      if (window.showNotificationToast) {
+        delete window.showNotificationToast
+      }
     }
   }
   
@@ -55,48 +53,72 @@ export default class extends Controller {
     // Import ActionCable consumer
     const consumer = (window.App && window.App.cable) || window.createConsumer?.('/cable')
     
+    console.log('🔌 Checking ActionCable consumer:', consumer)
     if (!consumer) {
-      console.warn('ActionCable consumer not available')
+      console.warn('❌ ActionCable consumer not available')
       return
     }
+    console.log('✅ ActionCable consumer found, creating subscription...')
 
     // Subscribe to notifications channel
     this.subscription = consumer.subscriptions.create("NotificationsChannel", {
       received: (data) => {
+        // Only process if this is the active controller
+        if (window.activeNotificationsController !== this.controllerId) {
+          console.log(`⏭️ Ignoring message in inactive controller ${this.controllerId}`)
+          return
+        }
+        
         if (data.type === 'new_notification' && data.notification) {
-          console.log('📡 WebSocket notification received:', data.notification)
-          // Show toast immediately when receiving WebSocket message via global function
-          if (window.showToast) {
-            window.showToast(
-              data.notification.type || 'notification',
-              data.notification.title,
-              data.notification.message,
-              data.notification.duration || 15000
-            )
-          } else {
-            // Fallback: dispatch event
-            const event = new CustomEvent('toast:show', {
-              detail: {
-                type: data.notification.type || 'notification',
-                title: data.notification.title,
-                message: data.notification.message,
-                duration: data.notification.duration || 15000
-              }
-            })
-            document.dispatchEvent(event)
-          }
+          console.log(`📡 WebSocket notification received by ${this.controllerId}:`, data.notification)
           
-          // Update notification count
-          this.incrementNotificationCount()
+          // Prevent duplicate toasts by checking if one with same content exists
+          const existingToasts = document.querySelectorAll('#toast-container > div')
+          const duplicateExists = Array.from(existingToasts).some(toast => {
+            const messageEl = toast.querySelector('.text-sm')
+            return messageEl && messageEl.textContent.includes(data.notification.message)
+          })
+          
+          if (!duplicateExists) {
+            // Show toast immediately when receiving WebSocket message via global function
+            if (window.showToast) {
+              window.showToast(
+                data.notification.type || 'notification',
+                data.notification.title,
+                data.notification.message,
+                data.notification.duration || 15000
+              )
+            } else {
+              // Fallback: dispatch event
+              const event = new CustomEvent('toast:show', {
+                detail: {
+                  type: data.notification.type || 'notification',
+                  title: data.notification.title,
+                  message: data.notification.message,
+                  duration: data.notification.duration || 15000
+                }
+              })
+              document.dispatchEvent(event)
+            }
+            
+            // Update notification count
+            this.incrementNotificationCount()
+          } else {
+            console.log('⏭️ Skipping duplicate toast notification')
+          }
         }
       },
       
       connected: () => {
-        console.log('Connected to NotificationsChannel')
+        console.log('✅ Connected to NotificationsChannel')
       },
       
       disconnected: () => {
-        console.log('Disconnected from NotificationsChannel')
+        console.log('❌ Disconnected from NotificationsChannel')
+      },
+      
+      rejected: () => {
+        console.log('❌ NotificationsChannel subscription rejected')
       }
     })
   }
