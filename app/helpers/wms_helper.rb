@@ -112,6 +112,35 @@ module WmsHelper
     end
   end
 
+  def wms_menu_items(current_user, current_admin)
+    all_menu_items = [
+      { path: admin_path, icon: 'gauge-high', label: t('admin.sidebar.dashboard'), permission: 'read_admin_dashboard' },
+      { path: admin_orders_path, icon: 'truck-fast', label: t('admin.sidebar.orders'), permission: 'read_orders' },
+      { path: admin_production_orders_path, icon: 'industry', label: 'Órdenes de Producción', permission: 'read_production_orders' },
+      { path: admin_products_path, icon: 'cart-shopping', label: t('admin.sidebar.products'), permission: 'read_products' },
+      { path: admin_categories_path, icon: 'list', label: t('admin.sidebar.categories'), permission: 'manage_categories' },
+      { path: admin_warehouses_path, icon: 'warehouse', label: t('admin.sidebar.warehouses'), permission: 'read_warehouse' },
+      { path: admin_tasks_path, icon: 'tasks', label: t('admin.sidebar.tasks'), permission: 'read_tasks' },
+      { path: admin_pick_lists_path, icon: 'clipboard-list', label: t('admin.sidebar.pick_lists'), permission: 'read_pick_lists' },
+      { path: admin_users_path, icon: 'users', label: t('admin.sidebar.users'), permission: 'manage_users' },
+      { path: admin_inventory_transactions_path, icon: 'arrow-right-arrow-left', label: t('admin.sidebar.inventory_transactions'), permission: 'read_inventory' },
+      { path: admin_receipts_path, icon: 'truck-ramp-box', label: t('admin.sidebar.receipts'), permission: 'manage_receipts' },
+      { path: admin_cycle_counts_path, icon: 'calculator', label: t('admin.sidebar.cycle_counts'), permission: 'manage_inventory' },
+      { path: admin_shipments_path, icon: 'shipping-fast', label: t('admin.sidebar.shipments'), permission: 'manage_shipments' },
+      { path: admin_manual_printing_path, icon: 'print', label: t('admin.sidebar.manual_printing'), permission: 'manage_manual_printing' }
+    ]
+
+    if current_user&.operador?
+      all_menu_items.select do |item|
+        can?(item[:permission]) && item[:label] != t('admin.sidebar.orders')
+      end
+    else
+      all_menu_items.select do |item|
+        current_admin || can?(item[:permission])
+      end
+    end
+  end
+
   def nav_item_class(active = false)
     base_class = "group flex items-center px-2 py-2 text-sm font-medium rounded-md"
 

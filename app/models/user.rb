@@ -145,9 +145,7 @@ class User < ApplicationRecord
 
   def operador_permissions(action, resource)
     operador_permissions = %w[
-      read_orders read_products read_inventory read_locations
-      read_production_orders manage_inventory manage_manual_printing
-      read_admin_dashboard
+      read_production_orders manage_manual_printing read_admin_dashboard
     ]
 
     case action.to_s

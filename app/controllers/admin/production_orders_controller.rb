@@ -25,7 +25,7 @@ class Admin::ProductionOrdersController < AdminController
     end
 
     # Filter by user's warehouse if not admin
-    if current_user && current_user.warehouse_id.present?
+    if current_user && current_user.warehouse_id.present? && !current_user.operador?
       @production_orders = @production_orders.by_warehouse(current_user.warehouse_id)
     end
 
