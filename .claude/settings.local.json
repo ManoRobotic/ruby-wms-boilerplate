@@ -32,7 +32,9 @@
       "Bash(ruby:*)",
       "Bash(git rm:*)",
       "Bash(source:*)",
-      "Bash(pip install:*)"
+      "Bash(pip install:*)",
+      "Bash(grep:*)",
+      "Bash(sed:*)"
     ],
     "deny": []
   }
