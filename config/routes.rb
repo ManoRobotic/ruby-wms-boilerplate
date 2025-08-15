@@ -33,6 +33,7 @@ Rails.application.routes.draw do
       end
       collection do
         post :import_excel
+        post :test_broadcast
       end
     end
 

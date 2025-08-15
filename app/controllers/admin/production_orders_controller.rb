@@ -70,22 +70,18 @@ class Admin::ProductionOrdersController < AdminController
         )
       end
 
-      # Broadcast real-time notifications via ActionCable
-      broadcast_notifications(@production_order)
-      Rails.logger.info "📡 Notifications broadcast sent"
+      # Broadcast real-time notifications via ActionCable (only once)
+      unless Rails.cache.exist?("production_order_broadcast_#{@production_order.id}")
+        Rails.cache.write("production_order_broadcast_#{@production_order.id}", true, expires_in: 1.minute)
+        broadcast_notifications(@production_order)
+        Rails.logger.info "📡 Notifications broadcast sent for order #{@production_order.id}"
+      else
+        Rails.logger.info "⏭️ Skipping duplicate broadcast for order #{@production_order.id}"
+      end
 
       respond_to do |format|
         format.html do
-          toast_data = {
-            type: 'success',
-            title: 'Orden creada!',
-            message: "Orden #{@production_order.no_opro || @production_order.order_number} creada exitosamente",
-            duration: 15000
-          }
-          flash[:toast] = toast_data
-          Rails.logger.info "🍞 Flash toast set: #{toast_data.inspect}"
-          
-          # Use Turbo to show toast and then redirect
+          # Solo redirect sin flash toast para evitar duplicados
           redirect_to admin_production_orders_path,
                       notice: "Orden de producción creada exitosamente."
         end
@@ -306,6 +302,39 @@ class Admin::ProductionOrdersController < AdminController
     }
   end
 
+  def test_broadcast
+    Rails.logger.info "🧪 Manual broadcast test triggered"
+    
+    # Create test notification data
+    notification_data = {
+      title: "Test Notification!",
+      message: "Esta es una prueba de notificación en tiempo real",
+      type: "info",
+      duration: 15000,
+      timestamp: Time.current.iso8601
+    }
+
+    # Broadcast to all users
+    User.where(role: ['admin', 'manager', 'supervisor', 'operador']).find_each do |user|
+      channel_name = "notifications_#{user.id}"
+      Rails.logger.info "🧪 Test broadcasting to: #{channel_name}"
+      
+      ActionCable.server.broadcast(
+        channel_name,
+        {
+          type: 'new_notification',
+          notification: notification_data
+        }
+      )
+    end
+
+    render json: { 
+      status: 'success', 
+      message: 'Test broadcast sent',
+      notification: notification_data
+    }
+  end
+
   private
 
   def broadcast_notifications(production_order)
@@ -319,10 +348,28 @@ class Admin::ProductionOrdersController < AdminController
       timestamp: Time.current.iso8601
     }
 
-    # Send to all relevant users via ActionCable
-    User.where(role: ['admin', 'manager', 'supervisor', 'operador']).find_each do |user|
+    Rails.logger.info "📡 Broadcasting notification: #{notification_data.inspect}"
+
+    # Send to all relevant users via ActionCable (unified approach)
+    target_users = User.where(role: ['admin', 'manager', 'supervisor', 'operador'])
+    
+    # Also include admin users that correspond to Admin records
+    Admin.find_each do |admin|
+      admin_user = User.find_by(email: admin.email, role: 'admin')
+      if admin_user && !target_users.include?(admin_user)
+        target_users = target_users.or(User.where(id: admin_user.id))
+      end
+    end
+    
+    Rails.logger.info "👥 Target users for broadcast: #{target_users.pluck(:id, :email, :role).inspect}"
+    
+    # Broadcast to each user only once
+    target_users.distinct.find_each do |user|
+      channel_name = "notifications_#{user.id}"
+      Rails.logger.info "📢 Broadcasting to channel: #{channel_name} (#{user.email} - #{user.role})"
+      
       ActionCable.server.broadcast(
-        "notifications_#{user.id}",
+        channel_name,
         {
           type: 'new_notification',
           notification: notification_data
@@ -330,20 +377,7 @@ class Admin::ProductionOrdersController < AdminController
       )
     end
     
-    # Also send to admin sessions - find admins by their current session
-    Admin.find_each do |admin|
-      # Try to find corresponding admin user for broadcasting
-      admin_user = User.find_by(email: admin.email, role: 'admin')
-      if admin_user
-        ActionCable.server.broadcast(
-          "notifications_#{admin_user.id}",
-          {
-            type: 'new_notification',
-            notification: notification_data
-          }
-        )
-      end
-    end
+    Rails.logger.info "✅ Broadcast complete"
   end
 
   def set_production_order
