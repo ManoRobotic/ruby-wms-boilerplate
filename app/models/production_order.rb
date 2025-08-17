@@ -2,6 +2,7 @@ class ProductionOrder < ApplicationRecord
   belongs_to :warehouse
   belongs_to :product
   belongs_to :admin, optional: true
+  has_many :packing_records, dependent: :destroy
 
   # Validations
   validates :order_number, presence: true, uniqueness: true

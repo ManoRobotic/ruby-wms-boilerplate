@@ -2,7 +2,7 @@ class Admin::ProductionOrdersController < AdminController
   before_action :set_production_order, only: [ :show, :edit, :update, :destroy, :start, :pause, :complete, :cancel, :print_bag_format, :print_box_format, :update_weight, :modal_details ]
 
   def index
-    @production_orders = ProductionOrder.includes(:warehouse, :product)
+    @production_orders = ProductionOrder.includes(:warehouse, :product, :packing_records)
 
     # Search
     if params[:search].present?
@@ -24,8 +24,8 @@ class Admin::ProductionOrdersController < AdminController
       @production_orders = @production_orders.by_date_range(start_date, end_date)
     end
 
-    # Filter by user's warehouse if not admin
-    if current_user && current_user.warehouse_id.present? && !current_user.operador?
+    # Filter by user's warehouse if not admin or operador
+    if current_user && current_user.warehouse_id.present? && !current_user.admin? && !current_user.operador?
       @production_orders = @production_orders.by_warehouse(current_user.warehouse_id)
     end
 
