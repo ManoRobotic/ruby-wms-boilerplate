@@ -274,13 +274,18 @@ export default class extends Controller {
   }
 
   markAsRead(event) {
+    event.preventDefault() // Prevent any default navigation
+    
     const notificationElement = event.currentTarget.closest('.notification-item')
     const notificationId = notificationElement?.dataset.notificationId
+    const actionUrl = event.currentTarget.dataset.notificationActionUrl
     
     if (!notificationId) {
       console.error('No notification ID found')
       return
     }
+    
+    console.log('🔔 Marking notification as read:', notificationId)
     
     fetch(`/admin/notifications/${notificationId}/mark_read`, {
       method: 'PATCH',
@@ -291,8 +296,11 @@ export default class extends Controller {
     })
     .then(response => {
       if (response.ok) {
+        console.log('✅ Notification marked as read successfully')
+        
         // Remove unread styling immediately
-        notificationElement.classList.remove('bg-blue-50')
+        notificationElement.classList.remove('bg-blue-50', 'border-l-4', 'border-l-blue-500')
+        notificationElement.classList.remove('border-l-blue-500')
         const unreadIndicator = notificationElement.querySelector('.unread-indicator')
         if (unreadIndicator) {
           unreadIndicator.remove()
@@ -302,19 +310,22 @@ export default class extends Controller {
         this.updateNotificationCount()
         
         // Show success toast
-        this.showToast('success', 'Notificación marcada como leída', '', 3000)
+        this.showToast('success', 'Notificación marcada como leída', '', 2000)
         
-        // If the notification had an action_url, navigate to it after marking as read
-        const actionLink = event.currentTarget.closest('a[href]')
-        if (actionLink && actionLink.href && !event.ctrlKey && !event.metaKey) {
+        // If the notification has an action_url, navigate to it after marking as read
+        if (actionUrl && actionUrl.trim() !== '' && !event.ctrlKey && !event.metaKey) {
+          console.log('🔗 Navigating to action URL:', actionUrl)
           setTimeout(() => {
-            window.location.href = actionLink.href
-          }, 500)
+            window.location.href = actionUrl
+          }, 800)
         }
+      } else {
+        console.error('❌ Failed to mark notification as read')
+        this.showToast('error', 'Error al marcar la notificación')
       }
     })
     .catch(error => {
-      console.error('Error:', error)
+      console.error('❌ Error:', error)
       this.showToast('error', 'Error al marcar la notificación')
     })
   }

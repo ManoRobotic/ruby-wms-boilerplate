@@ -51,27 +51,16 @@
                 </div>
                 
                 <div class="flex-1 min-w-0">
-                  <% if notification.action_url.present? %>
-                    <%= link_to notification.action_url, 
-                        class: "block hover:text-blue-600", 
-                        data: { action: "click->notifications#markAsRead" } do %>
-                      <h3 class="text-lg font-medium text-gray-900 mb-1">
-                        <%= notification.title %>
-                      </h3>
-                      <p class="text-gray-600 mb-2">
-                        <%= notification.message %>
-                      </p>
-                    <% end %>
-                  <% else %>
-                    <div data-action="click->notifications#markAsRead" class="cursor-pointer">
-                      <h3 class="text-lg font-medium text-gray-900 mb-1">
-                        <%= notification.title %>
-                      </h3>
-                      <p class="text-gray-600 mb-2">
-                        <%= notification.message %>
-                      </p>
-                    </div>
-                  <% end %>
+                  <div data-action="click->notifications#markAsRead" 
+                       data-notification-action-url="<%= notification.action_url %>"
+                       class="cursor-pointer block hover:text-blue-600">
+                    <h3 class="text-lg font-medium text-gray-900 mb-1">
+                      <%= notification.title %>
+                    </h3>
+                    <p class="text-gray-600 mb-2">
+                      <%= notification.message %>
+                    </p>
+                  </div>
                   
                   <div class="flex items-center justify-between">
                     <p class="text-sm text-gray-500">
