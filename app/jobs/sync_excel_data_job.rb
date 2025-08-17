@@ -200,6 +200,9 @@ class SyncExcelDataJob < ApplicationJob
     # Crear packing record asociado
     create_packing_record(production_order, data)
     
+    # Crear notificaciones para admins y operadores
+    create_production_order_notifications(production_order)
+    
     Rails.logger.info "✨ [SyncExcelDataJob] Nueva orden creada: #{production_order.no_opro}"
     true
     
@@ -339,43 +342,107 @@ class SyncExcelDataJob < ApplicationJob
     )
   end
 
-  def broadcast_sync_notification(result)
-    notification_data = {
-      title: "📊 Datos sincronizados",
-      message: "Excel actualizado: #{result[:created]} nuevas, #{result[:updated]} actualizadas",
-      type: "success",
-      timestamp: Time.current.iso8601
-    }
+  def create_production_order_notifications(production_order)
+    # Crear notificaciones para todos los admins
+    Admin.find_each do |admin|
+      admin_user = find_or_create_admin_user(admin)
+      if admin_user
+        Notification.create_production_order_notification(
+          user: admin_user,
+          production_order: production_order
+        )
+      end
+    end
+    
+    # También crear notificaciones para usuarios con permisos de operador si existen
+    if defined?(User)
+      User.where(role: ['supervisor', 'operador']).find_each do |user|
+        Notification.create_production_order_notification(
+          user: user,
+          production_order: production_order
+        )
+      end
+    end
+  end
 
-    # Broadcast a usuarios con permisos
-    User.where(role: ['admin', 'supervisor', 'operador']).find_each do |user|
-      ActionCable.server.broadcast(
-        "notifications_#{user.id}",
-        {
-          type: 'excel_sync',
-          notification: notification_data
-        }
-      )
+  def broadcast_sync_notification(result)
+    return if result[:created] == 0 && result[:updated] == 0
+    
+    # Crear notificaciones persistentes para admins
+    Admin.find_each do |admin|
+      admin_user = find_or_create_admin_user(admin)
+      if admin_user
+        Notification.create!(
+          user: admin_user,
+          notification_type: "system",
+          title: "📊 Datos sincronizados",
+          message: "Excel actualizado: #{result[:created]} nuevas órdenes, #{result[:updated]} actualizadas",
+          action_url: "/admin/production_orders",
+          data: {
+            sync_result: result,
+            sync_time: Time.current.iso8601
+          }
+        )
+      end
+    end
+    
+    # También notificar a supervisores si existen
+    if defined?(User)
+      User.where(role: ['supervisor']).find_each do |user|
+        Notification.create!(
+          user: user,
+          notification_type: "system",
+          title: "📊 Datos sincronizados",
+          message: "Excel actualizado: #{result[:created]} nuevas órdenes, #{result[:updated]} actualizadas",
+          action_url: "/admin/production_orders",
+          data: {
+            sync_result: result,
+            sync_time: Time.current.iso8601
+          }
+        )
+      end
     end
   end
 
   def notify_sync_error(error)
-    notification_data = {
-      title: "❌ Error en sincronización",
-      message: "Error procesando merged.xlsx: #{error.message[0..100]}",
-      type: "error",
-      timestamp: Time.current.iso8601
-    }
+    # Crear notificaciones de error solo para administradores
+    Admin.find_each do |admin|
+      admin_user = find_or_create_admin_user(admin)
+      if admin_user
+        Notification.create!(
+          user: admin_user,
+          notification_type: "admin_alert",
+          title: "❌ Error en sincronización",
+          message: "Error procesando merged.xlsx: #{error.message[0..100]}",
+          action_url: "/admin/production_orders",
+          data: {
+            error_message: error.message,
+            error_time: Time.current.iso8601,
+            error_class: error.class.name
+          }
+        )
+      end
+    end
+  end
 
-    # Notificar solo a administradores
-    User.where(role: ['admin']).find_each do |user|
-      ActionCable.server.broadcast(
-        "notifications_#{user.id}",
-        {
-          type: 'excel_sync_error',
-          notification: notification_data
-        }
+  def find_or_create_admin_user(admin)
+    # Buscar usuario admin existente por email
+    user = User.find_by(email: admin.email, role: 'admin')
+    
+    # Si no existe, crear uno nuevo
+    unless user
+      user = User.create!(
+        email: admin.email,
+        name: admin.name || admin.email,
+        role: 'admin',
+        password: SecureRandom.hex(16), # Password temporal aleatorio
+        active: true
       )
     end
+    
+    user
+  rescue => e
+    Rails.logger.error "❌ [SyncExcelDataJob] Error creando usuario admin para #{admin.email}: #{e.message}"
+    nil
   end
 end
