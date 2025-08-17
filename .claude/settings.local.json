@@ -34,8 +34,20 @@
       "Bash(source:*)",
       "Bash(pip install:*)",
       "Bash(grep:*)",
-      "Bash(sed:*)"
+      "Bash(sed:*)",
+      "Bash(./process_merged_excel.rb)",
+      "Bash(./debug_excel_errors.rb)",
+      "Bash(./debug_specific_errors.rb)",
+      "Bash(./update_packing_data_example.rb)",
+      "Bash(./update_recent_orders.rb)",
+      "Bash(echo:*)",
+      "Bash(crontab:*)",
+      "Bash(sudo service:*)",
+      "Bash(/home/vscode/.local/share/mise/installs/ruby/3.3.4/bin/bundle exec bin/rails runner 'SyncExcelDataJob.perform_now')",
+      "Bash(bin/sync_excel_cron.sh:*)",
+      "Bash(git checkout:*)"
     ],
-    "deny": []
+    "deny": [],
+    "defaultMode": "acceptEdits"
   }
 }
