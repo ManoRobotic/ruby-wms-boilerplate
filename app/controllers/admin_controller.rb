@@ -39,9 +39,9 @@ class AdminController < ApplicationController
     @task_metrics = calculate_task_metrics rescue {}
     @pick_list_metrics = calculate_pick_list_metrics rescue {}
     @warehouse_utilization = calculate_warehouse_utilization rescue []
-    # Filter recent transactions by user's warehouse if not admin
+    # Filter recent transactions by user's warehouse if not admin or operador
     transactions_scope = InventoryTransaction.recent
-    if current_user && current_user.warehouse_id.present?
+    if current_user && current_user.warehouse_id.present? && !current_user.admin? && !current_user.operador?
       transactions_scope = transactions_scope.joins(location: :zone).where(zones: { warehouse_id: current_user.warehouse_id })
     end
     @recent_transactions = transactions_scope.limit(5) rescue []
@@ -99,8 +99,8 @@ class AdminController < ApplicationController
   def calculate_task_metrics
     base_scope = Task
 
-    # Filter by warehouse if user is not admin
-    if current_user && current_user.warehouse_id.present?
+    # Filter by warehouse if user is not admin or operador
+    if current_user && current_user.warehouse_id.present? && !current_user.admin? && !current_user.operador?
       base_scope = base_scope.where(warehouse_id: current_user.warehouse_id)
     end
 
@@ -116,8 +116,8 @@ class AdminController < ApplicationController
   def calculate_pick_list_metrics
     base_scope = PickList
 
-    # Filter by warehouse if user is not admin
-    if current_user && current_user.warehouse_id.present?
+    # Filter by warehouse if user is not admin or operador
+    if current_user && current_user.warehouse_id.present? && !current_user.admin? && !current_user.operador?
       base_scope = base_scope.where(warehouse_id: current_user.warehouse_id)
     end
 
@@ -132,8 +132,8 @@ class AdminController < ApplicationController
   def calculate_warehouse_utilization
     warehouses = Warehouse.active.includes(:locations)
 
-    # Filter by user's warehouse if not admin
-    if current_user && current_user.warehouse_id.present?
+    # Filter by user's warehouse if not admin or operador
+    if current_user && current_user.warehouse_id.present? && !current_user.admin? && !current_user.operador?
       warehouses = warehouses.where(id: current_user.warehouse_id)
     end
 
