@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_08_08_054516) do
+ActiveRecord::Schema[8.0].define(version: 2025_08_15_075448) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -219,6 +219,28 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_08_054516) do
     t.index ["warehouse_id"], name: "index_orders_on_warehouse_id"
     t.index ["wave_id", "status"], name: "index_orders_on_wave_id_and_status"
     t.index ["wave_id"], name: "index_orders_on_wave_id"
+  end
+
+  create_table "packing_records", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "lote_padre"
+    t.string "lote"
+    t.string "cve_prod"
+    t.decimal "peso_bruto", precision: 10, scale: 3
+    t.decimal "peso_neto", precision: 10, scale: 3
+    t.decimal "metros_lineales", precision: 10, scale: 2
+    t.string "nombre"
+    t.uuid "production_order_id", null: false
+    t.integer "consecutivo"
+    t.string "descripcion"
+    t.string "cliente"
+    t.string "num_orden"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["cve_prod"], name: "index_packing_records_on_cve_prod"
+    t.index ["lote"], name: "index_packing_records_on_lote"
+    t.index ["lote_padre"], name: "index_packing_records_on_lote_padre"
+    t.index ["production_order_id", "consecutivo"], name: "index_packing_records_on_production_order_id_and_consecutivo"
+    t.index ["production_order_id"], name: "index_packing_records_on_production_order_id"
   end
 
   create_table "pick_list_items", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -533,6 +555,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_08_054516) do
   add_foreign_key "order_products", "products"
   add_foreign_key "orders", "warehouses"
   add_foreign_key "orders", "waves"
+  add_foreign_key "packing_records", "production_orders"
   add_foreign_key "pick_list_items", "locations"
   add_foreign_key "pick_list_items", "pick_lists"
   add_foreign_key "pick_list_items", "products"
