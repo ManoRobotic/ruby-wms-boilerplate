@@ -1,0 +1,158 @@
+<% notification_data = current_user_notifications_data %>
+<% if notification_data %>
+  <div class="relative" data-controller="dropdown notifications">
+    <div class="indicator w-full">
+      <% if notification_data.unread_count > 0 %>
+        <span class=" mt-2 notification-count indicator-item badge bg-red-500 text-white text-xs font-medium border-0 min-w-[20px] h-5 flex items-center justify-center mr-2">
+          <%= notification_data.unread_count > 99 ? "99+" : notification_data.unread_count %>
+        </span>
+      <% end %>
+      <button data-dropdown-target="trigger" 
+              data-action="click->dropdown#toggle"
+              class="btn btn-ghost w-full justify-start text-left hover:bg-gray-700 focus:outline-none border-0 normal-case">
+        <%= icon('fa-solid', 'bell', class: 'w-4 h-4 mr-2') %>
+        <span class="text-sm">Notificaciones</span>
+        <%= icon('fa-solid', 'chevron-up', class: 'mr-2 w-4 h-4 ml-auto transform transition-transform', data: { dropdown_target: 'icon' }) %>
+      </button>
+    </div>
+    
+    <!-- Notifications Dropdown -->
+    <div data-dropdown-target="menu" 
+         class="hidden absolute bottom-full left-0 right-0 mb-2 bg-white rounded-lg shadow-lg border z-50"
+         style="bottom: 100%; max-height: 40vh; overflow-y: auto;">
+      <div class="p-3 border-b border-gray-200">
+        <div class="flex items-center justify-between">
+          <h3 class="font-semibold text-gray-900">Notificaciones</h3>
+          <%= link_to "Ver todas", admin_notifications_path, 
+              class: "text-xs text-blue-600 hover:text-blue-800" %>
+        </div>
+        <% if notification_data.unread_count > 0 %>
+          <%= link_to "Marcar todas como leídas", mark_all_read_admin_notifications_path, 
+              method: :post,
+              class: "text-xs text-blue-600 hover:text-blue-800",
+              data: { 
+                  action: "click->notifications#markAllAsRead"
+              } %>
+        <% end %>
+      </div>
+      <div class="max-h-60 overflow-y-auto">
+        <% if notification_data.recent_notifications.any? %>
+          <% notification_data.recent_notifications.each do |notification| %>
+            <div class="notification-item p-3 border-b border-gray-100 hover:bg-gray-50 <%= 'bg-blue-50' unless notification.read? %>"
+                 data-notification-id="<%= notification.id %>">
+              <div class="flex items-start space-x-3">
+                <div class="flex-shrink-0">
+                  <%= icon(*notification_icon_class(notification.notification_type).split(' ', 2)) %>
+                </div>
+                <% if notification.action_url.present? %>
+                  <%= link_to "#", 
+                      class: "flex-1 min-w-0 cursor-pointer block", 
+                      data: { 
+                          action: "click->notifications#markAsRead",
+                          notification_id: notification.id,
+                          notification_action_url: notification.action_url
+                      } do %>
+                    <p class="text-sm font-medium text-gray-900">
+                      <%= notification.title %>
+                    </p>
+                    <p class="text-sm text-gray-600">
+                      <%= notification.message %>
+                    </p>
+                    <p class="text-xs text-gray-500 mt-1">
+                      <%= notification_time_ago(notification.created_at) %>
+                    </p>
+                  <% end %>
+                <% else %>
+                  <div class="flex-1 min-w-0 cursor-pointer"
+                       data-action="click->notifications#markAsRead"
+                       data-notification-id="<%= notification.id %>">
+                    <p class="text-sm font-medium text-gray-900">
+                      <%= notification.title %>
+                    </p>
+                    <p class="text-sm text-gray-600">
+                      <%= notification.message %>
+                    </p>
+                    <p class="text-xs text-gray-500 mt-1">
+                      <%= notification_time_ago(notification.created_at) %>
+                    </p>
+                  </div>
+                <% end %>
+                <% unless notification.read? %>
+                  <div class="flex-shrink-0 unread-indicator">
+                    <div class="w-2 h-2 bg-blue-600 rounded-full"></div>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        <% else %>
+          <div class="p-4 text-center text-gray-500">
+            <p>No tienes notificaciones</p>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+<% end %>
+
+<style>
+  /* Custom styles for notification indicator */
+  .indicator {
+    position: relative;
+    display: inline-flex;
+  }
+  
+  .indicator-item {
+    position: absolute;
+    top: 0;
+    right: 0;
+    transform: translate(50%, -50%);
+    z-index: 10;
+  }
+  
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1;
+    padding: 0.25rem 0.5rem;
+    min-height: 1.25rem;
+    min-width: 1.25rem;
+  }
+  
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.5rem;
+    border: 1px solid transparent;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    text-decoration: none;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s ease;
+  }
+  
+  .btn-ghost {
+    background-color: transparent;
+    border-color: transparent;
+    color: inherit;
+  }
+  
+  .btn-ghost:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .normal-case {
+    text-transform: none;
+  }
+  
+  .justify-start {
+    justify-content: flex-start;
+  }
+</style>

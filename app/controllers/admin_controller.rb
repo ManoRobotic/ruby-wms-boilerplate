@@ -1,5 +1,6 @@
 class AdminController < ApplicationController
   include ApiResponses
+  include NotificationManagement
 
   layout "admin"
 

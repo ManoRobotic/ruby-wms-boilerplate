@@ -4,17 +4,14 @@ export default class extends Controller {
   static targets = ["container"]
   
   connect() {
-    console.log('🍞 Toast controller connected!')
     this.createToastContainer()
     
     // Listen for toast:show events
     document.addEventListener('toast:show', this.show.bind(this))
-    console.log('👂 Toast event listener attached')
   }
 
   disconnect() {
     document.removeEventListener('toast:show', this.show.bind(this))
-    console.log('🔌 Toast event listener removed')
   }
   
   createToastContainer() {
@@ -27,20 +24,16 @@ export default class extends Controller {
   }
   
   show(event) {
-    console.log('🎬 Toast show event received:', event.detail)
     const { type = 'info', title, message, duration = 5000 } = event.detail
     this.showToast(type, title, message, duration)
   }
   
   showToast(type, title, message, duration = 15000) {
-    console.log('🍞 showToast called:', { type, title, message, duration })
     
     const container = document.querySelector('#toast-container')
     if (!container) {
-      console.error('❌ Toast container not found!')
       return
     }
-    console.log('✅ Toast container found:', container)
     
     // Prevent duplicate toasts by checking if one with same content exists
     const existingToasts = container.querySelectorAll('div[role="alert"]')
@@ -50,7 +43,6 @@ export default class extends Controller {
     })
     
     if (duplicateExists) {
-      console.log('⏭️ Skipping duplicate toast')
       return
     }
     
@@ -112,13 +104,11 @@ export default class extends Controller {
     `
     
     container.appendChild(toast)
-    console.log('✅ Toast appended to container')
     
     // Show toast with animation
     setTimeout(() => {
       toast.classList.remove('translate-x-full', 'opacity-0')
       toast.classList.add('translate-x-0', 'opacity-100')
-      console.log('🎬 Toast animated in')
     }, 100)
     
     // Set up close button
@@ -132,7 +122,6 @@ export default class extends Controller {
       }, duration)
     }
     
-    console.log('🎉 Toast setup complete')
   }
   
   removeToast(toast) {
@@ -155,10 +144,8 @@ export default class extends Controller {
 
 // Global toast helper
 window.showToast = (type, title, message, duration) => {
-  console.log('🌍 Global showToast called:', { type, title, message, duration })
   const event = new CustomEvent('toast:show', {
     detail: { type, title, message, duration }
   })
-  console.log('📢 Dispatching toast:show event')
   document.dispatchEvent(event)
 }

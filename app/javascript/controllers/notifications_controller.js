@@ -4,45 +4,43 @@ export default class extends Controller {
   static targets = ["count"]
   
   connect() {
-    this.controllerId = Math.random().toString(36).substr(2, 9)
-    console.log(`🔔 NotificationsController connected! ID: ${this.controllerId}`)
+    this.controllerId = Math.random().toString(36).substring(2, 11)
     
-    // Check if another notifications controller is already active
     if (window.activeNotificationsController) {
-      console.warn(`⚠️ Another NotificationsController already active. Skipping this one: ${this.controllerId}`)
       return
     }
     
     window.activeNotificationsController = this.controllerId
-    console.log(`✅ NotificationsController ${this.controllerId} is now active`)
     
-    // Listen for new notifications
+    // Check if we have clickable notification elements
+    const clickableElements = this.element.querySelectorAll('[data-action*="markAsRead"]')
+    
     document.addEventListener('notification:new', this.handleNewNotification.bind(this))
-    document.addEventListener('toast:show', this.handleToastShow.bind(this))
+    // Removed toast:show listener to prevent conflict with toast_controller
     document.addEventListener('notifications:poll', this.handleImmediatePoll.bind(this))
     
-    // Initialize toast container
     this.createToastContainer()
     
-    // Connect to ActionCable for real-time notifications
     this.connectToCable()
   }
   
   disconnect() {
-    console.log(`🔌 NotificationsController ${this.controllerId} disconnecting`)
     
     if (window.activeNotificationsController === this.controllerId) {
       window.activeNotificationsController = null
-      console.log(`✅ NotificationsController ${this.controllerId} deactivated`)
       
       document.removeEventListener('notification:new', this.handleNewNotification.bind(this))
-      document.removeEventListener('toast:show', this.handleToastShow.bind(this))
+      // Removed toast:show listener to prevent conflict with toast_controller
       document.removeEventListener('notifications:poll', this.handleImmediatePoll.bind(this))
       this.disconnectFromCable()
       this.stopPolling()
       this.stopImmediatePolling()
       
-      // Clean up global reference
+      // Clear active toasts set
+      if (this.activeToasts) {
+        this.activeToasts.clear()
+      }
+      
       if (window.showNotificationToast) {
         delete window.showNotificationToast
       }
@@ -50,75 +48,54 @@ export default class extends Controller {
   }
   
   connectToCable() {
-    // Import ActionCable consumer
     const consumer = (window.App && window.App.cable) || window.createConsumer?.('/cable')
     
-    console.log('🔌 Checking ActionCable consumer:', consumer)
     if (!consumer) {
-      console.warn('❌ ActionCable consumer not available')
       return
     }
-    console.log('✅ ActionCable consumer found, creating subscription...')
 
-    // Subscribe to notifications channel
     this.subscription = consumer.subscriptions.create("NotificationsChannel", {
       received: (data) => {
-        // Only process if this is the active controller
         if (window.activeNotificationsController !== this.controllerId) {
-          console.log(`⏭️ Ignoring message in inactive controller ${this.controllerId}`)
           return
         }
         
         if (data.type === 'new_notification' && data.notification) {
-          console.log(`📡 WebSocket notification received by ${this.controllerId}:`, data.notification)
+          // Create a unique key to prevent duplicate processing
+          const notificationKey = `${data.notification.title}_${data.notification.message}_${Date.now()}`
           
-          // Prevent duplicate toasts by checking if one with same content exists
-          const existingToasts = document.querySelectorAll('#toast-container > div')
-          const duplicateExists = Array.from(existingToasts).some(toast => {
-            const messageEl = toast.querySelector('.text-sm')
-            return messageEl && messageEl.textContent.includes(data.notification.message)
-          })
-          
-          if (!duplicateExists) {
-            // Show toast immediately when receiving WebSocket message via global function
-            if (window.showToast) {
-              window.showToast(
-                data.notification.type || 'notification',
-                data.notification.title,
-                data.notification.message,
-                data.notification.duration || 15000
-              )
-            } else {
-              // Fallback: dispatch event
-              const event = new CustomEvent('toast:show', {
-                detail: {
-                  type: data.notification.type || 'notification',
-                  title: data.notification.title,
-                  message: data.notification.message,
-                  duration: data.notification.duration || 15000
-                }
-              })
-              document.dispatchEvent(event)
-            }
-            
-            // Update notification count
-            this.incrementNotificationCount()
-          } else {
-            console.log('⏭️ Skipping duplicate toast notification')
+          // Check if we've already processed this notification recently
+          if (this.recentNotifications && this.recentNotifications.has(notificationKey)) {
+            return
           }
+          
+          // Track recent notifications to prevent duplicates
+          if (!this.recentNotifications) {
+            this.recentNotifications = new Set()
+          }
+          this.recentNotifications.add(notificationKey)
+          
+          // Clean up old notification keys after 30 seconds
+          setTimeout(() => {
+            if (this.recentNotifications) {
+              this.recentNotifications.delete(notificationKey)
+            }
+          }, 30000)
+          
+          // Show the notification
+          this.showNotificationToast(data.notification)
+          this.incrementNotificationCount()
+          this.refreshNotifications()
         }
       },
       
       connected: () => {
-        console.log('✅ Connected to NotificationsChannel')
       },
       
       disconnected: () => {
-        console.log('❌ Disconnected from NotificationsChannel')
       },
       
       rejected: () => {
-        console.log('❌ NotificationsChannel subscription rejected')
       }
     })
   }
@@ -143,26 +120,70 @@ export default class extends Controller {
     const { notification } = event.detail
     
     // Show toast for new notification
-    this.showToast('notification', notification.title, notification.message)
+    this.showNotificationToast(notification)
     
-    // Update notification count
+    // Update notification count and refresh notifications in sidebar
     this.incrementNotificationCount()
+    this.refreshNotifications()
+  }
+
+  showNotificationToast(notification) {
+    // Use the global toast system
+    if (window.showToast) {
+      window.showToast(
+        'notification', 
+        notification.title, 
+        notification.message, 
+        notification.duration || 8000
+      )
+    } else {
+      // Fallback to event system
+      const toastEvent = new CustomEvent('toast:show', {
+        detail: { 
+          type: 'notification', 
+          title: notification.title, 
+          message: notification.message, 
+          duration: notification.duration || 8000 
+        }
+      })
+      document.dispatchEvent(toastEvent)
+    }
+  }
+
+  refreshNotifications() {
+    // Refresh the notifications dropdown content
+    // This could trigger a fetch to get updated notifications
+    this.pollForNotifications()
   }
   
-  handleToastShow(event) {
-    const { type, title, message, duration } = event.detail
-    this.showToast(type, title, message, duration)
-  }
+  // Removed handleToastShow to prevent conflict with toast_controller
   
   showToast(type, title, message, duration = 15000) {
-    console.log('🍞 showToast called:', { type, title, message, duration })
+    
+    // Create a unique key for this toast to prevent duplicates
+    const toastKey = `${type}_${title}_${message}`.replace(/\s/g, '_')
+    
+    // Check if this exact toast is already being shown
+    if (this.activeToasts && this.activeToasts.has(toastKey)) {
+      return
+    }
+    
+    // Initialize activeToasts if not exists
+    if (!this.activeToasts) {
+      this.activeToasts = new Set()
+    }
+    
+    // Mark this toast as active
+    this.activeToasts.add(toastKey)
+    
+    // Clear any existing duplicate toasts
+    this.clearDuplicateToasts(title, message)
     
     const container = document.querySelector('#toast-container')
     if (!container) {
-      console.error('❌ Toast container not found!')
+      this.activeToasts.delete(toastKey)
       return
     }
-    console.log('✅ Toast container found:', container)
     
     const toast = document.createElement('div')
     toast.className = `transform transition-all duration-300 ease-in-out translate-x-full opacity-0 flex items-center w-full max-w-xs p-4 mb-4 text-gray-500 bg-white rounded-lg shadow-sm dark:text-gray-400 dark:bg-gray-800`
@@ -203,7 +224,6 @@ export default class extends Controller {
     
     const config = typeConfig[type] || typeConfig.info
     
-    // Create unique toast ID
     const toastId = `toast-${type}-${Date.now()}`
     toast.id = toastId
     
@@ -222,31 +242,49 @@ export default class extends Controller {
     `
     
     container.appendChild(toast)
-    console.log('✅ Toast appended to container')
     
     setTimeout(() => {
       toast.classList.remove('translate-x-full', 'opacity-0')
       toast.classList.add('translate-x-0', 'opacity-100')
-      console.log('🎬 Toast animated in')
     }, 100)
     
     const closeBtn = toast.querySelector('.toast-close')
-    closeBtn.addEventListener('click', () => this.removeToast(toast))
+    closeBtn.addEventListener('click', () => this.removeToast(toast, toastKey))
     
     if (duration > 0) {
-      setTimeout(() => this.removeToast(toast), duration)
+      setTimeout(() => this.removeToast(toast, toastKey), duration)
     }
     
-    console.log('🎉 Toast setup complete')
   }
   
-  removeToast(toast) {
+  removeToast(toast, toastKey = null) {
     toast.classList.add('translate-x-full', 'opacity-0')
     setTimeout(() => {
       if (toast.parentNode) {
         toast.parentNode.removeChild(toast)
       }
+      // Remove from active toasts set
+      if (toastKey && this.activeToasts) {
+        this.activeToasts.delete(toastKey)
+      }
     }, 300)
+  }
+  
+  clearDuplicateToasts(title, message) {
+    const container = document.querySelector('#toast-container')
+    if (!container) return
+    
+    const existingToasts = container.querySelectorAll('div[role="alert"]')
+    existingToasts.forEach(toast => {
+      const messageEl = toast.querySelector('.text-sm')
+      if (messageEl) {
+        const fullText = messageEl.textContent || ''
+        // Check if toast contains the same title and message
+        if ((title && fullText.includes(title)) || (message && fullText.includes(message))) {
+          this.removeToast(toast)
+        }
+      }
+    })
   }
   
   markAllAsRead(event) {
@@ -268,37 +306,75 @@ export default class extends Controller {
       }
     })
     .catch(error => {
-      console.error('Error:', error)
       this.showToast('error', 'Error', 'Ocurrió un error al procesar la solicitud')
     })
   }
 
   markAsRead(event) {
-    event.preventDefault() // Prevent any default navigation
     
-    const notificationElement = event.currentTarget.closest('.notification-item')
-    const notificationId = notificationElement?.dataset.notificationId
-    const actionUrl = event.currentTarget.dataset.notificationActionUrl
+    // Use currentTarget if available, otherwise fall back to target for processing check
+    const processingElement = event.currentTarget || event.target
     
-    if (!notificationId) {
-      console.error('No notification ID found')
+    // Check if this notification is already being processed
+    if (processingElement && processingElement.dataset.processing) {
       return
     }
     
-    console.log('🔔 Marking notification as read:', notificationId)
+    event.preventDefault()
+    event.stopPropagation() // Stop event from bubbling up
     
-    fetch(`/admin/notifications/${notificationId}/mark_read`, {
+    // Mark as being processed
+    if (processingElement) {
+      processingElement.dataset.processing = 'true'
+    }
+    
+    // Use currentTarget if available, otherwise fall back to target
+    const clickedElement = event.currentTarget || event.target
+    
+    if (!clickedElement) {
+      return
+    }
+    
+    
+    const notificationElement = clickedElement.closest('.notification-item')
+    
+    
+    if (!notificationElement) {
+      return
+    }
+    
+    // Try to get notification ID from either the clicked element or the parent notification element
+    let notificationId = clickedElement.dataset.notificationId || notificationElement.dataset.notificationId
+    let actionUrl = clickedElement.dataset.notificationActionUrl
+    
+    
+    if (!notificationId) {
+      return
+    }
+    
+    
+    // Small delay to ensure DOM is stable and avoid race conditions
+    setTimeout(() => {
+      const url = `/admin/notifications/${notificationId}/mark_read`
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+      
+      
+      this.performMarkAsRead(url, csrfToken, notificationElement, actionUrl, event, processingElement)
+    }, 50)
+  }
+  
+  performMarkAsRead(url, csrfToken, notificationElement, actionUrl, event, processingElement) {
+    fetch(url, {
       method: 'PATCH',
       headers: {
-        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+        'X-CSRF-Token': csrfToken,
         'Content-Type': 'application/json',
       }
     })
     .then(response => {
+      
       if (response.ok) {
-        console.log('✅ Notification marked as read successfully')
         
-        // Remove unread styling immediately
         notificationElement.classList.remove('bg-blue-50', 'border-l-4', 'border-l-blue-500')
         notificationElement.classList.remove('border-l-blue-500')
         const unreadIndicator = notificationElement.querySelector('.unread-indicator')
@@ -306,40 +382,45 @@ export default class extends Controller {
           unreadIndicator.remove()
         }
         
-        // Update notification counter
         this.updateNotificationCount()
         
-        // Show success toast
-        this.showToast('success', 'Notificación marcada como leída', '', 2000)
         
-        // If the notification has an action_url, navigate to it after marking as read
         if (actionUrl && actionUrl.trim() !== '' && !event.ctrlKey && !event.metaKey) {
-          console.log('🔗 Navigating to action URL:', actionUrl)
           setTimeout(() => {
             window.location.href = actionUrl
           }, 800)
         }
       } else {
-        console.error('❌ Failed to mark notification as read')
+        response.text().then(text => {
+        })
         this.showToast('error', 'Error al marcar la notificación')
+      }
+      
+      // Clean up processing flag
+      if (processingElement) {
+        delete processingElement.dataset.processing
       }
     })
     .catch(error => {
-      console.error('❌ Error:', error)
       this.showToast('error', 'Error al marcar la notificación')
+      
+      // Clean up processing flag on error too
+      if (processingElement) {
+        delete processingElement.dataset.processing
+      }
     })
   }
 
   updateNotificationCount() {
     const countElement = document.querySelector('.notification-count')
     if (countElement) {
-      const currentCount = parseInt(countElement.textContent)
+      const currentCount = parseInt(countElement.textContent.replace('+', ''))
       const newCount = Math.max(0, currentCount - 1)
       
       if (newCount === 0) {
         countElement.remove()
       } else {
-        countElement.textContent = newCount
+        countElement.textContent = newCount > 99 ? "99+" : newCount.toString()
       }
     }
   }
@@ -347,16 +428,17 @@ export default class extends Controller {
   incrementNotificationCount() {
     const countElement = document.querySelector('.notification-count')
     if (countElement) {
-      const currentCount = parseInt(countElement.textContent) || 0
-      countElement.textContent = currentCount + 1
+      const currentCount = parseInt(countElement.textContent.replace('+', '')) || 0
+      const newCount = currentCount + 1
+      countElement.textContent = newCount > 99 ? "99+" : newCount.toString()
+      countElement.style.display = 'flex'
     } else {
-      // Create new count element if it doesn't exist
-      const bellButton = document.querySelector('[data-dropdown-target="trigger"]')
-      if (bellButton) {
+      const indicatorContainer = document.querySelector('.indicator')
+      if (indicatorContainer) {
         const countSpan = document.createElement('span')
-        countSpan.className = 'notification-count ml-auto bg-red-500 text-xs rounded-full px-1 py-0.5 min-w-[16px] text-center'
+        countSpan.className = 'notification-count indicator-item badge bg-red-500 text-white text-xs font-medium border-0 min-w-[20px] h-5 flex items-center justify-center'
         countSpan.textContent = '1'
-        bellButton.appendChild(countSpan)
+        indicatorContainer.insertBefore(countSpan, indicatorContainer.firstChild)
       }
     }
   }
@@ -365,7 +447,7 @@ export default class extends Controller {
     this.lastPoll = new Date().toISOString()
     this.pollInterval = setInterval(() => {
       this.pollForNotifications()
-    }, 30000) // Poll every 30 seconds
+    }, 30000)
   }
   
   stopPolling() {
@@ -388,21 +470,17 @@ export default class extends Controller {
       if (response.ok) {
         const data = await response.json()
         
-        // Update last poll time
         this.lastPoll = data.last_poll
         
-        // Show toast for new notifications
         data.notifications.forEach(notification => {
           this.showToast('notification', notification.title, notification.message, 8000)
         })
         
-        // Update notification count if needed
         if (data.notifications.length > 0) {
           this.updateNotificationCountFromServer(data.unread_count)
         }
       }
     } catch (error) {
-      console.error('Error polling for notifications:', error)
     }
   }
   
@@ -410,15 +488,15 @@ export default class extends Controller {
     const countElement = document.querySelector('.notification-count')
     if (serverCount > 0) {
       if (countElement) {
-        countElement.textContent = serverCount
+        countElement.textContent = serverCount > 99 ? "99+" : serverCount.toString()
+        countElement.style.display = 'flex'
       } else {
-        // Create new count element
-        const bellButton = document.querySelector('[data-dropdown-target="trigger"]')
-        if (bellButton) {
+        const indicatorContainer = document.querySelector('.indicator')
+        if (indicatorContainer) {
           const countSpan = document.createElement('span')
-          countSpan.className = 'notification-count ml-auto bg-red-500 text-xs rounded-full px-1 py-0.5 min-w-[16px] text-center'
-          countSpan.textContent = serverCount
-          bellButton.appendChild(countSpan)
+          countSpan.className = 'notification-count indicator-item badge bg-red-500 text-white text-xs font-medium border-0 min-w-[20px] h-5 flex items-center justify-center'
+          countSpan.textContent = serverCount > 99 ? "99+" : serverCount.toString()
+          indicatorContainer.insertBefore(countSpan, indicatorContainer.firstChild)
         }
       }
     } else if (countElement) {
@@ -426,8 +504,7 @@ export default class extends Controller {
     }
   }
   
-  handleImmediatePoll(event) {
-    // Force an immediate poll for notifications
+  handleImmediatePoll() {
     this.pollForNotifications()
   }
   
@@ -435,7 +512,7 @@ export default class extends Controller {
     this.lastImmediateCheck = new Date().toISOString()
     this.immediatePollingInterval = setInterval(() => {
       this.pollForImmediateNotifications()
-    }, 2000) // Poll every 2 seconds for immediate notifications
+    }, 2000)
   }
   
   stopImmediatePolling() {
@@ -459,25 +536,20 @@ export default class extends Controller {
         const data = await response.json()
         this.lastImmediateCheck = data.last_check
         
-        // Show toasts for immediate notifications
         data.immediate_notifications.forEach(notification => {
           this.showToast('notification', notification.title, notification.message, notification.duration || 10000)
-          // Update notification counter
           this.incrementNotificationCount()
         })
         
-        // Also poll for regular notifications if we got immediate ones
         if (data.immediate_notifications.length > 0) {
           this.pollForNotifications()
         }
       }
     } catch (error) {
-      console.error('Error polling for immediate notifications:', error)
     }
   }
 }
 
-// Global notification helper
 window.showNotificationToast = (type, title, message, duration) => {
   const event = new CustomEvent('toast:show', {
     detail: { type, title, message, duration }

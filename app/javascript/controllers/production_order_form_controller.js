@@ -2,10 +2,22 @@ import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
   connect() {
+    
+    // Add a visual indicator that the controller connected (temporary for debugging)
+    const indicator = document.createElement('div')
+    document.body.appendChild(indicator)
+    setTimeout(() => indicator.remove(), 4000)
+    
     const form = this.element.querySelector('form')
     if (form) {
       form.addEventListener('submit', this.handleSubmit.bind(this))
+    } else {
+      console.warn('⚠️ No form found in production order form controller')
     }
+  }
+
+  disconnect() {
+    console.log('📋 ProductionOrderFormController disconnected')
   }
   
   handleSubmit(event) {
@@ -19,6 +31,12 @@ export default class extends Controller {
     submitButton.value = 'Creando...'
     submitButton.disabled = true
     
+    // Safety timeout to reset button if something goes wrong
+    const safetyTimeout = setTimeout(() => {
+      submitButton.value = originalText
+      submitButton.disabled = false
+    }, 10000) // 10 seconds safety net
+
     fetch(form.action, {
       method: 'POST',
       body: formData,
@@ -29,67 +47,59 @@ export default class extends Controller {
     })
     .then(response => response.json())
     .then(data => {
+      clearTimeout(safetyTimeout) // Clear safety timeout on successful response
+      
       if (data.status === 'success') {
-        // Show success toast immediately
-        this.showToast('success', '¡Orden creada!', data.message)
         
-        // Show notification toast for the production order
-        this.showToast('notification', 'Nueva orden de producción', 
-          `Se ha creado la orden ${data.production_order.order_number} para ${data.production_order.product_name}`, 
-          8000)
+        // Store toast data in sessionStorage to show after redirect
+        sessionStorage.setItem('showToast', JSON.stringify({
+          type: 'success',
+          title: '¡Orden creada!',
+          message: data.message
+        }))
         
-        // Update notification count immediately if there's a counter
+        // Update notification counter immediately
         this.updateNotificationCounter()
         
-        // Force a poll for new notifications
-        this.triggerNotificationPoll()
-        
-        // Redirect after showing toast
-        setTimeout(() => {
-          window.location.href = `/admin/production_orders/${data.production_order.id}`
-        }, 1500)
+        // Clear any existing toasts that might be showing
+        const existingToasts = document.querySelectorAll('[data-toast]')
+        existingToasts.forEach(toast => toast.remove())
+                
+        // Redirect immediately
+        window.location.href = `/admin/production_orders/${data.production_order.id}`
         
       } else {
-        this.showToast('error', 'Error', 'No se pudo crear la orden de producción')
+        console.error('Error creating production order:', data)
         submitButton.value = originalText
         submitButton.disabled = false
       }
     })
     .catch(error => {
-      console.error('Error:', error)
-      this.showToast('error', 'Error', 'Ocurrió un error al crear la orden')
+      clearTimeout(safetyTimeout) // Clear safety timeout on error too
+      console.error('Error creating production order:', error)
       submitButton.value = originalText
       submitButton.disabled = false
     })
   }
   
-  showToast(type, title, message, duration = 5000) {
-    const event = new CustomEvent('toast:show', {
-      detail: { type, title, message, duration }
-    })
-    document.dispatchEvent(event)
-  }
-  
   updateNotificationCounter() {
     const countElement = document.querySelector('.notification-count')
     if (countElement) {
-      const currentCount = parseInt(countElement.textContent) || 0
-      countElement.textContent = currentCount + 1
+      const currentCount = parseInt(countElement.textContent.replace('+', '')) || 0
+      const newCount = currentCount + 1
+      countElement.textContent = newCount > 99 ? "99+" : newCount.toString()
+      
+      // Make sure the indicator is visible
+      countElement.style.display = 'flex'
     } else {
       // Create new count element if it doesn't exist
-      const bellButton = document.querySelector('[data-dropdown-target="trigger"]')
-      if (bellButton) {
+      const indicatorContainer = document.querySelector('.indicator')
+      if (indicatorContainer) {
         const countSpan = document.createElement('span')
-        countSpan.className = 'notification-count ml-auto bg-red-500 text-xs rounded-full px-1 py-0.5 min-w-[16px] text-center'
+        countSpan.className = 'notification-count indicator-item badge bg-red-500 text-white text-xs font-medium border-0 min-w-[20px] h-5 flex items-center justify-center'
         countSpan.textContent = '1'
-        bellButton.appendChild(countSpan)
+        indicatorContainer.insertBefore(countSpan, indicatorContainer.firstChild)
       }
     }
-  }
-  
-  triggerNotificationPoll() {
-    // Trigger an immediate notification poll
-    const event = new CustomEvent('notifications:poll')
-    document.dispatchEvent(event)
   }
 }

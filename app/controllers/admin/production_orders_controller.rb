@@ -47,7 +47,6 @@ class Admin::ProductionOrdersController < AdminController
     @production_order.admin_id = current_user&.id || current_admin&.id
 
     if @production_order.save
-      Rails.logger.info "🎉 Production Order created successfully: #{@production_order.id}"
       
       # Send notifications to all users who should be notified about production orders
       notification_data = {
@@ -58,31 +57,40 @@ class Admin::ProductionOrdersController < AdminController
         status: @production_order.status
       }.to_json
 
-      # Create individual notifications for each relevant user
-      User.where(role: ['admin', 'manager', 'supervisor', 'operador']).find_each do |user|
-        Notification.create!(
+      # Create notifications using batch insert for better performance
+      target_users = User.where(role: ['admin', 'manager', 'supervisor', 'operador'])
+      
+      # Prepare notification records for batch insert
+      notification_records = target_users.map do |user|
+        {
           user_id: user.id,
           notification_type: "production_order_created",
           title: "Nueva orden de producción creada",
           message: "Se ha creado la orden de producción #{@production_order.no_opro || @production_order.order_number} para el producto #{@production_order.product.name}",
           action_url: "/admin/production_orders/#{@production_order.id}",
-          data: notification_data
-        )
+          data: notification_data,
+          created_at: Time.current,
+          updated_at: Time.current
+        }
+      end
+      
+      # Batch insert notifications (much faster than individual creates)
+      if notification_records.any?
+        Notification.insert_all(notification_records)
+        
+        # Expire cache for each user
+        target_users.find_each do |user|
+          Rails.cache.delete("notifications_data:user:#{user.id}:#{user.updated_at}")
+        end
       end
 
-      # Broadcast real-time notifications via ActionCable (only once)
-      unless Rails.cache.exist?("production_order_broadcast_#{@production_order.id}")
-        Rails.cache.write("production_order_broadcast_#{@production_order.id}", true, expires_in: 1.minute)
-        broadcast_notifications(@production_order)
-        Rails.logger.info "📡 Notifications broadcast sent for order #{@production_order.id}"
-      else
-        Rails.logger.info "⏭️ Skipping duplicate broadcast for order #{@production_order.id}"
-      end
+      # Broadcast notifications to relevant users
+      broadcast_notifications(@production_order)
 
       respond_to do |format|
         format.html do
-          # Solo redirect sin flash toast para evitar duplicados
-          redirect_to admin_production_orders_path,
+          # Redirect to show page instead of index
+          redirect_to admin_production_order_path(@production_order),
                       notice: "Orden de producción creada exitosamente."
         end
         format.json do
@@ -338,6 +346,10 @@ class Admin::ProductionOrdersController < AdminController
   private
 
   def broadcast_notifications(production_order)
+    # Get the current user ID to exclude them from toast notifications
+    current_user_id = current_user&.id || current_admin&.id
+    Rails.logger.info "🔍 Current user ID for broadcast exclusion: #{current_user_id}"
+    
     # Prepare notification data
     notification_data = {
       title: "Orden creada!",
@@ -347,8 +359,6 @@ class Admin::ProductionOrdersController < AdminController
       action_url: "/admin/production_orders/#{production_order.id}",
       timestamp: Time.current.iso8601
     }
-
-    Rails.logger.info "📡 Broadcasting notification: #{notification_data.inspect}"
 
     # Send to all relevant users via ActionCable (unified approach)
     target_users = User.where(role: ['admin', 'manager', 'supervisor', 'operador'])
@@ -365,19 +375,21 @@ class Admin::ProductionOrdersController < AdminController
     
     # Broadcast to each user only once
     target_users.distinct.find_each do |user|
+      # Don't show toast to the user who created the order
+      show_toast = user.id != current_user_id
+      
       channel_name = "notifications_#{user.id}"
-      Rails.logger.info "📢 Broadcasting to channel: #{channel_name} (#{user.email} - #{user.role})"
+      Rails.logger.info "📢 Broadcasting to channel: #{channel_name} (#{user.email} - #{user.role}) - show_toast: #{show_toast}"
       
       ActionCable.server.broadcast(
         channel_name,
         {
           type: 'new_notification',
-          notification: notification_data
+          notification: notification_data.merge(show_toast: show_toast)
         }
       )
     end
     
-    Rails.logger.info "✅ Broadcast complete"
   end
 
   def set_production_order

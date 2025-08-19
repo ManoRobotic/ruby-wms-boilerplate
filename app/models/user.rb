@@ -88,11 +88,12 @@ class User < ApplicationRecord
 
   # Notification methods
   def unread_notifications_count
-    notifications.unread.count
+    # Use a more efficient query for counting
+    notifications.where(read_at: nil).count
   end
 
   def recent_notifications(limit = 10)
-    notifications.recent.limit(limit)
+    notifications.order(created_at: :desc).limit(limit)
   end
 
   private

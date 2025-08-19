@@ -140,3 +140,85 @@
     </div>
   </div>
 </div>
+
+<script>
+  // Fallback script for production order form submission (works even if Stimulus fails)
+  document.addEventListener('DOMContentLoaded', function() {
+    const formContainer = document.querySelector('[data-controller="production-order-form"]')
+    
+    if (formContainer) {
+      const form = formContainer.querySelector('form')
+      if (form && !form.hasAttribute('data-fallback-added')) {
+        form.setAttribute('data-fallback-added', 'true')
+        
+        form.addEventListener('submit', function(event) {
+          event.preventDefault()
+          
+          const submitButton = form.querySelector('input[type="submit"]')
+          const originalText = submitButton.value
+          submitButton.value = 'Creando...'
+          submitButton.disabled = true
+          
+          const formData = new FormData(form)
+          
+          fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+              'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+              'Accept': 'application/json'
+            }
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.status === 'success') {
+              
+              // Store toast data in sessionStorage to show after redirect
+              sessionStorage.setItem('showToast', JSON.stringify({
+                type: 'success',
+                title: '¡Orden creada!',
+                message: data.message
+              }))
+              
+              // Update notification counter immediately
+              updateNotificationCounter()
+              
+              window.location.href = `/admin/production_orders/${data.production_order.id}`
+            } else {
+              console.error('❌ Error creating production order:', data)
+              submitButton.value = originalText
+              submitButton.disabled = false
+            }
+          })
+          .catch(error => {
+            console.error('❌ Fetch error:', error)
+            submitButton.value = originalText
+            submitButton.disabled = false
+          })
+        })
+      }
+    }
+    
+    // Helper function for updating notification counter
+    function updateNotificationCounter() {
+      const countElement = document.querySelector('.notification-count')
+      if (countElement) {
+        const currentCount = parseInt(countElement.textContent.replace('+', '')) || 0
+        const newCount = currentCount + 1
+        countElement.textContent = newCount > 99 ? "99+" : newCount.toString()
+        
+        // Make sure the indicator is visible
+        countElement.style.display = 'flex'
+      } else {
+        // Create new count element if it doesn't exist
+        const indicatorContainer = document.querySelector('.indicator')
+        if (indicatorContainer) {
+          const countSpan = document.createElement('span')
+          countSpan.className = 'notification-count indicator-item badge bg-red-500 text-white text-xs font-medium border-0 min-w-[20px] h-5 flex items-center justify-center'
+          countSpan.textContent = '1'
+          indicatorContainer.insertBefore(countSpan, indicatorContainer.firstChild)
+        }
+      }
+    }
+  })
+</script>

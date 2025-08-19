@@ -8,6 +8,10 @@ fi
 # Default to port 3000 if not specified
 export PORT="${PORT:-3000}"
 
+lsof -ti:3000 | xargs kill -9
+
+bin/rails assets:precompile
+
 # Let the debug gem allow remote connections,
 # but avoid loading until `debugger` is called
 export RUBY_DEBUG_OPEN="true"

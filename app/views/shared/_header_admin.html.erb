@@ -17,7 +17,7 @@
         <div class="flex flex-col h-full px-3 py-4 bg-gray-800 rounded-r-lg md:rounded-none">
             <!-- Main Navigation Menu -->
             <div class="flex-1">
-                <ul class="mt-6 space-y-1 font-medium text-white">
+                <ul class="mt-8 space-y-1 font-medium text-white">
                     <% wms_menu_items(current_user, current_admin).each do |item| %>
                         <li>
                             <%= link_to item[:path], 
@@ -37,188 +37,12 @@
             <!-- Bottom Section: Notifications and User Profile -->
             <div class="mt-auto mb-2 space-y-1 text-white flex-shrink-0">
                 <div class="border-t border-gray-600 my-2"></div>
-                    <!-- Notifications -->
-                    <% current_user_or_admin_instance = current_user || current_admin %>
-                    <% if current_user_or_admin_instance %>
-                        <div class="relative" data-controller="dropdown">
-                            <button data-dropdown-target="trigger" 
-                                    data-action="click->dropdown#toggle"
-                                    class="flex items-center w-full p-2 rounded-lg hover:bg-gray-700 focus:outline-none">
-                                <%= icon('fa-solid', 'bell', class: 'w-4 h-4 mr-2') %>
-                                <span class="text-sm">Notificaciones</span>
-                                <% if current_user_or_admin_instance.unread_notifications_count > 0 %>
-                                    <span class="notification-count ml-auto bg-red-500 text-xs rounded-full px-1 py-0.5 min-w-[16px] text-center">
-                                        <%= current_user_or_admin_instance.unread_notifications_count %>
-                                    </span>
-                                <% end %>
-                                <%= icon('fa-solid', 'chevron-up', class: 'w-4 h-4 ml-auto transform transition-transform', data: { dropdown_target: 'icon' }) %>
-                            </button>
-                            
-                            <!-- Notifications Dropdown -->
-                            <div data-dropdown-target="menu" 
-                                 class="hidden absolute bottom-full left-0 right-0 mb-2 bg-white rounded-lg shadow-lg border z-50"
-                                 style="bottom: 100%; max-height: 40vh; overflow-y: auto;">
-                                <div class="p-3 border-b border-gray-200">
-                                    <h3 class="font-semibold text-gray-900">Notificaciones</h3>
-                                    <% if current_user_or_admin_instance.unread_notifications_count > 0 %>
-                                        <%= link_to "Marcar todas como leídas", "#", 
-                                            class: "text-xs text-blue-600 hover:text-blue-800",
-                                            data: { 
-                                                controller: "notifications",
-                                                action: "click->notifications#markAllAsRead"
-                                            } %>
-                                    <% end %>
-                                </div>
-                                <div class="max-h-60 overflow-y-auto">
-                                    <% current_user_or_admin_instance.recent_notifications.each do |notification| %>
-                                        <div class="notification-item p-3 border-b border-gray-100 hover:bg-gray-50 <%= 'bg-blue-50' unless notification.read? %>"
-                                             data-notification-id="<%= notification.id %>">
-                                            <div class="flex items-start space-x-3">
-                                                <div class="flex-shrink-0">
-                                                    <% case notification.notification_type %>
-                                                    <% when 'task_assigned' %>
-                                                        <%= icon('fa-solid', 'tasks', class: 'w-5 h-5 text-blue-600') %>
-                                                    <% when 'task_status_changed' %>
-                                                        <%= icon('fa-solid', 'sync-alt', class: 'w-5 h-5 text-green-600') %>
-                                                    <% when 'order_updated' %>
-                                                        <%= icon('fa-solid', 'shopping-cart', class: 'w-5 h-5 text-orange-600') %>
-                                                    <% when 'inventory_alert' %>
-                                                        <%= icon('fa-solid', 'exclamation-triangle', class: 'w-5 h-5 text-yellow-600') %>
-                                                    <% when 'production_order_created' %>
-                                                        <%= icon('fa-solid', 'industry', class: 'w-5 h-5 text-blue-600') %>
-                                                    <% when 'system' %>
-                                                        <%= icon('fa-solid', 'cog', class: 'w-5 h-5 text-purple-600') %>
-                                                    <% else %>
-                                                        <%= icon('fa-solid', 'info-circle', class: 'w-5 h-5 text-gray-600') %>
-                                                    <% end %>
-                                                </div>
-                                                <% if notification.action_url.present? %>
-                                                    <%= link_to notification.action_url, 
-                                                        class: "flex-1 min-w-0 cursor-pointer block", 
-                                                        data: { action: "click->notifications#markAsRead" } do %>
-                                                        <p class="text-sm font-medium text-gray-900">
-                                                            <%= notification.title %>
-                                                        </p>
-                                                        <p class="text-sm text-gray-600">
-                                                            <%= notification.message %>
-                                                        </p>
-                                                        <p class="text-xs text-gray-500 mt-1">
-                                                            <%= notification.time_ago %>
-                                                        </p>
-                                                    <% end %>
-                                                <% else %>
-                                                    <div class="flex-1 min-w-0 cursor-pointer"
-                                                         data-action="click->notifications#markAsRead">
-                                                        <p class="text-sm font-medium text-gray-900">
-                                                            <%= notification.title %>
-                                                        </p>
-                                                        <p class="text-sm text-gray-600">
-                                                            <%= notification.message %>
-                                                        </p>
-                                                        <p class="text-xs text-gray-500 mt-1">
-                                                            <%= notification.time_ago %>
-                                                        </p>
-                                                    </div>
-                                                <% end %>
-                                                <% unless notification.read? %>
-                                                    <div class="flex-shrink-0 unread-indicator">
-                                                        <div class="w-2 h-2 bg-blue-600 rounded-full"></div>
-                                                    </div>
-                                                <% end %>
-                                            </div>
-                                        </div>
-                                    <% end %>
-                                    <% if current_user_or_admin_instance.notifications.empty? %>
-                                        <div class="p-4 text-center text-gray-500">
-                                            <p>No tienes notificaciones</p>
-                                        </div>
-                                    <% end %>
-                                </div>
-                            </div>
-                        </div>
-                    <% end %>
-
-                    <!-- User Profile - Discord Style -->
-                    <div class="relative" data-controller="dropdown">
-                        <button data-dropdown-target="trigger" 
-                                data-action="click->dropdown#toggle"
-                                class="flex items-center w-full p-2 rounded-lg hover:bg-gray-700 focus:outline-none group">
-                            <!-- Avatar -->
-                            <div class="flex-shrink-0 w-7 h-7 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 flex items-center justify-center mr-2">
-                                <% current_user_display = current_user || current_admin %>
-                                <span class="text-sm font-semibold text-white">
-                                    <%= current_user_display&.display_name&.first&.upcase || current_user_display&.email&.first&.upcase || "?" %>
-                                </span>
-                            </div>
-                            
-                            <!-- User Info -->
-                            <div class="flex-1 text-left">
-                                <div class="text-sm font-medium text-white truncate">
-                                    <%= current_user_display&.display_name || current_user_display&.email || "Usuario" %>
-                                </div>
-                                <div class="text-xs text-gray-300 truncate">
-                                    <% if current_user %>
-                                        <%= current_user.role_display %>
-                                    <% elsif current_admin %>
-                                        Admin
-                                    <% end %>
-                                </div>
-                            </div>
-
-                            <!-- Online Status -->
-                            <div class="flex-shrink-0 w-2 h-2 ml-2 bg-green-500 rounded-full border border-gray-800"></div>
-                            
-                            <!-- Dropdown Arrow -->
-                        </button>
-                        
-                        <!-- User Menu Dropdown -->
-                        <div data-dropdown-target="menu" 
-                             class="hidden absolute bottom-full left-0 right-0 mb-2 bg-white rounded-lg shadow-lg border z-50"
-                             style="bottom: 100%; max-height: 30vh; overflow-y: auto;">
-                            <div class="p-3 border-b border-gray-200">
-                                <div class="flex items-center space-x-3">
-                                    <div class="w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 flex items-center justify-center">
-                                        <span class="text-lg font-semibold text-white">
-                                            <%= current_user_display&.display_name&.first&.upcase || current_user_display&.email&.first&.upcase || "?" %>
-                                        </span>
-                                    </div>
-                                    <div class="flex-1">
-                                        <div class="text-sm font-medium text-gray-900">
-                                            <%= current_user_display&.display_name || current_user_display&.email || "Usuario" %>
-                                        </div>
-                                        <div class="text-xs text-gray-600">
-                                            <% if current_user %>
-                                                <%= current_user.role_display %>
-                                            <% elsif current_admin %>
-                                                Administrador
-                                            <% end %>
-                                        </div>
-                                    </div>
-                                    <div class="w-3 h-3 bg-green-500 rounded-full"></div>
-                                </div>
-                            </div>
-                            
-                            <div class="py-2">
-                                <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                    <%= icon('fa-solid', 'user', class: 'w-4 h-4 mr-3 text-gray-400') %>
-                                    Mi Perfil
-                                </a>
-                                <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                    <%= icon('fa-solid', 'cog', class: 'w-4 h-4 mr-3 text-gray-400') %>
-                                    Configuración
-                                </a>
-                                <div class="border-t border-gray-200 my-2"></div>
-                                <%= form_with url: destroy_admin_session_path, method: :delete, class: 'inline w-full' do %>
-                                    <button type="submit" 
-                                            class="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50" 
-                                            data-confirm="<%= t('admin.sidebar.logout_confirm') %>">
-                                        <%= icon('fa-solid', 'sign-out', class: 'w-4 h-4 mr-3') %>
-                                        <%= t('admin.sidebar.logout') %>
-                                    </button>
-                                <% end %>
-                            </div>
-                        </div>
-                    </div>
+                
+                <!-- Notifications -->
+                <%= render 'shared/notifications_dropdown' %>
+                
+                <!-- User Profile -->
+                <%= render 'shared/user_profile_dropdown' %>
                 </div>
             </div>
         </div>

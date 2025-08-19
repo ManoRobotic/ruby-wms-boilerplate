@@ -4,11 +4,40 @@ export default class extends Controller {
   static targets = ["weightInput", "weightDisplay", "weightStatus", "modal", "modalTitle", "modalContent"]
 
   connect() {
-    console.log("Production Order controller connected")
     // Si estamos en la vista show, obtener el ID desde el elemento
     if (this.element.dataset.orderId) {
       this.currentOrderId = this.element.dataset.orderId
     }
+    
+    // Check for stored toast data after redirect
+    this.checkForStoredToast()
+  }
+
+  // Check for stored toast data and show it
+  checkForStoredToast() {
+    const storedToast = sessionStorage.getItem('showToast')
+    if (storedToast) {
+      try {
+        const toastData = JSON.parse(storedToast)
+        // Show the toast after a small delay to ensure page is fully loaded
+        setTimeout(() => {
+          this.showToast(toastData.type, toastData.title, toastData.message)
+        }, 500)
+        // Clear the stored toast to prevent showing it again
+        sessionStorage.removeItem('showToast')
+      } catch (error) {
+        console.error('Error parsing stored toast data:', error)
+        sessionStorage.removeItem('showToast')
+      }
+    }
+  }
+
+  // Show toast notification
+  showToast(type, title, message, duration = 5000) {
+    const event = new CustomEvent('toast:show', {
+      detail: { type, title, message, duration }
+    })
+    document.dispatchEvent(event)
   }
 
   // Abrir modal de detalles
