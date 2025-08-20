@@ -132,6 +132,8 @@ class ExcelImportService
         data[:mes] = value.to_i if value.present?
       when "FECHA TOTAL", "FECHA_C"
         data[:fecha_completa] = parse_date(value) if value.present?
+      when "PESO"
+        data[:peso] = value.to_f if value.present?
       end
     end
 

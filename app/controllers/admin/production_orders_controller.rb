@@ -240,30 +240,7 @@ class Admin::ProductionOrdersController < AdminController
     end
   end
 
-  def import_excel
-    begin
-      file_path = Rails.root.join("FE BASE DE DATOS.xlsx")
-
-      unless File.exist?(file_path)
-        redirect_to admin_production_orders_path, alert: "Archivo FE BASE DE DATOS.xlsx no encontrado"
-        return
-      end
-
-      import_service = ExcelImportService.new(file_path)
-      results = import_service.import_production_orders
-
-      if results[:errors].empty?
-        redirect_to admin_production_orders_path,
-                    notice: "Importación exitosa: #{results[:created]} creados, #{results[:updated]} actualizados"
-      else
-        error_message = "Importación completada con errores: #{results[:created]} creados, #{results[:updated]} actualizados, #{results[:errors].size} errores"
-        redirect_to admin_production_orders_path, alert: error_message
-      end
-
-    rescue => e
-      redirect_to admin_production_orders_path, alert: "Error al importar: #{e.message}"
-    end
-  end
+  
 
   def update_weight
     peso = params[:peso]
@@ -341,6 +318,11 @@ class Admin::ProductionOrdersController < AdminController
       message: 'Test broadcast sent',
       notification: notification_data
     }
+  end
+
+  def sync_excel_data
+    SyncExcelDataJob.perform_later
+    redirect_to admin_production_orders_path, notice: "La sincronización de datos de Excel ha comenzado. Los datos se actualizarán en breve."
   end
 
   private

@@ -6,6 +6,7 @@ class SyncExcelDataJob < ApplicationJob
   
   def perform
     Rails.logger.info "🔄 [SyncExcelDataJob] Iniciando sincronización desde merged.xlsx..."
+    broadcast_sync_notification("Sincronización Iniciada", "El proceso de sincronización de datos de Excel ha comenzado.")
     
     start_time = Time.current
     
@@ -35,7 +36,7 @@ class SyncExcelDataJob < ApplicationJob
         
         # Enviar notificación si hay cambios significativos
         if result[:updated] > 0 || result[:created] > 0
-          broadcast_sync_notification(result)
+          broadcast_sync_notification("Sincronización Completa", "Excel actualizado: #{result[:created]} nuevas órdenes, #{result[:updated]} actualizadas", 'success')
         end
         
       else
@@ -71,7 +72,7 @@ class SyncExcelDataJob < ApplicationJob
     begin # Added begin block
       spreadsheet = Roo::Spreadsheet.open('merged.xlsx')
       # Rails.logger.info "DEBUG: Spreadsheet opened. Default sheet: #{spreadsheet.default_sheet}"
-      spreadsheet.default_sheet = "opro - Sheet"
+      spreadsheet.default_sheet = "ORDEN PRODUCCION"
       # Rails.logger.info "DEBUG: Switched to sheet: #{spreadsheet.default_sheet}"
       
       Rails.logger.info "📊 [SyncExcelDataJob] Procesando #{spreadsheet.last_row - 1} filas del Excel"
@@ -166,6 +167,7 @@ class SyncExcelDataJob < ApplicationJob
     # Aplicar actualizaciones si hay cambios
     if updates.any?
       order.update!(updates)
+      broadcast_update_notification(order, updates)
       return true
     end
     
@@ -365,42 +367,36 @@ class SyncExcelDataJob < ApplicationJob
     end
   end
 
-  def broadcast_sync_notification(result)
-    return if result[:created] == 0 && result[:updated] == 0
-    
-    # Crear notificaciones persistentes para admins
-    Admin.find_each do |admin|
-      admin_user = find_or_create_admin_user(admin)
-      if admin_user
-        Notification.create!(
-          user: admin_user,
-          notification_type: "system",
-          title: "📊 Datos sincronizados",
-          message: "Excel actualizado: #{result[:created]} nuevas órdenes, #{result[:updated]} actualizadas",
-          action_url: "/admin/production_orders",
-          data: {
-            sync_result: result,
-            sync_time: Time.current.iso8601
-          }
-        )
-      end
-    end
-    
-    # También notificar a supervisores si existen
-    if defined?(User)
-      User.where(role: ['supervisor']).find_each do |user|
-        Notification.create!(
-          user: user,
-          notification_type: "system",
-          title: "📊 Datos sincronizados",
-          message: "Excel actualizado: #{result[:created]} nuevas órdenes, #{result[:updated]} actualizadas",
-          action_url: "/admin/production_orders",
-          data: {
-            sync_result: result,
-            sync_time: Time.current.iso8601
-          }
-        )
-      end
+  def broadcast_sync_notification(title, message, type = 'info')
+    notification_data = {
+      title: title,
+      message: message,
+      type: type,
+      duration: 10000, # 10 seconds
+      timestamp: Time.current.iso8601
+    }
+
+    target_users = User.where(role: ['admin', 'manager', 'supervisor', 'operador'])
+
+    target_users.distinct.find_each do |user|
+      # Create a persistent notification
+      Notification.create!(
+        user: user,
+        notification_type: type,
+        title: title,
+        message: message,
+        action_url: "/admin/production_orders",
+        data: notification_data
+      )
+
+      channel_name = "notifications_#{user.id}"
+      ActionCable.server.broadcast(
+        channel_name,
+        {
+          type: 'new_notification',
+          notification: notification_data.merge(show_toast: true)
+        }
+      )
     end
   end
 
@@ -444,5 +440,39 @@ class SyncExcelDataJob < ApplicationJob
   rescue => e
     Rails.logger.error "❌ [SyncExcelDataJob] Error creando usuario admin para #{admin.email}: #{e.message}"
     nil
+  end
+
+  def broadcast_update_notification(production_order, changes)
+    notification_data = {
+      title: "Orden Actualizada!",
+      message: "Orden #{production_order.no_opro || production_order.order_number} actualizada. Cambios: #{changes.keys.join(', ')}",
+      type: "info",
+      duration: 15000, # 15 seconds
+      action_url: "/admin/production_orders/#{production_order.id}",
+      timestamp: Time.current.iso8601
+    }
+
+    target_users = User.where(role: ['admin', 'manager', 'supervisor', 'operador'])
+
+    target_users.distinct.find_each do |user|
+      # Create a persistent notification
+      Notification.create!(
+        user: user,
+        notification_type: "info",
+        title: notification_data[:title],
+        message: notification_data[:message],
+        action_url: notification_data[:action_url],
+        data: notification_data
+      )
+
+      channel_name = "notifications_#{user.id}"
+      ActionCable.server.broadcast(
+        channel_name,
+        {
+          type: 'new_notification',
+          notification: notification_data.merge(show_toast: true)
+        }
+      )
+    end
   end
 end

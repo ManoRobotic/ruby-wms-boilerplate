@@ -13,11 +13,8 @@
             </h1>
           </div>
           <div class="flex justify-center gap-2 shrink-0 md:w-auto">
-            <%= form_with url: import_excel_admin_production_orders_path, method: :post, local: true, 
-                class: "inline-block mt-12" do |form| %>
-              <%= form.submit "Actualizar", 
-                  class: "flex items-center gap-3 rounded-lg bg-purple-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85 cursor-pointer",
-                  data: { confirm: "¿Estás seguro de que quieres importar los datos desde merged.xlsx?" } %>
+            <%= form_with url: sync_excel_data_admin_production_orders_path, method: :post, local: true, class: "inline-block mt-12" do |form| %>
+              <%= form.submit "Sincronizar Ordenes", class: "flex items-center gap-3 rounded-lg bg-purple-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85 cursor-pointer", data: { confirm: "¿Estás seguro de que quieres sincronizar los datos desde merged.xlsx?" } %>
             <% end %>
                <% if current_admin %>
                  <%= link_to 'Nueva Orden de Producción', new_admin_production_order_path, 

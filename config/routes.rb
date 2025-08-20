@@ -32,8 +32,8 @@ Rails.application.routes.draw do
         get :modal_details
       end
       collection do
-        post :import_excel
         post :test_broadcast
+        post :sync_excel_data
       end
     end
 
