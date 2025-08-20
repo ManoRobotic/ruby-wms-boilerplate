@@ -1,15 +1,15 @@
 <% notification_data = current_user_notifications_data %>
 <% if notification_data %>
   <div class="relative" data-controller="dropdown notifications">
-    <div class="indicator w-full">
+    <div class="relative w-full">
       <% if notification_data.unread_count > 0 %>
-        <span class=" mt-2 notification-count indicator-item badge bg-red-500 text-white text-xs font-medium border-0 min-w-[20px] h-5 flex items-center justify-center mr-2">
+        <span class="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full">
           <%= notification_data.unread_count > 99 ? "99+" : notification_data.unread_count %>
         </span>
       <% end %>
       <button data-dropdown-target="trigger" 
               data-action="click->dropdown#toggle"
-              class="btn btn-ghost w-full justify-start text-left hover:bg-gray-700 focus:outline-none border-0 normal-case">
+              class="w-full flex items-center justify-start text-left hover:bg-gray-700 focus:outline-none p-2 rounded-lg">
         <%= icon('fa-solid', 'bell', class: 'w-4 h-4 mr-2') %>
         <span class="text-sm">Notificaciones</span>
         <%= icon('fa-solid', 'chevron-up', class: 'mr-2 w-4 h-4 ml-auto transform transition-transform', data: { dropdown_target: 'icon' }) %>
@@ -94,65 +94,3 @@
     </div>
   </div>
 <% end %>
-
-<style>
-  /* Custom styles for notification indicator */
-  .indicator {
-    position: relative;
-    display: inline-flex;
-  }
-  
-  .indicator-item {
-    position: absolute;
-    top: 0;
-    right: 0;
-    transform: translate(50%, -50%);
-    z-index: 10;
-  }
-  
-  .badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 9999px;
-    font-size: 0.75rem;
-    font-weight: 500;
-    line-height: 1;
-    padding: 0.25rem 0.5rem;
-    min-height: 1.25rem;
-    min-width: 1.25rem;
-  }
-  
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 0.5rem;
-    border: 1px solid transparent;
-    padding: 0.5rem 1rem;
-    font-size: 0.875rem;
-    line-height: 1.25rem;
-    text-decoration: none;
-    cursor: pointer;
-    user-select: none;
-    transition: all 0.2s ease;
-  }
-  
-  .btn-ghost {
-    background-color: transparent;
-    border-color: transparent;
-    color: inherit;
-  }
-  
-  .btn-ghost:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-  }
-  
-  .normal-case {
-    text-transform: none;
-  }
-  
-  .justify-start {
-    justify-content: flex-start;
-  }
-</style>
