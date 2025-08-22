@@ -6,58 +6,61 @@
   - form_url: URL para el formulario
 %>
 
-<div class="bg-white p-3 rounded-md shadow-sm border border-gray-200 mb-4">
-  <%= form_with url: local_assigns[:form_url] || request.path, method: :get, local: true, class: "space-y-3" do |form| %>
+<div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-6">
+  <%= form_with url: local_assigns[:form_url] || request.path, method: :get, local: true, class: "space-y-6" do |form| %>
     
-    <!-- Compact Search and Filters Row -->
-    <div class="flex flex-col lg:flex-row gap-3 lg:items-end">
-      
-      <!-- Search Field -->
-      <% if local_assigns[:search_placeholder] %>
-        <div class="flex-1">
-          <%= form.text_field :search, 
-              value: params[:search], 
-              placeholder: local_assigns[:search_placeholder],
-              class: "w-full px-4 py-3 text-lg border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
-        </div>
-      <% end %>
+    <!-- Search Field - Full Width at Top -->
+    <% if local_assigns[:search_placeholder] %>
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-2">Búsqueda</label>
+        <%= form.text_field :search, 
+            value: params[:search], 
+            placeholder: local_assigns[:search_placeholder],
+            class: "w-full px-4 py-3.5 text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm transition-all duration-200" %>
+      </div>
+    <% end %>
 
-      <!-- Compact Filters -->
-      <% unless (local_assigns[:filters] || []).empty? %>
-        <div class="flex flex-wrap gap-2 lg:gap-3">
+    <!-- Filters Grid -->
+    <% unless (local_assigns[:filters] || []).empty? %>
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-3">Filtros</label>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           <% (local_assigns[:filters] || []).each do |filter| %>
-            <div class="min-w-0">
+            <div class="space-y-2">
+              <label class="block text-xs font-medium text-gray-600 uppercase tracking-wide">
+                <%= filter[:label] %>
+              </label>
               <% case filter[:type] %>
               <% when 'select' %>
                 <%= form.select filter[:name], 
                     options_for_select(filter[:options], params[filter[:name]]), 
-                    { prompt: filter[:prompt] || filter[:label] },
-                    { class: "px-4 py-3 text-lg border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white min-w-32" } %>
+                    { prompt: filter[:prompt] || "Seleccionar..." },
+                    { class: "w-full px-3 py-2.5 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm transition-all duration-200" } %>
               <% when 'date' %>
                 <%= form.date_field filter[:name], 
                     value: params[filter[:name]],
-                    class: "px-4 py-3 text-lg border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-w-36" %>
+                    class: "w-full px-3 py-2.5 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm transition-all duration-200" %>
               <% when 'checkbox' %>
-                <div class="flex items-center px-4 py-3">
+                <div class="flex items-center pt-1">
                   <%= form.check_box filter[:name], 
                       { checked: params[filter[:name]] == '1' },
                       '1', '0',
-                      class: "rounded text-blue-600 focus:ring-blue-500" %>
-                  <span class="ml-2 text-lg text-gray-700"><%= filter[:label] %></span>
+                      class: "h-4 w-4 rounded text-blue-600 focus:ring-blue-500 border-gray-300" %>
+                  <span class="ml-2 text-sm text-gray-700"><%= filter[:label] %></span>
                 </div>
               <% end %>
             </div>
           <% end %>
         </div>
-      <% end %>
-
-      <!-- Compact Action Buttons -->
-      <div class="flex gap-2 shrink-0">
-        <%= form.submit "Filtrar", 
-            class: "bg-blue-600 text-white px-6 py-3 rounded-md text-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 transition-colors" %>
-        <%= link_to "Limpiar", request.path, 
-            class: "bg-gray-500 text-white px-6 py-3 rounded-md text-lg hover:bg-gray-600 focus:ring-2 focus:ring-gray-500 transition-colors" %>
       </div>
+    <% end %>
+
+    <!-- Action Buttons -->
+    <div class="flex flex-col sm:flex-row gap-3 sm:justify-end pt-4 border-t border-gray-200">
+      <%= form.submit "Aplicar Filtros", 
+          class: "w-full sm:w-auto bg-blue-600 text-white px-8 py-3 rounded-lg text-base font-medium hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 shadow-sm" %>
+      <%= link_to "Limpiar Filtros", request.path, 
+          class: "w-full sm:w-auto bg-gray-500 text-white px-8 py-3 rounded-lg text-base font-medium hover:bg-gray-600 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 shadow-sm text-center" %>
     </div>
 
     <!-- Preserve other params -->
