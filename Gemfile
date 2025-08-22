@@ -60,7 +60,7 @@ gem "money-rails", "~> 1.15"
 gem "ougai", "~> 2.0"
 
 # Barcode generation
-gem "barby", "~> 0.6.8"
+gem "barby", "~> 0.7.0"
 
 # Excel file processing
 gem "roo", "~> 2.10"
