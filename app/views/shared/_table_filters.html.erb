@@ -18,7 +18,7 @@
           <%= form.text_field :search, 
               value: params[:search], 
               placeholder: local_assigns[:search_placeholder],
-              class: "w-full px-3 py-2.5 text-base border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+              class: "w-full px-4 py-3 text-lg border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
         </div>
       <% end %>
 
@@ -32,18 +32,18 @@
                 <%= form.select filter[:name], 
                     options_for_select(filter[:options], params[filter[:name]]), 
                     { prompt: filter[:prompt] || filter[:label] },
-                    { class: "px-3 py-2.5 text-base border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white min-w-32" } %>
+                    { class: "px-4 py-3 text-lg border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white min-w-32" } %>
               <% when 'date' %>
                 <%= form.date_field filter[:name], 
                     value: params[filter[:name]],
-                    class: "px-3 py-2.5 text-base border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-w-36" %>
+                    class: "px-4 py-3 text-lg border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-w-36" %>
               <% when 'checkbox' %>
-                <div class="flex items-center px-3 py-2">
+                <div class="flex items-center px-4 py-3">
                   <%= form.check_box filter[:name], 
                       { checked: params[filter[:name]] == '1' },
                       '1', '0',
                       class: "rounded text-blue-600 focus:ring-blue-500" %>
-                  <span class="ml-2 text-base text-gray-700"><%= filter[:label] %></span>
+                  <span class="ml-2 text-lg text-gray-700"><%= filter[:label] %></span>
                 </div>
               <% end %>
             </div>
@@ -54,9 +54,9 @@
       <!-- Compact Action Buttons -->
       <div class="flex gap-2 shrink-0">
         <%= form.submit "Filtrar", 
-            class: "bg-blue-600 text-white px-4 py-2.5 rounded-md text-base hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 transition-colors" %>
+            class: "bg-blue-600 text-white px-6 py-3 rounded-md text-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 transition-colors" %>
         <%= link_to "Limpiar", request.path, 
-            class: "bg-gray-500 text-white px-4 py-2.5 rounded-md text-base hover:bg-gray-600 focus:ring-2 focus:ring-gray-500 transition-colors" %>
+            class: "bg-gray-500 text-white px-6 py-3 rounded-md text-lg hover:bg-gray-600 focus:ring-2 focus:ring-gray-500 transition-colors" %>
       </div>
     </div>
 

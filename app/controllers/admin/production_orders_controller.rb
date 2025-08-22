@@ -8,8 +8,8 @@ class Admin::ProductionOrdersController < AdminController
     if params[:search].present?
       search_term = "%#{params[:search]}%"
       @production_orders = @production_orders.joins(:product)
-                                            .where("production_orders.order_number ILIKE ? OR products.name ILIKE ?",
-                                                  search_term, search_term)
+                                            .where("production_orders.order_number ILIKE ? OR production_orders.no_opro ILIKE ? OR products.name ILIKE ? OR production_orders.lote_referencia ILIKE ?",
+                                                  search_term, search_term, search_term, search_term)
     end
 
     # Filters
