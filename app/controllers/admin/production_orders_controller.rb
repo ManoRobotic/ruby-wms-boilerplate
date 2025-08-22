@@ -412,7 +412,7 @@ class Admin::ProductionOrdersController < AdminController
           status: 'success',
           data: [],
           count: 0,
-          message: 'No hay órdenes seleccionadas'
+          message: 'No hay Ordenes seleccionadas'
         }
         return
       end
@@ -473,14 +473,14 @@ class Admin::ProductionOrdersController < AdminController
         status: 'success',
         data: orders_data,
         count: orders_data.length,
-        message: "#{orders_data.length} órdenes seleccionadas"
+        message: "#{orders_data.length} Ordenes seleccionadas"
       }
     rescue StandardError => e
       Rails.logger.error "Error in selected_orders_data: #{e.class} - #{e.message}"
       Rails.logger.error e.backtrace.join("\n")
       render json: {
         status: 'error',
-        message: 'Error al obtener datos de órdenes seleccionadas'
+        message: 'Error al obtener datos de Ordenes seleccionadas'
       }, status: 500
     end
   end
