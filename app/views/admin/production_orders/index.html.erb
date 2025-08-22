@@ -121,14 +121,63 @@
           ] %>
     </div>
 
+    <!-- Selection Actions Bar -->
+    <div class="px-4 mb-4">
+      <div class="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div class="flex items-center space-x-4">
+          <span class="text-sm font-medium text-blue-800">
+            <span id="selected-count">0</span> órdenes seleccionadas
+          </span>
+        </div>
+        <div class="flex items-center space-x-2">
+          <button id="clear-selection-btn" 
+                  class="flex items-center gap-2 rounded-lg bg-red-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85 disabled:opacity-50 disabled:cursor-not-allowed"
+                  data-controller="clear-selection"
+                  data-action="click->clear-selection#clearAll"
+                  disabled>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            Limpiar Selección
+          </button>
+          <button id="print-selection-btn" 
+                  class="flex items-center gap-2 rounded-lg bg-blue-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85 disabled:opacity-50 disabled:cursor-not-allowed"
+                  data-controller="print-selection"
+                  data-action="click->print-selection#printSelected"
+                  disabled>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+            </svg>
+            Imprimir Selección
+          </button>
+        </div>
+      </div>
+    </div>
+
     <section class="flex flex-col w-full mb-4 bg-muted">
       <div class="w-full">
         <div class="overflow-x-auto">
-          <table data-controller="table" 
+          <table data-controller="table bulk-selection" 
                  data-table-sortable-value="true"
                  class="w-full bg-white border border-gray-200 text-sm">
             <thead class="bg-gray-50">
               <tr>
+                <th class="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <div class="inline-flex items-center">
+                    <label class="flex items-center cursor-pointer relative">
+                      <input type="checkbox" 
+                             id="select-all-checkbox"
+                             class="peer h-5 w-5 cursor-pointer transition-all appearance-none rounded shadow hover:shadow-md border border-slate-300 checked:bg-slate-800 checked:border-slate-800" 
+                             data-action="change->bulk-selection#toggleAll"
+                             data-bulk-selection-target="selectAll" />
+                      <span class="absolute text-white opacity-0 peer-checked:opacity-100 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" stroke="currentColor" stroke-width="1">
+                          <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                        </svg>
+                      </span>
+                    </label>
+                  </div>
+                </th>
                 <th data-sortable="order_number" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">No. OPRO</th>
                 <th data-sortable="cve_prod" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">CVE_PROD</th>
                 <th data-sortable="lote" class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 hidden md:table-cell">Lote</th>
@@ -147,6 +196,23 @@
                 <tr data-table-target="row" class="hover:bg-gray-50 cursor-pointer"
                     data-order-id="<%= order.id %>"
                     data-action="click->production-order#openModal">
+                  <td class="px-2 py-2 text-center text-sm font-medium" data-controller="checkbox" data-checkbox-url-value="<%= toggle_selection_admin_production_order_path(order) %>" data-checkbox-order-id-value="<%= order.id %>">
+                    <div class="inline-flex items-center">
+                      <label class="flex items-center cursor-pointer relative">
+                        <input type="checkbox" 
+                               class="order-checkbox peer h-5 w-5 cursor-pointer transition-all appearance-none rounded shadow hover:shadow-md border border-slate-300 checked:bg-slate-800 checked:border-slate-800" 
+                               id="check_<%= order.id %>" 
+                               data-action="click->checkbox#toggle change->bulk-selection#updateSelectAll" 
+                               data-bulk-selection-target="orderCheckbox"
+                               data-order-id="<%= order.id %>" />
+                        <span class="absolute text-white opacity-0 peer-checked:opacity-100 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" stroke="currentColor" stroke-width="1">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                          </svg>
+                        </span>
+                      </label>
+                    </div>
+                  </td>
                   <!-- No. OPRO -->
                   <td class="px-3 py-2 text-sm font-medium text-gray-900">
                     <div>

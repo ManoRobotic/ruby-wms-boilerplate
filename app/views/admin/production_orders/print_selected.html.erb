@@ -1,0 +1,152 @@
+<div class="print-container">
+  <div class="print-header text-center mb-8">
+    <h1 class="text-2xl font-bold mb-2">Órdenes de Producción Seleccionadas</h1>
+    <p class="text-gray-600">Fecha de impresión: <%= Date.current.strftime("%d/%m/%Y") %></p>
+    <p class="text-gray-600">Total de órdenes: <%= @production_orders.count %></p>
+  </div>
+
+  <% @production_orders.each_with_index do |order, index| %>
+    <div class="order-print-section <%= 'page-break-before' if index > 0 %> mb-8">
+      <div class="order-header bg-gray-100 p-4 rounded-lg mb-4">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <h2 class="text-lg font-semibold text-blue-600">
+              <%= order.no_opro.present? ? order.no_opro : order.order_number %>
+            </h2>
+            <p class="text-sm text-gray-600">Producto: <%= order.product.name %></p>
+            <p class="text-sm text-gray-600">Almacén: <%= order.warehouse.name %></p>
+          </div>
+          <div class="text-right">
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+              <%= case order.status
+                  when 'pending' then 'bg-yellow-100 text-yellow-800'
+                  when 'scheduled' then 'bg-blue-100 text-blue-800'
+                  when 'in_progress' then 'bg-green-100 text-green-800'
+                  when 'paused' then 'bg-orange-100 text-orange-800'
+                  when 'completed' then 'bg-gray-100 text-gray-800'
+                  when 'cancelled' then 'bg-red-100 text-red-800'
+                  end %>">
+              <%= order.status.humanize %>
+            </span>
+            <p class="text-sm text-gray-600 mt-1">
+              Prioridad: <%= order.priority&.humanize || 'Normal' %>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="order-details grid grid-cols-2 gap-6 mb-6">
+        <div>
+          <h3 class="font-semibold mb-2">Información de Producción</h3>
+          <table class="w-full text-sm">
+            <tr>
+              <td class="py-1 font-medium">Lote Referencia:</td>
+              <td class="py-1"><%= order.lote_referencia || '-' %></td>
+            </tr>
+            <tr>
+              <td class="py-1 font-medium">Cantidad Solicitada:</td>
+              <td class="py-1"><%= order.quantity_requested %></td>
+            </tr>
+            <tr>
+              <td class="py-1 font-medium">Cantidad Producida:</td>
+              <td class="py-1"><%= order.quantity_produced || 0 %></td>
+            </tr>
+            <tr>
+              <td class="py-1 font-medium">Carga COPR:</td>
+              <td class="py-1"><%= order.carga_copr || '-' %></td>
+            </tr>
+            <tr>
+              <td class="py-1 font-medium">Peso:</td>
+              <td class="py-1"><%= order.peso ? "#{order.peso} kg" : '-' %></td>
+            </tr>
+          </table>
+        </div>
+
+        <div>
+          <h3 class="font-semibold mb-2">Fechas</h3>
+          <table class="w-full text-sm">
+            <tr>
+              <td class="py-1 font-medium">Año:</td>
+              <td class="py-1"><%= order.ano || '-' %></td>
+            </tr>
+            <tr>
+              <td class="py-1 font-medium">Mes:</td>
+              <td class="py-1"><%= order.mes || '-' %></td>
+            </tr>
+            <tr>
+              <td class="py-1 font-medium">Fecha Completa:</td>
+              <td class="py-1"><%= order.fecha_completa&.strftime("%d/%m/%Y") || '-' %></td>
+            </tr>
+            <tr>
+              <td class="py-1 font-medium">Creado:</td>
+              <td class="py-1"><%= order.created_at.strftime("%d/%m/%Y %H:%M") %></td>
+            </tr>
+            <tr>
+              <td class="py-1 font-medium">Actualizado:</td>
+              <td class="py-1"><%= order.updated_at.strftime("%d/%m/%Y %H:%M") %></td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <% if order.packing_records.any? %>
+        <div class="packing-records mb-6">
+          <h3 class="font-semibold mb-2">Registros de Empaque</h3>
+          <table class="w-full text-sm border border-gray-300">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="border border-gray-300 px-2 py-1 text-left">CVE_PROD</th>
+                <th class="border border-gray-300 px-2 py-1 text-center">Micras</th>
+                <th class="border border-gray-300 px-2 py-1 text-center">Ancho (mm)</th>
+                <th class="border border-gray-300 px-2 py-1 text-center">Metros</th>
+                <th class="border border-gray-300 px-2 py-1 text-center">P. Bruto (kg)</th>
+                <th class="border border-gray-300 px-2 py-1 text-center">P. Neto (kg)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% order.packing_records.each do |record| %>
+                <tr>
+                  <td class="border border-gray-300 px-2 py-1"><%= record.cve_prod %></td>
+                  <td class="border border-gray-300 px-2 py-1 text-center"><%= record.micras %></td>
+                  <td class="border border-gray-300 px-2 py-1 text-center"><%= record.ancho_mm %></td>
+                  <td class="border border-gray-300 px-2 py-1 text-center"><%= record.metros_lineales %></td>
+                  <td class="border border-gray-300 px-2 py-1 text-center"><%= record.peso_bruto %></td>
+                  <td class="border border-gray-300 px-2 py-1 text-center"><%= record.peso_neto %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% end %>
+
+      <% if order.notes.present? %>
+        <div class="notes">
+          <h3 class="font-semibold mb-2">Notas</h3>
+          <p class="text-sm bg-yellow-50 border border-yellow-200 rounded p-3"><%= order.notes %></p>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</div>
+
+<style>
+@media print {
+  .page-break-before {
+    page-break-before: always;
+  }
+  
+  body {
+    font-size: 12px;
+  }
+  
+  .print-container {
+    max-width: none;
+    margin: 0;
+    padding: 20px;
+  }
+  
+  .order-print-section {
+    margin-bottom: 30px;
+  }
+}
+</style>

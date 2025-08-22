@@ -325,7 +325,292 @@ class Admin::ProductionOrdersController < AdminController
     redirect_to admin_production_orders_path, notice: "La sincronización de datos de Excel ha comenzado. Los datos se actualizarán en breve."
   end
 
+  def print_selected
+    order_ids = params[:order_ids]
+    
+    if order_ids.blank?
+      redirect_to admin_production_orders_path, alert: "No se seleccionaron órdenes para imprimir."
+      return
+    end
+
+    @production_orders = ProductionOrder.where(id: order_ids).includes(:warehouse, :product, :packing_records)
+    
+    respond_to do |format|
+      format.html { render "print_selected", layout: "print" }
+    end
+  end
+
+  def bulk_toggle_selection
+    begin
+      request_body = JSON.parse(request.body.read)
+      order_ids = request_body['order_ids'] || []
+      action = request_body['action'] # 'select_all' or 'deselect_all'
+      
+      # Validate input
+      if order_ids.empty?
+        render json: {
+          status: 'error',
+          message: 'No order IDs provided'
+        }, status: 422
+        return
+      end
+      
+      # Ensure order_ids are strings for consistency
+      order_ids = order_ids.map(&:to_s)
+      
+      # Get current selections from session
+      selected_orders = get_selected_orders.map(&:to_s)
+      
+      case action
+      when 'select_all'
+        # Use array union for better performance
+        selected_orders = (selected_orders + order_ids).uniq
+      when 'deselect_all'
+        # Use array subtraction for better performance
+        selected_orders = selected_orders - order_ids
+      else
+        render json: {
+          status: 'error',
+          message: 'Invalid action'
+        }, status: 422
+        return
+      end
+      
+      # Store back in session
+      set_selected_orders(selected_orders)
+      
+      
+      render json: {
+        status: 'success',
+        selected_count: selected_orders.count,
+        action: action,
+        processed_count: order_ids.size
+      }
+      
+    rescue JSON::ParserError => e
+      Rails.logger.error "JSON Parse Error in bulk_toggle_selection: #{e.message}"
+      render json: {
+        status: 'error',
+        message: 'Invalid JSON format'
+      }, status: 422
+    rescue StandardError => e
+      Rails.logger.error "Error in bulk_toggle_selection: #{e.class} - #{e.message}"
+      Rails.logger.error e.backtrace.join("\n")
+      render json: {
+        status: 'error',
+        message: 'Internal server error'
+      }, status: 500
+    end
+  end
+
+  def selected_orders_data
+    begin
+      selected_order_ids = get_selected_orders
+      
+      if selected_order_ids.empty?
+        render json: {
+          status: 'success',
+          data: [],
+          count: 0,
+          message: 'No hay órdenes seleccionadas'
+        }
+        return
+      end
+
+      # Ensure consistent data types
+      selected_order_ids = selected_order_ids.map(&:to_s).uniq
+
+      @production_orders = ProductionOrder.where(id: selected_order_ids)
+                                         .includes(:warehouse, :product, :packing_records)
+    
+    orders_data = @production_orders.map do |order|
+      {
+        id: order.id,
+        order_number: order.order_number,
+        no_opro: order.no_opro,
+        product: {
+          id: order.product.id,
+          name: order.product.name
+        },
+        warehouse: {
+          id: order.warehouse.id,
+          name: order.warehouse.name
+        },
+        status: order.status,
+        priority: order.priority,
+        quantity_requested: order.quantity_requested,
+        quantity_produced: order.quantity_produced,
+        lote_referencia: order.lote_referencia,
+        carga_copr: order.carga_copr,
+        peso: order.peso,
+        ano: order.ano,
+        mes: order.mes,
+        fecha_completa: order.fecha_completa,
+        created_at: order.created_at,
+        updated_at: order.updated_at,
+        notes: order.notes,
+        packing_records: order.packing_records.map do |record|
+          {
+            id: record.id,
+            cve_prod: record.cve_prod,
+            micras: record.micras,
+            ancho_mm: record.ancho_mm,
+            metros_lineales: record.metros_lineales,
+            peso_bruto: record.peso_bruto,
+            peso_neto: record.peso_neto
+          }
+        end,
+        progress_percentage: order.progress_percentage,
+        can_be_started: order.can_be_started?,
+        can_be_paused: order.can_be_paused?,
+        can_be_completed: order.can_be_completed?,
+        can_be_cancelled: order.can_be_cancelled?
+      }
+    end
+    
+      
+      render json: {
+        status: 'success',
+        data: orders_data,
+        count: orders_data.length,
+        message: "#{orders_data.length} órdenes seleccionadas"
+      }
+    rescue StandardError => e
+      Rails.logger.error "Error in selected_orders_data: #{e.class} - #{e.message}"
+      Rails.logger.error e.backtrace.join("\n")
+      render json: {
+        status: 'error',
+        message: 'Error al obtener datos de órdenes seleccionadas'
+      }, status: 500
+    end
+  end
+
+  def clear_all_selections
+    previous_orders = get_selected_orders
+    previous_count = previous_orders.count
+    
+    # Clear both session and cache
+    session[:selected_production_orders] = nil
+    session[:using_cache_storage] = false
+    Rails.cache.delete(selection_cache_key)
+    
+    render json: {
+      status: 'success',
+      message: "Se eliminaron #{previous_count} órdenes de la selección",
+      previous_count: previous_count,
+      selected_count: 0
+    }
+  end
+
+  def toggle_selection
+    begin
+      # Parse request body to get order_id
+      request_body = JSON.parse(request.body.read)
+      order_id = request_body['order_id']
+      
+      if order_id.blank?
+        render json: {
+          status: 'error',
+          message: 'Order ID is required'
+        }, status: 422
+        return
+      end
+      
+      @production_order = ProductionOrder.find(order_id)
+
+      # Get current selections from cache
+      selected_orders = get_selected_orders.map(&:to_s)
+      order_id_str = @production_order.id.to_s
+      
+      if selected_orders.include?(order_id_str)
+        selected_orders.delete(order_id_str)
+        selected = false
+      else
+        selected_orders.push(order_id_str)
+        selected = true
+      end
+
+      # Save back to cache
+      set_selected_orders(selected_orders)
+
+
+      render json: {
+        status: 'success',
+        selected: selected,
+        selected_count: selected_orders.count
+      }
+    rescue JSON::ParserError => e
+      Rails.logger.error "JSON Parse Error in toggle_selection: #{e.message}"
+      render json: {
+        status: 'error',
+        message: 'Invalid JSON format'
+      }, status: 422
+    rescue ActiveRecord::RecordNotFound => e
+      Rails.logger.error "Order not found in toggle_selection: #{e.message}"
+      render json: {
+        status: 'error',
+        message: 'Order not found'
+      }, status: 404
+    rescue StandardError => e
+      Rails.logger.error "Error in toggle_selection: #{e.class} - #{e.message}"
+      Rails.logger.error e.backtrace.join("\n")
+      render json: {
+        status: 'error',
+        message: 'Internal server error'
+      }, status: 500
+    end
+  end
+
   private
+
+  def selection_cache_key
+    # Use user ID and a stable session identifier
+    user_id = current_user&.id || current_admin&.id || 'anonymous'
+    
+    # Create or get a stable session key for selections
+    session[:selection_session_key] ||= SecureRandom.hex(16)
+    selection_session = session[:selection_session_key]
+    
+    "selected_orders:#{user_id}:#{selection_session}"
+  end
+
+  def get_selected_orders
+    # Check if using cache or session storage
+    if session[:using_cache_storage]
+      # Large selections are stored in cache
+      cache_key = selection_cache_key
+      selected_orders = Rails.cache.read(cache_key) || []
+    else
+      # Small selections are stored in session
+      selected_orders = session[:selected_production_orders] || []
+    end
+    
+    # Validate that the data is correct
+    if selected_orders.present? && !selected_orders.is_a?(Array)
+      # Reset both storages
+      session[:selected_production_orders] = []
+      Rails.cache.delete(selection_cache_key)
+      session[:using_cache_storage] = false
+      return []
+    end
+    
+    selected_orders
+  end
+
+  def set_selected_orders(orders)
+    # Use session for small selections, cache for large ones to avoid cookie overflow
+    if orders.length <= 10  # Small selections in session
+      session[:selected_production_orders] = orders
+      # Clear cache if switching from large to small selection
+      Rails.cache.delete(selection_cache_key) if session[:using_cache_storage]
+      session[:using_cache_storage] = false
+    else  # Large selections in cache
+      session[:selected_production_orders] = nil  # Clear session
+      session[:using_cache_storage] = true
+      cache_key = selection_cache_key
+      Rails.cache.write(cache_key, orders, expires_in: 1.hour)
+    end
+  end
 
   def broadcast_notifications(production_order)
     # Get the current user ID to exclude them from toast notifications
@@ -375,7 +660,7 @@ class Admin::ProductionOrdersController < AdminController
   end
 
   def set_production_order
-    @production_order = ProductionOrder.find(params[:id])
+    @production_order = ProductionOrder.find(params[:id] || params[:order_id])
   end
 
   def production_order_params
