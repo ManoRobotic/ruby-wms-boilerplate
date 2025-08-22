@@ -30,10 +30,15 @@ Rails.application.routes.draw do
         get :print_box_format
         patch :update_weight
         get :modal_details
+        post :toggle_selection
       end
       collection do
         post :test_broadcast
         post :sync_excel_data
+        post :print_selected
+        post :bulk_toggle_selection
+        get :selected_orders_data
+        delete :clear_all_selections
       end
     end
 
