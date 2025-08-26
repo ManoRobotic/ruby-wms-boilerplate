@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_08_15_075448) do
+ActiveRecord::Schema[8.0].define(version: 2025_08_26_053745) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -53,8 +53,17 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_15_075448) do
     t.datetime "updated_at", null: false
     t.string "name"
     t.string "address"
+    t.boolean "google_sheets_enabled"
+    t.text "google_credentials"
+    t.string "sheet_id"
+    t.string "worksheet_gid"
+    t.datetime "last_sync_at"
+    t.string "last_sync_checksum"
+    t.integer "total_orders_synced"
+    t.string "super_admin_role"
     t.index ["email"], name: "index_admins_on_email", unique: true
     t.index ["reset_password_token"], name: "index_admins_on_reset_password_token", unique: true
+    t.index ["super_admin_role"], name: "index_admins_on_super_admin_role"
   end
 
   create_table "categories", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -236,6 +245,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_15_075448) do
     t.string "num_orden"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "micras"
+    t.integer "ancho_mm"
     t.index ["cve_prod"], name: "index_packing_records_on_cve_prod"
     t.index ["lote"], name: "index_packing_records_on_lote"
     t.index ["lote_padre"], name: "index_packing_records_on_lote_padre"
@@ -296,13 +307,32 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_15_075448) do
     t.index ["wave_id"], name: "index_pick_lists_on_wave_id"
   end
 
+  create_table "production_order_items", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "production_order_id", null: false
+    t.string "folio_consecutivo"
+    t.decimal "peso_bruto"
+    t.decimal "peso_neto"
+    t.decimal "metros_lineales"
+    t.integer "peso_core_gramos"
+    t.string "status"
+    t.integer "micras"
+    t.integer "ancho_mm"
+    t.integer "altura_cm"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "cliente"
+    t.string "numero_de_orden"
+    t.string "nombre_cliente_numero_pedido"
+    t.index ["production_order_id"], name: "index_production_order_items_on_production_order_id"
+  end
+
   create_table "production_orders", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "order_number", null: false
     t.string "status", default: "pending", null: false
     t.string "priority", default: "medium", null: false
     t.uuid "warehouse_id", null: false
     t.uuid "product_id", null: false
-    t.string "admin_id"
+    t.uuid "admin_id"
     t.integer "quantity_requested", null: false
     t.integer "quantity_produced", default: 0
     t.datetime "start_date"
@@ -324,6 +354,11 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_15_075448) do
     t.integer "ano"
     t.integer "mes"
     t.datetime "fecha_completa"
+    t.string "ren_orp"
+    t.string "stat_opro"
+    t.integer "sheet_row_number"
+    t.string "last_sheet_update"
+    t.boolean "needs_update_to_sheet"
     t.index ["admin_id"], name: "index_production_orders_on_admin_id"
     t.index ["created_at"], name: "index_production_orders_on_created_at"
     t.index ["order_number"], name: "index_production_orders_on_order_number", unique: true
@@ -563,6 +598,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_15_075448) do
   add_foreign_key "pick_lists", "orders"
   add_foreign_key "pick_lists", "warehouses"
   add_foreign_key "pick_lists", "waves"
+  add_foreign_key "production_order_items", "production_orders"
   add_foreign_key "production_orders", "products"
   add_foreign_key "production_orders", "warehouses"
   add_foreign_key "products", "categories"
