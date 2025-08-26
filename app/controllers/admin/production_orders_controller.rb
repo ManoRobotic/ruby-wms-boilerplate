@@ -1,8 +1,15 @@
 class Admin::ProductionOrdersController < AdminController
-  before_action :set_production_order, only: [ :show, :edit, :update, :destroy, :start, :pause, :complete, :cancel, :print_bag_format, :print_box_format, :update_weight, :modal_details ]
+  before_action :set_production_order, only: [ :show, :edit, :update, :destroy, :start, :pause, :complete, :cancel, :print_bag_format, :print_box_format, :update_weight, :modal_details, :print_consecutivos ]
 
   def index
-    @production_orders = ProductionOrder.includes(:warehouse, :product, :packing_records)
+    # Filtrar por admin actual para multi-tenancy y super admin role
+    if current_admin.super_admin?
+      @production_orders = current_admin.accessible_production_orders
+                                       .includes(:warehouse, :product, :packing_records)
+    else
+      @production_orders = ProductionOrder.includes(:warehouse, :product, :packing_records)
+                                        .where(admin_id: current_admin.id)
+    end
 
     # Search
     if params[:search].present?
@@ -29,7 +36,7 @@ class Admin::ProductionOrdersController < AdminController
       @production_orders = @production_orders.by_warehouse(current_user.warehouse_id)
     end
 
-    @production_orders = @production_orders.recent.page(params[:page]).per(20)
+    @production_orders = @production_orders.recent.page(params[:page]).per(10)
   end
 
   def show
@@ -325,6 +332,32 @@ class Admin::ProductionOrdersController < AdminController
     redirect_to admin_production_orders_path, notice: "La sincronización de datos de Excel ha comenzado. Los datos se actualizarán en breve."
   end
 
+  def sync_google_sheets_opro
+    unless current_admin.google_sheets_configured?
+      redirect_to admin_production_orders_path, 
+                  alert: "Google Sheets no está configurado. Ve a Configuración para configurarlo."
+      return
+    end
+
+    begin
+      service = AdminGoogleSheetsService.new(current_admin)
+      result = service.sync_production_orders
+      
+      if result[:success]
+        redirect_to admin_production_orders_path, 
+                    notice: "#{result[:message]}. #{result[:errors].any? ? "Errores: #{result[:errors].count}" : ""}"
+      else
+        redirect_to admin_production_orders_path, 
+                    alert: "Error en la sincronización: #{result[:message]}"
+      end
+    rescue => e
+      Rails.logger.error "Error en sync_google_sheets_opro para admin #{current_admin.email}: #{e.message}"
+      Rails.logger.error e.backtrace.join("\n")
+      redirect_to admin_production_orders_path, 
+                  alert: "Error inesperado durante la sincronización. Verifique la configuración."
+    end
+  end
+
   def print_selected
     order_ids = params[:order_ids]
     
@@ -558,6 +591,18 @@ class Admin::ProductionOrdersController < AdminController
         status: 'error',
         message: 'Internal server error'
       }, status: 500
+    end
+  end
+
+  def print_consecutivos
+    respond_to do |format|
+      format.pdf do
+        pdf = ProductionOrderPdf.new(@production_order, @production_order.production_order_items)
+        send_data pdf.render, 
+                  filename: "consecutivos_#{@production_order.order_number}.pdf",
+                  type: "application/pdf",
+                  disposition: "attachment"
+      end
     end
   end
 
