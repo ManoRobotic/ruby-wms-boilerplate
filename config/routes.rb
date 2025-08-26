@@ -28,6 +28,7 @@ Rails.application.routes.draw do
         patch :cancel
         get :print_bag_format
         get :print_box_format
+        get :print_consecutivos
         patch :update_weight
         get :modal_details
         post :toggle_selection
@@ -35,11 +36,15 @@ Rails.application.routes.draw do
       collection do
         post :test_broadcast
         post :sync_excel_data
+        post :sync_google_sheets_opro
         post :print_selected
         post :bulk_toggle_selection
         get :selected_orders_data
         delete :clear_all_selections
       end
+      
+      # Nested routes for production order items (consecutivos/folios)
+      resources :production_order_items, path: "items"
     end
 
     # Barcode scanning
@@ -175,6 +180,15 @@ Rails.application.routes.draw do
     # Scale Reading
     post "manual_printing/connect_scale", to: "manual_printing#connect_scale"
     post "manual_printing/read_weight", to: "manual_printing#read_weight"
+
+    # Google Sheets Configuration
+    get "google_sheets_config", to: "google_sheets_config#show"
+    get "google_sheets_config/edit", to: "google_sheets_config#edit"
+    patch "google_sheets_config", to: "google_sheets_config#update"
+    post "google_sheets_config/test_connection", to: "google_sheets_config#test_connection"
+    post "google_sheets_config/check_changes", to: "google_sheets_config#check_changes"
+    post "google_sheets_config/sync_now", to: "google_sheets_config#sync_now"
+    post "google_sheets_config/incremental_sync", to: "google_sheets_config#incremental_sync"
   end
 
   resources :categories, only: [ :show ]
