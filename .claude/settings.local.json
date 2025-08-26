@@ -46,7 +46,8 @@
       "Bash(/home/vscode/.local/share/mise/installs/ruby/3.3.4/bin/bundle exec bin/rails runner 'SyncExcelDataJob.perform_now')",
       "Bash(bin/sync_excel_cron.sh:*)",
       "Bash(git checkout:*)",
-      "Bash(gem list)"
+      "Bash(gem list)",
+      "Bash(kill:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"
