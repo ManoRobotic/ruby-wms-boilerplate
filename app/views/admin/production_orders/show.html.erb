@@ -82,6 +82,186 @@
         </div>
       </div>
 
+      <!-- Consecutivos/Folios Section -->
+      <div class="mb-6" data-controller="consecutivo-selection">
+        <div class="bg-emerald-50 rounded-xl p-6 shadow-sm hover:shadow-lg transition-shadow duration-300">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-base font-semibold text-emerald-900">Consecutivos / Folios</h3>
+            <div class="flex items-center gap-3">
+              <button 
+                id="print-labels-btn"
+                class="rounded-lg bg-purple-600 py-3 px-6 border border-transparent text-center text-base font-semibold text-white transition-all shadow-lg hover:shadow-xl focus:bg-purple-700 focus:shadow-none active:bg-purple-700 hover:bg-purple-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none flex items-center gap-3"
+                type="button"
+                disabled
+                data-action="click->consecutivo-selection#printLabels">
+                <%= icon('fa-solid', 'print', class: 'w-4 h-4') %>
+                Imprimir Etiqueta
+              </button>
+              <% if @production_order.production_order_items.any? %>
+                <%= link_to print_consecutivos_admin_production_order_path(@production_order, format: :pdf), 
+                    method: :get,
+                    class: "rounded-lg bg-purple-600 py-3 px-6 border border-transparent text-center text-base font-semibold text-white transition-all shadow-lg hover:shadow-xl focus:bg-purple-700 focus:shadow-none active:bg-purple-700 hover:bg-purple-700 active:shadow-none flex items-center gap-3" do %>
+                  <%= icon('fa-solid', 'file-pdf', class: 'w-4 h-4') %>
+                  Descargar PDF Packing
+                <% end %>
+              <% end %>
+              <button 
+                data-dialog-target="consecutivo-modal"
+                class="rounded-lg bg-emerald-600 py-3 px-6 border border-transparent text-center text-base font-semibold text-white transition-all shadow-lg hover:shadow-xl focus:bg-emerald-700 focus:shadow-none active:bg-emerald-700 hover:bg-emerald-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none flex items-center gap-3" 
+                type="button">
+                <%= icon('fa-solid', 'plus', class: 'w-4 h-4') %>
+                Agregar
+              </button>
+            </div>
+          </div>
+          
+          <% if @production_order.production_order_items.any? %>
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-emerald-200">
+                <thead class="bg-emerald-100">
+                  <tr>
+                    <th class="px-2 py-2 text-center text-xs font-medium text-emerald-800 uppercase tracking-wider">
+                      <div class="inline-flex items-center">
+                        <label class="flex items-center cursor-pointer relative">
+                          <input type="checkbox" 
+                                 id="select-all-consecutivos"
+                                 class="peer h-4 w-4 cursor-pointer transition-all appearance-none rounded shadow hover:shadow-md border border-emerald-300 checked:bg-emerald-800 checked:border-emerald-800" 
+                                 data-action="change->consecutivo-selection#toggleAll"
+                                 data-consecutivo-selection-target="selectAll" />
+                          <span class="absolute text-white opacity-0 peer-checked:opacity-100 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor" stroke="currentColor" stroke-width="1">
+                              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                          </span>
+                        </label>
+                      </div>
+                    </th>
+                    <th class="px-3 py-2 text-left text-xs font-medium text-emerald-800 uppercase tracking-wider">Folio</th>
+                    <th class="px-3 py-2 text-center text-xs font-medium text-emerald-800 uppercase tracking-wider">Peso Bruto (kg)</th>
+                    <th class="px-3 py-2 text-center text-xs font-medium text-emerald-800 uppercase tracking-wider">Peso Neto (kg)</th>
+                    <th class="px-3 py-2 text-center text-xs font-medium text-emerald-800 uppercase tracking-wider">Metros</th>
+                    <th class="px-3 py-2 text-center text-xs font-medium text-emerald-800 uppercase tracking-wider">Micras</th>
+                    <th class="px-3 py-2 text-center text-xs font-medium text-emerald-800 uppercase tracking-wider">Ancho (mm)</th>
+                    <th class="px-3 py-2 text-center text-xs font-medium text-emerald-800 uppercase tracking-wider">Estado</th>
+                    <th class="px-3 py-2 text-center text-xs font-medium text-emerald-800 uppercase tracking-wider">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-emerald-100">
+                  <% @production_order.production_order_items.order(:folio_consecutivo).each do |item| %>
+                    <tr class="hover:bg-emerald-25">
+                      <td class="px-2 py-2 text-center text-sm font-medium">
+                        <div class="inline-flex items-center">
+                          <label class="flex items-center cursor-pointer relative">
+                            <input type="checkbox" 
+                                   class="consecutivo-checkbox peer h-4 w-4 cursor-pointer transition-all appearance-none rounded shadow hover:shadow-md border border-emerald-300 checked:bg-emerald-800 checked:border-emerald-800" 
+                                   data-consecutivo-id="<%= item.id %>" 
+                                   data-action="change->consecutivo-selection#updateSelection" 
+                                   data-consecutivo-selection-target="consecutivoCheckbox"
+                                   data-folio="<%= item.folio_consecutivo %>"
+                                   data-lote="<%= @production_order.lote_referencia %>"
+                                   data-clave-producto="<%= @production_order.clave_producto || 'BOPPTRANS 35 / 420' %>"
+                                   data-peso-bruto="<%= item.peso_bruto %>"
+                                   data-peso-neto="<%= item.peso_neto %>"
+                                   data-metros-lineales="<%= item.metros_lineales %>"
+                                   data-no-opro="<%= @production_order.no_opro || @production_order.order_number %>" />
+                            <span class="absolute text-white opacity-0 peer-checked:opacity-100 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+                              <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor" stroke="currentColor" stroke-width="1">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                              </svg>
+                            </span>
+                          </label>
+                        </div>
+                      </td>
+                      <td class="px-3 py-2 text-sm font-medium text-gray-900">
+                        <%= item.folio_consecutivo %>
+                      </td>
+                      <td class="px-3 py-2 text-sm text-center text-gray-500">
+                        <%= item.peso_bruto&.round(2) || '-' %>
+                      </td>
+                      <td class="px-3 py-2 text-sm text-center text-gray-500">
+                        <%= item.peso_neto&.round(2) || '-' %>
+                      </td>
+                      <td class="px-3 py-2 text-sm text-center text-gray-500">
+                        <%= item.metros_lineales&.round(1) || '-' %>
+                      </td>
+                      <td class="px-3 py-2 text-sm text-center text-gray-500">
+                        <%= item.micras || '-' %>
+                      </td>
+                      <td class="px-3 py-2 text-sm text-center text-gray-500">
+                        <%= item.ancho_mm || '-' %>
+                      </td>
+                      <td class="px-3 py-2 text-center">
+                        <% if item.status.present? %>
+                          <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium
+                            <%= case item.status
+                                when 'pending' then 'bg-yellow-100 text-yellow-800'
+                                when 'in_production' then 'bg-blue-100 text-blue-800'
+                                when 'completed' then 'bg-green-100 text-green-800'
+                                when 'cancelled' then 'bg-red-100 text-red-800'
+                                end %>">
+                            <%= item.status.humanize %>
+                          </span>
+                        <% else %>
+                          <span class="text-gray-400">-</span>
+                        <% end %>
+                      </td>
+                      <td class="px-3 py-2 text-center text-sm font-medium">
+                        <button class="text-blue-600 hover:text-blue-900 mr-2" data-action="click->consecutivo-selection#pesarItem" data-item-id="<%= item.id %>">
+                          Pesar
+                        </button>
+                        <%= link_to 'Editar', edit_admin_production_order_production_order_item_path(@production_order, item), 
+                            class: "text-emerald-600 hover:text-emerald-900 mr-2" %>
+                        <%= link_to 'Eliminar', admin_production_order_production_order_item_path(@production_order, item), 
+                            method: :delete,
+                            class: "text-red-600 hover:text-red-900",
+                            confirm: "¿Estás seguro de que quieres eliminar este consecutivo?" %>
+                      </td>
+                    </tr>
+                  <% end %>
+                </tbody>
+              </table>
+            </div>
+            
+            <!-- Resumen de consecutivos -->
+            
+            <div class="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div class="bg-white rounded-lg p-3 border border-emerald-200">
+                <div class="text-xs text-emerald-600">Total Consecutivos</div>
+                <div class="text-lg font-semibold text-emerald-900">
+                  <%= @production_order.production_order_items.count %>
+                </div>
+              </div>
+              <div class="bg-white rounded-lg p-3 border border-emerald-200">
+                <div class="text-xs text-emerald-600">Peso Bruto Total</div>
+                <div class="text-lg font-semibold text-emerald-900">
+                  <%= @production_order.production_order_items.sum { |item| item.peso_bruto || 0 }.round(2) %> kg
+                </div>
+              </div>
+              <div class="bg-white rounded-lg p-3 border border-emerald-200">
+                <div class="text-xs text-emerald-600">Peso Neto Total</div>
+                <div class="text-lg font-semibold text-emerald-900">
+                  <%= @production_order.production_order_items.sum { |item| item.peso_neto || 0 }.round(2) %> kg
+                </div>
+              </div>
+              <div class="bg-white rounded-lg p-3 border border-emerald-200">
+                <div class="text-xs text-emerald-600">Metros Totales</div>
+                <div class="text-lg font-semibold text-emerald-900">
+                  <%= @production_order.production_order_items.sum { |item| item.metros_lineales || 0 }.round(1) %> m
+                </div>
+              </div>
+            </div>
+          <% else %>
+            <div class="text-center py-8">
+              <div class="text-emerald-400 mb-2">
+                <%= icon('fa-solid', 'file-alt', class: 'w-12 h-12 mx-auto') %>
+              </div>
+              <h3 class="text-sm font-medium text-emerald-900 mb-1">No hay consecutivos</h3>
+              <p class="text-sm text-emerald-600">Crea el primer consecutivo para esta orden de producción</p>
+            </div>
+          <% end %>
+        </div>
+      </div>
+
       <!-- Main Content Grid -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-grow min-h-0">
         
@@ -118,6 +298,31 @@
             <div class="flex justify-between">
               <span class="text-slate-500">Mes:</span>
               <span class="text-slate-900 font-medium"><%= @production_order.mes || 'N/A' %></span>
+            </div>
+            
+
+
+               <!-- Notes Section -->
+      <% if @production_order.notes.present? %>
+        <div class=" flex flex-col gap-4 mt-4">
+          <div class="bg-amber-50 rounded-lg p-3">
+            <h3 class="text-sm font-medium text-gray-900 mb-2">Notas</h3>
+            <p class="text-xs text-gray-700 whitespace-pre-wrap"><%= @production_order.notes %></p>
+          </div>
+        </div>
+      <% end %>
+            
+            <!-- Separator -->
+            <div class="border-t border-slate-200 pt-3 mt-3">
+              <ul class="space-y-1 text-xs text-slate-700">
+                <li>• No. OPRO: <%= @production_order.no_opro || @production_order.order_number %></li>
+                <li>• Producto: <%= @production_order.product.name %></li>
+                <li>• Cantidad: <%= @production_order.quantity_requested %></li>
+                <li>• Lote: <%= @production_order.lote_referencia || 'N/A' %></li>
+                <% if @production_order.peso.present? %>
+                  <li>• Peso: <%= @production_order.peso %> kg</li>
+                <% end %>
+              </ul>
             </div>
           </div>
         </div>
@@ -160,90 +365,10 @@
           </div>
         </div>
 
-        <!-- Weight Control Section -->
-        <div class="bg-sky-50 rounded-xl p-6 shadow-sm hover:shadow-lg transition-shadow duration-300 flex flex-col">
-          <h3 class="text-base font-semibold text-sky-900 mb-4">Control de Peso</h3>
-          
-          <div class="space-y-4 flex-grow">
-            <div>
-              <label class="block text-sm text-sky-600 mb-2">Peso Actual (kg)</label>
-              <input type="number" 
-                     data-production-order-target="weightInput"
-                     class="block w-full text-base rounded-lg border-sky-300 focus:border-sky-500 focus:ring-sky-500 py-2 px-4"
-                     placeholder="0.00"
-                     step="0.01"
-                     value="<%= @production_order.peso || '' %>">
-              <% if @production_order.peso.present? %>
-                <p class="text-sm text-green-600 mt-2 flex items-center gap-1">
-                  <%= icon('fa-solid', 'check-circle', class: 'w-4 h-4') %>
-                  Guardado: <%= @production_order.peso %> kg
-                </p>
-              <% end %>
-            </div>
-            
-            <div class="flex flex-col sm:flex-row gap-3">
-              <button class="flex-1 px-4 py-2 bg-sky-600 text-white text-sm font-semibold rounded-lg hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 flex items-center justify-center gap-2 transition-colors"
-                      data-action="click->production-order#connectScale">
-                <%= icon('fa-solid', 'link', class: 'w-4 h-4') %>
-                Conectar
-              </button>
-              <button class="flex-1 px-4 py-2 bg-emerald-600 text-white text-sm font-semibold rounded-lg hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 flex items-center justify-center gap-2 transition-colors"
-                      data-action="click->production-order#readWeight">
-                <%= icon('fa-solid', 'eye', class: 'w-4 h-4') %>
-                Leer
-              </button>
-              <button class="flex-1 px-4 py-2 bg-indigo-600 text-white text-sm font-semibold rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 flex items-center justify-center gap-2 transition-colors"
-                      data-action="click->production-order#saveWeight">
-                <%= icon('fa-solid', 'save', class: 'w-4 h-4') %>
-                Guardar
-              </button>
-            </div>
-            
-            <div class="bg-white rounded-lg p-3 border border-sky-200">
-              <p class="text-sm text-sky-800 flex items-center gap-2" data-production-order-target="weightStatus">
-                <%= icon('fa-solid', 'info-circle', class: 'w-4 h-4 text-sky-500') %>
-                <%= @production_order.peso.present? ? "Peso registrado: #{@production_order.peso} kg" : "Sin peso registrado" %>
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Print Section -->
-        <div class="bg-violet-50 rounded-xl p-6 shadow-sm hover:shadow-lg transition-shadow duration-300 flex flex-col">
-          <h3 class="text-base font-semibold text-violet-900 mb-4">Impresión</h3>
-          
-          <div class="flex-grow">
-            <button class="w-full px-4 py-3 bg-violet-600 text-white text-base font-semibold rounded-lg hover:bg-violet-700 flex items-center justify-center gap-2 mb-4 transition-colors"
-                    data-action="click->production-order#printOrder">
-              <%= icon('fa-solid', 'print', class: 'w-5 h-5') %>
-              Imprimir Orden
-            </button>
-            
-            <div class="text-sm text-violet-800">
-              <p class="mb-2 font-semibold">Se imprimirá:</p>
-              <ul class="space-y-1 text-sm">
-                <li>• No. OPRO: <%= @production_order.no_opro || @production_order.order_number %></li>
-                <li>• Producto: <%= @production_order.product.name %></li>
-                <li>• Cantidad: <%= @production_order.quantity_requested %></li>
-                <li>• Lote: <%= @production_order.lote_referencia || 'N/A' %></li>
-                <% if @production_order.peso.present? %>
-                  <li>• Peso: <%= @production_order.peso %> kg</li>
-                <% end %>
-              </ul>
-            </div>
-          </div>
-        </div>
       </div>
 
-      <!-- Notes Section -->
-      <% if @production_order.notes.present? %>
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
-          <div class="bg-amber-50 rounded-lg p-3">
-            <h3 class="text-sm font-medium text-gray-900 mb-2">Notas</h3>
-            <p class="text-xs text-gray-700 whitespace-pre-wrap"><%= @production_order.notes %></p>
-          </div>
-        </div>
-      <% end %>
+
+   
       
       </div>
     </div>
@@ -262,3 +387,145 @@
   }
 }
 </style>
+
+<!-- Consecutivo Modal -->
+<div
+  data-controller="dialog"
+  data-dialog-backdrop="consecutivo-modal"
+  data-dialog-backdrop-close="true"
+  class="pointer-events-none fixed inset-0 z-[9999] grid h-screen w-screen place-items-center bg-black bg-opacity-40 opacity-0 backdrop-blur-md transition-opacity duration-300"
+>
+  <div
+    data-dialog="consecutivo-modal"
+    class="relative m-4 p-6 w-4/5 max-w-4xl rounded-lg bg-white shadow-xl max-h-[90vh] overflow-y-auto"
+  >
+    <!-- Modal header -->
+    <div class="flex shrink-0 items-center pb-4 text-xl font-medium text-slate-800 border-b border-slate-200">
+      Crear Nuevo Consecutivo
+    </div>
+            
+            <!-- Modal body -->
+            <% new_item = @production_order.production_order_items.build %>
+            <%= form_with model: [ :admin, @production_order, new_item ], 
+                local: true, 
+                data: { controller: "consecutivo-form", action: "submit->consecutivo-form#handleFormSubmit" },
+                class: "relative border-t border-slate-200 py-4" do |form| %>
+                
+                <div class="grid gap-4 mb-4">
+                    <!-- Folio Consecutivo (Auto-generated, readonly) -->
+                    <div>
+                        <label class="block mb-2 text-sm font-medium text-slate-700">Folio Consecutivo</label>
+                        <%= form.text_field :folio_consecutivo, 
+                            class: "bg-slate-50 border border-slate-300 text-slate-700 text-sm rounded-lg block w-full p-2.5",
+                            readonly: true,
+                            value: ProductionOrderItem.generate_folio_consecutivo(@production_order),
+                            placeholder: "Se genera automáticamente" %>
+                        <p class="text-xs text-gray-600 mt-1">Generado automáticamente basado en el lote</p>
+                    </div>
+
+                    <!-- Product Name (Pre-filled with clave_producto) -->
+                    <div>
+                        <label for="clave_producto" class="block mb-2 text-sm font-medium text-slate-700">Clave Producto</label>
+                        <%= form.text_field :clave_producto_display, 
+                            name: "clave_producto_display",
+                            id: "clave_producto", 
+                            class: "bg-slate-50 border border-slate-300 text-slate-700 text-sm rounded-lg focus:ring-emerald-500 focus:border-emerald-500 block w-full p-2.5",
+                            value: @production_order.clave_producto || "BOPPTRANS 35 / 420",
+                            placeholder: "BOPPTRANS 35 / 420",
+                            readonly: true %>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <!-- Peso Bruto -->
+                        <div>
+                            <label class="block mb-2 text-sm font-medium text-slate-700">Peso Bruto (kg)</label>
+                            <%= form.number_field :peso_bruto, 
+                                class: "bg-slate-50 border border-slate-300 text-slate-700 text-sm rounded-lg focus:ring-emerald-500 focus:border-emerald-500 block w-full p-2.5",
+                                placeholder: "0.00",
+                                step: 0.01,
+                                min: 0,
+                                data: { action: "input->consecutivo-form#calculateWeights" } %>
+                        </div>
+
+                        <!-- Altura Core -->
+                        <div>
+                            <label class="block mb-2 text-sm font-medium text-gray-900">Altura Core (cm)</label>
+                            <%= form.number_field :altura_cm, 
+                                class: "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-emerald-500 focus:border-emerald-500 block w-full p-2.5",
+                                placeholder: "7.5",
+                                step: 0.1,
+                                min: 0,
+                                data: { action: "input->consecutivo-form#calculateWeights" } %>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <!-- Micras -->
+                        <div>
+                            <label class="block mb-2 text-sm font-medium text-gray-900">Micras</label>
+                            <%= form.number_field :micras, 
+                                class: "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-emerald-500 focus:border-emerald-500 block w-full p-2.5",
+                                placeholder: "35",
+                                min: 1,
+                                value: @production_order.packing_records.first&.micras,
+                                data: { action: "input->consecutivo-form#calculateWeights" } %>
+                        </div>
+
+                        <!-- Ancho mm -->
+                        <div>
+                            <label class="block mb-2 text-sm font-medium text-gray-900">Ancho (mm)</label>
+                            <%= form.number_field :ancho_mm, 
+                                class: "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-emerald-500 focus:border-emerald-500 block w-full p-2.5",
+                                placeholder: "420",
+                                min: 1,
+                                value: @production_order.packing_records.first&.ancho_mm,
+                                data: { action: "input->consecutivo-form#calculateWeights" } %>
+                        </div>
+                    </div>
+
+                    <!-- Calculated fields (readonly) -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block mb-2 text-sm font-medium text-gray-900">Peso Neto (kg)</label>
+                            <%= form.number_field :peso_neto, 
+                                class: "bg-gray-100 border border-gray-300 text-gray-700 text-sm rounded-lg block w-full p-2.5",
+                                step: 0.001,
+                                data: { consecutivo_form_target: "pesoNeto" } %>
+                        </div>
+
+                        <div>
+                            <label class="block mb-2 text-sm font-medium text-gray-900">Metros Lineales</label>
+                            <%= form.number_field :metros_lineales, 
+                                class: "bg-gray-100 border border-gray-300 text-gray-700 text-sm rounded-lg block w-full p-2.5",
+                                step: 0.0001,
+                                data: { consecutivo_form_target: "metrosLineales" } %>
+                        </div>
+                    </div>
+
+                    <!-- Status -->
+                    <div>
+                        <label class="block mb-2 text-sm font-medium text-gray-900">Estado</label>
+                        <%= form.select :status, 
+                            options_for_select(ProductionOrderItem::ITEM_STATUSES.map { |s| [s.humanize, s] }, "pending"),
+                            { prompt: "Seleccionar estado" },
+                            { class: "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-emerald-500 focus:border-emerald-500 block w-full p-2.5" } %>
+                    </div>
+                </div>
+
+                <!-- Hidden fields for calculated values -->
+                <%= form.hidden_field :peso_core_gramos %>
+                
+                <!-- Form buttons -->
+                <div class="flex shrink-0 flex-wrap items-center pt-4 justify-end border-t border-slate-200">
+                  <button 
+                    data-dialog-close="true" 
+                    type="button"
+                    class="rounded-md border border-transparent py-2 px-4 text-center text-sm transition-all text-slate-600 hover:bg-slate-100 focus:bg-slate-100 active:bg-slate-100 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none">
+                    Cancelar
+                  </button>
+                  <%= form.submit "Crear Consecutivo", 
+                      class: "rounded-md bg-emerald-600 py-2 px-4 border border-transparent text-center text-sm text-white transition-all shadow-md hover:shadow-lg focus:bg-emerald-700 focus:shadow-none active:bg-emerald-700 hover:bg-emerald-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none ml-2" %>
+                </div>
+            <% end %>
+  </div>
+</div>
