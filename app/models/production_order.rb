@@ -3,6 +3,7 @@ class ProductionOrder < ApplicationRecord
   belongs_to :product
   belongs_to :admin, optional: true
   has_many :packing_records, dependent: :destroy
+  has_many :production_order_items, dependent: :destroy
 
   # Validations
   validates :order_number, presence: true, uniqueness: true
@@ -12,6 +13,7 @@ class ProductionOrder < ApplicationRecord
   validates :quantity_produced, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
   validates :pieces_count, numericality: { greater_than: 0 }, allow_nil: true
   validates :package_count, numericality: { greater_than: 0 }, allow_nil: true
+  validates :no_opro, uniqueness: true, allow_blank: true
 
   # Enums
   STATUSES = %w[pending scheduled in_progress paused completed cancelled].freeze
@@ -34,6 +36,7 @@ class ProductionOrder < ApplicationRecord
   # Callbacks
   before_validation :generate_order_number, on: :create
   before_save :set_actual_completion
+  before_save :track_status_changes
 
   # Instance methods
   def display_name
@@ -110,6 +113,31 @@ class ProductionOrder < ApplicationRecord
     priority == "high"
   end
 
+  # OPRO Google Sheet methods
+  def generate_lote_from_fecha(fecha_opro)
+    return nil if fecha_opro.blank?
+    
+    date = fecha_opro.is_a?(String) ? Date.parse(fecha_opro) : fecha_opro
+    "FE-CR-#{date.strftime('%d%m%y')}"
+  end
+
+  def lote_referencia
+    return self[:lote_referencia] if self[:lote_referencia].present?
+    return generate_lote_from_fecha(fecha_completa) if fecha_completa.present?
+    return generate_lote_from_fecha(created_at) if created_at.present?
+    nil
+  end
+
+  def clave_producto
+    # Buscar en packing_records primero, luego en product
+    packing_records.first&.cve_prod || product&.name
+  end
+
+  def is_emitida?
+    # Solo mostrar órdenes emitidas según las especificaciones
+    status == "pending" || status == "scheduled" || status == "in_progress"
+  end
+
   def barcode_data_for_bag_format
     {
       id: id,
@@ -138,7 +166,29 @@ class ProductionOrder < ApplicationRecord
     }.to_json
   end
 
+  # Incremental sync methods
+  def mark_for_sheet_update!
+    update_column(:needs_update_to_sheet, true) unless needs_update_to_sheet?
+  end
+
+  def from_sheet_sync?
+    # Determinar si el cambio viene de una sincronización del sheet
+    @from_sheet_sync == true
+  end
+
+  def from_sheet_sync=(value)
+    @from_sheet_sync = value
+  end
+
   private
+
+  def track_status_changes
+    # Si el status cambió y no viene de sincronización del sheet, marcar para actualizar
+    if status_changed? && !from_sheet_sync? && persisted?
+      self.needs_update_to_sheet = true
+      Rails.logger.debug "Orden #{no_opro} marcada para actualizar en sheet: status cambió a #{status}"
+    end
+  end
 
   def generate_order_number
     return if order_number.present?

@@ -22,6 +22,7 @@ class PackingRecord < ApplicationRecord
   end
   
   def micras
+    return self[:micras] if self[:micras].present?
     return nil unless cve_prod
     
     # Extract micras from CVE_PROD format like "BOPPTRANS 35 / 420"
@@ -30,6 +31,7 @@ class PackingRecord < ApplicationRecord
   end
   
   def ancho_mm
+    return self[:ancho_mm] if self[:ancho_mm].present?
     return nil unless cve_prod
     
     # Extract width from CVE_PROD format like "BOPPTRANS 35 / 420"  
