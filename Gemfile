@@ -66,6 +66,13 @@ gem "barby", "~> 0.7.0"
 gem "roo", "~> 2.10"
 gem "chunky_png", "~> 1.3"
 
+# Google Sheets API
+gem "google_drive"
+
+# PDF generation
+gem "prawn"
+gem "prawn-table"
+
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
