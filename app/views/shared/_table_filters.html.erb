@@ -34,6 +34,11 @@
               <%= form.date_field filter[:name], 
                   value: params[filter[:name]],
                   class: "w-full px-2.5 py-2 text-sm border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500" %>
+            <% when 'text' %>
+              <%= form.text_field filter[:name],
+                  value: params[filter[:name]],
+                  placeholder: filter[:placeholder] || filter[:label],
+                  class: "w-full px-2.5 py-2 text-sm border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500" %>
             <% when 'checkbox' %>
               <div class="flex items-center py-2">
                 <%= form.check_box filter[:name], 
