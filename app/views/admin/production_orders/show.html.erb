@@ -393,11 +393,11 @@
   data-controller="dialog"
   data-dialog-backdrop="consecutivo-modal"
   data-dialog-backdrop-close="true"
-  class="pointer-events-none fixed inset-0 z-[9999] grid h-screen w-screen place-items-center bg-black bg-opacity-40 opacity-0 backdrop-blur-md transition-opacity duration-300"
+  class="pointer-events-none fixed inset-0 z-[9999] grid h-screen w-screen place-items-center bg-transparent opacity-0 backdrop-blur-sm transition-opacity duration-300"
 >
   <div
     data-dialog="consecutivo-modal"
-    class="relative m-4 p-6 w-4/5 max-w-4xl rounded-lg bg-white shadow-xl max-h-[90vh] overflow-y-auto"
+    class="relative m-4 p-6 w-4/5 max-w-4xl rounded-lg bg-white shadow-2xl max-h-[90vh] overflow-y-auto border border-gray-400"
   >
     <!-- Modal header -->
     <div class="flex shrink-0 items-center pb-4 text-xl font-medium text-slate-800 border-b border-slate-200">
@@ -435,7 +435,7 @@
                             readonly: true %>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 gap-4">
                         <!-- Peso Bruto -->
                         <div>
                             <label class="block mb-2 text-sm font-medium text-slate-700">Peso Bruto (kg)</label>
@@ -446,69 +446,6 @@
                                 min: 0,
                                 data: { action: "input->consecutivo-form#calculateWeights" } %>
                         </div>
-
-                        <!-- Altura Core -->
-                        <div>
-                            <label class="block mb-2 text-sm font-medium text-gray-900">Altura Core (cm)</label>
-                            <%= form.number_field :altura_cm, 
-                                class: "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-emerald-500 focus:border-emerald-500 block w-full p-2.5",
-                                placeholder: "7.5",
-                                step: 0.1,
-                                min: 0,
-                                data: { action: "input->consecutivo-form#calculateWeights" } %>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-4">
-                        <!-- Micras -->
-                        <div>
-                            <label class="block mb-2 text-sm font-medium text-gray-900">Micras</label>
-                            <%= form.number_field :micras, 
-                                class: "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-emerald-500 focus:border-emerald-500 block w-full p-2.5",
-                                placeholder: "35",
-                                min: 1,
-                                value: @production_order.packing_records.first&.micras,
-                                data: { action: "input->consecutivo-form#calculateWeights" } %>
-                        </div>
-
-                        <!-- Ancho mm -->
-                        <div>
-                            <label class="block mb-2 text-sm font-medium text-gray-900">Ancho (mm)</label>
-                            <%= form.number_field :ancho_mm, 
-                                class: "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-emerald-500 focus:border-emerald-500 block w-full p-2.5",
-                                placeholder: "420",
-                                min: 1,
-                                value: @production_order.packing_records.first&.ancho_mm,
-                                data: { action: "input->consecutivo-form#calculateWeights" } %>
-                        </div>
-                    </div>
-
-                    <!-- Calculated fields (readonly) -->
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block mb-2 text-sm font-medium text-gray-900">Peso Neto (kg)</label>
-                            <%= form.number_field :peso_neto, 
-                                class: "bg-gray-100 border border-gray-300 text-gray-700 text-sm rounded-lg block w-full p-2.5",
-                                step: 0.001,
-                                data: { consecutivo_form_target: "pesoNeto" } %>
-                        </div>
-
-                        <div>
-                            <label class="block mb-2 text-sm font-medium text-gray-900">Metros Lineales</label>
-                            <%= form.number_field :metros_lineales, 
-                                class: "bg-gray-100 border border-gray-300 text-gray-700 text-sm rounded-lg block w-full p-2.5",
-                                step: 0.0001,
-                                data: { consecutivo_form_target: "metrosLineales" } %>
-                        </div>
-                    </div>
-
-                    <!-- Status -->
-                    <div>
-                        <label class="block mb-2 text-sm font-medium text-gray-900">Estado</label>
-                        <%= form.select :status, 
-                            options_for_select(ProductionOrderItem::ITEM_STATUSES.map { |s| [s.humanize, s] }, "pending"),
-                            { prompt: "Seleccionar estado" },
-                            { class: "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-emerald-500 focus:border-emerald-500 block w-full p-2.5" } %>
                     </div>
                 </div>
 
