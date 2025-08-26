@@ -35,6 +35,9 @@ gem "tzinfo-data", platforms: %i[ jruby ]
 # Reduces boot times through caching; required in config/boot.rb
 gem "bootsnap", require: false
 
+# DBF file reader
+gem "dbf"
+
 # for user accounts managment
 gem "devise", "~> 4.9"
 

@@ -1,0 +1,189 @@
+<div class="w-full px-1 mt-12 mb-16 min-h-screen flex flex-col">
+  <div class="relative flex flex-col w-full px-6 text-gray-700 bg-white shadow-md lg:px-10 rounded-xl bg-clip-border flex-1">
+    <div class="relative p-4 text-gray-700 bg-white bg-clip-border">
+      <div class="container mx-auto">
+        <div class="flex flex-col items-center gap-8 px-4 mb-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h1 class="mt-12 font-sans text-xl font-semibold leading-snug tracking-normal text-center md:text-left text-blue-gray-900">
+              Editar Código: <%= @inventory_code.no_ordp %>
+            </h1>
+          </div>
+          <div class="flex justify-center gap-2 shrink-0 md:w-auto">
+            <%= link_to 'Ver', admin_inventory_code_path(@inventory_code), 
+                class: "mt-12 flex items-center gap-3 rounded-lg bg-blue-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85" %>
+            <%= link_to 'Volver', admin_inventory_codes_path, 
+                class: "mt-12 flex items-center gap-3 rounded-lg bg-gray-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85" %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="p-6">
+      <%= form_with model: [:admin, @inventory_code], local: true, class: "space-y-6" do |form| %>
+        <% if @inventory_code.errors.any? %>
+          <div class="bg-red-50 border border-red-200 rounded-md p-4">
+            <h3 class="text-sm font-medium text-red-800 mb-2">
+              <%= pluralize(@inventory_code.errors.count, "error") %> impidieron actualizar este código:
+            </h3>
+            <ul class="list-disc list-inside text-sm text-red-700">
+              <% @inventory_code.errors.full_messages.each do |message| %>
+                <li><%= message %></li>
+              <% end %>
+            </ul>
+          </div>
+        <% end %>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Basic Information -->
+          <div class="space-y-4">
+            <h3 class="text-lg font-semibold text-gray-900">Información Básica</h3>
+            
+            <div>
+              <%= form.label :no_ordp, "No. Orden", class: "block text-sm font-medium text-gray-700 mb-1" %>
+              <%= form.text_field :no_ordp, 
+                  class: "w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500",
+                  placeholder: "SINSIN..." %>
+            </div>
+
+            <div>
+              <%= form.label :cve_prod, "Código Producto", class: "block text-sm font-medium text-gray-700 mb-1" %>
+              <%= form.text_field :cve_prod, 
+                  class: "w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500",
+                  placeholder: "PROMAT..." %>
+            </div>
+
+            <div>
+              <%= form.label :cve_copr, "Código Componente", class: "block text-sm font-medium text-gray-700 mb-1" %>
+              <%= form.text_field :cve_copr, 
+                  class: "w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500",
+                  placeholder: "MAT1..." %>
+            </div>
+
+            <div>
+              <%= form.label :lote, "Lote", class: "block text-sm font-medium text-gray-700 mb-1" %>
+              <%= form.text_field :lote, 
+                  class: "w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500",
+                  placeholder: "Número de lote" %>
+            </div>
+
+            <div>
+              <%= form.label :fech_cto, "Fecha", class: "block text-sm font-medium text-gray-700 mb-1" %>
+              <%= form.date_field :fech_cto, 
+                  class: "w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+            </div>
+
+            <div>
+              <%= form.label :tip_copr, "Tipo", class: "block text-sm font-medium text-gray-700 mb-1" %>
+              <%= form.select :tip_copr, 
+                  options_for_select([
+                    ['Activo', 1],
+                    ['Inactivo', 0]
+                  ], @inventory_code.tip_copr),
+                  { prompt: 'Seleccionar...' },
+                  { class: "w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" } %>
+            </div>
+          </div>
+
+          <!-- Quantities and Costs -->
+          <div class="space-y-4">
+            <h3 class="text-lg font-semibold text-gray-900">Cantidades y Costos</h3>
+            
+            <div>
+              <%= form.label :can_copr, "Cantidad", class: "block text-sm font-medium text-gray-700 mb-1" %>
+              <%= form.number_field :can_copr, 
+                  step: 0.000001,
+                  class: "w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500",
+                  placeholder: "0.000000" %>
+            </div>
+
+            <div>
+              <%= form.label :undres, "Unidad", class: "block text-sm font-medium text-gray-700 mb-1" %>
+              <%= form.text_field :undres, 
+                  class: "w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500",
+                  placeholder: "KG" %>
+            </div>
+
+            <div>
+              <%= form.label :costo, "Costo", class: "block text-sm font-medium text-gray-700 mb-1" %>
+              <%= form.number_field :costo, 
+                  step: 0.00000001,
+                  class: "w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500",
+                  placeholder: "0.00" %>
+            </div>
+
+            <div>
+              <%= form.label :costo_rep, "Costo Reposición", class: "block text-sm font-medium text-gray-700 mb-1" %>
+              <%= form.number_field :costo_rep, 
+                  step: 0.00000001,
+                  class: "w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500",
+                  placeholder: "0.00" %>
+            </div>
+
+            <div>
+              <%= form.label :cve_suc, "Código Sucursal", class: "block text-sm font-medium text-gray-700 mb-1" %>
+              <%= form.text_field :cve_suc, 
+                  class: "w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+            </div>
+
+            <div>
+              <%= form.label :trans, "Trans", class: "block text-sm font-medium text-gray-700 mb-1" %>
+              <%= form.number_field :trans, 
+                  class: "w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+            </div>
+          </div>
+        </div>
+
+        <!-- Additional Fields -->
+        <div class="border-t pt-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">Campos Adicionales</h3>
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div>
+              <%= form.label :new_med, "Nueva Medida", class: "block text-sm font-medium text-gray-700 mb-1" %>
+              <%= form.text_field :new_med, 
+                  class: "w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+            </div>
+
+            <div>
+              <%= form.label :new_copr, "Nuevo Comp", class: "block text-sm font-medium text-gray-700 mb-1" %>
+              <%= form.text_field :new_copr, 
+                  class: "w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+            </div>
+
+            <div>
+              <%= form.label :partresp, "Part Resp", class: "block text-sm font-medium text-gray-700 mb-1" %>
+              <%= form.number_field :partresp, 
+                  class: "w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+            </div>
+
+            <div>
+              <%= form.label :dmov, "D Mov", class: "block text-sm font-medium text-gray-700 mb-1" %>
+              <%= form.text_field :dmov, 
+                  class: "w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+            </div>
+
+            <div>
+              <%= form.label :partop, "Part Op", class: "block text-sm font-medium text-gray-700 mb-1" %>
+              <%= form.number_field :partop, 
+                  class: "w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+            </div>
+
+            <div>
+              <%= form.label :fcdres, "FCD Res", class: "block text-sm font-medium text-gray-700 mb-1" %>
+              <%= form.number_field :fcdres, 
+                  step: 0.000001,
+                  class: "w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+            </div>
+          </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="flex justify-end space-x-3 pt-6 border-t">
+          <%= link_to 'Cancelar', admin_inventory_code_path(@inventory_code), 
+              class: "px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" %>
+          <%= form.submit "Actualizar Código", 
+              class: "px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

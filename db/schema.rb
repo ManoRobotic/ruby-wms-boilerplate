@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_08_26_053745) do
+ActiveRecord::Schema[8.0].define(version: 2025_08_26_230327) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -61,6 +61,11 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_26_053745) do
     t.string "last_sync_checksum"
     t.integer "total_orders_synced"
     t.string "super_admin_role"
+    t.string "serial_port"
+    t.integer "serial_baud_rate"
+    t.string "serial_parity"
+    t.integer "serial_stop_bits"
+    t.integer "serial_data_bits"
     t.index ["email"], name: "index_admins_on_email", unique: true
     t.index ["reset_password_token"], name: "index_admins_on_reset_password_token", unique: true
     t.index ["super_admin_role"], name: "index_admins_on_super_admin_role"
@@ -115,6 +120,34 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_26_053745) do
     t.index ["scheduled_date", "status"], name: "idx_cycle_counts_scheduled_status"
     t.index ["warehouse_id", "status"], name: "idx_cycle_counts_warehouse_status"
     t.index ["warehouse_id"], name: "index_cycle_counts_on_warehouse_id"
+  end
+
+  create_table "inventory_codes", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "no_ordp", null: false
+    t.string "cve_copr"
+    t.string "cve_prod"
+    t.decimal "can_copr", precision: 12, scale: 6
+    t.integer "tip_copr"
+    t.decimal "costo", precision: 12, scale: 8
+    t.date "fech_cto"
+    t.string "cve_suc"
+    t.integer "trans"
+    t.string "lote"
+    t.string "new_med"
+    t.string "new_copr"
+    t.decimal "costo_rep", precision: 12, scale: 8
+    t.integer "partresp"
+    t.string "dmov"
+    t.integer "partop"
+    t.decimal "fcdres", precision: 12, scale: 6
+    t.string "undres"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["cve_copr"], name: "index_inventory_codes_on_cve_copr"
+    t.index ["cve_prod"], name: "index_inventory_codes_on_cve_prod"
+    t.index ["fech_cto"], name: "index_inventory_codes_on_fech_cto"
+    t.index ["lote"], name: "index_inventory_codes_on_lote"
+    t.index ["no_ordp"], name: "index_inventory_codes_on_no_ordp"
   end
 
   create_table "inventory_transactions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
