@@ -5,6 +5,18 @@ class ProductionOrder < ApplicationRecord
   has_many :packing_records, dependent: :destroy
   has_many :production_order_items, dependent: :destroy
 
+  def total_gross_weight
+    production_order_items.sum(:peso_bruto)
+  end
+
+  def total_net_weight
+    production_order_items.sum(:peso_neto) 
+  end
+
+  def total_meters
+    production_order_items.sum(:metros_lineales)
+  end
+
   # Validations
   validates :order_number, presence: true, uniqueness: true
   validates :status, presence: true
@@ -178,6 +190,43 @@ class ProductionOrder < ApplicationRecord
 
   def from_sheet_sync=(value)
     @from_sheet_sync = value
+  end
+
+  def recalculate_quantity_produced_and_broadcast!
+    # Recalculate quantity_produced based on the count of associated items
+    # Assuming each item represents 1 unit of produced quantity
+    new_quantity_produced = production_order_items.count
+    
+    # Only update if the quantity has actually changed to avoid unnecessary saves/broadcasts
+    if self.quantity_produced != new_quantity_produced
+      self.quantity_produced = new_quantity_produced
+      save! # Use save! to trigger callbacks and validations
+      broadcast_production_order_update # Broadcast after saving
+    end
+  end
+
+  def broadcast_production_order_update
+    # Prepare data to be broadcasted
+    # Include all fields necessary for the table row update
+    data = {
+      id: id,
+      order_number: no_opro.presence || order_number,
+      cve_prod: clave_producto, # Assuming clave_producto is what's displayed
+      lote: lote_referencia,
+      quantity: quantity_requested, # This is the requested quantity, not produced
+      metros_lineales: production_order_items.sum(&:metros_lineales).to_f,
+      peso_bruto: production_order_items.sum(&:peso_bruto).to_f,
+      peso_neto: production_order_items.sum(&:peso_neto).to_f,
+      carga: carga_copr&.to_f,
+      status: status,
+      status_humanized: status.humanize,
+      fecha: fecha_completa&.strftime("%d/%m/%Y") || created_at.strftime("%d/%m/%Y"),
+      progress_percentage: progress_percentage # Include progress percentage
+    }
+
+    # Broadcast to the specific channel
+    ActionCable.server.broadcast("production_orders_channel", data)
+    Rails.logger.info "Broadcasted ProductionOrder update for ID: #{id}"
   end
 
   private

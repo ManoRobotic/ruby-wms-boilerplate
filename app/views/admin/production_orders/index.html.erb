@@ -199,7 +199,7 @@
                   
                   <!-- Metros -->
                   <td class="px-2 py-2 text-center text-sm text-gray-500">
-                    <% total_metros = order.packing_records.sum(&:metros_lineales).to_f %>
+                    <% total_metros = order.total_meters.to_f %>
                     <% if total_metros > 0 %>
                       <span class="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-900 text-xs font-bold rounded-full">
                         📏 <%= total_metros.round(1) %> m
@@ -211,7 +211,7 @@
                   
                   <!-- Peso Bruto -->
                   <td class="px-2 py-2 text-center text-sm text-gray-500">
-                    <% total_peso_bruto = order.packing_records.sum(&:peso_bruto).to_f %>
+                    <% total_peso_bruto = order.total_gross_weight.to_f %>
                     <% if total_peso_bruto > 0 %>
                       <span class="inline-flex items-center px-2 py-1 bg-orange-100 text-orange-900 text-xs font-bold rounded-full">
                         ⚖️ <%= total_peso_bruto.round(1) %> kg
@@ -223,7 +223,7 @@
                   
                   <!-- Peso Neto -->
                   <td class="px-2 py-2 text-center text-sm text-gray-500">
-                    <% total_peso_neto = order.packing_records.sum(&:peso_neto).to_f %>
+                    <% total_peso_neto = order.total_net_weight.to_f %>
                     <% if total_peso_neto > 0 %>
                       <span class="inline-flex items-center px-2 py-1 bg-green-100 text-green-900 text-xs font-bold rounded-full">
                         ✅ <%= total_peso_neto.round(1) %> kg
@@ -260,7 +260,9 @@
                   
                   <!-- Acciones -->
                   <td class="px-2 py-2 text-center text-sm font-medium" data-action="click->production-order#stopPropagation">
-                    <%= link_to 'Ver', admin_production_order_path(order), class: "text-indigo-600 hover:text-indigo-900 mr-2" %>
+                    <%= link_to admin_production_order_path(order), class: "text-indigo-600 hover:text-indigo-900 mr-2" do %>
+                      <%= icon('fa-solid', 'eye', class: 'w-4 h-4') %>
+                    <% end %>
                     <%= link_to 'Editar', edit_admin_production_order_path(order), class: "text-yellow-600 hover:text-yellow-900" %>
                   </td>
                 </tr>

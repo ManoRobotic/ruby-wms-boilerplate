@@ -117,6 +117,7 @@ module WmsHelper
       { path: admin_path, icon: 'gauge-high', label: t('admin.sidebar.dashboard'), permission: 'read_admin_dashboard' },
       { path: admin_orders_path, icon: 'truck-fast', label: t('admin.sidebar.orders'), permission: 'read_orders' },
       { path: admin_production_orders_path, icon: 'industry', label: 'Ordenes de Producción', permission: 'read_production_orders' },
+      { path: admin_inventory_codes_path, icon: 'barcode', label: 'Códigos de Inventario', permission: 'read_inventory' },
       { path: admin_products_path, icon: 'cart-shopping', label: t('admin.sidebar.products'), permission: 'read_products' },
       { path: admin_categories_path, icon: 'list', label: t('admin.sidebar.categories'), permission: 'manage_categories' },
       { path: admin_warehouses_path, icon: 'warehouse', label: t('admin.sidebar.warehouses'), permission: 'read_warehouse' },
@@ -128,7 +129,7 @@ module WmsHelper
       { path: admin_cycle_counts_path, icon: 'calculator', label: t('admin.sidebar.cycle_counts'), permission: 'manage_inventory' },
       { path: admin_shipments_path, icon: 'shipping-fast', label: t('admin.sidebar.shipments'), permission: 'manage_shipments' },
       { path: admin_manual_printing_path, icon: 'print', label: t('admin.sidebar.manual_printing'), permission: 'manage_manual_printing' },
-      { path: admin_google_sheets_config_path, icon: 'gear', label: 'Configuración Google Sheets', permission: 'admin_settings' }
+      { path: admin_configurations_path, icon: 'gear', label: 'Configuraciones', permission: 'admin_settings' }
     ]
 
     if current_user&.operador?

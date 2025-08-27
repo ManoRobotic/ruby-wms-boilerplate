@@ -34,6 +34,7 @@ Rails.application.routes.draw do
         post :toggle_selection
       end
       collection do
+        post :weigh_item
         post :test_broadcast
         post :sync_excel_data
         post :sync_google_sheets_opro
@@ -181,14 +182,22 @@ Rails.application.routes.draw do
     post "manual_printing/connect_scale", to: "manual_printing#connect_scale"
     post "manual_printing/read_weight", to: "manual_printing#read_weight"
 
-    # Google Sheets Configuration
-    get "google_sheets_config", to: "google_sheets_config#show"
-    get "google_sheets_config/edit", to: "google_sheets_config#edit"
-    patch "google_sheets_config", to: "google_sheets_config#update"
-    post "google_sheets_config/test_connection", to: "google_sheets_config#test_connection"
-    post "google_sheets_config/check_changes", to: "google_sheets_config#check_changes"
-    post "google_sheets_config/sync_now", to: "google_sheets_config#sync_now"
-    post "google_sheets_config/incremental_sync", to: "google_sheets_config#incremental_sync"
+    # Configurations
+    get "configurations", to: "configurations#show"
+    get "configurations/edit", to: "configurations#edit"
+    patch "configurations", to: "configurations#update"
+    post "configurations/test_connection", to: "configurations#test_connection"
+    post "configurations/check_changes", to: "configurations#check_changes"
+    post "configurations/sync_now", to: "configurations#sync_now"
+    post "configurations/incremental_sync", to: "configurations#incremental_sync"
+
+    # Inventory Codes
+    resources :inventory_codes do
+      collection do
+        post :import_excel
+        get :export_excel
+      end
+    end
   end
 
   resources :categories, only: [ :show ]

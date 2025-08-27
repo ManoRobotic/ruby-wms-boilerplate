@@ -25,12 +25,21 @@ class Admin::ProductionOrderItemsController < AdminController
   def create
     @production_order_item = @production_order.production_order_items.build(production_order_item_params)
 
-    # Generar folio consecutivo si no se proporciona
+    # Generar folio consecutivo si no se proporciona o regenerar si hay conflicto
     if @production_order_item.folio_consecutivo.blank?
       @production_order_item.folio_consecutivo = ProductionOrderItem.generate_folio_consecutivo(@production_order)
     end
 
-    if @production_order_item.save
+    # Intentar guardar, y si hay error de duplicado, regenerar el folio
+    unless @production_order_item.save
+      if @production_order_item.errors[:folio_consecutivo].any?
+        # Regenerar folio si hay error de duplicado
+        @production_order_item.folio_consecutivo = ProductionOrderItem.generate_folio_consecutivo(@production_order)
+        @production_order_item.save
+      end
+    end
+
+    if @production_order_item.persisted?
       respond_to do |format|
         format.html do
           redirect_to admin_production_order_path(@production_order),

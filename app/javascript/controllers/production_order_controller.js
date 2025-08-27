@@ -396,4 +396,43 @@ export default class extends Controller {
     }
     return colors[priority] || 'bg-gray-100 text-gray-800'
   }
+
+  async weighItem(event) {
+    event.preventDefault();
+    const weighButton = event.currentTarget;
+    weighButton.disabled = true;
+    weighButton.textContent = "Pesando...";
+
+    try {
+      const response = await fetch("/admin/production_orders/weigh_item", {
+        method: "POST",
+        headers: {
+          "X-CSRF-Token": document.querySelector("meta[name='csrf-token']").content,
+          "Content-Type": "application/json",
+        },
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        const pesoBrutoInput = document.getElementById("production_order_item_peso_bruto");
+        if (pesoBrutoInput) {
+          pesoBrutoInput.value = data.weight;
+          // Find the form and submit it
+          const form = pesoBrutoInput.closest("form");
+          if (form) {
+            form.requestSubmit();
+          }
+        }
+        this.showToast("success", "Peso Leído", `Peso: ${data.weight} kg`);
+      } else {
+        this.showToast("error", "Error de Pesaje", data.message);
+      }
+    } catch (error) {
+      this.showToast("error", "Error de Conexión", "No se pudo conectar con el servidor de pesaje.");
+    } finally {
+      weighButton.disabled = false;
+      weighButton.textContent = "Pesar";
+    }
+  }
 }

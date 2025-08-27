@@ -1,4 +1,4 @@
-class Admin::GoogleSheetsConfigController < AdminController
+class Admin::ConfigurationsController < AdminController
   def show
     @admin = current_admin
   end
@@ -10,7 +10,7 @@ class Admin::GoogleSheetsConfigController < AdminController
   def update
     @admin = current_admin
     
-    if @admin.update(google_sheets_params)
+    if @admin.update(configurations_params)
       # Validar las credenciales si se proporcionaron
       if params[:admin][:google_credentials_json].present?
         begin
@@ -24,7 +24,7 @@ class Admin::GoogleSheetsConfigController < AdminController
           end
           
           @admin.save!
-          redirect_to admin_google_sheets_config_path, notice: "Configuración de Google Sheets actualizada exitosamente."
+          redirect_to admin_configurations_path, notice: "Configuración de Google Sheets actualizada exitosamente."
         rescue JSON::ParserError
           @admin.errors.add(:google_credentials, "El JSON de credenciales no es válido")
           render :edit, status: :unprocessable_entity
@@ -33,7 +33,7 @@ class Admin::GoogleSheetsConfigController < AdminController
           render :edit, status: :unprocessable_entity
         end
       else
-        redirect_to admin_google_sheets_config_path, notice: "Configuración actualizada exitosamente."
+        redirect_to admin_configurations_path, notice: "Configuración actualizada exitosamente."
       end
     else
       render :edit, status: :unprocessable_entity
@@ -115,7 +115,7 @@ class Admin::GoogleSheetsConfigController < AdminController
     @admin = current_admin
     
     unless @admin.google_sheets_configured?
-      redirect_to admin_google_sheets_config_path, 
+      redirect_to admin_configurations_path, 
                   alert: "Google Sheets no está configurado correctamente."
       return
     end
@@ -125,15 +125,15 @@ class Admin::GoogleSheetsConfigController < AdminController
       result = service.incremental_sync_production_orders
       
       if result[:success]
-        redirect_to admin_google_sheets_config_path, 
+        redirect_to admin_configurations_path, 
                     notice: "#{result[:message]}. #{result[:errors].any? ? "Errores: #{result[:errors].count}" : ""}"
       else
-        redirect_to admin_google_sheets_config_path, 
+        redirect_to admin_configurations_path, 
                     alert: "Error en la sincronización incremental: #{result[:message]}"
       end
     rescue => e
       Rails.logger.error "Error en sincronización incremental para #{@admin.email}: #{e.message}"
-      redirect_to admin_google_sheets_config_path, 
+      redirect_to admin_configurations_path, 
                   alert: "Error inesperado durante la sincronización incremental."
     end
   end
@@ -142,7 +142,7 @@ class Admin::GoogleSheetsConfigController < AdminController
     @admin = current_admin
     
     unless @admin.google_sheets_configured?
-      redirect_to admin_google_sheets_config_path, 
+      redirect_to admin_configurations_path, 
                   alert: "Google Sheets no está configurado correctamente."
       return
     end
@@ -156,7 +156,7 @@ class Admin::GoogleSheetsConfigController < AdminController
       unless force_sync
         change_check = service.check_for_changes
         unless change_check[:has_changes]
-          redirect_to admin_google_sheets_config_path, 
+          redirect_to admin_configurations_path, 
                       notice: "Sin cambios detectados. #{change_check[:details]}. Última sincronización: #{@admin.last_sync_at&.strftime('%d/%m/%Y %H:%M')}"
           return
         end
@@ -166,26 +166,26 @@ class Admin::GoogleSheetsConfigController < AdminController
       
       if result[:success]
         if result[:skipped]
-          redirect_to admin_google_sheets_config_path, notice: result[:message]
+          redirect_to admin_configurations_path, notice: result[:message]
         else
-          redirect_to admin_google_sheets_config_path, 
+          redirect_to admin_configurations_path, 
                       notice: "#{result[:message]}. #{result[:errors].any? ? "Errores: #{result[:errors].count}" : ""}"
         end
       else
-        redirect_to admin_google_sheets_config_path, 
+        redirect_to admin_configurations_path, 
                     alert: "Error en la sincronización: #{result[:message]}"
       end
     rescue => e
       Rails.logger.error "Error en sincronización manual para #{@admin.email}: #{e.message}"
-      redirect_to admin_google_sheets_config_path, 
+      redirect_to admin_configurations_path, 
                   alert: "Error inesperado durante la sincronización."
     end
   end
 
   private
 
-  def google_sheets_params
-    params.require(:admin).permit(:google_sheets_enabled, :sheet_id)
+  def configurations_params
+    params.require(:admin).permit(:google_sheets_enabled, :sheet_id, :serial_port, :serial_baud_rate, :serial_parity, :serial_stop_bits, :serial_data_bits)
     # Ya no requerimos worksheet_gid porque se auto-detecta
   end
 end

@@ -48,3 +48,7 @@
 
 # Ignore yarn files
 yarn-error.log
+
+
+/dbf
+credentials.json

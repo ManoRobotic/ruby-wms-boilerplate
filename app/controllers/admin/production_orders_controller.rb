@@ -1,4 +1,6 @@
 class Admin::ProductionOrdersController < AdminController
+  require 'net/http'
+
   before_action :set_production_order, only: [ :show, :edit, :update, :destroy, :start, :pause, :complete, :cancel, :print_bag_format, :print_box_format, :update_weight, :modal_details, :print_consecutivos ]
 
   def index
@@ -591,6 +593,58 @@ class Admin::ProductionOrdersController < AdminController
         status: 'error',
         message: 'Internal server error'
       }, status: 500
+    end
+  end
+
+  def weigh_item
+    admin = current_admin
+    if admin.serial_port.blank?
+      render json: { success: false, message: "Puerto serie no configurado." }
+      return
+    end
+
+    command = [
+      "python3",
+      "serial_server.py",
+      "--port", admin.serial_port,
+      "--baudrate", admin.serial_baud_rate.to_s,
+      "--parity", admin.serial_parity,
+      "--stopbits", admin.serial_stop_bits.to_s,
+      "--bytesize", admin.serial_data_bits.to_s
+    ]
+
+    # Check if the server is running
+    # This is a simplified check, a more robust solution would be to store the PID
+    # of the process in the database or a cache.
+    begin
+      response = Net::HTTP.get_response(URI("http://localhost:5000/health"))
+      if response.is_a?(Net::HTTPSuccess)
+        # Server is running, just read the weight
+        read_response = Net::HTTP.get_response(URI("http://localhost:5000/scale/read"))
+        if read_response.is_a?(Net::HTTPSuccess)
+          render json: JSON.parse(read_response.body)
+        else
+          render json: { success: false, message: "Error al leer el peso." }
+        end
+        return
+      end
+    rescue Errno::ECONNREFUSED
+      # Server is not running, start it
+    end
+
+    pid = Process.spawn(*command)
+    Process.detach(pid)
+    sleep 2 # Give the server some time to start
+
+    begin
+      read_response = Net::HTTP.get_response(URI("http://localhost:5000/scale/read"))
+      if read_response.is_a?(Net::HTTPSuccess)
+        render json: JSON.parse(read_response.body)
+      else
+        render json: { success: false, message: "Error al leer el peso." }
+      end
+    rescue Errno::ECONNREFUSED
+      render json: { success: false, message: "No se pudo conectar con el servidor de pesaje." }
     end
   end
 

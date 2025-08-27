@@ -340,12 +340,31 @@ export default class extends Controller {
 
   updateWeight(weight, timestamp) {
     if (this.hasWeightTarget) {
+      // Agregar animación de loading mientras se actualiza
       this.weightTarget.innerHTML = `
-        <div class="weight-display">
-          <span class="weight">${weight}</span>
-          <span class="timestamp">${timestamp}</span>
-        </div>
+        <div class="text-2xl font-bold text-center text-blue-500 weight-loading">Leyendo...</div>
+        <div class="text-sm text-center text-gray-500">--</div>
       `
+      
+      // Después de un breve delay, mostrar el peso con animación
+      setTimeout(() => {
+        this.weightTarget.innerHTML = `
+          <div class="text-2xl font-bold text-center text-gray-400">${weight}</div>
+          <div class="text-sm text-center text-gray-500">${timestamp}</div>
+        `
+        
+        // Trigger weight animation by removing and adding class
+        const weightDisplay = this.weightTarget.querySelector('.text-2xl')
+        if (weightDisplay && weight !== '--') {
+          weightDisplay.classList.remove('text-gray-400')
+          weightDisplay.classList.add('text-emerald-600')
+          
+          // Apply pulse animation
+          setTimeout(() => {
+            weightDisplay.style.animation = 'weightPulse 0.8s ease-in-out'
+          }, 50)
+        }
+      }, 300)
     }
   }
 

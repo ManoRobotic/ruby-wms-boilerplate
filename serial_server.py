@@ -5,6 +5,7 @@ Servidor Flask para comunicación serial con báscula e impresora
 Integra el script de báscula existente con endpoints REST
 """
 
+import argparse
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import threading
@@ -51,9 +52,12 @@ class PrintJob:
     status: str = "pending"
 
 class ScaleManager:
-    def __init__(self, port='COM3', baudrate=115200):
+    def __init__(self, port='COM3', baudrate=115200, parity='N', stopbits=1, bytesize=8):
         self.port = port
         self.baudrate = baudrate
+        self.parity = parity
+        self.stopbits = stopbits
+        self.bytesize = bytesize
         self.serial_connection = None
         self.is_running = False
         self.last_reading = None
@@ -71,9 +75,9 @@ class ScaleManager:
                 self.port, 
                 baudrate=self.baudrate, 
                 timeout=1, 
-                parity='N', 
-                stopbits=1, 
-                bytesize=8
+                parity=self.parity, 
+                stopbits=self.stopbits, 
+                bytesize=self.bytesize
             )
             logger.info(f"✓ Conexión establecida en el puerto {self.port}")
             return True
@@ -497,8 +501,28 @@ def list_serial_ports():
     
     return jsonify({'status': 'success', 'ports': ports})
 
+import argparse
+
+# ... (existing imports)
+
+# ... (existing code)
+
 # Servidor de desarrollo con auto-reload
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Servidor Flask para comunicación serial.')
+    parser.add_argument('--port', type=str, default='COM3', help='Puerto serial')
+    parser.add_argument('--baudrate', type=int, default=115200, help='Baud rate')
+    parser.add_argument('--parity', type=str, default='N', help='Paridad (N, E, O)')
+    parser.add_argument('--stopbits', type=int, default=1, help='Bits de parada')
+    parser.add_argument('--bytesize', type=int, default=8, help='Bits de datos')
+    args = parser.parse_args()
+
+    scale_manager.port = args.port
+    scale_manager.baudrate = args.baudrate
+    scale_manager.parity = args.parity
+    scale_manager.stopbits = args.stopbits
+    scale_manager.bytesize = args.bytesize
+
     logger.info("=== Servidor Flask para Comunicación Serial ===")
     logger.info("Compatible con TSC TX200 y báscula serial")
     logger.info("===============================================")

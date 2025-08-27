@@ -3,21 +3,21 @@
     <div class="relative p-4 text-gray-700 bg-white bg-clip-border">
       <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
         <div>
-          <h1 class="text-2xl font-semibold text-gray-900 mb-2">Editar Configuración Google Sheets</h1>
-          <p class="text-gray-600">Configura los datos necesarios para la sincronización con Google Sheets</p>
+          <h1 class="text-2xl font-semibold text-gray-900 mb-2">Editar Configuraciones</h1>
+          <p class="text-gray-600">Configura los datos necesarios para la sincronización con Google Sheets y la comunicación con el puerto serie.</p>
         </div>
         <div class="flex gap-2 mt-4 md:mt-0">
           <%= link_to "Volver", 
-              admin_google_sheets_config_path, 
+              admin_configurations_path, 
               class: "px-4 py-2 bg-gray-500 text-white text-sm font-medium rounded-lg hover:bg-gray-600 transition-colors" %>
         </div>
       </div>
 
-      <%= form_with model: @admin, url: admin_google_sheets_config_path, local: true, method: :patch do |form| %>
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <%= form_with model: @admin, url: admin_configurations_path, local: true, method: :patch do |form| %>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <!-- Configuración Básica -->
           <div class="bg-slate-50 rounded-xl p-6 shadow-sm">
-            <h3 class="text-lg font-semibold text-slate-900 mb-4">Configuración Básica</h3>
+            <h3 class="text-lg font-semibold text-slate-900 mb-4">Configuración Google Sheets</h3>
             
             <div class="space-y-4">
               <!-- Google Sheets Enabled -->
@@ -91,11 +91,11 @@
                 <textarea name="admin[google_credentials_json]" 
                           id="google_credentials_json"
                           rows="8"
-                          placeholder='{ 
+                          placeholder='{
   "type": "service_account",
   "project_id": "tu-proyecto-id",
   "private_key_id": "...",
-  "private_key": "-----BEGIN PRIVATE KEY-----\\n...\\n-----END PRIVATE KEY-----\\n",
+  "private_key": "-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n",
   "client_email": "tu-cuenta@tu-proyecto.iam.gserviceaccount.com",
   ...
 }'
@@ -126,12 +126,74 @@
               </div>
             </div>
           </div>
+
+          <!-- Configuración de Puerto Serie -->
+          <div class="bg-sky-50 rounded-xl p-6 shadow-sm">
+            <h3 class="text-lg font-semibold text-sky-900 mb-4">Configuración de Puerto Serie</h3>
+            
+            <div class="space-y-4">
+              <!-- Serial Port -->
+              <div>
+                <label for="serial_port" class="block text-sm font-medium text-gray-700 mb-2">
+                  Puerto Serie
+                </label>
+                <%= form.text_field :serial_port, 
+                    id: "serial_port",
+                    placeholder: "/dev/ttyUSB0",
+                    class: "block w-full text-sm rounded-lg border-gray-300 focus:border-sky-500 focus:ring-sky-500" %>
+                <p class="mt-1 text-xs text-gray-500">
+                  El puerto al que está conectada la impresora/báscula.
+                </p>
+              </div>
+
+              <!-- Baud Rate -->
+              <div>
+                <label for="serial_baud_rate" class="block text-sm font-medium text-gray-700 mb-2">
+                  Baud Rate
+                </label>
+                <%= form.number_field :serial_baud_rate, 
+                    id: "serial_baud_rate",
+                    placeholder: "9600",
+                    class: "block w-full text-sm rounded-lg border-gray-300 focus:border-sky-500 focus:ring-sky-500" %>
+              </div>
+
+              <!-- Parity -->
+              <div>
+                <label for="serial_parity" class="block text-sm font-medium text-gray-700 mb-2">
+                  Paridad
+                </label>
+                <%= form.select :serial_parity, options_for_select([['None', 'N'], ['Even', 'E'], ['Odd', 'O']], @admin.serial_parity), {}, { id: "serial_parity", class: "block w-full text-sm rounded-lg border-gray-300 focus:border-sky-500 focus:ring-sky-500" } %>
+              </div>
+
+              <!-- Stop Bits -->
+              <div>
+                <label for="serial_stop_bits" class="block text-sm font-medium text-gray-700 mb-2">
+                  Bits de Parada
+                </label>
+                <%= form.number_field :serial_stop_bits, 
+                    id: "serial_stop_bits",
+                    placeholder: "1",
+                    class: "block w-full text-sm rounded-lg border-gray-300 focus:border-sky-500 focus:ring-sky-500" %>
+              </div>
+
+              <!-- Data Bits -->
+              <div>
+                <label for="serial_data_bits" class="block text-sm font-medium text-gray-700 mb-2">
+                  Bits de Datos
+                </label>
+                <%= form.number_field :serial_data_bits, 
+                    id: "serial_data_bits",
+                    placeholder: "8",
+                    class: "block w-full text-sm rounded-lg border-gray-300 focus:border-sky-500 focus:ring-sky-500" %>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Botones de Acción -->
         <div class="mt-8 flex flex-col sm:flex-row gap-4 justify-end">
           <%= link_to "Cancelar", 
-              admin_google_sheets_config_path, 
+              admin_configurations_path, 
               class: "px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors text-center" %>
           <%= form.submit "Guardar Configuración", 
               class: "px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors" %>
