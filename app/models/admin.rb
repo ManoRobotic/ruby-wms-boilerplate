@@ -1,5 +1,5 @@
 class Admin < ApplicationRecord
-  belongs_to :empresa, optional: true
+  belongs_to :company, optional: true
   # Include default devise modules. Others available are:
   # :confirmable, :lockable, :timeoutable, :trackable and :omniauthable
   devise :database_authenticatable, :registerable,
@@ -89,6 +89,7 @@ class Admin < ApplicationRecord
   scope :by_super_admin_role, ->(role) { where(super_admin_role: role) }
   scope :rzavala, -> { where(super_admin_role: 'rzavala') }
   scope :flexiempaques, -> { where(super_admin_role: 'flexiempaques') }
+  scope :by_company, ->(company) { where(company: company) }
 
   # Data isolation by super admin role
   def accessible_production_orders

@@ -9,42 +9,54 @@ class Admin::ProductionOrdersController < AdminController
     Rails.logger.debug "current_user: #{current_user.inspect}"
     Rails.logger.debug "current_user role: #{current_user.role if current_user.present?}"
     Rails.logger.debug "current_user warehouse_id: #{current_user.warehouse_id if current_user.present?}"
+    Rails.logger.debug "current_user super_admin_role: #{current_user.super_admin_role if current_user.present?}"
 
+    # Comenzar con todas las órdenes de producción
     @production_orders = ProductionOrder.includes(:warehouse, :product, :packing_records)
+    Rails.logger.debug "Total production orders: #{@production_orders.count}"
 
-    if current_admin.present? # An Admin is logged in
-      Rails.logger.debug "Path: current_admin present"
+    # Aplicar filtros adicionales basados en el rol
+    if current_admin.present?
       if current_admin.super_admin?
-        Rails.logger.debug "Path: current_admin is super_admin"
-        # Super admin sees all orders (no further filtering needed here)
+        # Super admin ya tiene todas las órdenes de su company
+        Rails.logger.debug "Current admin is super admin"
+        # Filtrar por company para super admins
+        if current_admin.company_id
+          @production_orders = @production_orders.where(company_id: current_admin.company_id)
+          Rails.logger.debug "Filtered by admin company_id: #{current_admin.company_id}"
+        end
       else
-        Rails.logger.debug "Path: current_admin is regular admin"
-        # Regular admin sees orders associated with their admin_id
-        @production_orders = current_admin.accessible_production_orders # This calls the method in Admin model
-        Rails.logger.debug "Admin's super_admin_role: #{current_admin.super_admin_role}"
-        Rails.logger.debug "Accessible Production Orders SQL: #{current_admin.accessible_production_orders.to_sql}"
-        Rails.logger.debug "Accessible Production Orders Count: #{current_admin.accessible_production_orders.count}"
-        Rails.logger.debug "Admin's super_admin_role: #{current_admin.super_admin_role}"
-        Rails.logger.debug "Accessible Production Orders SQL: #{current_admin.accessible_production_orders.to_sql}"
-        Rails.logger.debug "Accessible Production Orders Count: #{current_admin.accessible_production_orders.count}"
-        Rails.logger.debug "Admin's super_admin_role: #{current_admin.super_admin_role}"
-        Rails.logger.debug "Accessible Production Orders SQL: #{current_admin.accessible_production_orders.to_sql}"
-        Rails.logger.debug "Accessible Production Orders Count: #{current_admin.accessible_production_orders.count}"
-
+        # Regular admin ve órdenes asociadas con su admin_id
+        @production_orders = @production_orders.where(admin_id: current_admin.id)
+        Rails.logger.debug "Filtered by admin_id: #{current_admin.id}"
+        # También filtrar por company
+        if current_admin.company_id
+          @production_orders = @production_orders.where(company_id: current_admin.company_id)
+          Rails.logger.debug "Filtered by admin company_id: #{current_admin.company_id}"
+        end
       end
-    elsif current_user.present? && current_user.operador? # An operator (User model) is logged in
-      Rails.logger.debug "Path: current_user is operator"
+    elsif current_user.present? && current_user.operador?
+      Rails.logger.debug "Current user is operador"
       if current_user.super_admin_role.present?
-        @production_orders = ProductionOrder.joins(:admin).where(admins: { super_admin_role: current_user.super_admin_role })
+        @production_orders = @production_orders.joins(:admin).where(admins: { super_admin_role: current_user.super_admin_role })
+        Rails.logger.debug "Filtered by super_admin_role: #{current_user.super_admin_role}"
       else
         # Operator without a super_admin_role sees no orders
         @production_orders = ProductionOrder.none
+        Rails.logger.debug "Operator without super_admin_role, showing no orders"
       end
     else
-      Rails.logger.debug "Path: No relevant user or unknown role"
       # No authenticated user, or unknown role, show no orders
       @production_orders = ProductionOrder.none
+      Rails.logger.debug "No authenticated user or unknown role, showing no orders"
+      # Para otros usuarios, filtrar por company si está disponible
+      if current_user&.company_id
+        @production_orders = @production_orders.where(company_id: current_user.company_id)
+        Rails.logger.debug "Filtered by user company_id: #{current_user.company_id}"
+      end
     end
+
+    Rails.logger.debug "Production orders after role filter: #{@production_orders.count}"
 
     # Search
     if params[:search].present?
@@ -72,6 +84,7 @@ class Admin::ProductionOrdersController < AdminController
     end
 
     @production_orders = @production_orders.recent.page(params[:page]).per(10)
+    Rails.logger.debug "Final production orders count: #{@production_orders.count}"
   end
 
   def show
@@ -87,7 +100,13 @@ class Admin::ProductionOrdersController < AdminController
   def create
     @production_order = ProductionOrder.new(production_order_params)
     @production_order.admin_id = current_user&.id || current_admin&.id
-    @production_order.empresa_id = current_admin.empresa&.id # Assign empresa_id from current_admin
+    
+    # Asignar company_id del usuario/admin actual
+    if current_admin&.company_id
+      @production_order.company_id = current_admin.company_id
+    elsif current_user&.company_id
+      @production_order.company_id = current_user.company_id
+    end
 
     if @production_order.save
       
@@ -801,7 +820,7 @@ class Admin::ProductionOrdersController < AdminController
       :warehouse_id, :product_id, :quantity_requested, :quantity_produced,
       :priority, :estimated_completion, :notes, :bag_size, :bag_measurement,
       :pieces_count, :package_count, :package_measurement, :peso, :lote_referencia,
-      :no_opro, :carga_copr, :ano, :mes, :fecha_completa, :empresa_id
+      :no_opro, :carga_copr, :ano, :mes, :fecha_completa, :company_id
     )
   end
 end

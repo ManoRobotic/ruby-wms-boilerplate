@@ -117,7 +117,7 @@ module WmsHelper
       { path: admin_path, icon: 'gauge-high', label: t('admin.sidebar.dashboard'), permission: 'read_admin_dashboard' },
       { path: admin_orders_path, icon: 'truck-fast', label: t('admin.sidebar.orders'), permission: 'read_orders' },
       { path: admin_production_orders_path, icon: 'industry', label: 'Ordenes de Producción', permission: 'read_production_orders' },
-      { path: admin_inventory_codes_path, icon: 'barcode', label: 'Códigos de Inventario', permission: 'read_inventory' },
+      { path: admin_inventory_codes_path, icon: 'barcode', label: 'Códigos de Inventario', permission: 'read_inventory_codes' },
       { path: admin_products_path, icon: 'cart-shopping', label: t('admin.sidebar.products'), permission: 'read_products' },
       { path: admin_categories_path, icon: 'list', label: t('admin.sidebar.categories'), permission: 'manage_categories' },
       { path: admin_warehouses_path, icon: 'warehouse', label: t('admin.sidebar.warehouses'), permission: 'read_warehouse' },
@@ -132,9 +132,31 @@ module WmsHelper
       { path: admin_configurations_path, icon: 'gear', label: 'Configuraciones', permission: 'admin_settings' }
     ]
 
-    if current_user&.operador?
-      all_menu_items.select do |item|
-        can?(item[:permission]) && item[:label] != t('admin.sidebar.orders')
+    if current_user&.operador? || current_user&.supervisor?
+      # Para operadores y supervisores de rzavala, restringir los elementos del menú
+      if current_user.super_admin_role == 'rzavala'
+        allowed_labels = [
+          'Panel de Control',
+          'Ordenes de Producción',
+          'Impresión Manual',
+          'Códigos de Inventario'
+        ]
+        
+        all_menu_items.select do |item|
+          allowed_labels.include?(item[:label]) && can?(item[:permission])
+        end
+      else
+        # Para otros operadores y supervisores, mantener el comportamiento actual
+        if current_user&.operador?
+          all_menu_items.select do |item|
+            can?(item[:permission]) && item[:label] != t('admin.sidebar.orders')
+          end
+        else
+          # Para supervisores que no son de rzavala, aplicar permisos normales
+          all_menu_items.select do |item|
+            can?(item[:permission])
+          end
+        end
       end
     else
       all_menu_items.select do |item|

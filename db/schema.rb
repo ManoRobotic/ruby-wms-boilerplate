@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_08_27_032206) do
+ActiveRecord::Schema[8.0].define(version: 2025_08_27_192855) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -66,9 +66,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_27_032206) do
     t.string "serial_parity"
     t.integer "serial_stop_bits"
     t.integer "serial_data_bits"
-    t.uuid "empresa_id"
+    t.uuid "company_id"
+    t.index ["company_id"], name: "index_admins_on_company_id"
     t.index ["email"], name: "index_admins_on_email", unique: true
-    t.index ["empresa_id"], name: "index_admins_on_empresa_id"
     t.index ["reset_password_token"], name: "index_admins_on_reset_password_token", unique: true
     t.index ["super_admin_role"], name: "index_admins_on_super_admin_role"
   end
@@ -89,6 +89,12 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_27_032206) do
     t.datetime "updated_at", null: false
     t.decimal "selling_price"
     t.decimal "purchase_price"
+  end
+
+  create_table "companies", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "name"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "cycle_count_items", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -122,12 +128,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_27_032206) do
     t.index ["scheduled_date", "status"], name: "idx_cycle_counts_scheduled_status"
     t.index ["warehouse_id", "status"], name: "idx_cycle_counts_warehouse_status"
     t.index ["warehouse_id"], name: "index_cycle_counts_on_warehouse_id"
-  end
-
-  create_table "empresas", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.string "name"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
   end
 
   create_table "inventory_codes", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -400,10 +400,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_27_032206) do
     t.integer "sheet_row_number"
     t.string "last_sheet_update"
     t.boolean "needs_update_to_sheet"
-    t.uuid "empresa_id"
+    t.uuid "company_id"
     t.index ["admin_id"], name: "index_production_orders_on_admin_id"
+    t.index ["company_id"], name: "index_production_orders_on_company_id"
     t.index ["created_at"], name: "index_production_orders_on_created_at"
-    t.index ["empresa_id"], name: "index_production_orders_on_empresa_id"
     t.index ["order_number"], name: "index_production_orders_on_order_number", unique: true
     t.index ["priority"], name: "index_production_orders_on_priority"
     t.index ["product_id"], name: "index_production_orders_on_product_id"
@@ -560,7 +560,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_27_032206) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "super_admin_role"
+    t.uuid "company_id"
     t.index ["active"], name: "index_users_on_active"
+    t.index ["company_id"], name: "index_users_on_company_id"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
     t.index ["role"], name: "index_users_on_role"
@@ -575,10 +577,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_27_032206) do
     t.jsonb "contact_info", default: {}
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.uuid "empresa_id"
+    t.uuid "company_id"
     t.index ["active"], name: "index_warehouses_on_active"
     t.index ["code"], name: "index_warehouses_on_code", unique: true
-    t.index ["empresa_id"], name: "index_warehouses_on_empresa_id"
+    t.index ["company_id"], name: "index_warehouses_on_company_id"
   end
 
   create_table "waves", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -621,7 +623,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_27_032206) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
-  add_foreign_key "admins", "empresas"
+  add_foreign_key "admins", "companies"
   add_foreign_key "cycle_count_items", "cycle_counts"
   add_foreign_key "cycle_count_items", "products"
   add_foreign_key "cycle_counts", "admins"
@@ -646,7 +648,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_27_032206) do
   add_foreign_key "pick_lists", "warehouses"
   add_foreign_key "pick_lists", "waves"
   add_foreign_key "production_order_items", "production_orders"
-  add_foreign_key "production_orders", "empresas"
+  add_foreign_key "production_orders", "companies"
   add_foreign_key "production_orders", "products"
   add_foreign_key "production_orders", "warehouses"
   add_foreign_key "products", "categories"
@@ -665,8 +667,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_27_032206) do
   add_foreign_key "tasks", "locations", column: "to_location_id"
   add_foreign_key "tasks", "products"
   add_foreign_key "tasks", "warehouses"
+  add_foreign_key "users", "companies"
   add_foreign_key "users", "warehouses"
-  add_foreign_key "warehouses", "empresas"
+  add_foreign_key "warehouses", "companies"
   add_foreign_key "waves", "admins"
   add_foreign_key "waves", "warehouses"
   add_foreign_key "zones", "warehouses"

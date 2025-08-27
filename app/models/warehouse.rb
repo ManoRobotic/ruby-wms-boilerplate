@@ -1,5 +1,5 @@
 class Warehouse < ApplicationRecord
-  belongs_to :empresa, optional: true
+  belongs_to :company, optional: true
   # Associations
   has_many :zones, dependent: :destroy
   has_many :locations, through: :zones

@@ -2,7 +2,7 @@ class ProductionOrder < ApplicationRecord
   belongs_to :warehouse
   belongs_to :product
   belongs_to :admin, optional: true
-  belongs_to :empresa, optional: true
+  belongs_to :company, optional: true
   has_many :packing_records, dependent: :destroy
   has_many :production_order_items, dependent: :destroy
 
@@ -39,6 +39,7 @@ class ProductionOrder < ApplicationRecord
   scope :by_status, ->(status) { where(status: status) }
   scope :by_priority, ->(priority) { where(priority: priority) }
   scope :by_warehouse, ->(warehouse) { where(warehouse: warehouse) }
+  scope :by_company, ->(company) { where(company: company) }
   scope :pending, -> { where(status: "pending") }
   scope :in_progress, -> { where(status: "in_progress") }
   scope :completed, -> { where(status: "completed") }

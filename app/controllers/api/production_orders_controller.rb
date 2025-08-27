@@ -2,17 +2,17 @@ class Api::ProductionOrdersController < ActionController::API
   skip_before_action :verify_authenticity_token
 
   def create
-    empresa = Empresa.find_by(name: params[:empresa_name])
+    company = Company.find_by(name: params[:company_name])
 
-    unless empresa
-      render json: { error: "Empresa not found" }, status: :not_found
+    unless company
+      render json: { error: "Company not found" }, status: :not_found
       return
     end
 
     # Assuming production_order_params will contain product_id, quantity, etc.
     # You might need to adjust these parameters based on your ProductionOrder model's requirements.
     @production_order = ProductionOrder.new(production_order_params)
-    @production_order.empresa = empresa
+    @production_order.company = company
 
     if @production_order.save
       render json: { message: "Production order created successfully", production_order: @production_order }, status: :created

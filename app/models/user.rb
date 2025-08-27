@@ -6,6 +6,7 @@ class User < ApplicationRecord
 
   # Associations
   belongs_to :warehouse, optional: true
+  belongs_to :company, optional: true
   has_many :tasks, foreign_key: :admin_id, dependent: :nullify
   has_many :pick_lists, foreign_key: :admin_id, dependent: :nullify
   has_many :inventory_transactions, foreign_key: :admin_id, dependent: :nullify
@@ -21,6 +22,7 @@ class User < ApplicationRecord
   scope :active, -> { where(active: true) }
   scope :by_role, ->(role) { where(role: role) }
   scope :by_warehouse, ->(warehouse) { where(warehouse: warehouse) }
+  scope :by_company, ->(company) { where(company: company) }
   scope :admins, -> { where(role: "admin") }
   scope :users, -> { where(role: "user") }
   scope :supervisors, -> { where(role: "supervisor") }
@@ -100,11 +102,21 @@ class User < ApplicationRecord
 
   def supervisor_permissions(action, resource)
     warehouse_permissions = %w[
-      read_admin_dashboard read_warehouse read_zones read_locations read_inventory
+      read_admin_dashboard read_warehouse read_zones read_locations
       create_zones create_locations create_tasks create_pick_lists
       manage_inventory manage_receipts manage_shipments manage_waves
       read_orders read_products read_reports manage_warehouses
     ]
+    
+    # Para supervisores de rzavala, restringir read_inventory
+    if super_admin_role == 'rzavala'
+      warehouse_permissions.delete('read_inventory')
+    else
+      warehouse_permissions << 'read_inventory'
+    end
+    
+    # Añadir permiso para read_inventory_codes
+    warehouse_permissions << 'read_inventory_codes'
 
     case action.to_s
     when *warehouse_permissions
@@ -147,7 +159,10 @@ class User < ApplicationRecord
   def operador_permissions(action, resource)
     case action.to_s
     when "read_inventory"
-      # Only allow read_inventory if super_admin_role is NOT 'flexiempaques'
+      # Only allow read_inventory if super_admin_role is NOT 'flexiempaques' or 'rzavala'
+      super_admin_role != 'flexiempaques' && super_admin_role != 'rzavala'
+    when "read_inventory_codes"
+      # Allow read_inventory_codes for all operators except flexiempaques
       super_admin_role != 'flexiempaques'
     when "read_production_orders", "manage_manual_printing", "read_admin_dashboard"
       true # These permissions are always allowed for operador

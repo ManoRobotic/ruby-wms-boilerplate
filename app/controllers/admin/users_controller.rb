@@ -12,13 +12,13 @@ class Admin::UsersController < AdminController
     if current_admin.present?
       if current_admin.super_admin?
         # Super admin sees all users (no additional filtering needed here)
-      elsif current_admin.super_admin_role.present? # Regular admin with a super_admin_role
-        @users = @users.where(super_admin_role: current_admin.super_admin_role)
+      elsif current_admin.company_id.present?
+        # Regular admin sees users from their company
+        @users = @users.where(company_id: current_admin.company_id)
       else
-        # Admin without a super_admin_role (shouldn't happen if all admins are assigned one)
-        # Or if they are a regular admin not tied to a specific super_admin_role,
-        # they might see only users they created, or no users.
-        # For now, let's assume they see no users if not explicitly tied to a super_admin_role.
+        # Admin without a company_id
+        # They might see only users they created, or no users.
+        # For now, let's assume they see no users if not explicitly tied to a company.
         @users = User.none
       end
     else
@@ -32,13 +32,13 @@ class Admin::UsersController < AdminController
 
     # Statistics
     @stats = {
-      total_users: User.count,
-      active_users: User.active.count,
-      admins: User.admins.count,
-      supervisors: User.supervisors.count,
-      pickers: User.pickers.count,
-      regular_users: User.users.count,
-      operadores: User.operadores.count # Add operadores count
+      total_users: @users.count,
+      active_users: @users.active.count,
+      admins: @users.admins.count,
+      supervisors: @users.supervisors.count,
+      pickers: @users.pickers.count,
+      regular_users: @users.users.count,
+      operadores: @users.operadores.count # Add operadores count
     }
 
     @warehouses = Warehouse.active.order(:name)
@@ -64,6 +64,11 @@ class Admin::UsersController < AdminController
     @user = User.new(user_params)
     @user.password = generate_temp_password
     @user.password_confirmation = @user.password
+
+    # Assign company_id if current_admin is present and has one
+    if current_admin.present? && current_admin.company_id.present?
+      @user.company_id = current_admin.company_id
+    end
 
     # Assign super_admin_role if current_admin is present and has one
     if current_admin.present? && current_admin.super_admin_role.present?
