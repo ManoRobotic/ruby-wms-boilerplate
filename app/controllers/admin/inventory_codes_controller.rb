@@ -53,70 +53,6 @@ class Admin::InventoryCodesController < AdminController
 
   def update
     if @inventory_code.update(inventory_code_params)
-      redirect_to admin_inventory_codes_path, notice: 'Código de inventario actualizado exitosamente.'
-    else
-      render :edit, status: :unprocessable_entity
-    end
-  end
-
-  def destroy
-    @inventory_code.destroy
-    redirect_to admin_inventory_codes_path, notice: 'Código de inventario eliminado exitosamente.'
-  end
-
-  def import_excel
-    # Placeholder for future Excel import functionality
-    redirect_to admin_inventory_codes_path, notice: 'Funcionalidad de importación de Excel pendiente.'
-  end
-
-  def export_excel
-    # Placeholder for future Excel export functionality
-    redirect_to admin_inventory_codes_path, notice: 'Funcionalidad de exportación de Excel pendiente.'
-  end
-
-  private
-
-  def authorize_inventory_codes_access!
-    unless current_user&.can?("read_inventory_codes") || current_admin
-      redirect_to admin_root_path, alert: "No tienes permisos para acceder a los códigos de inventario."
-    end
-  end
-
-  def set_inventory_code
-    @inventory_code = InventoryCode.find(params[:id])
-  end
-
-  def inventory_code_params
-    params.require(:inventory_code).permit(
-      :no_ordp, :cve_copr, :cve_prod, :can_copr, :tip_copr, :costo,
-      :fech_cto, :cve_suc, :trans, :lote, :new_med, :new_copr,
-      :costo_rep, :partresp, :dmov, :partop, :fcdres, :undres
-    )
-  end
-end
-
-  def show
-  end
-
-  def new
-    @inventory_code = InventoryCode.new
-  end
-
-  def create
-    @inventory_code = InventoryCode.new(inventory_code_params)
-
-    if @inventory_code.save
-      redirect_to admin_inventory_codes_path, notice: 'Código de inventario creado exitosamente.'
-    else
-      render :new, status: :unprocessable_entity
-    end
-  end
-
-  def edit
-  end
-
-  def update
-    if @inventory_code.update(inventory_code_params)
       redirect_to admin_inventory_code_path(@inventory_code), notice: 'Código de inventario actualizado exitosamente.'
     else
       render :edit, status: :unprocessable_entity
@@ -144,6 +80,12 @@ end
   end
 
   private
+
+  def authorize_inventory_codes_access!
+    unless current_user&.can?("read_inventory_codes") || current_admin
+      redirect_to admin_root_path, alert: "No tienes permisos para acceder a los códigos de inventario."
+    end
+  end
 
   def set_inventory_code
     @inventory_code = InventoryCode.find(params[:id])
