@@ -2,6 +2,7 @@ class ProductionOrder < ApplicationRecord
   belongs_to :warehouse
   belongs_to :product
   belongs_to :admin, optional: true
+  belongs_to :empresa, optional: true
   has_many :packing_records, dependent: :destroy
   has_many :production_order_items, dependent: :destroy
 

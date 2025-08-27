@@ -229,6 +229,8 @@ Rails.application.routes.draw do
         post :disconnect_printer
       end
     end
+    # New API route for production orders
+    resources :production_orders, only: [:create]
   end
 
   post "/checkout", to: "checkouts#create"

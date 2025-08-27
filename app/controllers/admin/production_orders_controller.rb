@@ -20,7 +20,17 @@ class Admin::ProductionOrdersController < AdminController
       else
         Rails.logger.debug "Path: current_admin is regular admin"
         # Regular admin sees orders associated with their admin_id
-        @production_orders = @production_orders.where(admin_id: current_admin.id)
+        @production_orders = current_admin.accessible_production_orders # This calls the method in Admin model
+        Rails.logger.debug "Admin's super_admin_role: #{current_admin.super_admin_role}"
+        Rails.logger.debug "Accessible Production Orders SQL: #{current_admin.accessible_production_orders.to_sql}"
+        Rails.logger.debug "Accessible Production Orders Count: #{current_admin.accessible_production_orders.count}"
+        Rails.logger.debug "Admin's super_admin_role: #{current_admin.super_admin_role}"
+        Rails.logger.debug "Accessible Production Orders SQL: #{current_admin.accessible_production_orders.to_sql}"
+        Rails.logger.debug "Accessible Production Orders Count: #{current_admin.accessible_production_orders.count}"
+        Rails.logger.debug "Admin's super_admin_role: #{current_admin.super_admin_role}"
+        Rails.logger.debug "Accessible Production Orders SQL: #{current_admin.accessible_production_orders.to_sql}"
+        Rails.logger.debug "Accessible Production Orders Count: #{current_admin.accessible_production_orders.count}"
+
       end
     elsif current_user.present? && current_user.operador? # An operator (User model) is logged in
       Rails.logger.debug "Path: current_user is operator"
@@ -77,6 +87,7 @@ class Admin::ProductionOrdersController < AdminController
   def create
     @production_order = ProductionOrder.new(production_order_params)
     @production_order.admin_id = current_user&.id || current_admin&.id
+    @production_order.empresa_id = current_admin.empresa&.id # Assign empresa_id from current_admin
 
     if @production_order.save
       
@@ -790,7 +801,7 @@ class Admin::ProductionOrdersController < AdminController
       :warehouse_id, :product_id, :quantity_requested, :quantity_produced,
       :priority, :estimated_completion, :notes, :bag_size, :bag_measurement,
       :pieces_count, :package_count, :package_measurement, :peso, :lote_referencia,
-      :no_opro, :carga_copr, :ano, :mes, :fecha_completa
+      :no_opro, :carga_copr, :ano, :mes, :fecha_completa, :empresa_id
     )
   end
 end

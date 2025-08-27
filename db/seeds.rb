@@ -38,6 +38,15 @@ end
 
 puts "✅ Almacenes creados: #{Warehouse.count}"
 
+# =============================================================================
+# COMPANIES
+# =============================================================================
+
+puts "\n🏢 Creando Empresas..."
+empresa_flexiempaques = Empresa.find_or_create_by!(name: "flexiempaques")
+empresa_rzavala = Empresa.find_or_create_by!(name: "rzavala")
+puts "✅ Empresas creadas: #{Empresa.count}"
+
 # Products
 products_data = [
   { name: "BOPPTRANS 35 / 420", description: "Película transparente 35 micras, ancho 420mm", price: 150.0 },
