@@ -4,13 +4,36 @@ class Admin::ProductionOrdersController < AdminController
   before_action :set_production_order, only: [ :show, :edit, :update, :destroy, :start, :pause, :complete, :cancel, :print_bag_format, :print_box_format, :update_weight, :modal_details, :print_consecutivos ]
 
   def index
-    # Filtrar por admin actual para multi-tenancy y super admin role
-    if current_admin.super_admin?
-      @production_orders = current_admin.accessible_production_orders
-                                       .includes(:warehouse, :product, :packing_records)
+    Rails.logger.debug "--- ProductionOrdersController#index Debug ---"
+    Rails.logger.debug "current_admin: #{current_admin.inspect}"
+    Rails.logger.debug "current_user: #{current_user.inspect}"
+    Rails.logger.debug "current_user role: #{current_user.role if current_user.present?}"
+    Rails.logger.debug "current_user warehouse_id: #{current_user.warehouse_id if current_user.present?}"
+
+    @production_orders = ProductionOrder.includes(:warehouse, :product, :packing_records)
+
+    if current_admin.present? # An Admin is logged in
+      Rails.logger.debug "Path: current_admin present"
+      if current_admin.super_admin?
+        Rails.logger.debug "Path: current_admin is super_admin"
+        # Super admin sees all orders (no further filtering needed here)
+      else
+        Rails.logger.debug "Path: current_admin is regular admin"
+        # Regular admin sees orders associated with their admin_id
+        @production_orders = @production_orders.where(admin_id: current_admin.id)
+      end
+    elsif current_user.present? && current_user.operador? # An operator (User model) is logged in
+      Rails.logger.debug "Path: current_user is operator"
+      if current_user.super_admin_role.present?
+        @production_orders = ProductionOrder.joins(:admin).where(admins: { super_admin_role: current_user.super_admin_role })
+      else
+        # Operator without a super_admin_role sees no orders
+        @production_orders = ProductionOrder.none
+      end
     else
-      @production_orders = ProductionOrder.includes(:warehouse, :product, :packing_records)
-                                        .where(admin_id: current_admin.id)
+      Rails.logger.debug "Path: No relevant user or unknown role"
+      # No authenticated user, or unknown role, show no orders
+      @production_orders = ProductionOrder.none
     end
 
     # Search

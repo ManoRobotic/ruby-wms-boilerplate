@@ -67,12 +67,12 @@ class Admin < ApplicationRecord
   end
 
   # Super Admin Role methods
-  SUPER_ADMIN_ROLES = %w[rzavala flexiempaques].freeze
+  SUPER_ADMIN_ROLES = %w[rzavala flexiempaques global].freeze
 
   validates :super_admin_role, inclusion: { in: SUPER_ADMIN_ROLES, allow_blank: true }
 
   def super_admin?
-    super_admin_role.present?
+    super_admin_role == 'global'
   end
 
   def rzavala?

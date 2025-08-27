@@ -8,13 +8,27 @@ class Admin::UsersController < AdminController
 
   def index
     @users = User.includes(:warehouse)
-                 .order(created_at: :desc)
+
+    if current_admin.present?
+      if current_admin.super_admin?
+        # Super admin sees all users (no additional filtering needed here)
+      elsif current_admin.super_admin_role.present? # Regular admin with a super_admin_role
+        @users = @users.where(super_admin_role: current_admin.super_admin_role)
+      else
+        # Admin without a super_admin_role (shouldn't happen if all admins are assigned one)
+        # Or if they are a regular admin not tied to a specific super_admin_role,
+        # they might see only users they created, or no users.
+        # For now, let's assume they see no users if not explicitly tied to a super_admin_role.
+        @users = User.none
+      end
+    else
+      # No admin logged in, or unauthorized access (should be caught by before_action)
+      @users = User.none
+    end
+
+    @users = @users.order(created_at: :desc)
                  .page(params[:page])
                  .per(20)
-
-    @users = @users.by_role(params[:role]) if params[:role].present?
-    @users = @users.by_warehouse(params[:warehouse_id]) if params[:warehouse_id].present?
-    @users = @users.where(active: params[:active] == "true") if params[:active].present?
 
     # Statistics
     @stats = {
@@ -23,7 +37,8 @@ class Admin::UsersController < AdminController
       admins: User.admins.count,
       supervisors: User.supervisors.count,
       pickers: User.pickers.count,
-      regular_users: User.users.count
+      regular_users: User.users.count,
+      operadores: User.operadores.count # Add operadores count
     }
 
     @warehouses = Warehouse.active.order(:name)
@@ -49,6 +64,11 @@ class Admin::UsersController < AdminController
     @user = User.new(user_params)
     @user.password = generate_temp_password
     @user.password_confirmation = @user.password
+
+    # Assign super_admin_role if current_admin is present and has one
+    if current_admin.present? && current_admin.super_admin_role.present?
+      @user.super_admin_role = current_admin.super_admin_role
+    end
 
     respond_to do |format|
       if @user.save
@@ -120,7 +140,7 @@ class Admin::UsersController < AdminController
   end
 
   def user_params
-    permitted = [ :name, :email, :role, :warehouse_id, :active ]
+    permitted = [ :name, :email, :role, :warehouse_id, :active, :super_admin_role ]
     permitted += [ :password, :password_confirmation ] if params[:user][:password].present?
     user_params = params.require(:user).permit(permitted)
 
@@ -144,8 +164,7 @@ class Admin::UsersController < AdminController
   end
 
   def generate_temp_password
-    # SecureRandom.hex(4) # 8 character password
-    "abcd1234" # Default password
+    "password123" # Default password
   end
 
   def authorize_user_management!

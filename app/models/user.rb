@@ -145,13 +145,12 @@ class User < ApplicationRecord
   end
 
   def operador_permissions(action, resource)
-    operador_permissions = %w[
-      read_production_orders manage_manual_printing read_admin_dashboard
-    ]
-
     case action.to_s
-    when *operador_permissions
-      true
+    when "read_inventory"
+      # Only allow read_inventory if super_admin_role is NOT 'flexiempaques'
+      super_admin_role != 'flexiempaques'
+    when "read_production_orders", "manage_manual_printing", "read_admin_dashboard"
+      true # These permissions are always allowed for operador
     else
       false
     end

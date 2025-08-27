@@ -28,7 +28,7 @@ class InventoryCode < ApplicationRecord
 
   def formatted_cost
     return "N/A" if costo.blank?
-    "$#{costo.round(2)}"
+    "#{costo.round(2)}"
   end
 
   def formatted_quantity
