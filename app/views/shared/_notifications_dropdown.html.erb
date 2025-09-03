@@ -1,96 +1,96 @@
-<% notification_data = current_user_notifications_data %>
-<% if notification_data %>
-  <div class="relative" data-controller="dropdown notifications">
-    <div class="relative w-full">
+<% notification_data = current_user_notifications_data || OpenStruct.new(unread_count: 0, recent_notifications: []) %>
+<div class="relative" data-controller="dropdown notifications">
+  <div class="relative w-full">
+    <div class="notification-indicator absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 flex items-center justify-center" data-notifications-target="indicator">
       <% if notification_data.unread_count > 0 %>
-        <span class="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full">
+        <span class="notification-count inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full">
           <%= notification_data.unread_count > 99 ? "99+" : notification_data.unread_count %>
         </span>
       <% end %>
-      <button data-dropdown-target="trigger" 
-              data-action="click->dropdown#toggle"
-              class="w-full flex items-center justify-start text-left hover:bg-gray-700 focus:outline-none p-2 rounded-lg">
-        <%= icon('fa-solid', 'bell', class: 'w-4 h-4 mr-2') %>
-        <span class="text-sm">Notificaciones</span>
-        <%= icon('fa-solid', 'chevron-up', class: 'mr-2 w-4 h-4 ml-auto transform transition-transform', data: { dropdown_target: 'icon' }) %>
-      </button>
     </div>
-    
-    <!-- Notifications Dropdown -->
-    <div data-dropdown-target="menu" 
-         class="hidden absolute bottom-full left-0 right-0 mb-2 bg-white rounded-lg shadow-lg border z-50"
-         style="bottom: 100%; max-height: 40vh; overflow-y: auto;">
-      <div class="p-3 border-b border-gray-200">
-        <div class="flex items-center justify-between">
-          <h3 class="font-semibold text-gray-900">Notificaciones</h3>
-          <%= link_to "Ver todas", admin_notifications_path, 
-              class: "text-xs text-blue-600 hover:text-blue-800" %>
-        </div>
-        <% if notification_data.unread_count > 0 %>
-          <%= link_to "Marcar todas como leídas", mark_all_read_admin_notifications_path, 
-              method: :post,
-              class: "text-xs text-blue-600 hover:text-blue-800",
-              data: { 
-                  action: "click->notifications#markAllAsRead"
-              } %>
-        <% end %>
+          <button data-dropdown-target="trigger"  
+            data-action="click->dropdown#toggle"
+            class="w-full flex items-center justify-start text-left hover:bg-gray-700 focus:outline-none p-2 rounded-lg">
+      <%= icon('fa-solid', 'bell', class: 'w-4 h-4 mr-2') %>
+      <span class="text-sm">Notificaciones</span>
+      <%= icon('fa-solid', 'chevron-up', class: 'mr-2 w-4 h-4 ml-auto transform transition-transform', data: { dropdown_target: 'icon' }) %>
+    </button>
+  </div>
+  
+  <!-- Notifications Dropdown -->
+  <div data-dropdown-target="menu" 
+       class="hidden absolute bottom-full left-0 right-0 mb-2 bg-white rounded-lg shadow-lg border z-50"
+       style="bottom: 100%; max-height: 40vh; overflow-y: auto;">
+    <div class="p-3 border-b border-gray-200">
+      <div class="flex items-center justify-between">
+        <h3 class="font-semibold text-gray-900">Notificaciones</h3>
+        <%= link_to "Ver todas", admin_notifications_path, 
+            class: "text-xs text-blue-600 hover:text-blue-800" %>
       </div>
-      <div class="max-h-60 overflow-y-auto">
-        <% if notification_data.recent_notifications.any? %>
-          <% notification_data.recent_notifications.each do |notification| %>
-            <div class="notification-item p-3 border-b border-gray-100 hover:bg-gray-50 <%= 'bg-blue-50' unless notification.read? %>"
-                 data-notification-id="<%= notification.id %>">
-              <div class="flex items-start space-x-3">
-                <div class="flex-shrink-0">
-                  <%= icon(*notification_icon_class(notification.notification_type).split(' ', 2)) %>
-                </div>
-                <% if notification.action_url.present? %>
-                  <%= link_to "#", 
-                      class: "flex-1 min-w-0 cursor-pointer block", 
-                      data: { 
-                          action: "click->notifications#markAsRead",
-                          notification_id: notification.id,
-                          notification_action_url: notification.action_url
-                      } do %>
-                    <p class="text-sm font-medium text-gray-900">
-                      <%= notification.title %>
-                    </p>
-                    <p class="text-sm text-gray-600">
-                      <%= notification.message %>
-                    </p>
-                    <p class="text-xs text-gray-500 mt-1">
-                      <%= notification_time_ago(notification.created_at) %>
-                    </p>
-                  <% end %>
-                <% else %>
-                  <div class="flex-1 min-w-0 cursor-pointer"
-                       data-action="click->notifications#markAsRead"
-                       data-notification-id="<%= notification.id %>">
-                    <p class="text-sm font-medium text-gray-900">
-                      <%= notification.title %>
-                    </p>
-                    <p class="text-sm text-gray-600">
-                      <%= notification.message %>
-                    </p>
-                    <p class="text-xs text-gray-500 mt-1">
-                      <%= notification_time_ago(notification.created_at) %>
-                    </p>
-                  </div>
-                <% end %>
-                <% unless notification.read? %>
-                  <div class="flex-shrink-0 unread-indicator">
-                    <div class="w-2 h-2 bg-blue-600 rounded-full"></div>
-                  </div>
-                <% end %>
+      <% if notification_data.unread_count > 0 %>
+        <%= link_to "Marcar todas como leídas", mark_all_read_admin_notifications_path, 
+            method: :post,
+            class: "text-xs text-blue-600 hover:text-blue-800",
+            data: { 
+                action: "click->notifications#markAllAsRead"
+            } %>
+      <% end %>
+    </div>
+    <div class="max-h-60 overflow-y-auto">
+      <% if notification_data.recent_notifications.any? %>
+        <% notification_data.recent_notifications.each do |notification| %>
+          <div class="notification-item p-3 border-b border-gray-100 hover:bg-gray-50 <%= 'bg-blue-50' unless notification.read? %>"
+               data-notification-id="<%= notification.id %>">
+            <div class="flex items-start space-x-3">
+              <div class="flex-shrink-0">
+                <%= icon(*notification_icon_class(notification.notification_type).split(' ', 2)) %>
               </div>
+              <% if notification.action_url.present? %>
+                <%= link_to "#", 
+                    class: "flex-1 min-w-0 cursor-pointer block", 
+                    data: { 
+                        action: "click->notifications#markAsRead",
+                        notification_id: notification.id,
+                        notification_action_url: notification.action_url
+                    } do %>
+                  <p class="text-sm font-medium text-gray-900">
+                    <%= notification.title %>
+                  </p>
+                  <p class="text-sm text-gray-600">
+                    <%= notification.message %>
+                  </p>
+                  <p class="text-xs text-gray-500 mt-1">
+                    <%= notification_time_ago(notification.created_at) %>
+                  </p>
+                <% end %>
+              <% else %>
+                <div class="flex-1 min-w-0 cursor-pointer"
+                     data-action="click->notifications#markAsRead"
+                     data-notification-id="<%= notification.id %>">
+                  <p class="text-sm font-medium text-gray-900">
+                    <%= notification.title %>
+                  </p>
+                  <p class="text-sm text-gray-600">
+                    <%= notification.message %>
+                  </p>
+                  <p class="text-xs text-gray-500 mt-1">
+                    <%= notification_time_ago(notification.created_at) %>
+                  </p>
+                </div>
+              <% end %>
+              <% unless notification.read? %>
+                <div class="flex-shrink-0 unread-indicator">
+                  <div class="w-2 h-2 bg-blue-600 rounded-full"></div>
+                </div>
+              <% end %>
             </div>
-          <% end %>
-        <% else %>
-          <div class="p-4 text-center text-gray-500">
-            <p>No tienes notificaciones</p>
           </div>
         <% end %>
-      </div>
+      <% else %>
+        <div class="p-4 text-center text-gray-500">
+          <p>No tienes notificaciones</p>
+        </div>
+      <% end %>
     </div>
   </div>
-<% end %>
+</div>

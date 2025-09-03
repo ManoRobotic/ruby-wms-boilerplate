@@ -16,14 +16,20 @@ module NotificationManagement
     # Get cached notification data to avoid repeated queries
     def cached_notifications_data(user_or_admin)
       cache_key = notifications_cache_key(user_or_admin)
+      Rails.logger.info "Fetching notifications from cache with key: #{cache_key}"
       
       Rails.cache.fetch(cache_key, expires_in: 2.minutes) do
+        Rails.logger.info "Cache miss for key: #{cache_key}. Fetching from DB."
         if user_or_admin.is_a?(Admin)
+          Rails.logger.info "User is an Admin."
           admin_user = User.find_by(email: user_or_admin.email, role: 'admin')
           notifications_scope = admin_user&.notifications || Notification.none
+          Rails.logger.info "Admin user found: #{admin_user&.email}"
         else
+          Rails.logger.info "User is a User."
           notifications_scope = user_or_admin.notifications
         end
+        Rails.logger.info "Notifications scope: #{notifications_scope.to_sql}"
 
         # Single query to get recent notifications with count
         recent_notifications = notifications_scope
@@ -31,8 +37,10 @@ module NotificationManagement
                                .order(created_at: :desc)
                                .limit(10)
                                .to_a
+        Rails.logger.info "Recent notifications found: #{recent_notifications.size}"
 
         unread_count = recent_notifications.count { |n| n.read_at.nil? }
+        Rails.logger.info "Unread count: #{unread_count}"
         
         {
           recent_notifications: recent_notifications,

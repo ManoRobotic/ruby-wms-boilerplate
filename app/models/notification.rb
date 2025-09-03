@@ -1,10 +1,12 @@
 class Notification < ApplicationRecord
   belongs_to :user, optional: true
+  belongs_to :company
 
   # Validations
   validates :title, presence: true, length: { maximum: 255 }
   validates :message, presence: true, length: { maximum: 1000 }
   validates :notification_type, presence: true, inclusion: { in: %w[task_assigned task_status_changed order_updated inventory_alert system admin_alert production_order_created] }
+  validates :company_id, presence: true
 
   # Serialized data
   serialize :data, coder: JSON
@@ -44,6 +46,7 @@ class Notification < ApplicationRecord
   def self.create_task_assignment(user:, task:)
     create!(
       user: user,
+      company: user.company,
       notification_type: "task_assigned",
       title: "Nueva tarea asignada",
       message: "Se te ha asignado la tarea: #{task.display_name}",
@@ -60,6 +63,7 @@ class Notification < ApplicationRecord
   def self.create_task_status_change(user:, task:, old_status:, new_status:)
     create!(
       user: user,
+      company: user.company,
       notification_type: "task_status_changed",
       title: "Estado de tarea actualizado",
       message: "La tarea #{task.display_name} cambió de #{old_status} a #{new_status}",
@@ -76,6 +80,7 @@ class Notification < ApplicationRecord
   def self.create_order_alert(admin:, order:, message:)
     create!(
       user: admin,
+      company: admin.company,
       notification_type: "order_updated",
       title: "Nueva orden recibida",
       message: message,
@@ -90,6 +95,7 @@ class Notification < ApplicationRecord
   def self.create_system_alert(admin:, title:, message:, action_url: nil)
     create!(
       user: admin,
+      company: admin.company,
       notification_type: "system",
       title: title,
       message: message,
@@ -101,6 +107,7 @@ class Notification < ApplicationRecord
   def self.create_inventory_alert(admin:, product:, warehouse:, message:)
     create!(
       user: admin,
+      company: admin.company,
       notification_type: "inventory_alert",
       title: "Alerta de inventario",
       message: message,
@@ -116,6 +123,7 @@ class Notification < ApplicationRecord
   def self.create_production_order_notification(user:, production_order:)
     create!(
       user: user,
+      company: user.company,
       notification_type: "production_order_created",
       title: "Nueva orden de producción creada",
       message: "Se ha creado la orden de producción #{production_order.no_opro || production_order.order_number} para el producto #{production_order.product.name}",
