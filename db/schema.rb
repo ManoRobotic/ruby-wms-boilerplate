@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_08_27_192855) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_02_003814) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -224,6 +224,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_27_192855) do
     t.string "action_url"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.uuid "company_id", null: false
+    t.index ["company_id"], name: "index_notifications_on_company_id"
     t.index ["created_at"], name: "index_notifications_on_created_at"
     t.index ["notification_type"], name: "index_notifications_on_notification_type"
     t.index ["read_at"], name: "index_notifications_on_read_at"
@@ -634,6 +636,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_27_192855) do
   add_foreign_key "inventory_transactions", "products"
   add_foreign_key "inventory_transactions", "warehouses"
   add_foreign_key "locations", "zones"
+  add_foreign_key "notifications", "companies"
   add_foreign_key "notifications", "users"
   add_foreign_key "order_products", "orders"
   add_foreign_key "order_products", "products"

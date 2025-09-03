@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["count"]
+  static targets = ["indicator"]
   
   connect() {
     this.controllerId = Math.random().toString(36).substring(2, 11)
@@ -22,6 +22,13 @@ export default class extends Controller {
     this.createToastContainer()
     
     this.connectToCable()
+    
+    // Start polling immediately to ensure notifications are up to date
+    this.startPolling()
+    // Also do an immediate poll to get current notification count
+    setTimeout(() => {
+      this.pollForNotifications()
+    }, 100)
   }
   
   disconnect() {
@@ -60,6 +67,8 @@ export default class extends Controller {
           return
         }
         
+        console.log('🔔 Received notification data:', data);
+        
         if (data.type === 'new_notification' && data.notification) {
           // Create a unique key to prevent duplicate processing
           const notificationKey = `${data.notification.title}_${data.notification.message}_${Date.now()}`
@@ -84,6 +93,7 @@ export default class extends Controller {
           
           // Show the notification
           this.showNotificationToast(data.notification)
+          console.log('📊 Incrementing notification count');
           this.incrementNotificationCount()
           this.refreshNotifications()
         }
@@ -412,42 +422,56 @@ export default class extends Controller {
   }
 
   updateNotificationCount() {
-    const countElement = document.querySelector('.notification-count')
+    const indicatorContainer = this.indicatorTarget;
+    if (!indicatorContainer) return;
+
+    let countElement = indicatorContainer.querySelector('.notification-count');
     if (countElement) {
-      const currentCount = parseInt(countElement.textContent.replace('+', ''))
-      const newCount = Math.max(0, currentCount - 1)
-      
+      const currentCount = parseInt(countElement.textContent.replace('+', '')) || 0;
+      const newCount = Math.max(0, currentCount - 1);
+
       if (newCount === 0) {
-        countElement.remove()
+        countElement.remove();
       } else {
-        countElement.textContent = newCount > 99 ? "99+" : newCount.toString()
+        countElement.textContent = newCount > 99 ? "99+" : newCount.toString();
       }
     }
   }
-  
+
   incrementNotificationCount() {
-    const countElement = document.querySelector('.notification-count')
-    if (countElement) {
-      const currentCount = parseInt(countElement.textContent.replace('+', '')) || 0
-      const newCount = currentCount + 1
-      countElement.textContent = newCount > 99 ? "99+" : newCount.toString()
-      countElement.style.display = 'flex'
-    } else {
-      const indicatorContainer = document.querySelector('.indicator')
-      if (indicatorContainer) {
-        const countSpan = document.createElement('span')
-        countSpan.className = 'notification-count indicator-item badge bg-red-500 text-white text-xs font-medium border-0 min-w-[20px] h-5 flex items-center justify-center'
-        countSpan.textContent = '1'
-        indicatorContainer.insertBefore(countSpan, indicatorContainer.firstChild)
-      }
+    console.log('[Notifications] incrementNotificationCount called');
+    const indicatorContainer = this.indicatorTarget;
+    console.log('[Notifications] indicatorContainer:', indicatorContainer);
+    if (!indicatorContainer) {
+      console.error('[Notifications] indicatorContainer not found!');
+      return;
     }
+
+    let countElement = indicatorContainer.querySelector('.notification-count');
+    console.log('[Notifications] existing countElement:', countElement);
+
+    if (!countElement) {
+      console.log('[Notifications] No countElement found, creating a new one.');
+      countElement = document.createElement('span');
+      countElement.className = 'notification-count inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full';
+      indicatorContainer.appendChild(countElement);
+      console.log('[Notifications] new countElement created and appended:', countElement);
+    }
+    
+    const currentCount = parseInt(countElement.textContent.replace('+', '')) || 0;
+    const newCount = currentCount + 1;
+    console.log(`[Notifications] currentCount: ${currentCount}, newCount: ${newCount}`);
+    
+    countElement.textContent = newCount > 99 ? "99+" : newCount.toString();
+    console.log('[Notifications] countElement text updated to:', countElement.textContent);
   }
   
   startPolling() {
     this.lastPoll = new Date().toISOString()
+    // Poll every 10 seconds instead of 30 seconds for more responsive updates
     this.pollInterval = setInterval(() => {
       this.pollForNotifications()
-    }, 30000)
+    }, 10000)
   }
   
   stopPolling() {
@@ -472,35 +496,37 @@ export default class extends Controller {
         
         this.lastPoll = data.last_poll
         
+        // Show toasts for new notifications
         data.notifications.forEach(notification => {
           this.showToast('notification', notification.title, notification.message, 8000)
         })
         
-        if (data.notifications.length > 0) {
-          this.updateNotificationCountFromServer(data.unread_count)
-        }
+        // Always update the notification count from server, regardless of whether there are new notifications
+        // This ensures the counter is accurate even if notifications were marked as read elsewhere
+        this.updateNotificationCountFromServer(data.unread_count)
       }
     } catch (error) {
+      console.error('Error polling notifications:', error)
     }
   }
   
   updateNotificationCountFromServer(serverCount) {
-    const countElement = document.querySelector('.notification-count')
+    const indicatorContainer = this.indicatorTarget;
+    if (!indicatorContainer) return;
+
+    let countElement = indicatorContainer.querySelector('.notification-count');
+
     if (serverCount > 0) {
-      if (countElement) {
-        countElement.textContent = serverCount > 99 ? "99+" : serverCount.toString()
-        countElement.style.display = 'flex'
-      } else {
-        const indicatorContainer = document.querySelector('.indicator')
-        if (indicatorContainer) {
-          const countSpan = document.createElement('span')
-          countSpan.className = 'notification-count indicator-item badge bg-red-500 text-white text-xs font-medium border-0 min-w-[20px] h-5 flex items-center justify-center'
-          countSpan.textContent = serverCount > 99 ? "99+" : serverCount.toString()
-          indicatorContainer.insertBefore(countSpan, indicatorContainer.firstChild)
-        }
+      if (!countElement) {
+        countElement = document.createElement('span');
+        countElement.className = 'notification-count inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full';
+        indicatorContainer.appendChild(countElement);
       }
-    } else if (countElement) {
-      countElement.remove()
+      countElement.textContent = serverCount > 99 ? "99+" : serverCount.toString();
+    } else {
+      if (countElement) {
+        countElement.remove();
+      }
     }
   }
   

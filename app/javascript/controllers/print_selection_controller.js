@@ -4,36 +4,8 @@ export default class extends Controller {
   printSelected(event) {
     event.preventDefault()
     
-    const selectedCheckboxes = document.querySelectorAll('.order-checkbox:checked')
-    
-    if (selectedCheckboxes.length === 0) {
-      alert('Por favor selecciona al menos una orden para imprimir.')
-      return
-    }
-
-    // First get the count of selected orders from the counter
-    const counterElement = document.getElementById('selected-count')
-    const selectedCount = counterElement ? parseInt(counterElement.textContent) : selectedCheckboxes.length
-
-    // Show confirmation dialog with warning about material waste
-    const confirmMessage = `⚠️ CONFIRMACIÓN DE IMPRESIÓN ⚠️
-
-¿Estás seguro de que quieres imprimir ${selectedCount} órdenes de producción?
-
-⚠️ ADVERTENCIA: Esta operación consumirá material de impresión y no se puede deshacer.
-
-• Se imprimirán ${selectedCount} documentos
-• Se consumirá papel y tinta/tóner
-• Revisa que las órdenes seleccionadas sean correctas
-
-¿Proceder con la impresión?`
-
-    if (!confirm(confirmMessage)) {
-      return
-    }
-    
     // Fetch the selected orders data from the server
-    fetch('/admin/production_orders/selected_orders_data', {
+    fetch('/admin/inventory_codes/selected_data', {
       method: "GET",
       headers: {
         "X-CSRF-Token": document.querySelector("meta[name='csrf-token']").content,
@@ -49,28 +21,27 @@ export default class extends Controller {
     .then(data => {
       if (data.status === "success") {
         // Log data to console as requested
-        console.log('DATOS DE ÓRDENES SELECCIONADAS:')
+        console.log('DATOS DE CÓDIGOS DE INVENTARIO SELECCIONADOS:')
         console.log(JSON.stringify(data, null, 2))
         
         // Show a summary in console
-        console.log('RESUMEN DE ÓRDENES:')
-        data.data.forEach((order, index) => {
-          console.log(`${index + 1}. ${order.no_opro || order.order_number} - ${order.product.name} (${order.status})`)
+        console.log('RESUMEN DE CÓDIGOS:')
+        data.data.forEach((code, index) => {
+          console.log(`${index + 1}. ${code.no_ordp} - ${code.cve_prod} (${code.status_display})`)
         })
         
         // Show success message to user
         alert(`✅ IMPRESIÓN COMPLETADA
 
-Datos de ${data.count} órdenes procesados exitosamente.
+Datos de ${data.count} códigos procesados exitosamente.
 
 📄 Los documentos han sido enviados a imprimir
-📋 Revisa la consola del navegador (F12) para ver los datos JSON completos
-⚠️ Recuerda verificar que la impresora tenga suficiente papel y tinta`)
+📋 Revisa la consola del navegador (F12) para ver los datos JSON completos`)
       } else {
         console.error('Error al obtener datos:', data.message)
         alert(`❌ ERROR EN LA IMPRESIÓN
 
-No se pudieron obtener los datos de las órdenes seleccionadas.
+No se pudieron obtener los datos de los códigos seleccionados.
 
 🔧 Detalles: ${data.message}
 💡 Intenta recargar la página e intentar nuevamente`)

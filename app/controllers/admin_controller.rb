@@ -8,6 +8,8 @@ class AdminController < ApplicationController
   before_action :authenticate_admin_or_privileged_user!
   before_action :ensure_admin_permissions!
 
+  helper_method :sort_column, :sort_direction
+
   def index
     # Use new Order scopes and methods for better performance
     @recent_orders = Order.pending.recent.limit(5)
@@ -49,6 +51,18 @@ class AdminController < ApplicationController
   end
 
   private
+
+  def sortable_columns
+    []
+  end
+
+  def sort_column
+    sortable_columns.include?(params[:column]) ? params[:column] : "created_at"
+  end
+
+  def sort_direction
+    %w[asc desc].include?(params[:direction]) ? params[:direction] : "desc"
+  end
 
   def calculate_quick_stats
     today_start = Time.current.beginning_of_day

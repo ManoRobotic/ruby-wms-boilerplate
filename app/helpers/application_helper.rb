@@ -1,4 +1,12 @@
 module ApplicationHelper
+  def sort_link(column, title = nil)
+    title ||= column.titleize
+    direction = (column == sort_column && sort_direction == "asc") ? "desc" : "asc"
+    icon = sort_direction == "asc" ? "fas fa-sort-up" : "fas fa-sort-down"
+    icon_tag = (column == sort_column) ? content_tag(:i, "", class: icon) : ""
+    link_to "#{title} #{icon_tag}".html_safe, { column: column, direction: direction }
+  end
+
   def generate_breadcrumbs
     # Divide la URL actual en segmentos, excluyendo parámetros o rutas no deseadas
     segments = request.fullpath.split("/").reject(&:blank?)

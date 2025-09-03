@@ -8,6 +8,10 @@ export default class extends Controller {
     console.log("Inventory Code controller connected!")
   }
 
+  reloadTable() {
+    location.reload()
+  }
+
   openPrintModal(event) {
     event.preventDefault()
     const button = event.currentTarget

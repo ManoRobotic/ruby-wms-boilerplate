@@ -65,8 +65,10 @@ export default class extends Controller {
         const existingToasts = document.querySelectorAll('[data-toast]')
         existingToasts.forEach(toast => toast.remove())
                 
-        // Redirect immediately
-        window.location.href = `/admin/production_orders/${data.production_order.id}`
+        // Add a small delay before redirect to allow notification update to register
+        setTimeout(() => {
+          window.location.href = `/admin/production_orders/${data.production_order.id}`
+        }, 300)
         
       } else {
         console.error('Error creating production order:', data)
@@ -83,23 +85,30 @@ export default class extends Controller {
   }
   
   updateNotificationCounter() {
-    const countElement = document.querySelector('.notification-count')
-    if (countElement) {
-      const currentCount = parseInt(countElement.textContent.replace('+', '')) || 0
-      const newCount = currentCount + 1
-      countElement.textContent = newCount > 99 ? "99+" : newCount.toString()
-      
-      // Make sure the indicator is visible
-      countElement.style.display = 'flex'
-    } else {
-      // Create new count element if it doesn't exist
-      const indicatorContainer = document.querySelector('.indicator')
-      if (indicatorContainer) {
-        const countSpan = document.createElement('span')
-        countSpan.className = 'notification-count indicator-item badge bg-red-500 text-white text-xs font-medium border-0 min-w-[20px] h-5 flex items-center justify-center'
-        countSpan.textContent = '1'
-        indicatorContainer.insertBefore(countSpan, indicatorContainer.firstChild)
-      }
+    // Dispatch event to trigger notification update in notifications controller
+    const notificationEvent = new CustomEvent('notifications:poll')
+    document.dispatchEvent(notificationEvent)
+    
+    // Also update the counter directly as a fallback
+    // Find the notification indicator container
+    const indicatorContainer = document.querySelector('.notification-indicator')
+    if (!indicatorContainer) return
+    
+    // Get existing count or start from 0
+    const existingCountElement = indicatorContainer.querySelector('.notification-count')
+    const currentCount = existingCountElement ? 
+      (parseInt(existingCountElement.textContent.replace('+', '')) || 0) : 0
+    const newCount = currentCount + 1
+    
+    // Remove existing count element if it exists
+    if (existingCountElement) {
+      existingCountElement.remove()
     }
+    
+    // Create and show the new notification count
+    const countSpan = document.createElement('span')
+    countSpan.className = 'notification-count inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full'
+    countSpan.textContent = newCount > 99 ? "99+" : newCount.toString()
+    indicatorContainer.appendChild(countSpan)
   }
 }

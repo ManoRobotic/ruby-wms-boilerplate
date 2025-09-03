@@ -196,6 +196,9 @@ Rails.application.routes.draw do
       collection do
         post :import_excel
         get :export_excel
+        get :selected_data
+        post :toggle_selection
+        delete :clear_selection
       end
     end
   end

@@ -109,6 +109,7 @@ class Admin::ProductionOrdersController < AdminController
     end
 
     if @production_order.save
+      Rails.logger.info "Production order saved successfully."
       
       # Send notifications to all users who should be notified about production orders
       notification_data = {
@@ -118,31 +119,56 @@ class Admin::ProductionOrdersController < AdminController
         quantity: @production_order.quantity_requested,
         status: @production_order.status
       }.to_json
+      Rails.logger.info "Notification data created: #{notification_data}"
 
-      # Create notifications using batch insert for better performance
-      target_users = User.where(role: ['admin', 'manager', 'supervisor', 'operador'])
-      
-      # Prepare notification records for batch insert
-      notification_records = target_users.map do |user|
-        {
-          user_id: user.id,
-          notification_type: "production_order_created",
-          title: "Nueva orden de producción creada",
-          message: "Se ha creado la orden de producción #{@production_order.no_opro || @production_order.order_number} para el producto #{@production_order.product.name}",
-          action_url: "/admin/production_orders/#{@production_order.id}",
-          data: notification_data,
-          created_at: Time.current,
-          updated_at: Time.current
-        }
-      end
-      
-      # Batch insert notifications (much faster than individual creates)
-      if notification_records.any?
-        Notification.insert_all(notification_records)
+      # Create notifications for all relevant users in the same company
+      if @production_order.company
+        Rails.logger.info "Production order has a company: #{@production_order.company.name}"
+        target_users = User.where(company: @production_order.company, role: ['admin', 'manager', 'supervisor', 'operador'])
+        Rails.logger.info "Target users for notification: #{target_users.pluck(:email)}"
         
-        # Expire cache for each user
-        target_users.find_each do |user|
-          Rails.cache.delete("notifications_data:user:#{user.id}:#{user.updated_at}")
+        notification_records = target_users.map do |user|
+          {
+            user_id: user.id,
+            company_id: @production_order.company_id,
+            notification_type: "production_order_created",
+            title: "Nueva orden de producción creada",
+            message: "Se ha creado la orden de producción #{@production_order.no_opro || @production_order.order_number} para el producto #{@production_order.product.name}",
+            action_url: "/admin/production_orders/#{@production_order.id}",
+            data: notification_data,
+            created_at: Time.current,
+            updated_at: Time.current
+          }
+        end
+
+        if notification_records.any?
+          Rails.logger.info "Inserting #{notification_records.size} notification records."
+          Notification.insert_all(notification_records)
+          Rails.logger.info "Notification records inserted."
+          
+          # Expire notification caches for all target users BEFORE touching them
+          # This ensures we're clearing the current cache entries
+          target_users.find_each do |user|
+            cache_key = "notifications_data:#{user.class.name.downcase}:#{user.id}:#{user.updated_at}"
+            Rails.cache.delete(cache_key)
+          end
+          
+          # Touch user records to update their updated_at timestamps
+          # This ensures new cache entries will have different keys
+          target_users.find_each(&:touch)
+        else
+          Rails.logger.info "No notification records to insert."
+        end
+      else
+        Rails.logger.info "Production order does not have a company."
+      end
+
+      # Expire notification caches for all users in the company before broadcasting
+      if @production_order.company
+        User.where(company: @production_order.company, role: ['admin', 'manager', 'supervisor', 'operador']).find_each do |user|
+          # Manually expire the cache by deleting the cache key
+          cache_key = "notifications_data:#{user.class.name.downcase}:#{user.id}:#{user.updated_at}"
+          Rails.cache.delete(cache_key)
         end
       end
 
@@ -765,50 +791,26 @@ class Admin::ProductionOrdersController < AdminController
   end
 
   def broadcast_notifications(production_order)
-    # Get the current user ID to exclude them from toast notifications
-    current_user_id = current_user&.id || current_admin&.id
-    Rails.logger.info "🔍 Current user ID for broadcast exclusion: #{current_user_id}"
-    
-    # Prepare notification data
-    notification_data = {
-      title: "Orden creada!",
-      message: "Orden #{production_order.no_opro || production_order.order_number} para #{production_order.product.name}",
-      type: "success",
-      duration: 15000, # 15 seconds
-      action_url: "/admin/production_orders/#{production_order.id}",
-      timestamp: Time.current.iso8601
-    }
+    if production_order.company
+      notification_data = {
+        title: "Orden creada!",
+        message: "Orden #{production_order.no_opro || production_order.order_number} para #{production_order.product.name}",
+        type: "success",
+        duration: 15000, # 15 seconds
+        action_url: "/admin/production_orders/#{production_order.id}",
+        timestamp: Time.current.iso8601
+      }
 
-    # Send to all relevant users via ActionCable (unified approach)
-    target_users = User.where(role: ['admin', 'manager', 'supervisor', 'operador'])
-    
-    # Also include admin users that correspond to Admin records
-    Admin.find_each do |admin|
-      admin_user = User.find_by(email: admin.email, role: 'admin')
-      if admin_user && !target_users.include?(admin_user)
-        target_users = target_users.or(User.where(id: admin_user.id))
-      end
-    end
-    
-    Rails.logger.info "👥 Target users for broadcast: #{target_users.pluck(:id, :email, :role).inspect}"
-    
-    # Broadcast to each user only once
-    target_users.distinct.find_each do |user|
-      # Don't show toast to the user who created the order
-      show_toast = user.id != current_user_id
-      
-      channel_name = "notifications_#{user.id}"
-      Rails.logger.info "📢 Broadcasting to channel: #{channel_name} (#{user.email} - #{user.role}) - show_toast: #{show_toast}"
-      
+      # Broadcast to company-specific channel
+      broadcasting_name = "notifications:#{production_order.company.to_gid_param}"
       ActionCable.server.broadcast(
-        channel_name,
+        broadcasting_name,
         {
           type: 'new_notification',
-          notification: notification_data.merge(show_toast: show_toast)
+          notification: notification_data
         }
       )
     end
-    
   end
 
   def set_production_order
