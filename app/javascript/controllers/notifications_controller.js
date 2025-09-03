@@ -67,8 +67,6 @@ export default class extends Controller {
           return
         }
         
-        console.log('🔔 Received notification data:', data);
-        
         if (data.type === 'new_notification' && data.notification) {
           // Create a unique key to prevent duplicate processing
           const notificationKey = `${data.notification.title}_${data.notification.message}_${Date.now()}`
@@ -93,7 +91,6 @@ export default class extends Controller {
           
           // Show the notification
           this.showNotificationToast(data.notification)
-          console.log('📊 Incrementing notification count');
           this.incrementNotificationCount()
           this.refreshNotifications()
         }
@@ -439,31 +436,21 @@ export default class extends Controller {
   }
 
   incrementNotificationCount() {
-    console.log('[Notifications] incrementNotificationCount called');
     const indicatorContainer = this.indicatorTarget;
-    console.log('[Notifications] indicatorContainer:', indicatorContainer);
-    if (!indicatorContainer) {
-      console.error('[Notifications] indicatorContainer not found!');
-      return;
-    }
+    if (!indicatorContainer) return;
 
     let countElement = indicatorContainer.querySelector('.notification-count');
-    console.log('[Notifications] existing countElement:', countElement);
 
     if (!countElement) {
-      console.log('[Notifications] No countElement found, creating a new one.');
       countElement = document.createElement('span');
       countElement.className = 'notification-count inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full';
       indicatorContainer.appendChild(countElement);
-      console.log('[Notifications] new countElement created and appended:', countElement);
     }
     
     const currentCount = parseInt(countElement.textContent.replace('+', '')) || 0;
     const newCount = currentCount + 1;
-    console.log(`[Notifications] currentCount: ${currentCount}, newCount: ${newCount}`);
     
     countElement.textContent = newCount > 99 ? "99+" : newCount.toString();
-    console.log('[Notifications] countElement text updated to:', countElement.textContent);
   }
   
   startPolling() {
