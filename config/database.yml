@@ -86,5 +86,3 @@ test:
 production:
   <<: *default
   database: wms_system_app_production
-  username: wms_system_app
-  password: <%= ENV["WMS_SYSTEM_APP_DATABASE_PASSWORD"] %>

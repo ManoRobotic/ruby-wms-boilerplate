@@ -142,7 +142,8 @@ class Wave < ApplicationRecord
   end
 
   def generate_pick_lists
-    WaveProcessingJob.perform_later(self)
+    # Sidekiq jobs removed - using ActiveJob inline adapter
+    # WaveProcessingJob.perform_later(self)
   end
 
   def update_pick_lists_status

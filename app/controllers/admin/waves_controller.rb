@@ -164,7 +164,8 @@ class Admin::WavesController < AdminController
 
   def complete
     if @wave.complete!
-      WaveNotificationJob.perform_later(@wave, "completed")
+      # Sidekiq jobs removed - using ActiveJob inline adapter
+      # WaveNotificationJob.perform_later(@wave, "completed")
       redirect_to admin_warehouse_wave_path(@warehouse, @wave),
                   notice: "Wave #{@wave.name} completada exitosamente."
     else

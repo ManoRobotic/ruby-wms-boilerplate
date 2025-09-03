@@ -409,8 +409,9 @@ class Admin::ProductionOrdersController < AdminController
   end
 
   def sync_excel_data
-    SyncExcelDataJob.perform_later
-    redirect_to admin_production_orders_path, notice: "La sincronización de datos de Excel ha comenzado. Los datos se actualizarán en breve."
+    # Temporarily disabled due to deployment issues with missing 'ORDEN PRODUCCION' sheet
+    # SyncExcelDataJob.perform_later
+    redirect_to admin_production_orders_path, notice: "La sincronización de datos de Excel está temporalmente deshabilitada."
   end
 
   def sync_google_sheets_opro

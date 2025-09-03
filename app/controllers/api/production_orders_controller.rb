@@ -1,5 +1,4 @@
 class Api::ProductionOrdersController < ActionController::API
-  skip_before_action :verify_authenticity_token
 
   def create
     company = Company.find_by(name: params[:company_name])

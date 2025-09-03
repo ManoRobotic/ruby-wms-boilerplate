@@ -68,5 +68,8 @@ Rails.application.configure do
   # Allow all hosts in test environment
   config.hosts.clear
 
+  # ActiveJob configuration
+  config.active_job.queue_adapter = :inline
+
   config.assets.compile = true
 end

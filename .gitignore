@@ -52,3 +52,4 @@ yarn-error.log
 
 /dbf
 credentials.json
+/config/credentials/production.key

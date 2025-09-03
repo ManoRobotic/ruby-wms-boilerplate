@@ -222,8 +222,7 @@ bin/brakeman               # Security analysis (0 vulnerabilities)
 bin/rubocop                # Code linting
 
 # WMS Operations
-bin/rails runner "InventorySyncJob.perform_now"    # Sync inventory
-bin/rails runner "PickListOptimizationJob.perform_now(pick_list_id)"  # Optimize routes
+# (Sidekiq jobs removed - using ActiveJob inline adapter)
 
 # Assets
 bin/rails assets:precompile # Compile assets for production

@@ -4,7 +4,7 @@ Rails.application.configure do
   config.action_mailer.default_url_options = { host: "localhost", port: 3000 }
   
   # ActiveJob configuration
-  config.active_job.queue_adapter = :async
+  config.active_job.queue_adapter = :inline
 
 
   # Settings specified here will take precedence over those in config/application.rb.
