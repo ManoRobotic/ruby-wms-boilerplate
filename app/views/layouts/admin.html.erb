@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title><%= content_for(:title) || "WMS App" %></title>
+    <title><%= content_for(:title) || "Wmsys" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <%= csrf_meta_tags %>
@@ -20,10 +20,7 @@
 
   <body data-controller="toast" class="bg-gray-800">
     <main>
-      <%= render 'shared/header_admin' %>
-      
-      <%# Flash toasts removidos para evitar duplicación %>
-      
+      <%= render 'shared/header_admin' %>      
       <%= yield %>
     </main>
   </body>
