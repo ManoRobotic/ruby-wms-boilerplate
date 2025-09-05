@@ -216,9 +216,9 @@ class ProductionOrder < ApplicationRecord
       cve_prod: clave_producto, # Assuming clave_producto is what's displayed
       lote: lote_referencia,
       quantity: quantity_requested, # This is the requested quantity, not produced
-      metros_lineales: production_order_items.sum(&:metros_lineales).to_f,
-      peso_bruto: production_order_items.sum(&:peso_bruto).to_f,
-      peso_neto: production_order_items.sum(&:peso_neto).to_f,
+      metros_lineales: production_order_items.sum { |item| item.metros_lineales || 0 }.to_f,
+      peso_bruto: production_order_items.sum { |item| item.peso_bruto || 0 }.to_f,
+      peso_neto: production_order_items.sum { |item| item.peso_neto || 0 }.to_f,
       carga: carga_copr&.to_f,
       status: status,
       status_humanized: status.humanize,

@@ -88,7 +88,8 @@
                 <%= form.number_field :micras, 
                     class: "block w-full text-sm rounded-lg border-blue-300 focus:border-blue-500 focus:ring-blue-500",
                     placeholder: "35",
-                    min: 1 %>
+                    min: 1,
+                    data: { form_validation_target: "micras", action: "input->form-validation#calculateWeights" } %>
               </div>
 
               <div>
@@ -96,7 +97,8 @@
                 <%= form.number_field :ancho_mm, 
                     class: "block w-full text-sm rounded-lg border-blue-300 focus:border-blue-500 focus:ring-blue-500",
                     placeholder: "420",
-                    min: 1 %>
+                    min: 1,
+                    data: { form_validation_target: "ancho", action: "input->form-validation#calculateWeights" } %>
               </div>
 
               <div>
@@ -123,7 +125,7 @@
                     placeholder: "0.00",
                     step: 0.01,
                     min: 0,
-                    data: { action: "input->form-validation#calculateWeights" } %>
+                    data: { action: "input->form-validation#calculateWeights", form_validation_target: "pesoBruto" } %>
                 <p class="text-xs text-orange-600 mt-1">Peso directo de la báscula</p>
               </div>
 
@@ -133,7 +135,7 @@
                     class: "block w-full text-sm rounded-lg border-orange-300 focus:border-orange-500 focus:ring-orange-500",
                     placeholder: "150",
                     min: 0,
-                    data: { action: "input->form-validation#calculateWeights" } %>
+                    data: { form_validation_target: "pesoCore", action: "input->form-validation#calculateWeights" } %>
                 <p class="text-xs text-orange-600 mt-1">Se resta del peso bruto para calcular peso neto</p>
               </div>
 
@@ -143,7 +145,8 @@
                     class: "block w-full text-sm rounded-lg border-orange-300 focus:border-orange-500 focus:ring-orange-500 bg-gray-50",
                     placeholder: "0.00",
                     step: 0.01,
-                    readonly: true %>
+                    readonly: true,
+                    data: { form_validation_target: "pesoNeto" } %>
                 <p class="text-xs text-orange-600 mt-1">Se calcula automáticamente: Peso Bruto - (Peso Core / 1000)</p>
               </div>
             </div>
@@ -160,7 +163,8 @@
                     class: "block w-full text-sm rounded-lg border-purple-300 focus:border-purple-500 focus:ring-purple-500 bg-gray-50",
                     placeholder: "0.0000",
                     step: 0.0001,
-                    readonly: true %>
+                    readonly: true,
+                    data: { form_validation_target: "metros" } %>
                 <p class="text-xs text-purple-600 mt-1">Se calcula automáticamente usando la fórmula:<br>
                   <code class="text-xs">((Peso neto * 1,000,000) / micras / ancho mm / 0.92)</code>
                 </p>
@@ -215,49 +219,11 @@
             Cancelar
           <% end %>
           <%= form.submit "Crear Consecutivo", 
-              class: "px-4 py-2 text-sm font-medium text-white bg-emerald-600 border border-transparent rounded-md hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500" %>
+              class: "px-4 py-2 text-sm font-medium text-white bg-emerald-600 border border-transparent rounded-md hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500",
+              data: { action: "form-validation#validateForm", form_validation_target: "submit" },
+              disabled: true %>
         </div>
       <% end %>
     </div>
   </div>
 </div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  const pesobrutoInput = document.querySelector('input[name="production_order_item[peso_bruto]"]');
-  const pesoCoreInput = document.querySelector('input[name="production_order_item[peso_core_gramos]"]');
-  const pesoNetoInput = document.querySelector('input[name="production_order_item[peso_neto]"]');
-  const micrasInput = document.querySelector('input[name="production_order_item[micras]"]');
-  const anchoInput = document.querySelector('input[name="production_order_item[ancho_mm]"]');
-  const metrosInput = document.querySelector('input[name="production_order_item[metros_lineales]"]');
-
-  function calculateValues() {
-    const pesoBruto = parseFloat(pesobrutoInput.value) || 0;
-    const pesoCore = parseFloat(pesoCoreInput.value) || 0;
-    const micras = parseFloat(micrasInput.value) || 0;
-    const ancho = parseFloat(anchoInput.value) || 0;
-
-    // Calcular peso neto
-    const pesoNeto = pesoBruto - (pesoCore / 1000);
-    pesoNetoInput.value = pesoNeto.toFixed(3);
-
-    // Calcular metros lineales
-    if (pesoNeto > 0 && micras > 0 && ancho > 0) {
-      const metros = (pesoNeto * 1000000) / micras / ancho / 0.92;
-      metrosInput.value = metros.toFixed(4);
-    } else {
-      metrosInput.value = '';
-    }
-  }
-
-  // Event listeners
-  [pesobrutoInput, pesoCoreInput, micrasInput, anchoInput].forEach(input => {
-    if (input) {
-      input.addEventListener('input', calculateValues);
-    }
-  });
-
-  // Initial calculation if values are present
-  calculateValues();
-});
-</script>

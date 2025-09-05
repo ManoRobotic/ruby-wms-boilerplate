@@ -540,16 +540,9 @@
                         <div class="flex items-center gap-2">
                             <%= form.text_field :folio_consecutivo, 
                                 class: "bg-slate-50 border border-slate-300 text-slate-700 text-sm rounded-lg block w-full p-2.5",
-                                readonly: true,
                                 value: ProductionOrderItem.generate_folio_consecutivo(@production_order),
                                 placeholder: "Se genera automáticamente" %>
-                            <button type="button"
-                                    onclick="this.previousElementSibling.value = '<%= ProductionOrderItem.generate_folio_consecutivo(@production_order) %>'"
-                                    class="px-3 py-2 bg-gray-600 text-white text-sm rounded-lg hover:bg-gray-700 transition-colors whitespace-nowrap">
-                                Regenerar
-                            </button>
                         </div>
-                        <p class="text-xs text-gray-600 mt-1">Generado automáticamente basado en el lote. Use "Regenerar" si hay conflictos.</p>
                     </div>
 
                     <!-- Product Name (Pre-filled with clave_producto) -->
@@ -566,7 +559,15 @@
 
                     <!-- Control de modo de pesaje -->
                     <div class="mb-6">
-                        <div class="flex items-center mb-4">
+                        <!-- Mensaje cuando está en modo báscula -->
+                        <div data-consecutivo-form-target="scaleWeightSection">
+                            <p class="text-sm text-blue-600 bg-blue-50 border border-blue-200 rounded-lg p-3">
+                                <span class="font-medium">Modo Báscula Activo:</span> Use el control de pesaje abajo para obtener el peso automáticamente.
+                            </p>
+                        </div>
+                        
+                        <!-- Checkbox moved here -->
+                        <div class="flex items-center mt-3">
                             <label class="flex items-center cursor-pointer">
                                 <input type="checkbox" 
                                        class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
@@ -592,13 +593,6 @@
                                     } %>
                             </div>
                             <p class="text-xs text-gray-600 mt-1">Ingrese el peso manualmente</p>
-                        </div>
-
-                        <!-- Mensaje cuando está en modo báscula -->
-                        <div data-consecutivo-form-target="scaleWeightSection">
-                            <p class="text-sm text-blue-600 bg-blue-50 border border-blue-200 rounded-lg p-3">
-                                <span class="font-medium">Modo Báscula Activo:</span> Use el control de pesaje abajo para obtener el peso automáticamente.
-                            </p>
                         </div>
                     </div>
 
@@ -687,20 +681,7 @@
                         </div>
                     </div>
 
-                    <!-- Terminal / Logs Section -->
-                    <div class="bg-gray-900 rounded-lg p-4 mb-4">
-                        <div class="flex items-center justify-between mb-2">
-                            <h4 class="text-sm font-medium text-gray-200">Terminal</h4>
-                            <button type="button"
-                                    data-action="click->serial#clearLogs" 
-                                    class="px-2 py-1 text-xs bg-gray-700 text-gray-300 rounded hover:bg-gray-600 transition-colors">
-                                Limpiar
-                            </button>
-                        </div>
-                        <div data-serial-target="logs" 
-                             class="logs-container h-32 overflow-y-auto p-3 bg-black text-green-400 text-xs font-mono rounded border border-gray-600">
-                        </div>
-                    </div>
+                    
                 </div>
 
                 <!-- Hidden fields for calculated values -->
