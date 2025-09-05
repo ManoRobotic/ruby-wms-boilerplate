@@ -27,14 +27,22 @@ export default class extends Controller {
       this.manualWeightSectionTarget.classList.remove('hidden')
     }
     
-    // Ocultar mensaje de modo báscula
+    // Cambiar visibilidad de los mensajes
     if (this.hasScaleWeightSectionTarget) {
-      this.scaleWeightSectionTarget.classList.add('hidden')
+      const scaleMessage = this.scaleWeightSectionTarget.querySelector('.scale-mode-message')
+      const manualMessage = this.scaleWeightSectionTarget.querySelector('.manual-mode-message')
+      
+      if (scaleMessage) {
+        scaleMessage.classList.add('hidden')
+      }
+      if (manualMessage) {
+        manualMessage.classList.remove('hidden')
+      }
     }
     
-    // Deshabilitar sección de pesaje serial
+    // Ocultar sección de pesaje serial
     if (this.hasSerialSectionTarget) {
-      this.serialSectionTarget.classList.add('opacity-50', 'pointer-events-none')
+      this.serialSectionTarget.classList.add('hidden')
     }
     
     // Habilitar input de peso
@@ -58,14 +66,22 @@ export default class extends Controller {
       this.manualWeightSectionTarget.classList.add('hidden')
     }
     
-    // Mostrar mensaje de modo báscula
+    // Cambiar visibilidad de los mensajes
     if (this.hasScaleWeightSectionTarget) {
-      this.scaleWeightSectionTarget.classList.remove('hidden')
+      const scaleMessage = this.scaleWeightSectionTarget.querySelector('.scale-mode-message')
+      const manualMessage = this.scaleWeightSectionTarget.querySelector('.manual-mode-message')
+      
+      if (scaleMessage) {
+        scaleMessage.classList.remove('hidden')
+      }
+      if (manualMessage) {
+        manualMessage.classList.add('hidden')
+      }
     }
     
-    // Habilitar sección de pesaje serial
+    // Mostrar sección de pesaje serial
     if (this.hasSerialSectionTarget) {
-      this.serialSectionTarget.classList.remove('opacity-50', 'pointer-events-none')
+      this.serialSectionTarget.classList.remove('hidden')
     }
     
     // Deshabilitar input de peso
