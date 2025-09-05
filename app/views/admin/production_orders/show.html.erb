@@ -377,128 +377,6 @@
     max-width: 100% !important;
   }
 }
-
-/* Estilos para el componente serial del modal */
-.status {
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-
-.status.success { 
-  background-color: #dcfce7; 
-  color: #166534; 
-}
-
-.status.error { 
-  background-color: #fef2f2; 
-  color: #dc2626; 
-}
-
-.status.info { 
-  background-color: #eff6ff; 
-  color: #2563eb; 
-}
-
-.weight-display .weight {
-  font-size: 1.5rem;
-  font-weight: bold;
-  display: block;
-  text-align: center;
-}
-
-.weight-display .timestamp {
-  font-size: 0.875rem;
-  color: #6b7280;
-  display: block;
-  text-align: center;
-}
-
-.log-line {
-  margin-bottom: 2px;
-  white-space: pre-wrap;
-}
-
-/* Animaciones para peso */
-.weight-display .text-2xl {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.weight-display .text-2xl:not(.text-gray-400) {
-  animation: weightPulse 0.8s ease-in-out;
-  color: #059669 !important; /* emerald-600 */
-}
-
-@keyframes weightPulse {
-  0% {
-    transform: scale(1);
-    color: #6b7280; /* gray-500 */
-  }
-  50% {
-    transform: scale(1.1);
-    color: #059669; /* emerald-600 */
-  }
-  100% {
-    transform: scale(1);
-    color: #059669; /* emerald-600 */
-  }
-}
-
-/* Animación al cargar peso */
-.weight-loading {
-  animation: loadingPulse 1.5s ease-in-out infinite;
-  color: #3b82f6 !important; /* blue-500 */
-}
-
-@keyframes loadingPulse {
-  0%, 100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.7;
-    transform: scale(1.05);
-  }
-}
-
-/* Estilos para botones hover */
-.btn-outline {
-  background-color: white;
-  color: #374151;
-  border-color: #d1d5db;
-}
-
-.btn-outline:hover {
-  background-color: #f9fafb;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-}
-
-/* Hover effect para weight display */
-.weight-section {
-  transition: all 0.2s ease-in-out;
-}
-
-.weight-section:hover {
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-}
-
-/* Animación para botón pulse */
-.pulse-animation {
-  animation: buttonPulse 1s ease-in-out 2;
-}
-
-@keyframes buttonPulse {
-  0%, 100% {
-    transform: scale(1);
-    box-shadow: 0 4px 6px -1px rgba(5, 150, 105, 0.2);
-  }
-  50% {
-    transform: scale(1.02);
-    box-shadow: 0 6px 12px -1px rgba(5, 150, 105, 0.4);
-  }
-}
 </style>
 
 <!-- Consecutivo Modal -->
@@ -510,10 +388,10 @@
 >
   <div
     data-dialog="consecutivo-modal"
-    class="relative m-4 p-6 w-4/5 max-w-4xl rounded-lg bg-white shadow-2xl max-h-[90vh] overflow-y-auto border border-gray-400"
+    class="relative m-4 p-4 w-11/12 max-w-2xl rounded-lg bg-white shadow-2xl max-h-[80vh] overflow-y-auto border border-gray-300"
   >
     <!-- Modal header -->
-    <div class="flex shrink-0 items-center pb-4 text-xl font-medium text-slate-800 border-b border-slate-200">
+    <div class="flex shrink-0 items-center pb-2 text-base font-medium text-slate-800 border-b border-slate-200">
       Crear Nuevo Folio
     </div>
             
@@ -522,15 +400,15 @@
             <%= form_with model: [ :admin, @production_order, new_item ], 
                 local: true, 
                 data: { controller: "consecutivo-form", action: "submit->consecutivo-form#handleFormSubmit" },
-                class: "relative border-t border-slate-200 py-4" do |form| %>
+                class: "relative border-t border-slate-200 py-2" do |form| %>
                 
-                <div class="grid gap-4 mb-4">
+                <div class="grid gap-2 mb-2">
                     <!-- Folio Consecutivo (Auto-generated, readonly) -->
                     <div>
-                        <label class="block mb-2 text-sm font-medium text-slate-700">Folio Consecutivo</label>
+                        <label class="block mb-1 text-sm font-medium text-slate-700">Folio Consecutivo</label>
                         <div class="flex items-center gap-2">
                             <%= form.text_field :folio_consecutivo, 
-                                class: "bg-slate-50 border border-slate-300 text-slate-700 text-sm rounded-lg block w-full p-2.5",
+                                class: "bg-slate-50 border border-slate-300 text-slate-700 text-sm rounded-lg block w-full p-2",
                                 value: ProductionOrderItem.generate_folio_consecutivo(@production_order),
                                 placeholder: "Se genera automáticamente" %>
                         </div>
@@ -538,27 +416,33 @@
 
                     <!-- Product Name (Pre-filled with clave_producto) -->
                     <div>
-                        <label for="clave_producto" class="block mb-2 text-sm font-medium text-slate-700">Clave Producto</label>
+                        <label for="clave_producto" class="block mb-1 text-sm font-medium text-slate-700">Clave Producto</label>
                         <%= form.text_field :clave_producto_display, 
                             name: "clave_producto_display",
                             id: "clave_producto", 
-                            class: "bg-slate-50 border border-slate-300 text-slate-700 text-sm rounded-lg focus:ring-emerald-500 focus:border-emerald-500 block w-full p-2.5",
+                            class: "bg-slate-50 border border-slate-300 text-slate-700 text-sm rounded-lg focus:ring-emerald-500 focus:border-emerald-500 block w-full p-2",
                             value: @production_order.clave_producto || "BOPPTRANS 35 / 420",
                             placeholder: "BOPPTRANS 35 / 420",
                             readonly: true %>
                     </div>
 
                     <!-- Control de modo de pesaje -->
-                    <div class="mb-6">
-                        <!-- Mensaje cuando está en modo báscula -->
+                    <div class="mb-3">
+                        <!-- Mensajes de modo -->
                         <div data-consecutivo-form-target="scaleWeightSection">
-                            <p class="text-sm text-blue-600 bg-blue-50 border border-blue-200 rounded-lg p-3">
+                            <!-- Mensaje cuando está en modo báscula (por defecto) -->
+                            <p class="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-md p-2 scale-mode-message">
                                 <span class="font-medium">Modo Báscula Activo:</span> Use el control de pesaje abajo para obtener el peso automáticamente.
+                            </p>
+                            
+                            <!-- Mensaje cuando está en modo manual (oculto por defecto) -->
+                            <p class="text-sm text-blue-700 bg-blue-50 border border-blue-200 rounded-md p-2 manual-mode-message hidden">
+                                <span class="font-medium">Modo de Uso:</span> Ingreso manual, ingrese peso del folio manualmente.
                             </p>
                         </div>
                         
                         <!-- Checkbox moved here -->
-                        <div class="flex items-center mt-3">
+                        <div class="flex items-center mt-1">
                             <label class="flex items-center cursor-pointer">
                                 <input type="checkbox" 
                                        class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
@@ -570,10 +454,10 @@
 
                         <!-- Input de peso manual (deshabilitado por defecto) -->
                         <div data-consecutivo-form-target="manualWeightSection" class="hidden">
-                            <label class="block mb-2 text-sm font-medium text-slate-700">Peso Bruto (kg)</label>
+                            <label class="block mb-1 text-sm font-medium text-slate-700 mt-4">Peso Bruto (kg)</label>
                             <div class="flex items-center">
                                 <%= form.number_field :peso_bruto, 
-                                    class: "bg-slate-50 border border-slate-300 text-slate-700 text-sm rounded-lg focus:ring-emerald-500 focus:border-emerald-500 block w-full p-2.5",
+                                    class: "bg-slate-50 border border-slate-300 text-slate-700 text-sm rounded-lg focus:ring-emerald-500 focus:border-emerald-500 block w-full p-2",
                                     placeholder: "0.00",
                                     step: 0.01,
                                     min: 0,
@@ -588,45 +472,45 @@
                     </div>
 
                     <!-- Componente de Pesaje -->
-                    <div class="bg-gray-50 rounded-lg p-4 mb-4 transition-opacity duration-300" 
+                    <div class="bg-gray-50 rounded-md p-2 mb-2 transition-opacity duration-300" 
                          data-controller="serial" 
                          data-serial-base-url-value="/api/serial"
                          data-serial-auto-connect-value="false"
                          data-consecutivo-form-target="serialSection">
-                      <h4 class="font-medium text-gray-700 mb-3">Control de Pesaje</h4>
+                      <h4 class="font-medium text-gray-700 mb-1.5 text-sm">Control de Pesaje</h4>
                       
                       <!-- Status de Conexión -->
-                      <div class="flex items-center justify-between mb-3">
+                      <div class="flex items-center justify-between mb-1.5">
                         <span class="text-sm font-medium text-gray-600">Estado:</span>
-                        <span data-serial-target="status" class="status info text-xs px-2 py-1 rounded">Desconectado</span>
+                        <span data-serial-target="status" class="px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800">Desconectado</span>
                       </div>
 
                       <!-- Weight Display -->
-                      <div class="weight-section p-4 bg-white rounded-lg border mb-4">
-                        <div class="flex items-center justify-between mb-2">
-                          <span class="font-medium text-gray-700">Peso actual:</span>
-                          <div class="flex gap-2">
+                      <div class="weight-section p-2 bg-white rounded-md border mb-2">
+                        <div class="flex items-center justify-between mb-1.5">
+                          <span class="font-medium text-gray-700 text-sm">Peso actual:</span>
+                          <div class="flex gap-1">
                             <button data-action="click->serial#connectScale" 
                                     type="button"
-                                    class="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-all duration-200">
+                                    class="px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-all duration-200">
                               Conectar
                             </button>
                             <button data-action="click->serial#readWeightNow" 
                                     type="button"
-                                    class="btn btn-sm btn-outline px-3 py-1 text-xs border border-gray-300 rounded hover:bg-gray-50 transition-all duration-200">
+                                    class="px-2 py-1 text-xs border border-gray-300 rounded hover:bg-gray-50 transition-all duration-200">
                               Leer ahora
                             </button>
                           </div>
                         </div>
                         <div data-serial-target="weight" class="weight-display">
-                          <div class="text-2xl font-bold text-center text-gray-400 transition-all duration-300 hover:scale-105">--</div>
-                          <div class="text-sm text-center text-gray-500">--</div>
+                          <div class="text-2xl font-bold block text-center transition-all duration-300 ease-in-out text-gray-400">--</div>
+                          <div class="text-sm text-gray-500 block text-center">--</div>
                         </div>
                         
                         <!-- Botón para usar peso en el formulario -->
                         <button type="button" 
                                 data-action="click->consecutivo-form#useSerialWeight"
-                                class="w-full mt-3 px-4 py-2 bg-emerald-600 text-white text-sm rounded-lg hover:bg-emerald-700 transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                                class="w-full mt-1.5 px-2 py-1 bg-emerald-600 text-white text-sm rounded-md hover:bg-emerald-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                                 disabled>
                           Usar este peso
                         </button>
@@ -634,40 +518,40 @@
                     </div>
 
                     <!-- Campos calculados automáticamente -->
-                    <div class="bg-emerald-50 rounded-lg p-4 mb-4">
-                        <h4 class="text-sm font-semibold text-emerald-900 mb-3">Cálculos Automáticos</h4>
+                    <div class="bg-emerald-50 rounded-md p-2 mb-2">
+                        <h4 class="text-sm font-semibold text-emerald-900 mb-1.5">Cálculos Automáticos</h4>
                         
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="grid grid-cols-2 gap-1.5">
                             <!-- Peso Neto -->
-                            <div class="bg-white rounded-md p-3 border border-emerald-200">
+                            <div class="bg-white rounded p-1.5 border border-emerald-200">
                                 <div class="text-xs text-emerald-600 font-medium">Peso Neto</div>
-                                <div class="text-lg font-bold text-emerald-900" data-consecutivo-form-target="pesoNetoDisplay">0.000 kg</div>
+                                <div class="text-sm font-bold text-emerald-900" data-consecutivo-form-target="pesoNetoDisplay">0.000 kg</div>
                                 <%= form.hidden_field :peso_neto, data: { "consecutivo-form-target": "pesoNeto" } %>
                             </div>
 
                             <!-- Peso Core -->
-                            <div class="bg-white rounded-md p-3 border border-emerald-200">
+                            <div class="bg-white rounded p-1.5 border border-emerald-200">
                                 <div class="text-xs text-emerald-600 font-medium">Peso Core</div>
-                                <div class="text-lg font-bold text-emerald-900" data-consecutivo-form-target="pesoCoreDisplay">200 g</div>
+                                <div class="text-sm font-bold text-emerald-900" data-consecutivo-form-target="pesoCoreDisplay">200 g</div>
                             </div>
 
                             <!-- Metros Lineales -->
-                            <div class="bg-white rounded-md p-3 border border-emerald-200">
+                            <div class="bg-white rounded p-1.5 border border-emerald-200">
                                 <div class="text-xs text-emerald-600 font-medium">Metros Lineales</div>
-                                <div class="text-lg font-bold text-emerald-900" data-consecutivo-form-target="metrosLinealesDisplay">0.0000 m</div>
+                                <div class="text-sm font-bold text-emerald-900" data-consecutivo-form-target="metrosLinealesDisplay">0.0000 m</div>
                                 <%= form.hidden_field :metros_lineales, data: { "consecutivo-form-target": "metrosLineales" } %>
                             </div>
 
                             <!-- Especificaciones -->
-                            <div class="bg-white rounded-md p-3 border border-emerald-200">
+                            <div class="bg-white rounded p-1.5 border border-emerald-200">
                                 <div class="text-xs text-emerald-600 font-medium">Especificaciones</div>
-                                <div class="text-sm font-semibold text-emerald-900" data-consecutivo-form-target="especificacionesDisplay">35μ / 420mm</div>
+                                <div class="text-xs font-semibold text-emerald-900" data-consecutivo-form-target="especificacionesDisplay">35μ / 420mm</div>
                                 <%= form.hidden_field :micras %>
                                 <%= form.hidden_field :ancho_mm %>
                             </div>
                         </div>
 
-                        <div class="text-xs text-emerald-700 mt-3 opacity-75">
+                        <div class="text-xs text-emerald-700 mt-1.5 opacity-75">
                             Los cálculos se actualizan automáticamente al ingresar el peso bruto
                         </div>
                     </div>
@@ -680,15 +564,15 @@
                 <%= form.hidden_field :altura_cm, value: 75 %>
                 
                 <!-- Form buttons -->
-                <div class="flex shrink-0 flex-wrap items-center pt-4 justify-end border-t border-slate-200">
+                <div class="flex shrink-0 flex-wrap items-center pt-2 justify-end border-t border-slate-200">
                   <button 
                     data-dialog-close="true" 
                     type="button"
-                    class="rounded-md border border-transparent py-2 px-4 text-center text-sm transition-all text-slate-600 hover:bg-slate-100 focus:bg-slate-100 active:bg-slate-100 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none">
+                    class="rounded-md border border-transparent py-1 px-2.5 text-center text-sm transition-all text-slate-600 hover:bg-slate-100 focus:bg-slate-100 active:bg-slate-100 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none">
                     Cancelar
                   </button>
                   <%= form.submit "Crear Consecutivo", 
-                      class: "rounded-md bg-emerald-600 py-2 px-4 border border-transparent text-center text-sm text-white transition-all shadow-md hover:shadow-lg focus:bg-emerald-700 focus:shadow-none active:bg-emerald-700 hover:bg-emerald-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none ml-2" %>
+                      class: "rounded-md bg-emerald-600 py-1 px-2.5 border border-transparent text-center text-sm text-white transition-all shadow hover:shadow focus:bg-emerald-700 focus:shadow-none active:bg-emerald-700 hover:bg-emerald-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none ml-1.5" %>
                 </div>
             <% end %>
   </div>
