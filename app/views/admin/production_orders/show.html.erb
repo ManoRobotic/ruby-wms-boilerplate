@@ -103,6 +103,17 @@
                 <%= icon('fa-solid', 'plus', class: 'w-4 h-4') %>
                 Agregar
               </button>
+              
+              <!-- Hidden form for printing labels -->
+              <%= form_with url: mark_as_printed_admin_production_order_production_order_items_path(@production_order), 
+                           method: :patch, 
+                           id: "print-labels-form", 
+                           local: true, 
+                           style: "display: none;" do |form| %>
+                <div id="print-item-ids-container">
+                  <!-- Item IDs will be added here by JavaScript -->
+                </div>
+              <% end %>
             </div>
           </div>
           

@@ -13,7 +13,7 @@
         </div>
       </div>
 
-      <%= form_with model: @admin, url: admin_configurations_path, local: true, method: :patch do |form| %>
+      <%= form_with model: @admin.company, url: admin_configurations_path, local: true, method: :patch do |form| %>
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <!-- Configuración Básica -->
           <div class="bg-slate-50 rounded-xl p-6 shadow-sm">
@@ -27,8 +27,8 @@
                       class: "h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" %>
                   <span class="ml-2 text-sm text-gray-700">Habilitar sincronización con Google Sheets</span>
                 </label>
-                <% if @admin.errors[:google_sheets_enabled].any? %>
-                  <p class="mt-1 text-sm text-red-600"><%= @admin.errors[:google_sheets_enabled].first %></p>
+                <% if @admin.company.errors[:google_sheets_enabled].any? %>
+                  <p class="mt-1 text-sm text-red-600"><%= @admin.company.errors[:google_sheets_enabled].first %></p>
                 <% end %>
               </div>
 
@@ -40,12 +40,13 @@
                 <%= form.text_field :sheet_id, 
                     id: "sheet_id",
                     placeholder: "1RK8FZaQZjd-HPcs8ewFxj-YQUZvRB_DO68U25EZ4qDk",
-                    class: "block w-full text-sm rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500" %>
+                    class: "block w-full text-sm rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500",
+                    value: @admin.company&.sheet_id %>
                 <p class="mt-1 text-xs text-gray-500">
                   Se encuentra en la URL: https://docs.google.com/spreadsheets/d/[ID_AQUI]/edit
                 </p>
-                <% if @admin.errors[:sheet_id].any? %>
-                  <p class="mt-1 text-sm text-red-600"><%= @admin.errors[:sheet_id].first %></p>
+                <% if @admin.company.errors[:sheet_id].any? %>
+                  <p class="mt-1 text-sm text-red-600"><%= @admin.company.errors[:sheet_id].first %></p>
                 <% end %>
               </div>
 
@@ -73,9 +74,9 @@
             
             <div class="space-y-4">
               <!-- Current Status -->
-              <div class="p-3 rounded-lg <%= @admin.google_credentials.present? ? 'bg-green-100 border border-green-300' : 'bg-red-100 border border-red-300' %>">
-                <p class="text-sm <%= @admin.google_credentials.present? ? 'text-green-800' : 'text-red-800' %>">
-                  <% if @admin.google_credentials.present? %>
+              <div class="p-3 rounded-lg <%= @admin.company&.google_credentials.present? ? 'bg-green-100 border border-green-300' : 'bg-red-100 border border-red-300' %>">
+                <p class="text-sm <%= @admin.company&.google_credentials.present? ? 'text-green-800' : 'text-red-800' %>">
+                  <% if @admin.company&.google_credentials.present? %>
                     ✓ Credenciales configuradas
                   <% else %>
                     ✗ No hay credenciales configuradas
@@ -104,8 +105,8 @@
                   Pega aquí el contenido completo del archivo JSON de credenciales de Google.
                   <strong>Deja en blanco si no quieres cambiar las credenciales actuales.</strong>
                 </p>
-                <% if @admin.errors[:google_credentials].any? %>
-                  <p class="mt-1 text-sm text-red-600"><%= @admin.errors[:google_credentials].first %></p>
+                <% if @admin.company.errors[:google_credentials].any? %>
+                  <p class="mt-1 text-sm text-red-600"><%= @admin.company.errors[:google_credentials].first %></p>
                 <% end %>
               </div>
 
@@ -135,56 +136,126 @@
               <!-- Serial Port -->
               <div>
                 <label for="serial_port" class="block text-sm font-medium text-gray-700 mb-2">
-                  Puerto Serie
+                  Puerto Serie (Báscula)
                 </label>
                 <%= form.text_field :serial_port, 
                     id: "serial_port",
                     placeholder: "/dev/ttyUSB0",
-                    class: "block w-full text-sm rounded-lg border-gray-300 focus:border-sky-500 focus:ring-sky-500" %>
+                    class: "block w-full text-sm rounded-lg border-gray-300 focus:border-sky-500 focus:ring-sky-500",
+                    value: @admin.company&.serial_port %>
                 <p class="mt-1 text-xs text-gray-500">
-                  El puerto al que está conectada la impresora/báscula.
+                  El puerto al que está conectada la báscula.
                 </p>
               </div>
 
               <!-- Baud Rate -->
               <div>
                 <label for="serial_baud_rate" class="block text-sm font-medium text-gray-700 mb-2">
-                  Baud Rate
+                  Baud Rate (Báscula)
                 </label>
                 <%= form.number_field :serial_baud_rate, 
                     id: "serial_baud_rate",
                     placeholder: "9600",
-                    class: "block w-full text-sm rounded-lg border-gray-300 focus:border-sky-500 focus:ring-sky-500" %>
+                    class: "block w-full text-sm rounded-lg border-gray-300 focus:border-sky-500 focus:ring-sky-500",
+                    value: @admin.company&.serial_baud_rate %>
               </div>
 
               <!-- Parity -->
               <div>
                 <label for="serial_parity" class="block text-sm font-medium text-gray-700 mb-2">
-                  Paridad
+                  Paridad (Báscula)
                 </label>
-                <%= form.select :serial_parity, options_for_select([['None', 'N'], ['Even', 'E'], ['Odd', 'O']], @admin.serial_parity), {}, { id: "serial_parity", class: "block w-full text-sm rounded-lg border-gray-300 focus:border-sky-500 focus:ring-sky-500" } %>
+                <%= form.select :serial_parity, options_for_select([['None', 'N'], ['Even', 'E'], ['Odd', 'O']], @admin.company&.serial_parity), {}, { id: "serial_parity", class: "block w-full text-sm rounded-lg border-gray-300 focus:border-sky-500 focus:ring-sky-500" } %>
               </div>
 
               <!-- Stop Bits -->
               <div>
                 <label for="serial_stop_bits" class="block text-sm font-medium text-gray-700 mb-2">
-                  Bits de Parada
+                  Bits de Parada (Báscula)
                 </label>
                 <%= form.number_field :serial_stop_bits, 
                     id: "serial_stop_bits",
                     placeholder: "1",
-                    class: "block w-full text-sm rounded-lg border-gray-300 focus:border-sky-500 focus:ring-sky-500" %>
+                    class: "block w-full text-sm rounded-lg border-gray-300 focus:border-sky-500 focus:ring-sky-500",
+                    value: @admin.company&.serial_stop_bits %>
               </div>
 
               <!-- Data Bits -->
               <div>
                 <label for="serial_data_bits" class="block text-sm font-medium text-gray-700 mb-2">
-                  Bits de Datos
+                  Bits de Datos (Báscula)
                 </label>
                 <%= form.number_field :serial_data_bits, 
                     id: "serial_data_bits",
                     placeholder: "8",
-                    class: "block w-full text-sm rounded-lg border-gray-300 focus:border-sky-500 focus:ring-sky-500" %>
+                    class: "block w-full text-sm rounded-lg border-gray-300 focus:border-sky-500 focus:ring-sky-500",
+                    value: @admin.company&.serial_data_bits %>
+              </div>
+            </div>
+          </div>
+
+          <!-- Configuración de Impresora -->
+          <div class="bg-purple-50 rounded-xl p-6 shadow-sm">
+            <h3 class="text-lg font-semibold text-purple-900 mb-4">Configuración de Impresora</h3>
+            
+            <div class="space-y-4">
+              <!-- Printer Port -->
+              <div>
+                <label for="printer_port" class="block text-sm font-medium text-gray-700 mb-2">
+                  Puerto de Impresora
+                </label>
+                <%= form.text_field :printer_port, 
+                    id: "printer_port",
+                    placeholder: "/dev/ttyUSB1",
+                    class: "block w-full text-sm rounded-lg border-gray-300 focus:border-purple-500 focus:ring-purple-500",
+                    value: @admin.company&.printer_port %>
+                <p class="mt-1 text-xs text-gray-500">
+                  El puerto al que está conectada la impresora TSC.
+                </p>
+              </div>
+
+              <!-- Printer Baud Rate -->
+              <div>
+                <label for="printer_baud_rate" class="block text-sm font-medium text-gray-700 mb-2">
+                  Baud Rate (Impresora)
+                </label>
+                <%= form.number_field :printer_baud_rate, 
+                    id: "printer_baud_rate",
+                    placeholder: "9600",
+                    class: "block w-full text-sm rounded-lg border-gray-300 focus:border-purple-500 focus:ring-purple-500",
+                    value: @admin.company&.printer_baud_rate %>
+              </div>
+
+              <!-- Printer Parity -->
+              <div>
+                <label for="printer_parity" class="block text-sm font-medium text-gray-700 mb-2">
+                  Paridad (Impresora)
+                </label>
+                <%= form.select :printer_parity, options_for_select([['None', 'N'], ['Even', 'E'], ['Odd', 'O']], @admin.company&.printer_parity), {}, { id: "printer_parity", class: "block w-full text-sm rounded-lg border-gray-300 focus:border-purple-500 focus:ring-purple-500" } %>
+              </div>
+
+              <!-- Printer Stop Bits -->
+              <div>
+                <label for="printer_stop_bits" class="block text-sm font-medium text-gray-700 mb-2">
+                  Bits de Parada (Impresora)
+                </label>
+                <%= form.number_field :printer_stop_bits, 
+                    id: "printer_stop_bits",
+                    placeholder: "1",
+                    class: "block w-full text-sm rounded-lg border-gray-300 focus:border-purple-500 focus:ring-purple-500",
+                    value: @admin.company&.printer_stop_bits %>
+              </div>
+
+              <!-- Printer Data Bits -->
+              <div>
+                <label for="printer_data_bits" class="block text-sm font-medium text-gray-700 mb-2">
+                  Bits de Datos (Impresora)
+                </label>
+                <%= form.number_field :printer_data_bits, 
+                    id: "printer_data_bits",
+                    placeholder: "8",
+                    class: "block w-full text-sm rounded-lg border-gray-300 focus:border-purple-500 focus:ring-purple-500",
+                    value: @admin.company&.printer_data_bits %>
               </div>
             </div>
           </div>
@@ -200,9 +271,9 @@
         </div>
 
         <!-- Errores generales -->
-        <% if @admin.errors[:base].any? %>
+        <% if @admin.company.errors[:base].any? %>
           <div class="mt-4 p-4 bg-red-50 border border-red-300 rounded-lg">
-            <% @admin.errors[:base].each do |error| %>
+            <% @admin.company.errors[:base].each do |error| %>
               <p class="text-sm text-red-800"><%= error %></p>
             <% end %>
           </div>

@@ -1,35 +1,44 @@
 class Admin::ConfigurationsController < AdminController
   def show
     @admin = current_admin
+    # Use company configuration for display
   end
 
   def edit
     @admin = current_admin
+    # Use company configuration for editing
   end
 
   def update
     @admin = current_admin
     
-    if @admin.update(configurations_params)
+    # Update company configuration instead of admin configuration
+    unless @admin.company
+      @admin.errors.add(:base, "No se puede actualizar la configuración: el administrador no está asociado a una empresa.")
+      render :edit, status: :unprocessable_entity
+      return
+    end
+    
+    if @admin.company.update(configurations_params)
       # Validar las credenciales si se proporcionaron
       if params[:admin][:google_credentials_json].present?
         begin
           credentials_hash = JSON.parse(params[:admin][:google_credentials_json])
-          @admin.set_google_credentials(credentials_hash)
+          @admin.company.set_google_credentials(credentials_hash)
           
-          unless @admin.validate_google_credentials
-            @admin.errors.add(:google_credentials, "Las credenciales de Google no tienen el formato correcto")
+          unless @admin.company.validate_google_credentials
+            @admin.company.errors.add(:google_credentials, "Las credenciales de Google no tienen el formato correcto")
             render :edit, status: :unprocessable_entity
             return
           end
           
-          @admin.save!
+          @admin.company.save!
           redirect_to admin_configurations_path, notice: "Configuración de Google Sheets actualizada exitosamente."
         rescue JSON::ParserError
-          @admin.errors.add(:google_credentials, "El JSON de credenciales no es válido")
+          @admin.company.errors.add(:google_credentials, "El JSON de credenciales no es válido")
           render :edit, status: :unprocessable_entity
         rescue => e
-          @admin.errors.add(:base, "Error al procesar las credenciales: #{e.message}")
+          @admin.company.errors.add(:base, "Error al procesar las credenciales: #{e.message}")
           render :edit, status: :unprocessable_entity
         end
       else
@@ -182,10 +191,40 @@ class Admin::ConfigurationsController < AdminController
     end
   end
 
+  # Endpoint para guardar configuración automáticamente
+  def auto_save
+    @admin = current_admin
+    
+    unless @admin.company
+      render json: { success: false, message: "No se puede actualizar la configuración: el administrador no está asociado a una empresa." }, status: :unprocessable_entity
+      return
+    end
+    
+    # Handle both formats: direct parameters and nested under company
+    params_to_update = if params[:company].present?
+                        params.require(:company).permit(:serial_port, :printer_port, :serial_baud_rate, :printer_baud_rate, :serial_parity, :printer_parity, :serial_stop_bits, :printer_stop_bits, :serial_data_bits, :printer_data_bits)
+                      else
+                        params.permit(:serial_port, :printer_port, :serial_baud_rate, :printer_baud_rate, :serial_parity, :printer_parity, :serial_stop_bits, :printer_stop_bits, :serial_data_bits, :printer_data_bits)
+                      end
+    
+    # Solo actualizar los campos que se envían
+    if @admin.company.update(params_to_update)
+      respond_to do |format|
+        format.html { redirect_back(fallback_location: admin_configurations_path, notice: "Configuración guardada automáticamente.") }
+        format.json { render json: { success: true, message: "Configuración guardada automáticamente." } }
+      end
+    else
+      respond_to do |format|
+        format.html { redirect_back(fallback_location: admin_configurations_path, alert: "Error al guardar la configuración.") }
+        format.json { render json: { success: false, message: "Error al guardar la configuración.", errors: @admin.company.errors }, status: :unprocessable_entity }
+      end
+    end
+  end
+
   private
 
   def configurations_params
-    params.require(:admin).permit(:google_sheets_enabled, :sheet_id, :serial_port, :serial_baud_rate, :serial_parity, :serial_stop_bits, :serial_data_bits)
+    params.require(:admin).permit(:google_sheets_enabled, :sheet_id, :serial_port, :serial_baud_rate, :serial_parity, :serial_stop_bits, :serial_data_bits, :printer_port, :printer_baud_rate, :printer_parity, :printer_stop_bits, :printer_data_bits)
     # Ya no requerimos worksheet_gid porque se auto-detecta
   end
 end

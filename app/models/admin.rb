@@ -37,34 +37,42 @@ class Admin < ApplicationRecord
     notifications.order(created_at: :desc).limit(limit)
   end
 
+  # Delegate configuration methods to company
+  delegate :google_sheets_enabled, :google_sheets_enabled?, to: :company, allow_nil: true
+  delegate :sheet_id, to: :company, allow_nil: true
+  delegate :google_credentials, to: :company, allow_nil: true
+  delegate :serial_port, to: :company, allow_nil: true
+  delegate :serial_baud_rate, to: :company, allow_nil: true
+  delegate :serial_parity, to: :company, allow_nil: true
+  delegate :serial_stop_bits, to: :company, allow_nil: true
+  delegate :serial_data_bits, to: :company, allow_nil: true
+  delegate :printer_port, to: :company, allow_nil: true
+  delegate :printer_baud_rate, to: :company, allow_nil: true
+  delegate :printer_parity, to: :company, allow_nil: true
+  delegate :printer_stop_bits, to: :company, allow_nil: true
+  delegate :printer_data_bits, to: :company, allow_nil: true
+  delegate :last_sync_at, to: :company, allow_nil: true
+  delegate :last_sync_checksum, to: :company, allow_nil: true
+  delegate :total_orders_synced, to: :company, allow_nil: true
+
   # Google Sheets Configuration
   def google_sheets_configured?
-    google_sheets_enabled? && 
-    google_credentials.present? && 
-    sheet_id.present?
-    # Ya no requerimos worksheet_gid porque se auto-detecta
+    company&.google_sheets_configured? || false
   end
 
   def google_credentials_json
-    return nil unless google_credentials.present?
-    JSON.parse(google_credentials) rescue nil
+    company&.google_credentials_json
   end
 
   def set_google_credentials(credentials_hash)
-    self.google_credentials = credentials_hash.to_json
+    return unless company
+    company.set_google_credentials(credentials_hash)
+    company.save
   end
 
   # Validate Google credentials format
   def validate_google_credentials
-    return true unless google_credentials.present?
-    
-    begin
-      parsed = JSON.parse(google_credentials)
-      required_keys = %w[type project_id private_key_id private_key client_email client_id auth_uri token_uri]
-      required_keys.all? { |key| parsed.key?(key) }
-    rescue JSON::ParserError
-      false
-    end
+    company&.validate_google_credentials || true
   end
 
   # Super Admin Role methods
@@ -100,5 +108,18 @@ class Admin < ApplicationRecord
   def accessible_admins
     return Admin.all unless super_admin?
     Admin.where(super_admin_role: super_admin_role)
+  end
+
+  # Serial and printer configuration helpers
+  def serial_configured?
+    company&.serial_configured? || false
+  end
+
+  def printer_configured?
+    company&.printer_configured? || false
+  end
+
+  def scale_and_printer_configured?
+    company&.scale_and_printer_configured? || false
   end
 end

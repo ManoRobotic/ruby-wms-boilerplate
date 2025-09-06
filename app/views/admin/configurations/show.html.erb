@@ -13,6 +13,7 @@
         </div>
       </div>
 
+      <div class="px-6 pb-6">
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Estado de Configuración -->
         <div class="bg-slate-50 rounded-xl p-6 shadow-sm">
@@ -21,7 +22,7 @@
           <div class="space-y-4">
             <div class="flex items-center justify-between">
               <span class="text-sm text-slate-600">Google Sheets Habilitado:</span>
-              <% if @admin.google_sheets_enabled? %>
+              <% if @admin.company&.google_sheets_enabled? %>
                 <span class="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">Sí</span>
               <% else %>
                 <span class="px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full">No</span>
@@ -30,7 +31,7 @@
             
             <div class="flex items-center justify-between">
               <span class="text-sm text-slate-600">Credenciales Configuradas:</span>
-              <% if @admin.google_credentials.present? %>
+              <% if @admin.company&.google_credentials.present? %>
                 <span class="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">Sí</span>
               <% else %>
                 <span class="px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full">No</span>
@@ -39,17 +40,26 @@
             
             <div class="flex items-center justify-between">
               <span class="text-sm text-slate-600">ID de Hoja:</span>
-              <% if @admin.sheet_id.present? %>
-                <code class="px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded"><%= @admin.sheet_id[0..20] %>...</code>
+              <% if @admin.company&.sheet_id.present? %>
+                <code class="px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded"><%= @admin.company.sheet_id[0..20] %>...</code>
               <% else %>
                 <span class="px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full">No configurado</span>
               <% end %>
             </div>
 
             <div class="flex items-center justify-between">
-              <span class="text-sm text-slate-600">Puerto Serie:</span>
-              <% if @admin.serial_port.present? %>
-                <code class="px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded"><%= @admin.serial_port %></code>
+              <span class="text-sm text-slate-600">Puerto Serie (Báscula):</span>
+              <% if @admin.company&.serial_port.present? %>
+                <code class="px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded"><%= @admin.company.serial_port %></code>
+              <% else %>
+                <span class="px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full">No configurado</span>
+              <% end %>
+            </div>
+            
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-slate-600">Puerto Impresora:</span>
+              <% if @admin.company&.printer_port.present? %>
+                <code class="px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded"><%= @admin.company.printer_port %></code>
               <% else %>
                 <span class="px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full">No configurado</span>
               <% end %>
@@ -63,7 +73,7 @@
           
           <div class="mt-6 pt-6 border-t border-slate-200">
             <div class="flex items-center gap-2 mb-3">
-              <% if @admin.google_sheets_configured? %>
+              <% if @admin.company&.google_sheets_configured? %>
                 <div class="w-3 h-3 bg-green-500 rounded-full"></div>
                 <span class="text-sm font-medium text-green-700">Configuración de Google Sheets Completa</span>
               <% else %>
@@ -72,7 +82,7 @@
               <% end %>
             </div>
             <p class="text-xs text-slate-600">
-              <% if @admin.google_sheets_configured? %>
+              <% if @admin.company&.google_sheets_configured? %>
                 Tu configuración de Google Sheets está lista.
               <% else %>
                 Completa la configuración para habilitar la sincronización automática.
@@ -88,8 +98,8 @@
           <div class="space-y-4">
             <div class="flex items-center justify-between">
               <span class="text-sm text-green-600">Última Sincronización:</span>
-              <% if @admin.last_sync_at.present? %>
-                <code class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded"><%= @admin.last_sync_at.strftime('%d/%m/%Y %H:%M') %></code>
+              <% if @admin.company&.last_sync_at.present? %>
+                <code class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded"><%= @admin.company.last_sync_at.strftime('%d/%m/%Y %H:%M') %></code>
               <% else %>
                 <span class="px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full">Nunca</span>
               <% end %>
@@ -97,19 +107,19 @@
             
             <div class="flex items-center justify-between">
               <span class="text-sm text-green-600">Órdenes Sincronizadas:</span>
-              <span class="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full"><%= @admin.total_orders_synced || 0 %></span>
+              <span class="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full"><%= @admin.company&.total_orders_synced || 0 %></span>
             </div>
             
             <div class="flex items-center justify-between">
               <span class="text-sm text-green-600">Órdenes Pendientes de Actualizar:</span>
-              <% pending_updates = ProductionOrder.where(admin_id: @admin.id, needs_update_to_sheet: true).count %>
+              <% pending_updates = @admin.company ? ProductionOrder.joins(:admin).where(admins: { company_id: @admin.company.id }, needs_update_to_sheet: true).count : 0 %>
               <span class="px-2 py-1 <%= pending_updates > 0 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800' %> text-xs font-medium rounded-full"><%= pending_updates %></span>
             </div>
             
             <div class="flex items-center justify-between">
               <span class="text-sm text-green-600">Checksum Actual:</span>
-              <% if @admin.last_sync_checksum.present? %>
-                <code class="px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded"><%= @admin.last_sync_checksum[0..8] %>...</code>
+              <% if @admin.company&.last_sync_checksum.present? %>
+                <code class="px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded"><%= @admin.company.last_sync_checksum[0..8] %>...</code>
               <% else %>
                 <span class="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">N/A</span>
               <% end %>
@@ -118,7 +128,7 @@
           
           <div class="mt-6 pt-6 border-t border-green-200">
             <div class="flex items-center gap-2 mb-3">
-              <% if @admin.last_sync_at.present? %>
+              <% if @admin.company&.last_sync_at.present? %>
                 <div class="w-3 h-3 bg-green-500 rounded-full"></div>
                 <span class="text-sm font-medium text-green-700">Sincronizado</span>
               <% else %>
@@ -129,52 +139,31 @@
           </div>
         </div>
 
-        <!-- Acciones -->
-        <div class="bg-amber-50 rounded-xl p-6 shadow-sm">
-          <h3 class="text-lg font-semibold text-amber-900 mb-4">Acciones</h3>
-          
-          <div class="space-y-3">
-            <% if @admin.google_sheets_configured? %>
-              <button id="test-connection-btn" 
-                      class="w-full px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
-                Probar Conexión
-              </button>
-              
-              <button id="check-changes-btn" 
-                      class="w-full px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors">
-                Verificar Cambios
-              </button>
-              
-              <%= form_with url: admin_configurations_incremental_sync_path, local: true, method: :post do |form| %>
-                <%= form.submit "🚀 Sincronización Incremental (Recomendada)", 
-                    class: "w-full px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors",
-                    data: { confirm: "¿Ejecutar sincronización incremental? Solo actualizará registros que cambiaron." } %>
-              <% end %>
-              
-              <%= form_with url: admin_configurations_sync_now_path, local: true, method: :post do |form| %>
-                <%= form.submit "Sincronizar Solo si Hay Cambios", 
-                    class: "w-full px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors",
-                    data: { confirm: "¿Sincronizar solo si hay cambios detectados?" } %>
-              <% end %>
-              
-              <%= form_with url: admin_configurations_sync_now_path, local: true, method: :post do |form| %>
-                <%= form.hidden_field :force, value: 'true' %>
-                <%= form.submit "Forzar Sincronización Completa", 
-                    class: "w-full px-4 py-2 bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700 transition-colors",
-                    data: { confirm: "¿Estás seguro? Esto sincronizará TODAS las órdenes aunque no hayan cambiado." } %>
-              <% end %>
-            <% else %>
-              <div class="p-4 bg-amber-100 border border-amber-300 rounded-lg">
-                <p class="text-sm text-amber-800">
-                  Completa la configuración para habilitar estas acciones.
-                </p>
-              </div>
-            <% end %>
+      <!-- Comunicación Serial -->
+      </div>
+    </div>
+
+    <div class="px-6 pb-6">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      
+      <!-- Columna Izquierda: Hardware y Terminal -->
+      <div class="space-y-6">
+        <!-- Panel de Comunicación Serial -->
+        <%= render 'admin/serial/panel' %>
+      </div>
+
+      <!-- Columna Derecha: Información -->
+      <div class="bg-white rounded-lg border border-gray-200 p-4">
+        <h2 class="text-lg font-medium text-gray-900 mb-4">Información de Configuración</h2>
+        <div class="space-y-4 text-sm text-gray-600">
+          <p>Configure los puertos serie para la báscula y la impresora TSC TX200.</p>
+          <p>Los ajustes se guardarán automáticamente al editar la configuración.</p>
+          <div class="p-3 bg-blue-50 rounded-md">
+            <p class="text-blue-800">💡 Consejo: Asegúrese de que los dispositivos estén conectados antes de intentar la conexión.</p>
           </div>
         </div>
       </div>
-
-     
+      </div>
     </div>
   </div>
 </div>
@@ -303,3 +292,14 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
 </script>
+
+
+</div>
+
+});
+
+</script>
+</div>
+
+</div>
+</div>

@@ -14,7 +14,7 @@
       <div class="status-section">
         <div class="flex items-center justify-between">
           <span class="font-medium">Estado:</span>
-          <span data-serial-target="status" class="status info">Iniciando...</span>
+          <span data-serial-target="status" class="px-2 py-1 rounded text-sm font-medium bg-blue-100 text-blue-800">Iniciando...</span>
         </div>
       </div>
 
@@ -33,11 +33,11 @@
           
           <div class="flex items-end space-x-2">
             <button data-action="click->serial#connectScale" 
-                    class="btn btn-primary">
+                    class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors">
               Conectar
             </button>
             <button data-action="click->serial#disconnectScale" 
-                    class="btn btn-secondary">
+                    class="px-4 py-2 bg-gray-600 text-white text-sm font-medium rounded-md hover:bg-gray-700 transition-colors">
               Desconectar
             </button>
           </div>
@@ -48,7 +48,7 @@
           <div class="flex items-center justify-between">
             <span class="font-medium">Peso actual:</span>
             <button data-action="click->serial#readWeightNow" 
-                    class="btn btn-sm btn-outline">
+                    class="px-3 py-1 bg-white text-gray-700 text-sm font-medium rounded-md border border-gray-300 hover:bg-gray-50 transition-colors">
               Leer ahora
             </button>
           </div>
@@ -65,18 +65,18 @@
         
         <div class="flex items-center justify-between mb-2">
           <span class="font-medium">Estado:</span>
-          <span data-serial-target="printerStatus" class="printer-status info">Desconectada</span>
+          <span data-serial-target="printerStatus" class="px-2 py-1 rounded text-sm font-medium bg-blue-100 text-blue-800">Desconectada</span>
         </div>
         
         <div class="grid grid-cols-2 gap-2">
           <button data-action="click->serial#connectPrinter" 
-                  class="btn btn-primary">
+                  class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors">
             Conectar
           </button>
           <button data-action="click->serial#testPrinter" 
                   data-ancho="80"
                   data-alto="50"
-                  class="btn btn-secondary">
+                  class="px-4 py-2 bg-gray-600 text-white text-sm font-medium rounded-md hover:bg-gray-700 transition-colors">
             Test TSC
           </button>
         </div>
@@ -87,126 +87,32 @@
         <div class="flex items-center justify-between mb-2">
           <h4 class="font-medium text-gray-700">Registro</h4>
           <button data-action="click->serial#clearLogs" 
-                  class="btn btn-sm btn-outline">
+                  class="px-3 py-1 bg-white text-gray-700 text-sm font-medium rounded-md border border-gray-300 hover:bg-gray-50 transition-colors">
             Limpiar
           </button>
         </div>
         <div data-serial-target="logs" 
-             class="logs-container h-32 overflow-y-auto p-3 bg-black text-green-400 text-xs font-mono rounded border">
+             class="h-32 overflow-y-auto p-3 bg-gray-900 text-green-400 text-xs font-mono rounded border border-gray-300">
         </div>
       </div>
     </div>
   </div>
+
+  <!-- Hidden forms for automatic saving -->
+  <%= form_with url: admin_configurations_auto_save_path, method: :post, local: true, id: "auto-save-serial-form", style: "display: none;" do |form| %>
+    <%= form.hidden_field :serial_port, id: "auto-save-serial-port" %>
+    <%= form.hidden_field :serial_baud_rate, id: "auto-save-serial-baud-rate" %>
+    <%= form.hidden_field :serial_parity, id: "auto-save-serial-parity" %>
+    <%= form.hidden_field :serial_stop_bits, id: "auto-save-serial-stop-bits" %>
+    <%= form.hidden_field :serial_data_bits, id: "auto-save-serial-data-bits" %>
+  <% end %>
+
+  <%= form_with url: admin_configurations_auto_save_path, method: :post, local: true, id: "auto-save-printer-form", style: "display: none;" do |form| %>
+    <%= form.hidden_field :printer_port, id: "auto-save-printer-port" %>
+    <%= form.hidden_field :printer_baud_rate, id: "auto-save-printer-baud-rate" %>
+    <%= form.hidden_field :printer_parity, id: "auto-save-printer-parity" %>
+    <%= form.hidden_field :printer_stop_bits, id: "auto-save-printer-stop-bits" %>
+    <%= form.hidden_field :printer_data_bits, id: "auto-save-printer-data-bits" %>
+  <% end %>
 </div>
 
-<style>
-  .status {
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 0.875rem;
-    font-weight: 500;
-  }
-  
-  .status.success { 
-    background-color: #dcfce7; 
-    color: #166534; 
-  }
-  
-  .status.error { 
-    background-color: #fef2f2; 
-    color: #dc2626; 
-  }
-  
-  .status.info { 
-    background-color: #eff6ff; 
-    color: #2563eb; 
-  }
-
-  .printer-status {
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 0.875rem;
-    font-weight: 500;
-  }
-  
-  .printer-status.success { 
-    background-color: #dcfce7; 
-    color: #166534; 
-  }
-  
-  .printer-status.error { 
-    background-color: #fef2f2; 
-    color: #dc2626; 
-  }
-  
-  .printer-status.info { 
-    background-color: #eff6ff; 
-    color: #2563eb; 
-  }
-
-  .weight-display .weight {
-    font-size: 1.5rem;
-    font-weight: bold;
-    display: block;
-    text-align: center;
-  }
-  
-  .weight-display .timestamp {
-    font-size: 0.875rem;
-    color: #6b7280;
-    display: block;
-    text-align: center;
-  }
-
-  .log-line {
-    margin-bottom: 2px;
-    white-space: pre-wrap;
-  }
-
-  .logs-container {
-    font-family: 'Courier New', monospace;
-  }
-
-  .btn {
-    padding: 8px 16px;
-    border-radius: 6px;
-    font-weight: 500;
-    font-size: 0.875rem;
-    cursor: pointer;
-    border: 1px solid transparent;
-    transition: all 0.2s;
-  }
-
-  .btn-primary {
-    background-color: #2563eb;
-    color: white;
-  }
-
-  .btn-primary:hover {
-    background-color: #1d4ed8;
-  }
-
-  .btn-secondary {
-    background-color: #6b7280;
-    color: white;
-  }
-
-  .btn-secondary:hover {
-    background-color: #4b5563;
-  }
-
-  .btn-outline {
-    background-color: white;
-    color: #374151;
-    border-color: #d1d5db;
-  }
-
-  .btn-outline:hover {
-    background-color: #f9fafb;
-  }
-
-  .btn-sm {
-    padding: 4px 12px;
-    font-size: 0.8rem;
-  }
-</style>

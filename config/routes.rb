@@ -190,6 +190,7 @@ Rails.application.routes.draw do
     get "configurations", to: "configurations#show"
     get "configurations/edit", to: "configurations#edit"
     patch "configurations", to: "configurations#update"
+    post "configurations/auto_save", to: "configurations#auto_save"
     post "configurations/test_connection", to: "configurations#test_connection"
     post "configurations/check_changes", to: "configurations#check_changes"
     post "configurations/sync_now", to: "configurations#sync_now"

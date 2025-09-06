@@ -70,50 +70,37 @@ export default class extends Controller {
       return
     }
 
-    const itemIdsToMarkAsPrinted = selectedCheckboxes.map(checkbox => checkbox.dataset.itemId)
-
-    // Create a dynamic form to submit via Turbo
-    const form = document.createElement('form');
-    form.action = '/admin/production_order_items/mark_as_printed';
-    form.method = 'post'; // Use post for Turbo, Rails will handle PATCH via _method hidden field
-    form.style.display = 'none'; // Hide the form
-
-    // Add CSRF token
-    const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
-    const csrfInput = document.createElement('input');
-    csrfInput.type = 'hidden';
-    csrfInput.name = 'authenticity_token';
-    csrfInput.value = csrfToken;
-    form.appendChild(csrfInput);
-
-    // Add _method for PATCH request
-    const methodInput = document.createElement('input');
-    methodInput.type = 'hidden';
-    methodInput.name = '_method';
-    methodInput.value = 'patch';
-    form.appendChild(methodInput);
-
-    // Add item_ids
-    itemIdsToMarkAsPrinted.forEach(itemId => {
-      const input = document.createElement('input');
-      input.type = 'hidden';
-      input.name = 'item_ids[]'; // Use array notation for multiple IDs
-      input.value = itemId;
-      form.appendChild(input);
-    });
-
-    document.body.appendChild(form); // Append to body to submit
-
-    // Submit the form via Turbo
-    form.requestSubmit();
-
-    // Clean up the form after submission (optional, Turbo might handle this)
-    form.remove();
+    // Instead of creating a form dynamically, we'll trigger a Turbo form submission
+    // by finding and submitting an existing form in the DOM
+    
+    // Find the hidden form for printing labels
+    const printForm = document.getElementById('print-labels-form')
+    if (printForm) {
+      // Update the hidden fields with selected item IDs
+      const itemIdsContainer = document.getElementById('print-item-ids-container')
+      if (itemIdsContainer) {
+        // Clear existing hidden inputs
+        itemIdsContainer.innerHTML = ''
+        
+        // Add hidden inputs for each selected item
+        selectedCheckboxes.forEach(checkbox => {
+          const input = document.createElement('input')
+          input.type = 'hidden'
+          input.name = 'item_ids[]'
+          input.value = checkbox.dataset.itemId
+          itemIdsContainer.appendChild(input)
+        })
+      }
+      
+      // Submit the form via Turbo
+      printForm.requestSubmit()
+    }
 
     // Deselect all checkboxes after submission
-    this.selectAllTarget.checked = false;
-    this.selectAllTarget.indeterminate = false;
-    this.updatePrintButton();
+    this.selectAllTarget.checked = false
+    this.selectAllTarget.indeterminate = false
+    this.consecutivoCheckboxTargets.forEach(cb => cb.checked = false)
+    this.updatePrintButton()
   }
 
   pesarItem(event) {
@@ -133,57 +120,14 @@ export default class extends Controller {
     const productionOrderId = checkbox.dataset.productionOrderId
     console.log("Loading edit form for item:", itemId, "in production order:", productionOrderId)
     
-    // Show loading indicator
-    const modalContainer = document.getElementById('edit-consecutivo-form-container')
-    if (modalContainer) {
-      modalContainer.innerHTML = `
-        <div class="relative border-t border-slate-200 py-2">
-          <div class="text-center py-8">
-            <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-emerald-500"></div>
-            <p class="mt-2 text-sm text-gray-500">Cargando formulario...</p>
-          </div>
-        </div>
-      `
+    // Instead of AJAX, we'll use Turbo navigation to load the form into the Turbo frame
+    // We need to navigate to the edit URL which will load the form into the turbo-frame
+    const editUrl = `/admin/production_orders/${productionOrderId}/items/${itemId}/edit`
+    
+    // Find the Turbo frame and navigate to the edit URL
+    const turboFrame = document.getElementById('edit-consecutivo-form')
+    if (turboFrame) {
+      turboFrame.src = editUrl
     }
-
-    // Load the form via AJAX using the correct route
-    // Note: The route uses 'items' instead of 'production_order_items' due to the path alias in routes.rb
-    fetch(`/admin/production_orders/${productionOrderId}/items/${itemId}/edit.js`, {
-      headers: {
-        'X-Requested-With': 'XMLHttpRequest',
-        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content,
-        'Accept': 'text/javascript'
-      }
-    })
-    .then(response => {
-      console.log("Received response from server:", response.status, response.statusText)
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-      return response.text()
-    })
-    .then(html => {
-      console.log("Received HTML content for form")
-      if (modalContainer) {
-        modalContainer.innerHTML = `
-          <div class="relative border-t border-slate-200 py-2">
-            ${html}
-          </div>
-        `
-      }
-    })
-    .catch(error => {
-      console.error('Error loading edit form:', error)
-      if (modalContainer) {
-        modalContainer.innerHTML = `
-          <div class="relative border-t border-slate-200 py-2">
-            <div class="text-center py-8">
-              <p class="text-red-500">Error al cargar el formulario. Por favor, intente de nuevo.</p>
-              <p class="text-sm text-gray-500 mt-2">Error: ${error.message}</p>
-            </div>
-          </div>
-        `
-      }
-    })
   }
 }

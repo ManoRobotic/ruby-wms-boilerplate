@@ -68,9 +68,27 @@ class Admin::ProductionOrderItemsController < AdminController
 
   def edit
     Rails.logger.info "Loading edit form for production order item: #{@production_order_item.id}"
-    render partial: 'admin/production_orders/consecutivo_form', 
-           locals: { consecutivo_form: @production_order_item },
-           content_type: 'text/javascript'
+    respond_to do |format|
+      format.html do
+        # For Turbo frame requests, render the form partial
+        if request.headers['Turbo-Frame']
+          render partial: 'admin/production_orders/consecutivo_form', 
+                 locals: { consecutivo_form: @production_order_item }
+        else
+          # For regular requests, we might want to redirect or handle differently
+          # But since this is called from JavaScript, we'll render the partial
+          render partial: 'admin/production_orders/consecutivo_form', 
+                 locals: { consecutivo_form: @production_order_item },
+                 content_type: 'text/html'
+        end
+      end
+      format.js do
+        # Keep the existing JavaScript response for backward compatibility
+        render partial: 'admin/production_orders/consecutivo_form', 
+               locals: { consecutivo_form: @production_order_item },
+               content_type: 'text/javascript'
+      end
+    end
   end
 
   def update

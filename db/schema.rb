@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_06_054102) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_06_065132) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -67,6 +67,11 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_06_054102) do
     t.integer "serial_stop_bits"
     t.integer "serial_data_bits"
     t.uuid "company_id"
+    t.string "printer_port"
+    t.integer "printer_baud_rate"
+    t.string "printer_parity"
+    t.integer "printer_stop_bits"
+    t.integer "printer_data_bits"
     t.index ["company_id"], name: "index_admins_on_company_id"
     t.index ["email"], name: "index_admins_on_email", unique: true
     t.index ["reset_password_token"], name: "index_admins_on_reset_password_token", unique: true
@@ -95,6 +100,22 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_06_054102) do
     t.string "name"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "google_sheets_enabled"
+    t.string "sheet_id"
+    t.text "google_credentials"
+    t.string "serial_port"
+    t.integer "serial_baud_rate"
+    t.string "serial_parity"
+    t.integer "serial_stop_bits"
+    t.integer "serial_data_bits"
+    t.string "printer_port"
+    t.integer "printer_baud_rate"
+    t.string "printer_parity"
+    t.integer "printer_stop_bits"
+    t.integer "printer_data_bits"
+    t.datetime "last_sync_at"
+    t.string "last_sync_checksum"
+    t.integer "total_orders_synced"
   end
 
   create_table "cycle_count_items", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|

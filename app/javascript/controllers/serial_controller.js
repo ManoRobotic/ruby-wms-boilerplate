@@ -17,6 +17,13 @@ export default class extends Controller {
       this.checkHealth()
     }
     
+    // Add event listener for port selection changes
+    if (this.hasPortTarget) {
+      this.portTarget.addEventListener('change', (event) => {
+        this.onPortChange(event)
+      })
+    }
+    
     this.log("Serial controller initialized")
   }
 
@@ -83,6 +90,10 @@ export default class extends Controller {
       if (data.status === 'success') {
         this.updateStatus("✓ Scale connected", "success")
         this.log(`Scale connected on ${port}`)
+        
+        // Trigger Rails form submission for automatic saving
+        this.saveConfiguration({ serial_port: port })
+        
         await this.startReading()
       } else {
         this.updateStatus("✗ Failed to connect scale", "error")
@@ -215,6 +226,9 @@ export default class extends Controller {
       if (data.status === 'success') {
         this.updatePrinterStatus("✓ Printer connected", "success")
         this.log("Printer connected")
+        
+        // Trigger Rails form submission for automatic saving
+        this.saveConfiguration({ printer_port: 'auto_detected' })
       } else {
         this.updatePrinterStatus("✗ Failed to connect printer", "error")
         this.log(`Printer connection failed: ${data.message}`)
@@ -280,6 +294,11 @@ export default class extends Controller {
       
       if (data.status === 'success') {
         this.log(`Printer test executed (${ancho_mm}x${alto_mm}mm)`)
+        // Trigger Rails form submission for automatic saving
+        this.saveConfiguration({ 
+          printer_port: 'auto_detected',
+          printer_baud_rate: 9600
+        })
       } else {
         this.log(`Test failed: ${data.message}`)
       }
@@ -334,7 +353,19 @@ export default class extends Controller {
   updateStatus(message, type = "info") {
     if (this.hasStatusTarget) {
       this.statusTarget.textContent = message
-      this.statusTarget.className = `status ${type}`
+      // Use Tailwind classes instead of custom CSS
+      switch(type) {
+        case "success":
+          this.statusTarget.className = "px-2 py-1 rounded text-sm font-medium bg-green-100 text-green-800"
+          break
+        case "error":
+          this.statusTarget.className = "px-2 py-1 rounded text-sm font-medium bg-red-100 text-red-800"
+          break
+        case "info":
+        default:
+          this.statusTarget.className = "px-2 py-1 rounded text-sm font-medium bg-blue-100 text-blue-800"
+          break
+      }
     }
   }
 
@@ -342,7 +373,7 @@ export default class extends Controller {
     if (this.hasWeightTarget) {
       // Agregar animación de loading mientras se actualiza
       this.weightTarget.innerHTML = `
-        <div class="text-2xl font-bold text-center text-blue-500 weight-loading">Leyendo...</div>
+        <div class="text-2xl font-bold text-center text-blue-500">Leyendo...</div>
         <div class="text-sm text-center text-gray-500">--</div>
       `
       
@@ -358,11 +389,6 @@ export default class extends Controller {
         if (weightDisplay && weight !== '--') {
           weightDisplay.classList.remove('text-gray-400')
           weightDisplay.classList.add('text-emerald-600')
-          
-          // Apply pulse animation
-          setTimeout(() => {
-            weightDisplay.style.animation = 'weightPulse 0.8s ease-in-out'
-          }, 50)
         }
       }, 300)
     }
@@ -371,7 +397,19 @@ export default class extends Controller {
   updatePrinterStatus(message, type = "info") {
     if (this.hasPrinterStatusTarget) {
       this.printerStatusTarget.textContent = message
-      this.printerStatusTarget.className = `printer-status ${type}`
+      // Use Tailwind classes instead of custom CSS
+      switch(type) {
+        case "success":
+          this.printerStatusTarget.className = "px-2 py-1 rounded text-sm font-medium bg-green-100 text-green-800"
+          break
+        case "error":
+          this.printerStatusTarget.className = "px-2 py-1 rounded text-sm font-medium bg-red-100 text-red-800"
+          break
+        case "info":
+        default:
+          this.printerStatusTarget.className = "px-2 py-1 rounded text-sm font-medium bg-blue-100 text-blue-800"
+          break
+      }
     }
   }
 
@@ -399,6 +437,51 @@ export default class extends Controller {
   clearLogs() {
     if (this.hasLogsTarget) {
       this.logsTarget.innerHTML = ''
+    }
+  }
+
+  // Método para manejar cambios en la selección de puerto
+  onPortChange(event) {
+    const selectedPort = event.target.value
+    if (selectedPort) {
+      // Trigger Rails form submission for automatic saving
+      this.saveConfiguration({ serial_port: selectedPort })
+      this.log(`Puerto seleccionado: ${selectedPort}`)
+    }
+  }
+
+  // Método para guardar configuración usando Rails forms
+  saveConfiguration(configData) {
+    // Update the hidden form fields with the new configuration data
+    Object.keys(configData).forEach(key => {
+      let fieldId;
+      if (key.startsWith('serial_')) {
+        fieldId = `auto-save-serial-${key.replace('serial_', '')}`;
+      } else if (key.startsWith('printer_')) {
+        fieldId = `auto-save-printer-${key.replace('printer_', '')}`;
+      }
+      
+      if (fieldId) {
+        const field = document.getElementById(fieldId);
+        if (field) {
+          field.value = configData[key];
+        }
+      }
+    });
+    
+    // Submit the appropriate form
+    let formId;
+    if (Object.keys(configData).some(key => key.startsWith('serial_'))) {
+      formId = 'auto-save-serial-form';
+    } else if (Object.keys(configData).some(key => key.startsWith('printer_'))) {
+      formId = 'auto-save-printer-form';
+    }
+    
+    if (formId) {
+      const form = document.getElementById(formId);
+      if (form) {
+        form.requestSubmit(); // Use requestSubmit for better Rails integration
+      }
     }
   }
 }
