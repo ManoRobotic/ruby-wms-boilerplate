@@ -114,6 +114,31 @@ class Admin::ProductionOrderItemsController < AdminController
                 notice: "Consecutivo #{folio} eliminado exitosamente."
   end
 
+  def mark_as_printed
+    item_ids = params[:item_ids]
+    production_order_items = ProductionOrderItem.where(id: item_ids)
+
+    if production_order_items.update_all(print_status: :printed)
+      respond_to do |format|
+        format.turbo_stream do
+          render turbo_stream: production_order_items.map do |item|
+            turbo_stream.replace(
+              "production_order_item_#{item.id}_print_status", # Unique ID for the TD
+              partial: "admin/production_order_items/print_status",
+              locals: { item: item }
+            )
+          end
+        end
+        format.json { render json: { success: true, message: "Items marked as printed." } } # Keep JSON for now, might remove later
+      end
+    else
+      respond_to do |format|
+        format.turbo_stream { head :unprocessable_entity } # Or render an error message
+        format.json { render json: { success: false, error: "Failed to mark items as printed." }, status: :unprocessable_entity }
+      end
+    end
+  end
+
   private
 
   def set_production_order

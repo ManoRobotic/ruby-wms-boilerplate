@@ -12,9 +12,9 @@ class ProductionOrderPdf
     text "Tabla de Consecutivos", size: 22, style: :bold, align: :center
     move_down 10
 
-    text "<b>Orden:</b> #{@production_order.no_opro || @production_order.order_number}", size: 12, inline_format: true
-    text "<b>Producto:</b> #{@production_order.product.name}", size: 12, inline_format: true
-    text "<b>Lote:</b> #{@production_order.lote_referencia}", size: 12, inline_format: true
+    text "<b>Orden:</b> #{@production_order.no_opro || @production_order.order_number || 'N/A'}", size: 12, inline_format: true
+    text "<b>Producto:</b> #{@production_order.product&.name || 'N/A'}", size: 12, inline_format: true
+    text "<b>Lote:</b> #{@production_order.lote_referencia || 'N/A'}", size: 12, inline_format: true
     text "<b>Fecha de Impresión:</b> #{Date.current.strftime('%d/%m/%Y')}", size: 12, inline_format: true
 
     move_down 20
@@ -27,10 +27,10 @@ class ProductionOrderPdf
       table_data << [
         label_data[:name],
         label_data[:clave_producto],
-        "#{label_data[:ancho_mm]}mm / #{label_data[:micras]}mic",
-        '%.2f' % label_data[:peso_bruto],
-        '%.2f' % label_data[:peso_neto],
-        label_data[:metros_lineales].round(2),
+        "#{label_data[:ancho_mm] || 0}mm / #{label_data[:micras] || 0}mic",
+        label_data[:peso_bruto] ? '%.2f' % label_data[:peso_bruto] : '0.00',
+        label_data[:peso_neto] ? '%.2f' % label_data[:peso_neto] : '0.00',
+        label_data[:metros_lineales] ? label_data[:metros_lineales].round(2) : 0.00,
         label_data[:cliente] || 'N/A'
       ]
     end

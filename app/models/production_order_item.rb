@@ -15,6 +15,10 @@ class ProductionOrderItem < ApplicationRecord
   ITEM_STATUSES = %w[pending in_production completed cancelled].freeze
   validates :status, inclusion: { in: ITEM_STATUSES }, allow_blank: true
 
+  # New enum for print status
+  enum :print_status, { pending_printing: 0, printed: 1 }
+  validates :print_status, presence: true
+
   # Callbacks
   before_validation :auto_assign_peso_core
   before_validation :calculate_peso_neto
@@ -27,16 +31,16 @@ class ProductionOrderItem < ApplicationRecord
     {
       name: folio_consecutivo&.split("-")&.last,
       lote: production_order.lote_referencia,
-      clave_producto: production_order.product.sku,
-      peso_bruto: peso_bruto,
-      peso_neto: peso_neto,
-      metros_lineales: metros_lineales,
+      clave_producto: production_order.product&.sku,
+      peso_bruto: peso_bruto || 0,
+      peso_neto: peso_neto || 0,
+      metros_lineales: metros_lineales || 0,
       cliente: extract_cliente_from_notes,
       numero_de_orden: production_order.no_opro || production_order.order_number,
       nombre_cliente_numero_pedido: nombre_cliente_numero_pedido || "#{extract_cliente_from_notes}-#{production_order.no_opro || production_order.order_number}",
       fecha_creacion: production_order.created_at.strftime("%d/%m/%Y"),
-      ancho_mm: ancho_mm,
-      micras: micras
+      ancho_mm: ancho_mm || 0,
+      micras: micras || 0
     }
   end
 

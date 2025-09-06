@@ -64,30 +64,56 @@ export default class extends Controller {
 
   printLabels() {
     const selectedCheckboxes = this.consecutivoCheckboxTargets.filter(cb => cb.checked)
-    
+
     if (selectedCheckboxes.length === 0) {
       console.log("No consecutivos selected for printing")
       return
     }
 
-    const labels = selectedCheckboxes.map(checkbox => {
-      const folioFull = checkbox.dataset.folio
-      // Extract number after the dash (e.g., "FE-CR-044321-2" -> "2")
-      const name = folioFull ? folioFull.split('-').pop() : ''
-      
-      return {
-        name: name,
-        lote: checkbox.dataset.lote || '',
-        clave_producto: checkbox.dataset.claveProducto || '',
-        peso_bruto: checkbox.dataset.pesoBruto || '',
-        peso_neto: checkbox.dataset.pesoNeto || '',
-        metro_lineales: checkbox.dataset.metrosLineales || '',
-        cliente: checkbox.dataset.cliente || '',
-        numero_de_orden: checkbox.dataset.noOpro || ''
-      }
-    })
+    const itemIdsToMarkAsPrinted = selectedCheckboxes.map(checkbox => checkbox.dataset.itemId)
 
-    console.log("Etiquetas a imprimir:", labels)
+    // Create a dynamic form to submit via Turbo
+    const form = document.createElement('form');
+    form.action = '/admin/production_order_items/mark_as_printed';
+    form.method = 'post'; // Use post for Turbo, Rails will handle PATCH via _method hidden field
+    form.style.display = 'none'; // Hide the form
+
+    // Add CSRF token
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = 'authenticity_token';
+    csrfInput.value = csrfToken;
+    form.appendChild(csrfInput);
+
+    // Add _method for PATCH request
+    const methodInput = document.createElement('input');
+    methodInput.type = 'hidden';
+    methodInput.name = '_method';
+    methodInput.value = 'patch';
+    form.appendChild(methodInput);
+
+    // Add item_ids
+    itemIdsToMarkAsPrinted.forEach(itemId => {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = 'item_ids[]'; // Use array notation for multiple IDs
+      input.value = itemId;
+      form.appendChild(input);
+    });
+
+    document.body.appendChild(form); // Append to body to submit
+
+    // Submit the form via Turbo
+    form.requestSubmit();
+
+    // Clean up the form after submission (optional, Turbo might handle this)
+    form.remove();
+
+    // Deselect all checkboxes after submission
+    this.selectAllTarget.checked = false;
+    this.selectAllTarget.indeterminate = false;
+    this.updatePrintButton();
   }
 
   pesarItem(event) {

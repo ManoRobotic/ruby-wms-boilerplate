@@ -133,7 +133,7 @@
                     <th class="px-3 py-2 text-center text-xs font-medium text-emerald-800 uppercase tracking-wider">Metros</th>
                     <th class="px-3 py-2 text-center text-xs font-medium text-emerald-800 uppercase tracking-wider">Micras</th>
                     <th class="px-3 py-2 text-center text-xs font-medium text-emerald-800 uppercase tracking-wider">Ancho (mm)</th>
-                    <th class="px-3 py-2 text-center text-xs font-medium text-emerald-800 uppercase tracking-wider">Estado</th>
+                    <th class="px-3 py-2 text-center text-xs font-medium text-emerald-800 uppercase tracking-wider">Impresión</th>
                     <th class="px-3 py-2 text-center text-xs font-medium text-emerald-800 uppercase tracking-wider">Acciones</th>
                   </tr>
                 </thead>
@@ -183,21 +183,7 @@
                       <td class="px-3 py-2 text-sm text-center text-gray-500">
                         <%= item.ancho_mm || '-' %>
                       </td>
-                      <td class="px-3 py-2 text-center">
-                        <% if item.status.present? %>
-                          <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium
-                            <%= case item.status
-                                when 'pending' then 'bg-yellow-100 text-yellow-800'
-                                when 'in_production' then 'bg-blue-100 text-blue-800'
-                                when 'completed' then 'bg-green-100 text-green-800'
-                                when 'cancelled' then 'bg-red-100 text-red-800'
-                                end %>">
-                            <%= item.status.humanize %>
-                          </span>
-                        <% else %>
-                          <span class="text-gray-400">-</span>
-                        <% end %>
-                      </td>
+                      <%= render partial: "admin/production_order_items/print_status", locals: { item: item } %>
                       <td class="px-3 py-2 text-center text-sm font-medium">
                         <button 
                             class="text-emerald-600 hover:text-emerald-900 mr-2 px-2 py-1 text-xs rounded-md hover:bg-emerald-50 transition-colors duration-200"

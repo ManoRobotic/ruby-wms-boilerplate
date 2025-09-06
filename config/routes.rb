@@ -45,7 +45,11 @@ Rails.application.routes.draw do
       end
       
       # Nested routes for production order items (consecutivos/folios)
-      resources :production_order_items, path: "items"
+      resources :production_order_items, path: "items" do
+        collection do
+          patch :mark_as_printed
+        end
+      end
     end
 
     # Barcode scanning

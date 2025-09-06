@@ -18,6 +18,22 @@ class ProductionOrder < ApplicationRecord
     production_order_items.sum(:metros_lineales)
   end
 
+  def print_status_summary
+    items = production_order_items
+    return "Sin items" if items.empty?
+    
+    printed_count = items.where(print_status: "printed").count
+    total_count = items.count
+    
+    if printed_count == total_count
+      "Impreso (#{printed_count}/#{total_count})"
+    elsif printed_count > 0
+      "Parcial (#{printed_count}/#{total_count})"
+    else
+      "Pendiente (0/#{total_count})"
+    end
+  end
+
   # Validations
   validates :order_number, presence: true, uniqueness: true
   validates :status, presence: true

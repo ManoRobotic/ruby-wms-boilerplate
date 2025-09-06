@@ -115,7 +115,7 @@
                 <th data-sortable="peso_bruto" class="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">P. Bruto</th>
                 <th data-sortable="peso_neto" class="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">P. Neto</th>
                 <th data-sortable="carga" class="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 hidden xl:table-cell">Carga</th>
-                <th data-sortable="status" class="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">Estado</th>
+                <th class="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Impresión</th>
                 <th data-sortable="date" class="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 hidden md:table-cell">Fecha</th>
                 <th class="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
               </tr>
@@ -215,18 +215,18 @@
                     <%= order.carga_copr&.to_f || '-' %>
                   </td>
                   
-                  <!-- Estado -->
+                  <!-- Impresión -->
                   <td class="px-2 py-2 text-center">
+                    <% print_summary = order.print_status_summary %>
                     <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-                      <%= case order.status
-                          when 'pending' then 'bg-yellow-100 text-yellow-800'
-                          when 'scheduled' then 'bg-blue-100 text-blue-800'
-                          when 'in_progress' then 'bg-green-100 text-green-800'
-                          when 'paused' then 'bg-orange-100 text-orange-800'
-                          when 'completed' then 'bg-gray-100 text-gray-800'
-                          when 'cancelled' then 'bg-red-100 text-red-800'
-                          end %>">
-                      <%= order.status.humanize %>
+                      <%= if print_summary.include?("Impreso")
+                          'bg-green-100 text-green-800'
+                        elsif print_summary.include?("Parcial")
+                          'bg-yellow-100 text-yellow-800'
+                        else
+                          'bg-gray-100 text-gray-800'
+                        end %>">
+                      <%= print_summary %>
                     </span>
                   </td>
                   

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_02_003814) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_06_054102) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -366,6 +366,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_02_003814) do
     t.string "cliente"
     t.string "numero_de_orden"
     t.string "nombre_cliente_numero_pedido"
+    t.integer "print_status", default: 0
     t.index ["production_order_id"], name: "index_production_order_items_on_production_order_id"
   end
 
