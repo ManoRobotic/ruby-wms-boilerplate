@@ -129,17 +129,15 @@ class ProductionOrder < ApplicationRecord
 
   # OPRO Google Sheet methods
   def generate_lote_from_fecha(fecha_opro)
-    return nil if fecha_opro.blank?
-    
     date = fecha_opro.is_a?(String) ? Date.parse(fecha_opro) : fecha_opro
+    date ||= Date.current
     "FE-CR-#{date.strftime('%d%m%y')}"
   end
 
   def lote_referencia
     return self[:lote_referencia] if self[:lote_referencia].present?
-    return generate_lote_from_fecha(fecha_completa) if fecha_completa.present?
-    return generate_lote_from_fecha(created_at) if created_at.present?
-    nil
+    date_source = fecha_completa || created_at || Date.current
+    generate_lote_from_fecha(date_source)
   end
 
   def clave_producto
