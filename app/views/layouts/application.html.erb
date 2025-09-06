@@ -9,6 +9,10 @@
 
     <%= yield :head %>
 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+
     <link rel="manifest" href="/manifest.json">
     <link rel="icon" href="/icon.png" type="image/png">
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
@@ -18,7 +22,7 @@
     <%= javascript_importmap_tags %>
   </head>
 
-<body class="h-full bg-gray-50">
+<body class="h-full bg-gray-50 font-sans">
   <%# Auto-redirect authenticated users to admin dashboard %>
   <% if user_signed_in? || admin_signed_in? %>
     <% content_for :head do %>
