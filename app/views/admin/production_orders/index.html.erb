@@ -4,23 +4,21 @@
 
 <div class="w-full px-1 mt-12 mb-16 min-h-screen flex flex-col" style="max-width: calc(100% - 0.75rem); margin-right: 0;" data-responsive-right-margin="true" data-controller="production-order">
   <div class="relative flex flex-col w-full px-6 text-gray-700 bg-white shadow-md lg:px-10 rounded-xl bg-clip-border flex-1">
-    <div class="relative p-4 text-gray-700 bg-white bg-clip-border">
-      <div class="container mx-auto">
-        <div class="flex flex-col items-center gap-8 px-4 mb-4 md:flex-row md:items-center md:justify-between">
-          <div>
-            <h1 class="mt-12 font-sans text-xl font-semibold leading-snug tracking-normal text-center md:text-left text-blue-gray-900">
-              Ordenes de Producción
-            </h1>
-          </div>
-          <div class="flex justify-center gap-2 shrink-0 md:w-auto">
-            <button onclick="location.reload()" class="mt-12 flex items-center gap-3 rounded-lg bg-gray-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85 cursor-pointer">
-              Actualizar tabla
-            </button>
-               <% if current_admin %>
-                 <%= link_to 'Nueva Orden de Producción', new_admin_production_order_path, 
-                     class: "mt-12 flex items-center gap-3 rounded-lg bg-blue-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85" %>
-               <% end %>
-          </div>
+    <div class="relative p-4 text-gray-700 bg-white bg-clip-border lg:px-6 lg:py-8">
+      <div class="flex flex-col items-center gap-4 mb-4 md:flex-row md:items-center md:justify-between mt-8">
+        <div>
+          <h1 class="font-sans text-xl font-semibold leading-snug tracking-normal text-center md:text-left text-blue-gray-900">
+            Ordenes de Producción
+          </h1>
+        </div>
+        <div class="flex justify-center gap-2 shrink-0 md:w-auto">
+          <button onclick="location.reload()" class="flex items-center gap-3 rounded-lg bg-gray-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85 cursor-pointer">
+            Actualizar tabla
+          </button>
+             <% if current_admin %>
+               <%= link_to 'Nueva Orden de Producción', new_admin_production_order_path, 
+                   class: "flex items-center gap-3 rounded-lg bg-blue-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85" %>
+             <% end %>
         </div>
       </div>
     </div>
@@ -88,27 +86,6 @@
           search_placeholder: 'Buscar por No. OPRO, orden, producto o lote...',
           filters: [
             {
-              name: :warehouse_id,
-              type: 'select',
-              label: 'Almacén',
-              options: Warehouse.all.pluck(:name, :id),
-              prompt: 'Todos los almacenes'
-            },
-            {
-              name: :status,
-              type: 'select', 
-              label: 'Estado',
-              options: ProductionOrder::STATUSES.map { |s| [s.humanize, s] },
-              prompt: 'Todos los estados'
-            },
-            {
-              name: :priority,
-              type: 'select',
-              label: 'Prioridad',
-              options: ProductionOrder::PRIORITIES.map { |p| [p.humanize, p] },
-              prompt: 'Todas las prioridades'
-            },
-            {
               name: :start_date,
               type: 'date',
               label: 'Fecha desde'
@@ -122,7 +99,7 @@
     </div>
 
 
-    <section class="flex flex-col w-full mb-4 bg-muted">
+    <section class="flex flex-col w-full mb-4 bg-muted px-4">
       <div class="w-full">
         <div class="overflow-x-auto">
           <table data-controller="table" 
@@ -280,7 +257,9 @@
           </table>
         </div>
         <!-- Pagination -->
-        <%= render 'shared/table_pagination', collection: @production_orders %>
+        <div class="mt-4">
+          <%= render 'shared/table_pagination', collection: @production_orders %>
+        </div>
       </div>
     </section>
   </div>

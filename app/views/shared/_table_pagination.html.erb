@@ -5,7 +5,7 @@
 %>
 
 <% if local_assigns[:collection] && collection.respond_to?(:current_page) %>
-  <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 rounded-b-lg">
+  <div class="bg-white py-3 flex items-center justify-between border-t border-gray-200 rounded-b-lg">
     <!-- Mobile pagination -->
     <div class="flex-1 flex justify-between sm:hidden">
       <% if collection.prev_page %>
