@@ -345,6 +345,9 @@ export default class extends Controller {
     // Ensure calculations are up to date before submitting
     this.calculateWeights()
     
+    // Allow the form to submit normally - don't prevent default
+    console.log('Form is being submitted normally after calculations')
+    
     // Add success handler for form submission
     const form = event.target
     if (form) {
@@ -355,5 +358,8 @@ export default class extends Controller {
         console.log(`${key}: ${value}`)
       }
     }
+    
+    // Important: Do NOT call event.preventDefault() - let the form submit normally
+    // The purpose of this handler is just to ensure calculations are done before submission
   }
 }

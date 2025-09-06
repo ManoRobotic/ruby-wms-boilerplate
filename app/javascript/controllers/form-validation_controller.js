@@ -4,12 +4,6 @@ export default class extends Controller {
   static targets = ["submit", "pesoBruto", "pesoNeto", "pesoCore", "micras", "ancho", "metros"]
 
   connect() {
-    // Find the submit button if not explicitly defined
-    if (!this.hasSubmitTarget) {
-      this.submitTarget = this.element.querySelector('input[type="submit"]') || 
-                         this.element.querySelector('button[type="submit"]')
-    }
-    
     // Add event listeners to weight fields
     this.setupEventListeners()
     
@@ -69,7 +63,7 @@ export default class extends Controller {
     const hasValidWeight = this.hasValidWeight()
     
     // Enable/disable submit button
-    if (this.submitTarget) {
+    if (this.hasSubmitTarget) {
       this.submitTarget.disabled = !hasValidWeight
       
       // Update button style

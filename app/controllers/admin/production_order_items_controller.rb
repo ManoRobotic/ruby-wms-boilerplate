@@ -67,14 +67,43 @@ class Admin::ProductionOrderItemsController < AdminController
   end
 
   def edit
+    Rails.logger.info "Loading edit form for production order item: #{@production_order_item.id}"
+    render partial: 'admin/production_orders/consecutivo_form', 
+           locals: { consecutivo_form: @production_order_item },
+           content_type: 'text/javascript'
   end
 
   def update
+    Rails.logger.info "Received update request for production order item: #{@production_order_item.id}"
+    Rails.logger.info "Updating production order item with params: #{params.inspect}"
+    
     if @production_order_item.update(production_order_item_params)
-      redirect_to admin_production_order_path(@production_order),
-                  notice: "Consecutivo actualizado exitosamente."
+      Rails.logger.info "Update successful for item: #{@production_order_item.inspect}"
+      respond_to do |format|
+        format.html do
+          redirect_to admin_production_order_path(@production_order),
+                      notice: "Consecutivo actualizado exitosamente."
+        end
+        format.json do
+          render json: {
+            status: "success",
+            message: "Consecutivo actualizado exitosamente.",
+            item: @production_order_item
+          }
+        end
+      end
     else
-      render :edit, status: :unprocessable_entity
+      Rails.logger.info "Update failed. Errors: #{@production_order_item.errors.full_messages}"
+      Rails.logger.info "Permitted params: #{production_order_item_params.inspect}"
+      respond_to do |format|
+        format.html { render :edit, status: :unprocessable_entity }
+        format.json do
+          render json: {
+            status: "error",
+            errors: @production_order_item.errors.full_messages
+          }
+        end
+      end
     end
   end
 

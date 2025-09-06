@@ -26,7 +26,9 @@
       </div>
 
       <!-- Form -->
-      <%= form_with model: [@production_order, @production_order_item], 
+      <%= form_with model: [@production_order, @production_order_item],
+          url: admin_production_order_production_order_item_path(@production_order, @production_order_item),
+          method: :patch,
           local: true, 
           data: { controller: "form-validation" },
           class: "space-y-6" do |form| %>

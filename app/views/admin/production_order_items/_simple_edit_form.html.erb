@@ -1,0 +1,41 @@
+<%= form_with model: [production_order, production_order_item],
+    url: admin_production_order_production_order_item_path(production_order, production_order_item),
+    method: :patch,
+    local: true do |form| %>
+  <div class="grid gap-2 mb-2">
+    <!-- Folio Consecutivo (readonly) -->
+    <div>
+      <label class="block mb-1 text-sm font-medium text-slate-700">Folio Consecutivo</label>
+      <%= form.text_field :folio_consecutivo, 
+          class: "bg-slate-50 border border-slate-300 text-slate-700 text-sm rounded-lg block w-full p-2",
+          readonly: true %>
+    </div>
+
+    <!-- Peso Bruto -->
+    <div>
+      <label class="block mb-1 text-sm font-medium text-slate-700">Peso Bruto (kg)</label>
+      <%= form.number_field :peso_bruto, 
+          class: "bg-slate-50 border border-slate-300 text-slate-700 text-sm rounded-lg focus:ring-emerald-500 focus:border-emerald-500 block w-full p-2",
+          placeholder: "0.00",
+          step: 0.01,
+          min: 0 %>
+    </div>
+
+    <!-- Hidden fields for calculated values -->
+    <%= form.hidden_field :peso_neto %>
+    <%= form.hidden_field :metros_lineales %>
+    <%= form.hidden_field :peso_core_gramos %>
+    
+    <!-- Form buttons -->
+    <div class="flex shrink-0 flex-wrap items-center pt-2 justify-end border-t border-slate-200">
+      <button 
+        data-dialog-close="true" 
+        type="button"
+        class="rounded-md border border-transparent py-1 px-2.5 text-center text-sm transition-all text-slate-600 hover:bg-slate-100 focus:bg-slate-100 active:bg-slate-100 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none">
+        Cancelar
+      </button>
+      <%= form.submit "Guardar Consecutivo", 
+          class: "rounded-md bg-emerald-600 py-1 px-2.5 border border-transparent text-center text-sm text-white transition-all shadow hover:shadow focus:bg-emerald-700 focus:shadow-none active:bg-emerald-700 hover:bg-emerald-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none ml-1.5" %>
+    </div>
+  </div>
+<% end %>
