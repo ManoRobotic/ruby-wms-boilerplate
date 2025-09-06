@@ -22,6 +22,24 @@ class ProductionOrderItem < ApplicationRecord
   before_save :auto_populate_client_fields
   after_commit :update_production_order_quantity, on: [:create, :destroy]
 
+  # Get complete label data for printing
+  def label_data
+    {
+      name: folio_consecutivo&.split("-")&.last,
+      lote: production_order.lote_referencia,
+      clave_producto: production_order.product.sku,
+      peso_bruto: peso_bruto,
+      peso_neto: peso_neto,
+      metros_lineales: metros_lineales,
+      cliente: extract_cliente_from_notes,
+      numero_de_orden: production_order.no_opro || production_order.order_number,
+      nombre_cliente_numero_pedido: nombre_cliente_numero_pedido || "#{extract_cliente_from_notes}-#{production_order.no_opro || production_order.order_number}",
+      fecha_creacion: production_order.created_at.strftime("%d/%m/%Y"),
+      ancho_mm: ancho_mm,
+      micras: micras
+    }
+  end
+
   private
 
   def update_production_order_quantity
@@ -91,7 +109,7 @@ class ProductionOrderItem < ApplicationRecord
     640 => 1300, 650 => 1300, 660 => 1300, 670 => 1300, 680 => 1300, 690 => 1400, 
     700 => 1400, 710 => 1400, 720 => 1400, 730 => 1400, 740 => 1500, 750 => 1500, 
     760 => 1500, 770 => 1500, 780 => 1500, 790 => 1600, 800 => 1600, 810 => 1600, 
-    820 => 1600, 830 => 1600, 840 => 1700, 850 => 1700, 860 => 1700, 870 => 1700, 
+    820 => 1600, 830 => 1600, 840 => 1700, 850 => 1700, 860 => 1700, 870 => 17.00, 
     880 => 1700, 890 => 1800, 900 => 1800, 910 => 1800, 920 => 1800, 930 => 1800, 
     940 => 1900, 950 => 1900, 960 => 1900, 970 => 1900, 980 => 1900, 990 => 2000, 
     1000 => 2000, 1020 => 2000, 1040 => 1200, 1050 => 1200, 1060 => 1200, 
@@ -162,20 +180,5 @@ class ProductionOrderItem < ApplicationRecord
     self.cliente = extract_cliente_from_notes
     self.numero_de_orden = production_order.no_opro || production_order.order_number
     self.nombre_cliente_numero_pedido = "#{self.cliente}-#{self.numero_de_orden}" if self.cliente.present?
-  end
-
-  # Get complete label data for printing
-  def label_data
-    {
-      name: folio_consecutivo&.split("-")&.last,
-      lote: production_order.lote_referencia,
-      clave_producto: production_order.clave_producto,
-      peso_bruto: peso_bruto,
-      peso_neto: peso_neto,
-      metros_lineales: metros_lineales,
-      cliente: extract_cliente_from_notes,
-      numero_de_orden: production_order.no_opro || production_order.order_number,
-      nombre_cliente_numero_pedido: nombre_cliente_numero_pedido || "#{extract_cliente_from_notes}-#{production_order.no_opro || production_order.order_number}"
-    }
   end
 end

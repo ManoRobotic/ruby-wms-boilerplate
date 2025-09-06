@@ -9,61 +9,40 @@ class ProductionOrderPdf
 
   def render
     # Header
-    text "Etiquetas de Consecutivos", size: 24, style: :bold, align: :center
+    text "Tabla de Consecutivos", size: 22, style: :bold, align: :center
     move_down 10
 
-    text "Orden: #{@production_order.no_opro || @production_order.order_number}", size: 14
-    text "Producto: #{@production_order.product.name}", size: 12
-    text "Lote: #{@production_order.lote_referencia}", size: 12
-    text "Fecha: #{Date.current.strftime('%d/%m/%Y')}", size: 12
+    text "<b>Orden:</b> #{@production_order.no_opro || @production_order.order_number}", size: 12, inline_format: true
+    text "<b>Producto:</b> #{@production_order.product.name}", size: 12, inline_format: true
+    text "<b>Lote:</b> #{@production_order.lote_referencia}", size: 12, inline_format: true
+    text "<b>Fecha de Impresión:</b> #{Date.current.strftime('%d/%m/%Y')}", size: 12, inline_format: true
 
     move_down 20
 
-    # Create labels for each item
-    @production_order_items.each_with_index do |item, index|
-      # Start new page every 4 labels (2x2 grid)
-      start_new_page if index > 0 && index % 4 == 0
+    # Table data
+    table_data = [["Consec.", "Clave", "Medidas", "P. Bruto", "P. Neto", "Metros", "Cliente"]]
 
+    @production_order_items.each do |item|
       label_data = item.label_data
+      table_data << [
+        label_data[:name],
+        label_data[:clave_producto],
+        "#{label_data[:ancho_mm]}mm / #{label_data[:micras]}mic",
+        '%.2f' % label_data[:peso_bruto],
+        '%.2f' % label_data[:peso_neto],
+        label_data[:metros_lineales].round(2),
+        label_data[:cliente] || 'N/A'
+      ]
+    end
 
-      # Calculate position (2x2 grid)
-      x_position = (index % 2) * 280
-      y_position = cursor - ((index % 4) / 2) * 200
-
-      bounding_box([ x_position, y_position ], width: 260, height: 180) do
-        stroke_bounds
-
-        # Label content with padding
-        indent(10, 10) do
-          move_down 5
-
-          text "CONSECUTIVO: #{label_data[:name]}", size: 11, style: :bold
-          move_down 5
-
-          text "Lote: #{label_data[:lote]}", size: 9
-          text "Clave: #{label_data[:clave_producto]}", size: 9
-          move_down 3
-
-          if label_data[:peso_bruto].present?
-            text "Peso Bruto: #{label_data[:peso_bruto]} kg", size: 9
-          end
-
-          if label_data[:peso_neto].present?
-            text "Peso Neto: #{label_data[:peso_neto]} kg", size: 9
-          end
-
-          if label_data[:metros_lineales].present?
-            text "Metros: #{label_data[:metros_lineales]} m", size: 9
-          end
-
-          move_down 3
-          text "Cliente: #{label_data[:cliente] || 'N/A'}", size: 8
-          text "Orden: #{label_data[:numero_de_orden]}", size: 8
-
-          move_down 5
-          text Date.current.strftime("%d/%m/%Y"), size: 7, align: :right
-        end
-      end
+    # Create table
+    table(table_data, header: true, width: bounds.width) do
+      row(0).font_style = :bold
+      row(0).background_color = "F0F0F0"
+      cells.padding = [5, 8]
+      cells.borders = [:bottom]
+      cells.border_width = 0.5
+      self.row_colors = ["FFFFFF", "FDFDFD"]
     end
 
     @document.render
