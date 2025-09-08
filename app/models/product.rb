@@ -7,6 +7,7 @@ class Product < ApplicationRecord
 
   # Original associations
   belongs_to :category
+  belongs_to :company, optional: true
   has_many :stocks, dependent: :destroy
   has_many :order_products, dependent: :destroy
 
@@ -38,6 +39,7 @@ class Product < ApplicationRecord
   scope :active, -> { where(active: true) }
   scope :inactive, -> { where(active: false) }
   scope :by_category, ->(category) { where(category: category) }
+  scope :by_company, ->(company) { where(company: company) }
   scope :with_stock, -> { joins(:stocks).where(stocks: { amount: 1.. }).distinct }
   scope :without_stock, -> { left_joins(:stocks).where(stocks: { id: nil }).or(joins(:stocks).where(stocks: { amount: 0 })) }
   scope :price_range, ->(min, max) { where(price: min..max) }

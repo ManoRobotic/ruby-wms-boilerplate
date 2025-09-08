@@ -3,7 +3,7 @@ class Admin::ProductsController < AdminController
 
   # GET /admin/products or /admin/products.json
   def index
-    @admin_products = Product.all.page(params[:page]).per(20)
+    @admin_products = @product_scope.with_attached_images.includes(:category, :stocks).all.page(params[:page]).per(20)
   end
 
   # GET /admin/products/1 or /admin/products/1.json
@@ -12,7 +12,7 @@ class Admin::ProductsController < AdminController
 
   # GET /admin/products/new
   def new
-    @admin_product = Product.new
+    @admin_product = @product_scope.new
   end
 
   # GET /admin/products/1/edit
@@ -21,7 +21,7 @@ class Admin::ProductsController < AdminController
 
   # POST /admin/products or /admin/products.json
   def create
-    @admin_product = Product.new(admin_product_params)
+    @admin_product = @product_scope.new(admin_product_params)
 
     respond_to do |format|
       if @admin_product.save
@@ -67,11 +67,11 @@ class Admin::ProductsController < AdminController
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_admin_product
-      @admin_product = Product.find(params[:id])
+      @admin_product = @product_scope.find(params[:id])
     end
 
     # Only allow a list of trusted parameters through.
     def admin_product_params
-      params.require(:product).permit(:name, :description, :price, :category_id, :active, :image_url, images: [])
+      params.require(:product).permit(:name, :description, :price, :category_id, :active, :image_url, :company_id, images: [])
     end
 end

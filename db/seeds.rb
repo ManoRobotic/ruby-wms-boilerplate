@@ -65,9 +65,12 @@ empresas_data.each_with_index do |empresa_data, i|
 end
 
 # --- Categories ---
-["Rollos", "Bolsas"].each do |category_name|
-  category = Category.find_or_initialize_by(name: category_name)
-  category.description = "Default category for #{category_name}"
-  category.save!
-  puts "Created/Found Category: #{category_name}"
+default_company = Company.first
+if default_company
+  ["Rollos", "Bolsas"].each do |category_name|
+    category = Category.find_or_initialize_by(name: category_name, company: default_company)
+    category.description = "Default category for #{category_name}"
+    category.save!
+    puts "Created/Found Category: #{category_name}"
+  end
 end

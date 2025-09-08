@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_06_065132) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_08_203113) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -85,6 +85,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_06_065132) do
     t.datetime "updated_at", null: false
     t.string "image"
     t.string "image_url"
+    t.uuid "company_id"
+    t.index ["company_id"], name: "index_categories_on_company_id"
   end
 
   create_table "coins", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -452,9 +454,11 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_06_065132) do
     t.boolean "batch_tracking", default: false
     t.string "unit_of_measure", default: "unit"
     t.string "barcode", limit: 50
+    t.uuid "company_id"
     t.index ["barcode"], name: "index_products_on_barcode", unique: true, where: "(barcode IS NOT NULL)"
     t.index ["batch_tracking"], name: "index_products_on_batch_tracking"
     t.index ["category_id"], name: "index_products_on_category_id"
+    t.index ["company_id"], name: "index_products_on_company_id"
     t.index ["sku"], name: "index_products_on_sku", unique: true, where: "(sku IS NOT NULL)"
   end
 
@@ -648,6 +652,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_06_065132) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "admins", "companies"
+  add_foreign_key "categories", "companies"
   add_foreign_key "cycle_count_items", "cycle_counts"
   add_foreign_key "cycle_count_items", "products"
   add_foreign_key "cycle_counts", "admins"
@@ -677,6 +682,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_06_065132) do
   add_foreign_key "production_orders", "products"
   add_foreign_key "production_orders", "warehouses"
   add_foreign_key "products", "categories"
+  add_foreign_key "products", "companies"
   add_foreign_key "receipt_items", "locations"
   add_foreign_key "receipt_items", "products"
   add_foreign_key "receipt_items", "receipts"

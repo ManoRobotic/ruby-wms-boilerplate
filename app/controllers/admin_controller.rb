@@ -7,6 +7,8 @@ class AdminController < ApplicationController
   # Solo permitir acceso a admins reales o usuarios con rol admin/supervisor
   before_action :authenticate_admin_or_privileged_user!
   before_action :ensure_admin_permissions!
+  before_action :set_product_scope
+  before_action :set_category_scope
 
   helper_method :sort_column, :sort_direction
 
@@ -33,8 +35,8 @@ class AdminController < ApplicationController
     end
 
     # Additional useful metrics
-    @low_stock_products = Product.low_stock(5).limit(10) rescue []
-    @best_selling_products = Product.best_selling(5) rescue []
+    @low_stock_products = @product_scope.low_stock(5).limit(10) rescue []
+    @best_selling_products = @product_scope.best_selling(5) rescue []
 
     # WMS Dashboard Metrics
     @wms_metrics = calculate_wms_metrics rescue {}
@@ -51,6 +53,22 @@ class AdminController < ApplicationController
   end
 
   private
+
+  def set_product_scope
+    if current_user_or_admin&.company
+      @product_scope = current_user_or_admin.company.products
+    else
+      @product_scope = Product.none
+    end
+  end
+
+  def set_category_scope
+    if current_user_or_admin&.company
+      @category_scope = current_user_or_admin.company.categories
+    else
+      @category_scope = Category.none
+    end
+  end
 
   def sortable_columns
     []
@@ -93,9 +111,9 @@ class AdminController < ApplicationController
     {
       total_warehouses: Warehouse.active.count,
       total_locations: Location.active.count,
-      total_products: Product.active.count,
-      total_inventory_value: Product.inventory_valuation || 0,
-      low_stock_products: Product.low_stock.count,
+      total_products: @product_scope.active.count,
+      total_inventory_value: @product_scope.inventory_valuation || 0,
+      low_stock_products: @product_scope.low_stock.count,
       pending_receipts: (Receipt.scheduled.count rescue 0),
       active_shipments: (Shipment.where(status: [ "shipped", "in_transit" ]).count rescue 0)
     }
@@ -103,8 +121,8 @@ class AdminController < ApplicationController
 
   def calculate_inventory_alerts
     {
-      low_stock: Product.low_stock.count,
-      overstock: (Product.overstock.count rescue 0),
+      low_stock: @product_scope.low_stock.count,
+      overstock: (@product_scope.overstock.count rescue 0),
       expiring_soon: (Stock.expiring_soon(30).group(:product_id).count.size rescue 0),
       expired: (Stock.expired.group(:product_id).count.size rescue 0),
       negative_stock: (Stock.where("amount < 0").count rescue 0)

@@ -16,7 +16,12 @@ class ApplicationController < ActionController::Base
   end
 
   # Helper methods for views
-  helper_method :can?, :cannot?, :current_user_or_admin
+  helper_method :can?, :cannot?, :current_user_or_admin, :current_company
+
+  def current_company
+    return nil unless user_signed_in_or_admin?
+    current_user_or_admin.company
+  end
 
   # Método para determinar la página de inicio según el rol
   def after_sign_in_path_for(resource)

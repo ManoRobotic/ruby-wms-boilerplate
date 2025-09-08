@@ -3,7 +3,7 @@ class Admin::CategoriesController < AdminController
 
   # GET /admin/categories or /admin/categories.json
   def index
-    @categories = Category.all.page(params[:page]).per(20)
+    @categories = @category_scope.with_attached_image.includes(:products).all.page(params[:page]).per(20)
   end
 
   # GET /admin/categories/1 or /admin/categories/1.json
@@ -12,7 +12,7 @@ class Admin::CategoriesController < AdminController
 
   # GET /admin/categories/new
   def new
-    @category = Category.new
+    @category = @category_scope.new
   end
 
   # GET /admin/categories/1/edit
@@ -21,11 +21,11 @@ class Admin::CategoriesController < AdminController
 
   # POST /admin/categories or /admin/categories.json
   def create
-    @category = Category.new(category_params)
+    @category = @category_scope.new(category_params)
 
     respond_to do |format|
       if @category.save
-        format.html { redirect_to admin_categories_path(@category), notice: t("admin.categories.created") }
+        format.html { redirect_to admin_categories_path, notice: t("admin.categories.created") }
         format.json { render :show, status: :created, location: @category }
       else
         format.html { render :new, status: :unprocessable_entity }
@@ -60,11 +60,11 @@ class Admin::CategoriesController < AdminController
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_category
-      @category = Category.find(params[:id])
+      @category = @category_scope.find(params[:id])
     end
 
     # Only allow a list of trusted parameters through.
     def category_params
-      params.require(:category).permit(:name, :description, :image, :image_url)
+      params.require(:category).permit(:name, :description, :image, :image_url, :company_id)
     end
 end

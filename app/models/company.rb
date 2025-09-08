@@ -1,4 +1,6 @@
 class Company < ApplicationRecord
+  has_many :products
+  has_many :categories
   has_many :production_orders
   has_many :warehouses
   has_many :admins
