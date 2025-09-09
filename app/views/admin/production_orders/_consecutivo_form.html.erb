@@ -78,9 +78,10 @@
         <!-- Componente de Pesaje -->
         <div class="bg-gray-50 rounded-md p-2 mb-2 transition-opacity duration-300" 
              data-controller="consecutivo-scale" 
-             data-consecutivo-scale-base-url-value="http://192.168.200.16:5000"
+             data-consecutivo-scale-base-url-value="<%= ENV['SERIAL_SERVER_URL'] || 'http://localhost:5000' %>"
              data-consecutivo-scale-auto-connect-value="true"
              data-consecutivo-scale-saved-port-value="<%= current_admin&.company&.serial_port || '' %>"
+             data-consecutivo-scale-auto-save-value="<%= current_admin&.company&.auto_save_consecutivo || false %>"
              data-consecutivo-form-target="serialSection">
           <h4 class="font-medium text-gray-700 mb-1.5 text-sm">Control de Pesaje</h4>
           
@@ -91,6 +92,10 @@
                     class="w-full text-xs rounded border-gray-300 focus:border-blue-500 focus:ring-blue-500">
               <option value="">Detectando puertos...</option>
             </select>
+            <div class="flex items-center mt-2">
+              <input id="auto-save-checkbox" type="checkbox" data-consecutivo-scale-target="autoSaveCheckbox" data-action="change->consecutivo-scale#saveAutoSaveState" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+              <label for="auto-save-checkbox" class="ml-2 block text-sm text-gray-900">Guardar al recibir peso</label>
+            </div>
           </div>
           
           <!-- Status de Conexión -->
@@ -110,6 +115,7 @@
                         class="w-full px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
                   Leer Peso
                 </button>
+                
               </div>
             </div>
             <div data-consecutivo-scale-target="weight" class="weight-display">

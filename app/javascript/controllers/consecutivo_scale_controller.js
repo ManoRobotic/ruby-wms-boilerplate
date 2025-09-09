@@ -1,16 +1,25 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["status", "weight", "portSelect", "readBtn"]
+  static targets = ["status", "weight", "portSelect", "readBtn", "autoSaveCheckbox"]
   static values = { 
     baseUrl: String,
-    savedPort: String
+    savedPort: String,
+    autoSave: Boolean
   }
 
   connect() {
     this.baseUrlValue = this.baseUrlValue || "http://localhost:5000"
-    this.loadPorts()
+    this.loadPorts().then(() => {
+      if (this.savedPortValue && this.portSelectTarget.value === this.savedPortValue) {
+        this.getWeight()
+      }
+    })
     this.log("Consecutivo scale controller initialized")
+
+    if (this.hasAutoSaveCheckboxTarget) {
+      this.autoSaveCheckboxTarget.checked = this.autoSaveValue
+    }
   }
 
   disconnect() {
@@ -20,7 +29,11 @@ export default class extends Controller {
   async loadPorts() {
     this.updateStatus("Loading ports...", "info")
     try {
-      const response = await fetch(`${this.baseUrlValue}/ports`)
+      const response = await fetch(`${this.baseUrlValue}/ports`, {
+        headers: {
+          'skip_zrok_interstitial': 'true'
+        }
+      })
       const data = await response.json()
       
       if (data.status === 'success' && this.hasPortSelectTarget) {
@@ -86,7 +99,10 @@ export default class extends Controller {
       this.updateStatus("Connecting...", "info")
       let response = await fetch(`${this.baseUrlValue}/scale/connect`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'skip_zrok_interstitial': 'true' // Add header here
+        },
         body: JSON.stringify({ port, baudrate }),
         signal: controller.signal
       })
@@ -98,7 +114,12 @@ export default class extends Controller {
       this.updateStatus("Connected, waiting for weight...", "info")
 
       // 2. Read
-      response = await fetch(`${this.baseUrlValue}/scale/read`, { signal: controller.signal })
+      response = await fetch(`${this.baseUrlValue}/scale/read`, {
+        signal: controller.signal,
+        headers: {
+          'skip_zrok_interstitial': 'true' // Add header here
+        }
+      })
       data = await response.json()
       if (data.status !== 'success') {
         throw new Error('Failed to read from scale')
@@ -190,6 +211,10 @@ export default class extends Controller {
         detail: { weight: weightValue, timestamp: timestamp },
         bubbles: true
       }));
+
+      if (this.hasAutoSaveCheckboxTarget && this.autoSaveCheckboxTarget.checked) {
+        this.element.closest('form').requestSubmit()
+      }
     }
   }
 
@@ -224,5 +249,11 @@ export default class extends Controller {
 
   log(message) {
     console.log(`[ConsecutivoScale] ${message}`)
+  }
+
+  saveAutoSaveState() {
+    if (this.hasAutoSaveCheckboxTarget) {
+      this.saveConfiguration({ auto_save_consecutivo: this.autoSaveCheckboxTarget.checked })
+    }
   }
 }
