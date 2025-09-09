@@ -117,6 +117,7 @@ export default class extends Controller {
     const weight = event.detail.weight;
     this.currentWeight = parseFloat(weight);
     console.log('Weight received and stored:', this.currentWeight);
+    this.calculateWeights(); // Trigger calculations
   }
 
   // Actualizar visualización del peso en el display

@@ -9,7 +9,6 @@ export default class extends Controller {
 
   connect() {
     this.baseUrlValue = this.baseUrlValue || "http://localhost:5000"
-    this.log("Base URL: " + this.baseUrlValue)
     this.loadPorts()
     this.log("Consecutivo scale controller initialized")
   }
@@ -20,13 +19,9 @@ export default class extends Controller {
 
   async loadPorts() {
     this.updateStatus("Loading ports...", "info")
-    this.log("Loading ports...")
     try {
-      this.log("Fetching ports from: " + `${this.baseUrlValue}/ports`)
       const response = await fetch(`${this.baseUrlValue}/ports`)
-      this.log("Ports fetched")
       const data = await response.json()
-      this.log("Ports data: " + JSON.stringify(data))
       
       if (data.status === 'success' && this.hasPortSelectTarget) {
         this.portSelectTarget.innerHTML = '<option value="">Select port...</option>'
@@ -41,10 +36,6 @@ export default class extends Controller {
           this.portSelectTarget.value = this.savedPortValue
         }
         this.updateStatus("Ports loaded", "success")
-        this.log("Ports loaded successfully")
-      } else {
-        this.log("Failed to load ports: " + data.message)
-        this.updateStatus("Failed to load ports", "error")
       }
     } catch (error) {
       this.log(`Error loading ports: ${error.message}`)
@@ -60,6 +51,9 @@ export default class extends Controller {
       this.updateStatus("Please select a port", "error")
       return
     }
+
+    // Save the selected port
+    this.saveConfiguration({ serial_port: port })
 
     this.showSpinner()
     this.readBtnTarget.disabled = true
@@ -181,7 +175,7 @@ export default class extends Controller {
               <circle cx="18" cy="18" r="16" fill="none" class="stroke-current ${colorClass}" stroke-width="2" stroke-dasharray="100" stroke-dashoffset="${strokeOffset}" stroke-linecap="round"></circle>
             </svg>
             <div class="absolute top-1/2 start-1/2 transform -translate-y-1/2 -translate-x-1/2">
-              <span class="text-center text-2xl font-bold ${colorClass}">${weightValue.toFixed(1)}</span>
+              <span class="text-center text-2xl font-bold ${colorClass}">${weightValue.toFixed(2)}</span>
             </div>
           </div>
           <div class="mt-2 text-center">
@@ -191,24 +185,41 @@ export default class extends Controller {
         </div>
       `
       
-      this.assignWeightToForm(weightValue)
-      this.dispatch('weightUpdated', { detail: { weight: weightValue, timestamp: timestamp } })
+      // Dispatch event to notify the form controller
+      this.element.dispatchEvent(new CustomEvent('serial:weightRead', {
+        detail: { weight: weightValue, timestamp: timestamp },
+        bubbles: true
+      }));
     }
   }
 
-  assignWeightToForm(weight) {
-    const form = this.element.closest('form')
-    if (form) {
-      const pesoBrutoInput = form.querySelector('[data-consecutivo-form-target="pesoBrutoInput"]')
-      if (pesoBrutoInput) {
-        pesoBrutoInput.value = weight.toFixed(2)
-        pesoBrutoInput.dispatchEvent(new Event('input', { bubbles: true }))
+  // Método para guardar configuración usando Rails forms
+  saveConfiguration(configData) {
+    // Enviar una solicitud al endpoint de auto-guardado
+    fetch('/admin/configurations/auto_save', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': this.getCSRFToken()
+      },
+      body: JSON.stringify(configData)
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        this.log("Configuration saved successfully")
+      } else {
+        this.log(`Error saving configuration: ${data.message}`)
       }
-      const pesoBrutoHidden = form.querySelector('[data-consecutivo-form-target="pesoBrutoHidden"]')
-      if (pesoBrutoHidden) {
-        pesoBrutoHidden.value = weight.toFixed(2)
-      }
-    }
+    })
+    .catch(error => {
+      this.log(`Error saving configuration: ${error.message}`)
+    })
+  }
+
+  getCSRFToken() {
+    const token = document.querySelector('meta[name="csrf-token"]')
+    return token ? token.getAttribute('content') : ''
   }
 
   log(message) {
