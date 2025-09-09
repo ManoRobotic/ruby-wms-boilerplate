@@ -77,16 +77,26 @@
 
         <!-- Componente de Pesaje -->
         <div class="bg-gray-50 rounded-md p-2 mb-2 transition-opacity duration-300" 
-             data-controller="serial" 
-             data-serial-base-url-value="/api/serial"
-             data-serial-auto-connect-value="false"
+             data-controller="consecutivo-scale" 
+             data-consecutivo-scale-base-url-value="http://localhost:5002"
+             data-consecutivo-scale-auto-connect-value="true"
+             data-consecutivo-scale-saved-port-value="<%= current_admin&.company&.serial_port || '' %>"
              data-consecutivo-form-target="serialSection">
           <h4 class="font-medium text-gray-700 mb-1.5 text-sm">Control de Pesaje</h4>
+          
+          <!-- Puerto Serial -->
+          <div class="mb-2">
+            <label class="block text-xs font-medium text-gray-600 mb-1">Puerto Serial</label>
+            <select data-consecutivo-scale-target="portSelect" 
+                    class="w-full text-xs rounded border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+              <option value="">Detectando puertos...</option>
+            </select>
+          </div>
           
           <!-- Status de Conexión -->
           <div class="flex items-center justify-between mb-1.5">
             <span class="text-sm font-medium text-gray-600">Estado:</span>
-            <span data-serial-target="status" class="px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800">Desconectado</span>
+            <span data-consecutivo-scale-target="status" class="px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800">Iniciando...</span>
           </div>
 
           <!-- Weight Display -->
@@ -94,30 +104,25 @@
             <div class="flex items-center justify-between mb-1.5">
               <span class="font-medium text-gray-700 text-sm">Peso actual:</span>
               <div class="flex gap-1">
-                <button data-action="click->serial#connectScale" 
+                <button data-consecutivo-scale-target="connectBtn"
+                        data-action="click->consecutivo-scale#connectScale" 
                         type="button"
                         class="px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-all duration-200">
                   Conectar
                 </button>
-                <button data-action="click->serial#readWeightNow" 
+                <button data-consecutivo-scale-target="readBtn"
+                        data-action="click->consecutivo-scale#readWeightNow" 
                         type="button"
-                        class="px-2 py-1 text-xs border border-gray-300 rounded hover:bg-gray-50 transition-all duration-200">
+                        class="px-2 py-1 text-xs border border-gray-300 rounded hover:bg-gray-50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled>
                   Leer ahora
                 </button>
               </div>
             </div>
-            <div data-serial-target="weight" class="weight-display">
-              <div class="text-2xl font-bold block text-center transition-all duration-300 ease-in-out text-gray-400">--</div>
-              <div class="text-sm text-gray-500 block text-center">--</div>
+            <div data-consecutivo-scale-target="weight" class="weight-display">
+              <div class="text-xl font-bold block text-center transition-all duration-300 ease-in-out text-gray-400">--</div>
+              <div class="text-xs text-gray-500 block text-center">--</div>
             </div>
-            
-            <!-- Botón para usar peso en el formulario -->
-            <button type="button" 
-                    data-action="click->consecutivo-form#useSerialWeight"
-                    class="w-full mt-1.5 px-2 py-1 bg-emerald-600 text-white text-sm rounded-md hover:bg-emerald-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                    disabled>
-              Usar este peso
-            </button>
           </div>
         </div>
 
@@ -174,6 +179,7 @@
     <!-- Hidden fields for calculated values -->
     <%= form.hidden_field :peso_core_gramos %>
     <%= form.hidden_field :altura_cm, value: 75 %>
+    <%= form.hidden_field :peso_bruto, data: { "consecutivo-form-target": "pesoBrutoHidden" } %>
     
     <!-- Form buttons -->
     <div class="flex shrink-0 flex-wrap items-center pt-2 justify-end border-t border-slate-200">

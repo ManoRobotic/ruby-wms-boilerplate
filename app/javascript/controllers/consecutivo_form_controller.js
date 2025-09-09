@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["pesoNeto", "metrosLineales", "pesoBrutoInput", "pesoCoreDisplay", "pesoNetoDisplay", "metrosLinealesDisplay", "especificacionesDisplay", "manualModeCheckbox", "manualWeightSection", "scaleWeightSection", "serialSection", "backupWeighButton"]
+  static targets = ["pesoNeto", "metrosLineales", "pesoBrutoInput", "pesoBrutoHidden", "pesoCoreDisplay", "pesoNetoDisplay", "metrosLinealesDisplay", "especificacionesDisplay", "manualModeCheckbox", "manualWeightSection", "scaleWeightSection", "serialSection", "backupWeighButton"]
 
   connect() {
     console.log("Consecutivo form controller connected")
@@ -84,7 +84,7 @@ export default class extends Controller {
       this.serialSectionTarget.classList.remove('hidden')
     }
     
-    // Deshabilitar input de peso
+    // Deshabilitar input de peso (modo báscula)
     if (this.hasPesoBrutoInputTarget) {
       this.pesoBrutoInputTarget.disabled = true
       this.pesoBrutoInputTarget.classList.add('bg-gray-100')
@@ -104,72 +104,19 @@ export default class extends Controller {
 
   // Escuchar eventos del controlador serial
   listenForWeightUpdates() {
+    // Escuchar el evento antiguo serial:weightRead
     this.element.addEventListener('serial:weightRead', (event) => {
-      this.onWeightRead(event)
-    })
+      console.log('Received serial:weightRead event:', event.detail);
+      this.onWeightRead(event);
+    });
   }
 
   // Método público para manejar evento serial:weightRead
   onWeightRead(event) {
-    const { weight, timestamp } = event.detail
-    this.currentWeight = parseFloat(weight)
-    this.enableUseWeightButton()
-    console.log('Weight received from serial:', weight)
-  }
-
-  // Habilitar botón "Usar este peso"
-  enableUseWeightButton() {
-    const useWeightBtn = this.element.querySelector('[data-action*="useSerialWeight"]')
-    if (useWeightBtn) {
-      useWeightBtn.disabled = false
-      useWeightBtn.classList.remove('opacity-50', 'cursor-not-allowed')
-      useWeightBtn.classList.add('pulse-animation')
-      
-      // Remover animación después de 2 segundos
-      setTimeout(() => {
-        useWeightBtn.classList.remove('pulse-animation')
-      }, 2000)
-    }
-  }
-
-  // Usar peso del serial en el formulario
-  useSerialWeight(event) {
-    event.preventDefault()
-    
-    if (this.currentWeight) {
-      // Buscar el campo peso_bruto existente o crearlo
-      let weightField = this.element.querySelector('input[name*="peso_bruto"]')
-      if (!weightField) {
-        // Crear campo hidden si no existe
-        weightField = document.createElement('input')
-        weightField.type = 'hidden'
-        weightField.name = 'production_order_item[peso_bruto]'
-        weightField.dataset.consecutovoFormTarget = 'pesoBrutoInput'
-        this.element.appendChild(weightField)
-      }
-      
-      // Asignar el peso al campo
-      weightField.value = this.currentWeight.toFixed(2)
-      
-      // Actualizar visualización y cálculos
-      this.updateWeightDisplay(this.currentWeight.toFixed(2))
-      this.calculateWeightsWithValue(this.currentWeight)
-      
-      // Deshabilitar botón después de usar
-      const useWeightBtn = event.currentTarget
-      useWeightBtn.disabled = true
-      useWeightBtn.classList.add('opacity-50', 'cursor-not-allowed')
-      useWeightBtn.textContent = 'Peso usado'
-      
-      // Restaurar texto después de 3 segundos
-      setTimeout(() => {
-        useWeightBtn.textContent = 'Usar este peso'
-        useWeightBtn.disabled = false
-        useWeightBtn.classList.remove('opacity-50', 'cursor-not-allowed')
-      }, 3000)
-      
-      console.log('Peso de báscula aplicado:', this.currentWeight.toFixed(2))
-    }
+    // Extraer el peso del evento
+    const weight = event.detail.weight;
+    this.currentWeight = parseFloat(weight);
+    console.log('Weight received and stored:', this.currentWeight);
   }
 
   // Actualizar visualización del peso en el display
@@ -238,7 +185,7 @@ export default class extends Controller {
   }
 
   // Función auxiliar para actualizar campos calculados
-  updateCalculatedFields(pesoNeto, metrosLineales, pesoCoreGramos, micras, anchoMm) {
+  updateCalculatedFields(pesoNeto, metrosLineales, pesoCoreGramos, micras, anchoMm, pesoBruto) {
     // Actualizar campos hidden para formulario
     if (this.hasPesoNetoTarget) {
       this.pesoNetoTarget.value = pesoNeto.toFixed(3)
@@ -263,6 +210,11 @@ export default class extends Controller {
 
     if (this.hasEspecificacionesDisplayTarget) {
       this.especificacionesDisplayTarget.textContent = `${micras}μ / ${anchoMm}mm`
+    }
+
+    // Actualizar peso bruto en el campo oculto
+    if (this.hasPesoBrutoHiddenTarget && pesoBruto !== undefined) {
+      this.pesoBrutoHiddenTarget.value = pesoBruto.toFixed(2)
     }
 
     // Actualizar campos ocultos para envío del formulario
@@ -327,6 +279,13 @@ export default class extends Controller {
   }
 
   getFieldValue(fieldName) {
+    // Special handling for peso_bruto to get from the visible input field
+    if (fieldName === "peso_bruto") {
+      if (this.hasPesoBrutoInputTarget) {
+        return this.pesoBrutoInputTarget.value;
+      }
+    }
+    
     const field = this.element.querySelector(`[name*="${fieldName}"]`) || 
                   this.element.querySelector(`input[id*="${fieldName}"]`)
     return field ? field.value : ""

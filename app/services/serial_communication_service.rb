@@ -5,7 +5,7 @@ require 'json'
 require 'uri'
 
 class SerialCommunicationService
-  BASE_URL = ENV['SERIAL_SERVER_URL'] || 'http://192.168.200.16:5000'
+  BASE_URL = ENV['SERIAL_SERVER_URL'] || 'http://localhost:5002'
   
   class << self
     def health_check
