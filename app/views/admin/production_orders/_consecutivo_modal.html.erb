@@ -1,5 +1,6 @@
 <!-- Consecutivo Modal -->
 <div
+  id="consecutivo-modal"
   data-controller="dialog"
   data-dialog-backdrop="consecutivo-modal"
   data-dialog-backdrop-close="true"
@@ -26,5 +27,7 @@
     <% new_item = @production_order.production_order_items.build %>
     <% new_item.folio_consecutivo = ProductionOrderItem.generate_folio_consecutivo(@production_order) %>
     <%= render 'consecutivo_form', consecutivo_form: new_item %>
+    
+
   </div>
 </div>

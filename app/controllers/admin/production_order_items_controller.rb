@@ -52,6 +52,17 @@ class Admin::ProductionOrderItemsController < AdminController
             item: @production_order_item
           }
         end
+        format.turbo_stream do
+          # Ensure production_order is loaded for the partial
+          @production_order_item = ProductionOrderItem.includes(:production_order).find(@production_order_item.id)
+          render turbo_stream: [
+            turbo_stream.append(
+              "production_order_items_table_body",
+              partial: "admin/production_orders/consecutivo_row",
+              locals: { item: @production_order_item }
+            )
+          ]
+        end
       end
     else
       respond_to do |format|
@@ -62,33 +73,19 @@ class Admin::ProductionOrderItemsController < AdminController
             errors: @production_order_item.errors.full_messages
           }
         end
+        format.turbo_stream do
+          render turbo_stream: turbo_stream.replace(
+            "consecutivo-modal",
+            partial: "admin/production_orders/consecutivo_modal_with_errors",
+            locals: { production_order: @production_order, production_order_item: @production_order_item }
+          )
+        end
       end
     end
   end
 
   def edit
     Rails.logger.info "Loading edit form for production order item: #{@production_order_item.id}"
-    respond_to do |format|
-      format.html do
-        # For Turbo frame requests, render the form partial
-        if request.headers['Turbo-Frame']
-          render partial: 'admin/production_orders/consecutivo_form', 
-                 locals: { consecutivo_form: @production_order_item }
-        else
-          # For regular requests, we might want to redirect or handle differently
-          # But since this is called from JavaScript, we'll render the partial
-          render partial: 'admin/production_orders/consecutivo_form', 
-                 locals: { consecutivo_form: @production_order_item },
-                 content_type: 'text/html'
-        end
-      end
-      format.js do
-        # Keep the existing JavaScript response for backward compatibility
-        render partial: 'admin/production_orders/consecutivo_form', 
-               locals: { consecutivo_form: @production_order_item },
-               content_type: 'text/javascript'
-      end
-    end
   end
 
   def update
@@ -108,6 +105,17 @@ class Admin::ProductionOrderItemsController < AdminController
             message: "Consecutivo actualizado exitosamente.",
             item: @production_order_item
           }
+        end
+        format.turbo_stream do
+          # Ensure production_order is loaded for the partial
+          @production_order_item = ProductionOrderItem.includes(:production_order).find(@production_order_item.id)
+          render turbo_stream: [
+            turbo_stream.replace(
+              "production_order_item_#{@production_order_item.id}",
+              partial: "admin/production_orders/consecutivo_row",
+              locals: { item: @production_order_item }
+            )
+          ]
         end
       end
     else
@@ -164,7 +172,7 @@ class Admin::ProductionOrderItemsController < AdminController
   end
 
   def set_production_order_item
-    @production_order_item = @production_order.production_order_items.find(params[:id])
+    @production_order_item = @production_order.production_order_items.includes(:production_order).find(params[:id])
   end
 
   def production_order_item_params

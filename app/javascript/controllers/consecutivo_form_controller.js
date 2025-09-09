@@ -331,13 +331,12 @@ export default class extends Controller {
       this.pesoBrutoHiddenTarget.value = this.currentWeight.toString();
     }
     
-    // Allow the form to submit normally - don't prevent default
-    console.log('Form is being submitted normally after calculations');
+    // Allow the form to submit normally via Turbo
+    console.log('Form is being submitted via Turbo');
     
-    // Add success handler for form submission
+    // Log form data for debugging
     const form = event.target;
     if (form) {
-      // Log form data for debugging
       const formData = new FormData(form);
       console.log('Form submission data:');
       for (let [key, value] of formData.entries()) {
@@ -345,7 +344,6 @@ export default class extends Controller {
       }
     }
     
-    // Important: Do NOT call event.preventDefault() - let the form submit normally
-    // The purpose of this handler is just to ensure calculations are done before submission
+    // Important: Do NOT call event.preventDefault() - let Turbo handle the submission
   }
 }

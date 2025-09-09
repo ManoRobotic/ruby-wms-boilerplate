@@ -6,7 +6,7 @@ Integra el script de báscula existente con endpoints REST
 """
 
 import argparse
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 import threading
 import time
@@ -29,7 +29,9 @@ from typing import Optional, Dict, Any
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-app = Flask(__name__)
+# Configurar Flask con el directorio de plantillas
+template_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
+app = Flask(__name__, template_folder=template_dir)
 CORS(app)
 
 # Variables globales
@@ -92,24 +94,37 @@ class ScaleManager:
             self.serial_connection.close()
             logger.info("✓ Puerto serial cerrado correctamente")
     
-    def read_weight(self) -> Optional[ScaleReading]:
-        """Lee un peso de la báscula"""
+    def read_weight(self, timeout=5) -> Optional[ScaleReading]:
+        """Lee un peso de la báscula, con un timeout"""
         if not self.serial_connection or not self.serial_connection.is_open:
+            logger.error("La conexión serial no está abierta.")
             return None
             
         try:
-            if self.serial_connection.in_waiting > 0:
-                data = self.serial_connection.readline().decode().strip()
-                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                
-                reading = ScaleReading(weight=data, timestamp=timestamp)
-                self.last_reading = reading
-                
-                # Escribir a CSV
-                self._save_to_csv(reading)
-                
-                return reading
-                
+            logger.info("Esperando datos de la báscula...")
+            start_time = time.time()
+            while time.time() - start_time < timeout:
+                if self.serial_connection.in_waiting > 0:
+                    data = self.serial_connection.readline().decode('utf-8', errors='ignore').strip()
+                    logger.info(f"Datos recibidos: '{data}'")
+
+                    if data:
+                        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        
+                        reading = ScaleReading(weight=data, timestamp=timestamp)
+                        self.last_reading = reading
+                        
+                        # Escribir a CSV
+                        self._save_to_csv(reading)
+                        
+                        # Print to console immediately when data is received
+                        print(f"\033[92m[{timestamp}]\033[0m Peso: \033[93m{data}\033[0m")
+                        
+                        return reading
+                time.sleep(0.1)
+            
+            logger.warning("No se recibieron datos en el tiempo esperado.")
+            
         except Exception as e:
             logger.error(f"Error leyendo báscula: {str(e)}")
             
@@ -134,7 +149,8 @@ class ScaleManager:
                 reading = self.read_weight()
                 if reading:
                     scale_data_queue.put(reading)
-                    logger.info(f"[{reading.timestamp}] Peso: {reading.weight}")
+                    # Print to console with colored output
+                    print(f"\033[92m[{reading.timestamp}]\033[0m Peso: \033[93m{reading.weight}\033[0m")
                 time.sleep(0.1)
         
         thread = threading.Thread(target=read_loop, daemon=True)
@@ -355,6 +371,11 @@ scale_manager = ScaleManager()
 printer_manager = PrinterManager()
 
 # Endpoints REST
+@app.route('/')
+def index():
+    """Página principal del monitor serial"""
+    return render_template('index.html')
+
 @app.route('/health', methods=['GET'])
 def health_check():
     """Endpoint de salud del servidor"""
@@ -407,7 +428,7 @@ def stop_scale_reading():
 @app.route('/scale/read', methods=['GET'])
 def read_scale():
     """Lee peso actual de la báscula"""
-    reading = scale_manager.read_weight()
+    reading = scale_manager.read_weight(timeout=10) # Wait up to 10 seconds
     if reading:
         return jsonify({
             'status': 'success',
@@ -441,6 +462,8 @@ def get_latest_from_queue():
                 'timestamp': reading.timestamp,
                 'status': reading.status
             })
+            # También imprimir en consola para debugging
+            print(f"\033[94m[API REQUEST]\033[0m [{reading.timestamp}] Peso: \033[93m{reading.weight}\033[0m")
     except queue.Empty:
         pass
     

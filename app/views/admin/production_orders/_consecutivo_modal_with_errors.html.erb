@@ -1,18 +1,17 @@
-<!-- Edit Consecutivo Modal -->
+<!-- Consecutivo Modal with Errors -->
 <div
-  id="edit-consecutivo-modal"
   data-controller="dialog"
-  data-dialog-backdrop="edit-consecutivo-modal"
+  data-dialog-backdrop="consecutivo-modal"
   data-dialog-backdrop-close="true"
   class="pointer-events-none fixed inset-0 z-[9999] grid h-screen w-screen place-items-center bg-transparent opacity-0 backdrop-blur-sm transition-opacity duration-300"
 >
   <div
-    data-dialog="edit-consecutivo-modal"
+    data-dialog="consecutivo-modal"
     class="relative m-4 p-4 w-11/12 max-w-2xl rounded-lg bg-white shadow-2xl max-h-[95vh] overflow-y-auto border border-gray-300"
   >
     <!-- Modal header -->
     <div class="flex shrink-0 items-center justify-between pb-2 text-base font-medium text-slate-800 border-b border-slate-200">
-      Editar Folio
+      Crear Nuevo Folio
       <button 
         data-dialog-close="true" 
         type="button"
@@ -24,12 +23,17 @@
     </div>
             
     <!-- Modal body -->
-    <div id="edit-consecutivo-form-container">
-      <!-- Loading indicator will be shown here when loading -->
-      <!-- Turbo frame for loading the edit form -->
-      <turbo-frame id="edit-consecutivo-form">
-        <!-- Form will be loaded here -->
-      </turbo-frame>
-    </div>
+    <% if production_order_item.errors.any? %>
+      <div class="bg-red-50 border border-red-200 rounded-md p-3 mb-4">
+        <h4 class="text-sm font-medium text-red-800 mb-2">Por favor corrige los siguientes errores:</h4>
+        <ul class="list-disc list-inside text-sm text-red-700">
+          <% production_order_item.errors.full_messages.each do |message| %>
+            <li><%= message %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+    
+    <%= render 'consecutivo_form', consecutivo_form: production_order_item %>
   </div>
 </div>

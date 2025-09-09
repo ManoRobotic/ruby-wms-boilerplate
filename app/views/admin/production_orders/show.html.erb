@@ -148,7 +148,7 @@
                     <th class="px-3 py-2 text-center text-xs font-medium text-emerald-800 uppercase tracking-wider">Acciones</th>
                   </tr>
                 </thead>
-                <tbody class="bg-white divide-y divide-emerald-100">
+                <tbody class="bg-white divide-y divide-emerald-100" id="production_order_items_table_body">
                   <% @production_order.production_order_items.order(:folio_consecutivo).each do |item| %>
                     <tr class="hover:bg-emerald-25">
                       <td class="px-2 py-2 text-center text-sm font-medium">
@@ -213,34 +213,7 @@
               </table>
             </div>
             
-            <!-- Resumen de consecutivos -->
-            
-            <div class="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div class="bg-white rounded-lg p-3 border border-emerald-200">
-                <div class="text-xs text-emerald-600">Total Consecutivos</div>
-                <div class="text-lg font-semibold text-emerald-900">
-                  <%= @production_order.production_order_items.count %>
-                </div>
-              </div>
-              <div class="bg-white rounded-lg p-3 border border-emerald-200">
-                <div class="text-xs text-emerald-600">Peso Bruto Total</div>
-                <div class="text-lg font-semibold text-emerald-900">
-                  <%= @production_order.production_order_items.sum { |item| item.peso_bruto || 0 }.round(2) %> kg
-                </div>
-              </div>
-              <div class="bg-white rounded-lg p-3 border border-emerald-200">
-                <div class="text-xs text-emerald-600">Peso Neto Total</div>
-                <div class="text-lg font-semibold text-emerald-900">
-                  <%= @production_order.production_order_items.sum { |item| item.peso_neto || 0 }.round(2) %> kg
-                </div>
-              </div>
-              <div class="bg-white rounded-lg p-3 border border-emerald-200">
-                <div class="text-xs text-emerald-600">Metros Totales</div>
-                <div class="text-lg font-semibold text-emerald-900">
-                  <%= @production_order.production_order_items.sum { |item| item.metros_lineales || 0 }.round(1) %> m
-                </div>
-              </div>
-            </div>
+            <%= render partial: "admin/production_orders/consecutivos_summary", locals: { production_order: @production_order } %>
           <% else %>
             <div class="text-center py-8">
               <div class="text-emerald-400 mb-2">
