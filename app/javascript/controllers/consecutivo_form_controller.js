@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["pesoNeto", "metrosLineales", "pesoBrutoInput", "pesoBrutoHidden", "pesoCoreDisplay", "pesoNetoDisplay", "metrosLinealesDisplay", "especificacionesDisplay", "manualModeCheckbox", "manualWeightSection", "scaleWeightSection", "serialSection", "backupWeighButton"]
+  static targets = ["pesoNeto", "metrosLineales", "pesoBrutoInput", "pesoBrutoHidden", "pesoCoreDisplay", "pesoNetoDisplay", "metrosLinealesDisplay", "especificacionesDisplay", "manualModeCheckbox", "manualWeightSection", "scaleWeightSection", "serialSection", "backupWeighButton", "pesoBrutoManualHidden"]
 
   connect() {
     console.log("Consecutivo form controller connected")
@@ -231,8 +231,21 @@ export default class extends Controller {
   }
 
   calculateWeights() {
-    const pesoBruto = parseFloat(this.getFieldValue("peso_bruto")) || 0
-    this.calculateWeightsWithValue(pesoBruto)
+    let pesoBruto = 0;
+    
+    // Get peso_bruto value based on mode
+    if (this.isManualMode && this.hasPesoBrutoInputTarget) {
+      // In manual mode, get value from the visible input
+      pesoBruto = parseFloat(this.pesoBrutoInputTarget.value) || 0;
+    } else if (this.currentWeight !== null) {
+      // In scale mode, use the current weight from the scale
+      pesoBruto = this.currentWeight;
+    } else if (this.hasPesoBrutoHiddenTarget) {
+      // Fallback to hidden field value
+      pesoBruto = parseFloat(this.pesoBrutoHiddenTarget.value) || 0;
+    }
+    
+    this.calculateWeightsWithValue(pesoBruto);
   }
 
   // Extraer micras y ancho mm desde clave producto (ej: "BOPPTRANS 35 / 420")
@@ -281,8 +294,15 @@ export default class extends Controller {
   getFieldValue(fieldName) {
     // Special handling for peso_bruto to get from the visible input field
     if (fieldName === "peso_bruto") {
-      if (this.hasPesoBrutoInputTarget) {
+      // In manual mode, get value from the manual input field
+      if (this.isManualMode && this.hasPesoBrutoInputTarget) {
         return this.pesoBrutoInputTarget.value;
+      }
+      // In scale mode, get value from the hidden field or current weight
+      else if (this.currentWeight !== null) {
+        return this.currentWeight.toString();
+      } else if (this.hasPesoBrutoHiddenTarget) {
+        return this.pesoBrutoHiddenTarget.value;
       }
     }
     
@@ -302,19 +322,26 @@ export default class extends Controller {
   // Handle form submission
   handleFormSubmit(event) {
     // Ensure calculations are up to date before submitting
-    this.calculateWeights()
+    this.calculateWeights();
+    
+    // Make sure the hidden peso_bruto field has the correct value
+    if (this.isManualMode && this.hasPesoBrutoInputTarget && this.hasPesoBrutoHiddenTarget) {
+      this.pesoBrutoHiddenTarget.value = this.pesoBrutoInputTarget.value || "0";
+    } else if (this.currentWeight !== null && this.hasPesoBrutoHiddenTarget) {
+      this.pesoBrutoHiddenTarget.value = this.currentWeight.toString();
+    }
     
     // Allow the form to submit normally - don't prevent default
-    console.log('Form is being submitted normally after calculations')
+    console.log('Form is being submitted normally after calculations');
     
     // Add success handler for form submission
-    const form = event.target
+    const form = event.target;
     if (form) {
       // Log form data for debugging
-      const formData = new FormData(form)
-      console.log('Form submission data:')
+      const formData = new FormData(form);
+      console.log('Form submission data:');
       for (let [key, value] of formData.entries()) {
-        console.log(`${key}: ${value}`)
+        console.log(`${key}: ${value}`);
       }
     }
     
