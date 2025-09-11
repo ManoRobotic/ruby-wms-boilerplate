@@ -117,112 +117,9 @@
             </div>
           </div>
           
-          <% if @production_order.production_order_items.any? %>
-            <div class="overflow-x-auto">
-              <table class="min-w-full divide-y divide-emerald-200">
-                <thead class="bg-emerald-100">
-                  <tr>
-                    <th class="px-2 py-2 text-center text-xs font-medium text-emerald-800 uppercase tracking-wider">
-                      <div class="inline-flex items-center">
-                        <label class="flex items-center cursor-pointer relative">
-                          <input type="checkbox" 
-                                 id="select-all-consecutivos"
-                                 class="peer h-4 w-4 cursor-pointer transition-all appearance-none rounded shadow hover:shadow-md border border-emerald-300 checked:bg-emerald-800 checked:border-emerald-800" 
-                                 data-action="change->consecutivo-selection#toggleAll"
-                                 data-consecutivo-selection-target="selectAll" />
-                          <span class="absolute text-white opacity-0 peer-checked:opacity-100 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor" stroke="currentColor" stroke-width="1">
-                              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                            </svg>
-                          </span>
-                        </label>
-                      </div>
-                    </th>
-                    <th class="px-3 py-2 text-left text-xs font-medium text-emerald-800 uppercase tracking-wider">Folio</th>
-                    <th class="px-3 py-2 text-center text-xs font-medium text-emerald-800 uppercase tracking-wider">Peso Bruto (kg)</th>
-                    <th class="px-3 py-2 text-center text-xs font-medium text-emerald-800 uppercase tracking-wider">Peso Neto (kg)</th>
-                    <th class="px-3 py-2 text-center text-xs font-medium text-emerald-800 uppercase tracking-wider">Metros</th>
-                    <th class="px-3 py-2 text-center text-xs font-medium text-emerald-800 uppercase tracking-wider">Micras</th>
-                    <th class="px-3 py-2 text-center text-xs font-medium text-emerald-800 uppercase tracking-wider">Ancho (mm)</th>
-                    <th class="px-3 py-2 text-center text-xs font-medium text-emerald-800 uppercase tracking-wider">Impresión</th>
-                    <th class="px-3 py-2 text-center text-xs font-medium text-emerald-800 uppercase tracking-wider">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-emerald-100" id="production_order_items_table_body">
-                  <% @production_order.production_order_items.order(:folio_consecutivo).each do |item| %>
-                    <tr class="hover:bg-emerald-25">
-                      <td class="px-2 py-2 text-center text-sm font-medium">
-                        <div class="inline-flex items-center">
-                          <label class="flex items-center cursor-pointer relative">
-                            <input type="checkbox" 
-                                   class="consecutivo-checkbox peer h-4 w-4 cursor-pointer transition-all appearance-none rounded shadow hover:shadow-md border border-emerald-300 checked:bg-emerald-800 checked:border-emerald-800" 
-                                   data-consecutivo-id="<%= item.id %>" 
-                                   data-action="change->consecutivo-selection#updateSelection" 
-                                   data-consecutivo-selection-target="consecutivoCheckbox"
-                                   data-item-id="<%= item.id %>"
-                                   data-folio="<%= item.folio_consecutivo %>"
-                                   data-lote="<%= @production_order.lote_referencia %>"
-                                   data-clave-producto="<%= @production_order.clave_producto || 'BOPPTRANS 35 / 420' %>"
-                                   data-peso-bruto="<%= item.peso_bruto %>"
-                                   data-peso-neto="<%= item.peso_neto %>"
-                                   data-metros-lineales="<%= item.metros_lineales %>"
-                                   data-no-opro="<%= @production_order.no_opro || @production_order.order_number %>"
-                                   data-production-order-id="<%= @production_order.id %>" />
-                            <span class="absolute text-white opacity-0 peer-checked:opacity-100 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none">
-                              <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor" stroke="currentColor" stroke-width="1">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                              </svg>
-                            </span>
-                          </label>
-                        </div>
-                      </td>
-                      <td class="px-3 py-2 text-sm font-medium text-gray-900">
-                        <%= item.folio_consecutivo %>
-                      </td>
-                      <td class="px-3 py-2 text-sm text-center text-gray-500">
-                        <%= item.peso_bruto&.round(2) || '-' %>
-                      </td>
-                      <td class="px-3 py-2 text-sm text-center text-gray-500">
-                        <%= item.peso_neto&.round(2) || '-' %>
-                      </td>
-                      <td class="px-3 py-2 text-sm text-center text-gray-500">
-                        <%= item.metros_lineales&.round(1) || '-' %>
-                      </td>
-                      <td class="px-3 py-2 text-sm text-center text-gray-500">
-                        <%= item.micras || '-' %>
-                      </td>
-                      <td class="px-3 py-2 text-sm text-center text-gray-500">
-                        <%= item.ancho_mm || '-' %>
-                      </td>
-                      <%= render partial: "admin/production_order_items/print_status", locals: { item: item } %>
-                      <td class="px-3 py-2 text-center text-sm font-medium">
-                        <button 
-                            class="text-emerald-600 hover:text-emerald-900 mr-2 px-2 py-1 text-xs rounded-md hover:bg-emerald-50 transition-colors duration-200"
-                            data-dialog-target="edit-consecutivo-modal"
-                            data-item-id="<%= item.id %>">
-                          Editar
-                        </button>
-                        <%= link_to 'Eliminar', admin_production_order_production_order_item_path(@production_order, item), 
-                            method: :delete,
-                            class: "text-red-600 hover:text-red-900 px-2 py-1 text-xs rounded-md hover:bg-red-50 transition-colors duration-200",
-                            confirm: "¿Estás seguro de que quieres eliminar este consecutivo?" %>
-                      </td>
-                    </tr>
-                  <% end %>
-                </tbody>
-              </table>
-            </div>
-            
-            <%= render partial: "admin/production_orders/consecutivos_summary", locals: { production_order: @production_order } %>
-          <% else %>
-            <div class="text-center py-8">
-              <div class="text-emerald-400 mb-2">
-                <%= icon('fa-solid', 'file-alt', class: 'w-12 h-12 mx-auto') %>
-              </div>
-              <h3 class="text-sm font-medium text-emerald-900 mb-1">No hay consecutivos</h3>
-              <p class="text-sm text-emerald-600">Crea el primer consecutivo para esta orden de producción</p>
-            </div>
-          <% end %>
+          <div id="consecutivos-section">
+            <%= render(ConsecutivosTableComponent.new(production_order: @production_order)) %>
+          </div>
         </div>
       </div>
 
@@ -353,7 +250,7 @@
 </style>
 
 <!-- Consecutivo Modal -->
-<%= render "consecutivo_modal" %>
+<%= render(ConsecutivoModalComponent.new(production_order: @production_order)) %>
 
 <!-- Edit Consecutivo Modal -->
-<%= render "edit_consecutivo_modal" %>
+<%= render(EditConsecutivoModalComponent.new) %>

@@ -1,0 +1,26 @@
+<% if @production_order.production_order_items.count == 1 %>
+  <%= turbo_stream.replace "no-consecutivos-row", render(ConsecutivoRowComponent.new(item: @production_order_item)) %>
+<% else %>
+  <%= turbo_stream.append "production_order_items_table_body", render(ConsecutivoRowComponent.new(item: @production_order_item)) %>
+<% end %>
+
+<%# Reset the form %>
+<%= turbo_stream.replace "consecutivo-modal-body" do %>
+  <% new_item = @production_order.production_order_items.build %>
+  <% new_item.folio_consecutivo = ProductionOrderItem.generate_folio_consecutivo(@production_order) %>
+  <%= render(ConsecutivoFormComponent.new(production_order: @production_order, consecutivo_form: new_item)) %>
+<% end %>
+
+<%# Close modal using Turbo Stream action - executes immediately %>
+<%= turbo_stream.action "close", "consecutivo-modal" %>
+
+<script>
+  console.log("🎯 TURBO STREAM IS WORKING!");
+  
+  // Show success message
+  if (window.showToast) {
+    window.showToast('success', '', 'Consecutivo creado exitosamente');
+  }
+</script>
+
+

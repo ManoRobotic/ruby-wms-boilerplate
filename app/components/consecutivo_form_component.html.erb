@@ -1,15 +1,14 @@
 <%# Shared form partial for creating/editing consecutivos %>
-<%= form_with model: (consecutivo_form.persisted? ? [ :admin, @production_order, consecutivo_form ] : [ :admin, @production_order, consecutivo_form ]), 
-    url: (consecutivo_form.persisted? ? admin_production_order_production_order_item_path(@production_order, consecutivo_form) : admin_production_order_production_order_items_path(@production_order)),
-    method: (consecutivo_form.persisted? ? :patch : :post),
-    local: true, 
-    data: { controller: "consecutivo-form", action: "submit->consecutivo-form#handleFormSubmit" },
+<%= form_with model: [:admin, production_order, consecutivo_form], 
+    data: { controller: "consecutivo-form", turbo_stream: true },
+    local: false,
+    format: :turbo_stream,
     class: "relative border-t border-slate-200 py-2" do |form| %>
     
     <div class="grid gap-2 mb-2">
         <!-- Folio Consecutivo -->
         <div>
-            <label class="block mb-1 text-sm font-medium text-slate-700">Folio Consecutivo</label>
+            <label class="block mb-1 text-sm font-medium text-slate-700" for="production_order_item_folio_consecutivo">Folio Consecutivo</label>
             <div class="flex items-center gap-2">
                 <%= form.text_field :folio_consecutivo, 
                     class: "bg-slate-50 border border-slate-300 text-slate-700 text-sm rounded-lg block w-full p-2",
@@ -24,7 +23,7 @@
                 name: "clave_producto_display",
                 id: "clave_producto", 
                 class: "bg-slate-50 border border-slate-300 text-slate-700 text-sm rounded-lg focus:ring-emerald-500 focus:border-emerald-500 block w-full p-2",
-                value: @production_order.clave_producto || "BOPPTRANS 35 / 420",
+                value: production_order.clave_producto || "BOPPTRANS 35 / 420",
                 placeholder: "BOPPTRANS 35 / 420",
                 readonly: true %>
         </div>
@@ -48,6 +47,7 @@
             <div class="flex items-center mt-1">
                 <label class="flex items-center cursor-pointer">
                     <input type="checkbox" 
+                           id="manual_weight_checkbox"
                            class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                            data-action="change->consecutivo-form#toggleManualMode"
                            data-consecutivo-form-target="manualModeCheckbox">
@@ -57,7 +57,7 @@
 
             <!-- Input de peso manual (deshabilitado por defecto) -->
             <div data-consecutivo-form-target="manualWeightSection" class="hidden">
-                <label class="block mb-1 text-sm font-medium text-slate-700 mt-4">Peso Bruto (kg)</label>
+                <label class="block mb-1 text-sm font-medium text-slate-700 mt-4" for="production_order_item_peso_bruto_manual">Peso Bruto (kg)</label>
                 <div class="flex items-center">
                     <%= form.number_field :peso_bruto_manual, 
                         class: "bg-slate-50 border border-slate-300 text-slate-700 text-sm rounded-lg focus:ring-emerald-500 focus:border-emerald-500 block w-full p-2",
@@ -80,15 +80,15 @@
              data-controller="consecutivo-scale" 
              data-consecutivo-scale-base-url-value="<%= ENV['SERIAL_SERVER_URL'] || 'http://localhost:5000' %>"
              data-consecutivo-scale-auto-connect-value="true"
-             data-consecutivo-scale-saved-port-value="<%= current_admin&.company&.serial_port || '' %>"
-             data-consecutivo-scale-auto-save-value="<%= current_admin&.company&.auto_save_consecutivo || false %>"
+             data-consecutivo-scale-saved-port-value="<%= helpers.current_admin&.company&.serial_port || '' %>"
+             data-consecutivo-scale-auto-save-value="<%= helpers.current_admin&.company&.auto_save_consecutivo || false %>"
              data-consecutivo-form-target="serialSection">
           <h4 class="font-medium text-gray-700 mb-1.5 text-sm">Control de Pesaje</h4>
           
           <!-- Puerto Serial -->
           <div class="mb-2">
-            <label class="block text-xs font-medium text-gray-600 mb-1">Puerto Serial</label>
-            <select data-consecutivo-scale-target="portSelect" 
+            <label class="block text-xs font-medium text-gray-600 mb-1" for="serial_port_select">Puerto Serial</label>
+            <select id="serial_port_select" name="serial_port_select" data-consecutivo-scale-target="portSelect" 
                     class="w-full text-xs rounded border-gray-300 focus:border-blue-500 focus:ring-blue-500">
               <option value="">Detectando puertos...</option>
             </select>
@@ -162,8 +162,8 @@
                     <div class="text-xs font-semibold text-emerald-900" data-consecutivo-form-target="especificacionesDisplay">
                       <%= "#{consecutivo_form.micras || 35}μ / #{consecutivo_form.ancho_mm || 420}mm" %>
                     </div>
-                    <%= form.hidden_field :micras %>
-                    <%= form.hidden_field :ancho_mm %>
+                    <%= form.hidden_field :micras, value: consecutivo_form.micras || 35 %>
+                    <%= form.hidden_field :ancho_mm, value: consecutivo_form.ancho_mm || 420 %>
                 </div>
             </div>
 

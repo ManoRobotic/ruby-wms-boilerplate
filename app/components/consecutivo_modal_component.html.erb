@@ -1,18 +1,18 @@
-<!-- Edit Consecutivo Modal -->
+<!-- Consecutivo Modal -->
 <div
-  id="edit-consecutivo-modal"
+  id="consecutivo-modal"
   data-controller="dialog"
-  data-dialog-backdrop="edit-consecutivo-modal"
+  data-dialog-backdrop="consecutivo-modal"
   data-dialog-backdrop-close="true"
   class="pointer-events-none fixed inset-0 z-[9999] grid h-screen w-screen place-items-center bg-transparent opacity-0 backdrop-blur-sm transition-opacity duration-300"
 >
   <div
-    data-dialog="edit-consecutivo-modal"
+    data-dialog="consecutivo-modal"
     class="relative m-4 p-4 w-11/12 max-w-2xl rounded-lg bg-white shadow-2xl max-h-[95vh] overflow-y-auto border border-gray-300"
   >
     <!-- Modal header -->
     <div class="flex shrink-0 items-center justify-between pb-2 text-base font-medium text-slate-800 border-b border-slate-200">
-      Editar Folio
+      Crear Nuevo Folio
       <button 
         data-dialog-close="true" 
         type="button"
@@ -24,12 +24,12 @@
     </div>
             
     <!-- Modal body -->
-    <div id="edit-consecutivo-form-container">
-      <!-- Loading indicator will be shown here when loading -->
-      <!-- Turbo frame for loading the edit form -->
-      <turbo-frame id="edit-consecutivo-form">
-        <!-- Form will be loaded here -->
-      </turbo-frame>
+    <div id="consecutivo-modal-body">
+      <% new_item = production_order.production_order_items.build %>
+      <% new_item.folio_consecutivo = ProductionOrderItem.generate_folio_consecutivo(production_order) %>
+      <%= render(ConsecutivoFormComponent.new(production_order: production_order, consecutivo_form: new_item)) %>
     </div>
+    
+
   </div>
 </div>

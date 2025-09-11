@@ -1,18 +1,18 @@
-<!-- Consecutivo Modal -->
+<!-- Edit Consecutivo Modal -->
 <div
-  id="consecutivo-modal"
+  id="edit-consecutivo-modal"
   data-controller="dialog"
-  data-dialog-backdrop="consecutivo-modal"
+  data-dialog-backdrop="edit-consecutivo-modal"
   data-dialog-backdrop-close="true"
   class="pointer-events-none fixed inset-0 z-[9999] grid h-screen w-screen place-items-center bg-transparent opacity-0 backdrop-blur-sm transition-opacity duration-300"
 >
   <div
-    data-dialog="consecutivo-modal"
+    data-dialog="edit-consecutivo-modal"
     class="relative m-4 p-4 w-11/12 max-w-2xl rounded-lg bg-white shadow-2xl max-h-[95vh] overflow-y-auto border border-gray-300"
   >
     <!-- Modal header -->
     <div class="flex shrink-0 items-center justify-between pb-2 text-base font-medium text-slate-800 border-b border-slate-200">
-      Crear Nuevo Folio
+      Editar Folio
       <button 
         data-dialog-close="true" 
         type="button"
@@ -24,10 +24,11 @@
     </div>
             
     <!-- Modal body -->
-    <% new_item = @production_order.production_order_items.build %>
-    <% new_item.folio_consecutivo = ProductionOrderItem.generate_folio_consecutivo(@production_order) %>
-    <%= render 'consecutivo_form', consecutivo_form: new_item %>
-    
-
+    <div id="edit-consecutivo-modal-body">
+      <div class="flex justify-center items-center py-8">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+        <span class="ml-2 text-emerald-700">Cargando...</span>
+      </div>
+    </div>
   </div>
 </div>

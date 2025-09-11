@@ -1,0 +1,17 @@
+<%# Replace the updated item in the table %>
+<%= turbo_stream.replace "production_order_item_#{@production_order_item.id}", 
+                     render(ConsecutivoRowComponent.new(item: @production_order_item)) %>
+
+<%# Close modal using Turbo Stream action - executes immediately %>
+<%= turbo_stream.action "close", "edit-consecutivo-modal" %>
+
+<script>
+  console.log("🎯 TURBO STREAM IS WORKING!");
+  
+  // Show success message
+  if (window.showToast) {
+    window.showToast('success', '', 'Consecutivo actualizado exitosamente');
+  }
+</script>
+
+

@@ -40,6 +40,7 @@ class Admin::ProductionOrderItemsController < AdminController
     end
 
     if @production_order_item.persisted?
+      Rails.logger.info "Production order item saved successfully, responding with turbo_stream"
       respond_to do |format|
         format.html do
           redirect_to admin_production_order_path(@production_order),
@@ -53,15 +54,7 @@ class Admin::ProductionOrderItemsController < AdminController
           }
         end
         format.turbo_stream do
-          # Ensure production_order is loaded for the partial
-          @production_order_item = ProductionOrderItem.includes(:production_order).find(@production_order_item.id)
-          render turbo_stream: [
-            turbo_stream.append(
-              "production_order_items_table_body",
-              partial: "admin/production_orders/consecutivo_row",
-              locals: { item: @production_order_item }
-            )
-          ]
+          Rails.logger.info "Rendering turbo_stream template for create"
         end
       end
     else
@@ -86,6 +79,9 @@ class Admin::ProductionOrderItemsController < AdminController
 
   def edit
     Rails.logger.info "Loading edit form for production order item: #{@production_order_item.id}"
+    respond_to do |format|
+      format.html # This will render the edit.html.erb template
+    end
   end
 
   def update
@@ -106,17 +102,7 @@ class Admin::ProductionOrderItemsController < AdminController
             item: @production_order_item
           }
         end
-        format.turbo_stream do
-          # Ensure production_order is loaded for the partial
-          @production_order_item = ProductionOrderItem.includes(:production_order).find(@production_order_item.id)
-          render turbo_stream: [
-            turbo_stream.replace(
-              "production_order_item_#{@production_order_item.id}",
-              partial: "admin/production_orders/consecutivo_row",
-              locals: { item: @production_order_item }
-            )
-          ]
-        end
+        format.turbo_stream
       end
     else
       Rails.logger.info "Update failed. Errors: #{@production_order_item.errors.full_messages}"

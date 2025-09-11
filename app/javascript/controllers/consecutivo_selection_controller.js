@@ -5,16 +5,6 @@ export default class extends Controller {
 
   connect() {
     this.updatePrintButton()
-    
-    // Add event listener for edit buttons
-    document.addEventListener('click', (event) => {
-      if (event.target.matches('[data-dialog-target="edit-consecutivo-modal"]') || 
-          event.target.closest('[data-dialog-target="edit-consecutivo-modal"]')) {
-        const editButton = event.target.closest('[data-dialog-target="edit-consecutivo-modal"]')
-        const itemId = editButton.dataset.itemId
-        this.loadEditForm(itemId)
-      }
-    })
   }
 
   toggleAll(event) {
@@ -109,25 +99,5 @@ export default class extends Controller {
     // TODO: Implement weighing functionality
   }
 
-  loadEditForm(itemId) {
-    // Find the checkbox for this item to get the production order ID
-    const checkbox = this.consecutivoCheckboxTargets.find(cb => cb.dataset.itemId === itemId)
-    if (!checkbox) {
-      console.error("Could not find checkbox for item ID:", itemId)
-      return
-    }
-
-    const productionOrderId = checkbox.dataset.productionOrderId
-    console.log("Loading edit form for item:", itemId, "in production order:", productionOrderId)
-    
-    // Instead of AJAX, we'll use Turbo navigation to load the form into the Turbo frame
-    // We need to navigate to the edit URL which will load the form into the turbo-frame
-    const editUrl = `/admin/production_orders/${productionOrderId}/items/${itemId}/edit`
-    
-    // Find the Turbo frame and navigate to the edit URL
-    const turboFrame = document.getElementById('edit-consecutivo-form')
-    if (turboFrame) {
-      turboFrame.src = editUrl
-    }
-  }
+  
 }
