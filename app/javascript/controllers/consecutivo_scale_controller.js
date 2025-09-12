@@ -10,10 +10,12 @@ export default class extends Controller {
 
   connect() {
     this.baseUrlValue = this.baseUrlValue || "http://localhost:5000"
-    this.loadPorts().then(() => {
-      if (this.savedPortValue && this.portSelectTarget.value === this.savedPortValue) {
-        this.getWeight()
-      }
+    this.checkServerConnection().then(() => {
+      this.loadPorts().then(() => {
+        if (this.savedPortValue && this.portSelectTarget.value === this.savedPortValue) {
+          this.getWeight()
+        }
+      })
     })
     this.log("Consecutivo scale controller initialized")
 
@@ -24,6 +26,32 @@ export default class extends Controller {
 
   disconnect() {
     // Cleanup if needed
+  }
+
+  async checkServerConnection() {
+    try {
+      // Try to ping the serial server health endpoint if it exists
+      const healthUrl = `${this.baseUrlValue}/health`
+      const response = await fetch(healthUrl, {
+        method: 'GET',
+        headers: {
+          'skip_zrok_interstitial': 'true'
+        },
+        timeout: 5000 // 5 second timeout
+      })
+      
+      if (response.ok) {
+        this.updateStatus("Serial server connected", "success")
+        return true
+      } else {
+        this.updateStatus("Serial server disconnected", "error")
+        return false
+      }
+    } catch (error) {
+      this.log(`Serial server connection error: ${error.message}`)
+      this.updateStatus("Serial server disconnected", "error")
+      return false
+    }
   }
 
   async loadPorts() {
@@ -52,7 +80,12 @@ export default class extends Controller {
       }
     } catch (error) {
       this.log(`Error loading ports: ${error.message}`)
-      this.updateStatus("Error loading ports", "error")
+      // Check if it's a connection error
+      if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+        this.updateStatus("Serial server disconnected - Check connection", "error")
+      } else {
+        this.updateStatus("Error loading ports - " + error.message, "error")
+      }
     }
   }
 
@@ -171,7 +204,15 @@ export default class extends Controller {
         error: "bg-red-100 text-red-800",
         info: "bg-blue-100 text-blue-800"
       }
-      this.statusTarget.className = `${baseClasses} ${colorClasses[type] || colorClasses.info}`
+      
+      // Add special styling for connection status
+      if (message.includes("connected")) {
+        this.statusTarget.className = `${baseClasses} ${colorClasses.success}`
+      } else if (message.includes("disconnected") || message.includes("Error")) {
+        this.statusTarget.className = `${baseClasses} ${colorClasses.error}`
+      } else {
+        this.statusTarget.className = `${baseClasses} ${colorClasses[type] || colorClasses.info}`
+      }
     }
   }
 
