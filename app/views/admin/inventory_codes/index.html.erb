@@ -35,9 +35,6 @@
               Actualizar tabla
             </button>
             <% if current_admin %>
-              <%= link_to 'Importar Excel', import_excel_admin_inventory_codes_path, 
-                  method: :post,
-                  class: "mt-12 flex items-center gap-3 rounded-lg bg-green-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85" %>
               <%= link_to 'Nuevo Código', new_admin_inventory_code_path, 
                   class: "mt-12 flex items-center gap-3 rounded-lg bg-blue-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85" %>
             <% end %>
@@ -108,17 +105,13 @@
       <%= render 'shared/table_filters', 
           search_placeholder: 'Buscar por No. Orden, producto, componente o lote...',
           filters: [
-            { name: :no_ordp, type: 'text', placeholder: 'No. Orden (SINSIN...)' },
-            { name: :cve_prod, type: 'text', placeholder: 'Cód. Producto (PROMAT...)' },
-            { name: :cve_copr, type: 'text', placeholder: 'Cód. Componente (MAT1...)' },
-            { name: :lote, type: 'text', placeholder: 'Lote' },
             { name: :start_date, type: 'date' },
             { name: :end_date, type: 'date' }
           ] %>
     </div>
 
     <section class="flex flex-col w-full mb-4 bg-muted">
-      <div class="w-full">
+      <div class="w-full px-4">
         <div class="overflow-x-auto">
           <table data-controller="table" 
                  class="w-full bg-white border border-gray-200 text-sm">
