@@ -15,10 +15,7 @@ class Admin::InventoryCodesController < AdminController
       )
     end
 
-    base_query = base_query.by_order_number(params[:no_ordp]) if params[:no_ordp].present?
-    base_query = base_query.by_product_code(params[:cve_prod]) if params[:cve_prod].present?
-    base_query = base_query.by_component_code(params[:cve_copr]) if params[:cve_copr].present?
-    base_query = base_query.by_lote(params[:lote]) if params[:lote].present?
+    # Date range
     base_query = base_query.by_date_range(params[:start_date], params[:end_date])
 
     # Statistics (calculated before pagination)

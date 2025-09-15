@@ -82,20 +82,44 @@
 
     <!-- Filters -->
     <div class="px-4 mb-6">
-      <%= render 'shared/table_filters', 
-          search_placeholder: 'Buscar por No. OPRO, orden, producto o lote...',
-          filters: [
-            {
-              name: :start_date,
-              type: 'date',
-              label: 'Fecha desde'
-            },
-            {
-              name: :end_date,
-              type: 'date', 
-              label: 'Fecha hasta'
-            }
-          ] %>
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <%= form_with url: request.path, method: :get, local: true, class: "space-y-4" do |form| %>
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <!-- Search Field -->
+            <div class="md:col-span-2">
+              <%= form.text_field :search, 
+                  value: params[:search], 
+                  placeholder: 'Buscar por No. OPRO, orden, producto o lote...',
+                  class: "w-full px-4 py-2.5 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" %>
+            </div>
+            
+            <!-- Start Date -->
+            <div>
+              <%= form.date_field :start_date, 
+                  value: params[:start_date],
+                  class: "w-full px-4 py-2.5 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" %>
+            </div>
+            
+            <!-- End Date -->
+            <div>
+              <%= form.date_field :end_date, 
+                  value: params[:end_date],
+                  class: "w-full px-4 py-2.5 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" %>
+            </div>
+          </div>
+          
+          <!-- Action Buttons -->
+          <div class="flex justify-end pt-2">
+            <div class="flex flex-wrap gap-3">
+              <%= form.submit "Filtrar", 
+                  class: "bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg text-sm font-medium transition-colors shadow-sm" %>
+              <%= link_to "Limpiar", request.path, 
+                  class: "bg-gray-500 hover:bg-gray-600 text-white px-6 py-2.5 rounded-lg text-sm font-medium transition-colors shadow-sm",
+                  data: { turbo: false } %>
+            </div>
+          </div>
+        <% end %>
+      </div>
     </div>
 
 
