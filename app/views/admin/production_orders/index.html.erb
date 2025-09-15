@@ -12,12 +12,12 @@
           </h1>
         </div>
         <div class="flex justify-center gap-2 shrink-0 md:w-auto">
-          <button onclick="location.reload()" class="flex items-center gap-3 rounded-lg bg-gray-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85 cursor-pointer">
+          <button onclick="location.reload()" class="flex items-center gap-3 rounded-lg bg-gray-500 hover:bg-gray-600 py-2 px-4 text-white font-medium text-sm shadow-sm transition-colors">
             Actualizar tabla
           </button>
              <% if current_admin %>
                <%= link_to 'Nueva Orden de Producción', new_admin_production_order_path, 
-                   class: "flex items-center gap-3 rounded-lg bg-blue-500 py-2 px-4 text-white font-bold shadow-md hover:shadow-lg focus:opacity-85 active:opacity-85" %>
+                   class: "flex items-center gap-3 rounded-lg bg-blue-500 hover:bg-blue-600 py-2 px-4 text-white font-medium text-sm shadow-sm transition-colors" %>
              <% end %>
         </div>
       </div>
@@ -112,9 +112,9 @@
           <div class="flex justify-end pt-2">
             <div class="flex flex-wrap gap-3">
               <%= form.submit "Filtrar", 
-                  class: "bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg text-sm font-medium transition-colors shadow-sm" %>
+                  class: "bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-colors shadow-sm" %>
               <%= link_to "Limpiar", request.path, 
-                  class: "bg-gray-500 hover:bg-gray-600 text-white px-6 py-2.5 rounded-lg text-sm font-medium transition-colors shadow-sm",
+                  class: "bg-gray-500 hover:bg-gray-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-colors shadow-sm",
                   data: { turbo: false } %>
             </div>
           </div>
@@ -123,8 +123,8 @@
     </div>
 
 
-    <section class="flex flex-col w-full mb-4 bg-muted px-4">
-      <div class="w-full">
+    <section class="flex flex-col w-full mb-4 bg-muted">
+      <div class="w-full px-4">
         <div class="overflow-x-auto">
           <table data-controller="table" 
                  data-table-sortable-value="true"
