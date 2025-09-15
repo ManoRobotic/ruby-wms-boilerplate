@@ -15,6 +15,15 @@ export default class extends Controller {
     
     // Validación inicial
     this.validatePrintButton()
+    
+    // Inicializar la visualización de campos según el formato seleccionado por defecto
+    this.initializeFormatFields()
+  }
+
+  // Método para inicializar la visualización de campos según el formato seleccionado
+  initializeFormatFields() {
+    const selectedFormat = this.element.querySelector('input[name*="print_format"]:checked').value
+    this.updateFormatInfo({ target: { value: selectedFormat } })
   }
 
   // Método actualizado para manejar eventos del controlador serial
@@ -98,6 +107,18 @@ export default class extends Controller {
       selectedInfo.classList.remove('hidden')
     }
     
+    // Manejar campos específicos por formato
+    const formatFields = document.querySelectorAll('.format-specific-fields')
+    formatFields.forEach(field => {
+      field.classList.add('hidden')
+    })
+    
+    // Mostrar campos específicos del formato seleccionado
+    const selectedFormatFields = document.getElementById(`${selectedFormat}-format-fields`)
+    if (selectedFormatFields) {
+      selectedFormatFields.classList.remove('hidden')
+    }
+    
     console.log(`Print format changed to: ${selectedFormat}`)
   }
 
@@ -147,7 +168,17 @@ export default class extends Controller {
       print_format: formData.get('print_format') || 'bag',
       ancho_mm: formData.get('ancho_mm') || '80',
       alto_mm: formData.get('alto_mm') || '50',
-      gap_mm: formData.get('gap_mm') || '2'
+      gap_mm: formData.get('gap_mm') || '2',
+      // Campos específicos para formato bolsa
+      bag_type: formData.get('bag_type') || '',
+      bag_size: formData.get('bag_size') || '',
+      bag_pieces: formData.get('bag_pieces') || '1',
+      // Campos específicos para formato caja
+      box_bag_type: formData.get('box_bag_type') || '',
+      box_bag_size: formData.get('box_bag_size') || '',
+      box_bag_pieces: formData.get('box_bag_pieces') || '1',
+      box_packages_count: formData.get('box_packages_count') || '1',
+      box_packages_measurements: formData.get('box_packages_measurements') || ''
     }
     
     // Generar contenido de etiqueta
@@ -190,13 +221,30 @@ export default class extends Controller {
     
     switch (data.print_format) {
       case 'bag':
-        return `${data.product_name}\nPeso: ${data.current_weight}kg\nCódigo: ${data.barcode_data}\n${timestamp}`
+        return `${data.product_name}
+Peso: ${data.current_weight}kg
+Código: ${data.barcode_data}
+Bolsa: ${data.bag_type || 'No especificada'}
+Medida: ${data.bag_size || 'No especificada'}
+Piezas: ${data.bag_pieces || '1'}
+${timestamp}`
       
       case 'box':
-        return `CAJA: ${data.product_name}\nPeso Total: ${data.current_weight}kg\nBarcode: ${data.barcode_data}\nFecha: ${timestamp}`
+        return `CAJA: ${data.product_name}
+Peso Total: ${data.current_weight}kg
+Barcode: ${data.barcode_data}
+Bolsa: ${data.box_bag_type || 'No especificada'}
+Medida: ${data.box_bag_size || 'No especificada'}
+Piezas: ${data.box_bag_pieces || '1'}
+Paquetes: ${data.box_packages_count || '1'} de ${data.box_packages_measurements || 'No especificadas'}
+Fecha: ${timestamp}`
       
       case 'custom':
-        return `${data.product_name}\n${data.current_weight}kg\n${data.barcode_data}\n${data.ancho_mm}x${data.alto_mm}mm\n${timestamp}`
+        return `${data.product_name}
+${data.current_weight}kg
+${data.barcode_data}
+${data.ancho_mm}x${data.alto_mm}mm
+${timestamp}`
       
       default:
         return `${data.product_name} - ${data.current_weight}kg - ${data.barcode_data}`

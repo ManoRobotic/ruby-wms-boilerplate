@@ -98,6 +98,88 @@
             </div>
           </div>
 
+          <!-- Campos Específicos por Formato -->
+          <!-- Formato Bolsa -->
+          <div id="bag-format-fields" class="format-specific-fields bg-blue-50 p-4 rounded-md border border-blue-200">
+            <h4 class="text-md font-medium text-gray-800 mb-3">Configuración para Bolsa</h4>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <%= form.label :bag_type, "Bolsa", class: "block text-sm font-medium text-gray-700 mb-1" %>
+                <%= form.select :bag_type, options_for_select([
+                    ['Bolsa Plástico', 'plastico'],
+                    ['Bolsa Papel', 'papel'],
+                    ['Bolsa Tela', 'tela']
+                  ]), { prompt: "Seleccione tipo de bolsa" },
+                  class: "w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+              </div>
+              
+              <div>
+                <%= form.label :bag_size, "Medida Bolsa", class: "block text-sm font-medium text-gray-700 mb-1" %>
+                <%= form.select :bag_size, options_for_select([
+                    ['Pequeña (10x15 cm)', 'pequena'],
+                    ['Mediana (20x30 cm)', 'mediana'],
+                    ['Grande (30x40 cm)', 'grande']
+                  ]), { prompt: "Seleccione medida" },
+                  class: "w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+              </div>
+              
+              <div>
+                <%= form.label :bag_pieces, "Número de Piezas", class: "block text-sm font-medium text-gray-700 mb-1" %>
+                <%= form.number_field :bag_pieces, min: 1, max: 100, value: 1,
+                    class: "w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+              </div>
+            </div>
+          </div>
+
+          <!-- Formato Caja -->
+          <div id="box-format-fields" class="format-specific-fields bg-green-50 p-4 rounded-md border border-green-200 hidden">
+            <h4 class="text-md font-medium text-gray-800 mb-3">Configuración para Caja</h4>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <%= form.label :box_bag_type, "Bolsa", class: "block text-sm font-medium text-gray-700 mb-1" %>
+                <%= form.select :box_bag_type, options_for_select([
+                    ['Bolsa Plástico', 'plastico'],
+                    ['Bolsa Papel', 'papel'],
+                    ['Bolsa Tela', 'tela']
+                  ]), { prompt: "Seleccione tipo de bolsa" },
+                  class: "w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+              </div>
+              
+              <div>
+                <%= form.label :box_bag_size, "Medida Bolsa", class: "block text-sm font-medium text-gray-700 mb-1" %>
+                <%= form.select :box_bag_size, options_for_select([
+                    ['Pequeña (10x15 cm)', 'pequena'],
+                    ['Mediana (20x30 cm)', 'mediana'],
+                    ['Grande (30x40 cm)', 'grande']
+                  ]), { prompt: "Seleccione medida" },
+                  class: "w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+              </div>
+              
+              <div>
+                <%= form.label :box_bag_pieces, "Número de Piezas", class: "block text-sm font-medium text-gray-700 mb-1" %>
+                <%= form.number_field :box_bag_pieces, min: 1, max: 100, value: 1,
+                    class: "w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+              </div>
+            </div>
+            
+            <div class="mt-4">
+              <h5 class="text-sm font-medium text-gray-700 mb-2">Paquetes en la Caja</h5>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <%= form.label :box_packages_count, "Cantidad de Paquetes", class: "block text-sm font-medium text-gray-700 mb-1" %>
+                  <%= form.number_field :box_packages_count, min: 1, max: 50, value: 1,
+                      class: "w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+                </div>
+                
+                <div>
+                  <%= form.label :box_packages_measurements, "Medidas de Paquetes", class: "block text-sm font-medium text-gray-700 mb-1" %>
+                  <%= form.text_field :box_packages_measurements, placeholder: "Ej: 10x15x20 cm",
+                      class: "w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Estado y Peso -->
           <div class="bg-gray-50 rounded-md p-3">
             <div class="flex items-center justify-between text-sm">
