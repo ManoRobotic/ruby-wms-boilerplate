@@ -130,22 +130,43 @@ class Admin::ProductionOrderItemsController < AdminController
     item_ids = params[:item_ids]
     production_order_items = ProductionOrderItem.where(id: item_ids)
 
+    # Imprimir los datos de las etiquetas en la consola
+    production_order_items.each do |item|
+      Rails.logger.info "Label data for item #{item.id}: #{item.label_data.to_json}"
+    end
+
+    # Marcar como impresos
     if production_order_items.update_all(print_status: :printed)
+      # Obtener los items actualizados con solo los datos necesarios
+      updated_items_data = ProductionOrderItem.where(id: item_ids).map do |item|
+        {
+          id: item.id,
+          print_status: 'printed'
+        }
+      end
+      
       respond_to do |format|
         format.turbo_stream do
-          render turbo_stream: production_order_items.map do |item|
+          render turbo_stream: updated_items_data.map { |item_data|
+            # Crear un objeto simple con solo los métodos necesarios
+            item_obj = Struct.new(:id, :print_status) do
+              def print_status_humanize
+                'Printed'
+              end
+            end.new(item_data[:id], item_data[:print_status])
+            
             turbo_stream.replace(
-              "production_order_item_#{item.id}_print_status", # Unique ID for the TD
+              "production_order_item_#{item_data[:id]}_print_status",
               partial: "admin/production_order_items/print_status",
-              locals: { item: item }
+              locals: { item: item_obj }
             )
-          end
+          }
         end
-        format.json { render json: { success: true, message: "Items marked as printed." } } # Keep JSON for now, might remove later
+        format.json { render json: { success: true, message: "Items marked as printed.", items: production_order_items.map(&:label_data) } }
       end
     else
       respond_to do |format|
-        format.turbo_stream { head :unprocessable_entity } # Or render an error message
+        format.turbo_stream { head :unprocessable_entity }
         format.json { render json: { success: false, error: "Failed to mark items as printed." }, status: :unprocessable_entity }
       end
     end
