@@ -1,13 +1,69 @@
+/* application.tailwind.css */
+
+/* 1. Definir variables primero */
+:root {
+  /* Bahama Blue */
+  --color-blue-gem-50:  #f3f3ff;
+  --color-blue-gem-100: #e8e9ff;
+  --color-blue-gem-200: #d4d5ff;
+  --color-blue-gem-300: #b2b2ff;
+  --color-blue-gem-400: #8d87fe;
+  --color-blue-gem-500: #6756fc;
+  --color-blue-gem-600: #5233f4;
+  --color-blue-gem-700: #4421e0;
+  --color-blue-gem-800: #391bbc;
+  --color-blue-gem-900: #2c168c;
+  --color-blue-gem-950: #1a0d68;
+
+  /* Dark Fern */
+  --color-dark-fern-50:  #efffe2;
+  --color-dark-fern-100: #daffc0;
+  --color-dark-fern-200: #b5ff89;
+  --color-dark-fern-300: #84ff45;
+  --color-dark-fern-400: #57ff0f;
+  --color-dark-fern-500: #36f300;
+  --color-dark-fern-600: #26c300;
+  --color-dark-fern-700: #1c9300;
+  --color-dark-fern-800: #197301;
+  --color-dark-fern-900: #124b05;
+  --color-dark-fern-950: #073700;
+
+  /* Mexican Red */
+  --color-mexican-red-50:  #fff0f2;
+  --color-mexican-red-100: #ffdee1;
+  --color-mexican-red-200: #ffc3c9;
+  --color-mexican-red-300: #ff99a3;
+  --color-mexican-red-400: #ff5e6e;
+  --color-mexican-red-500: #ff2c42;
+  --color-mexican-red-600: #f50d25;
+  --color-mexican-red-700: #cf061b;
+  --color-mexican-red-800: #b00a1b;
+  --color-mexican-red-900: #8c101d;
+  --color-mexican-red-950: #4d020a;
+
+  /* Bamboo */
+  --color-bamboo-50:  #fef8ee;
+  --color-bamboo-100: #feefd6;
+  --color-bamboo-200: #fbdaad;
+  --color-bamboo-300: #f9c078;
+  --color-bamboo-400: #f59b42;
+  --color-bamboo-500: #f27d1d;
+  --color-bamboo-600: #e76513;
+  --color-bamboo-700: #bd4b11;
+  --color-bamboo-800: #963c16;
+  --color-bamboo-900: #793315;
+  --color-bamboo-950: #411709;
+
+}
+
+/* 2. Luego Tailwind */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/*
-
-@layer components {
+/* 3. Tus componentes personalizados */
+/* @layer components {
   .btn-primary {
-    @apply py-2 px-4 bg-blue-200;
+    @apply py-2 px-4 bg-[var(--color-bahama-blue-500)] text-white rounded;
   }
-}
-
-*/
+} */
