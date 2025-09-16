@@ -17,7 +17,6 @@ export default class extends Controller {
         }
       })
     })
-    this.log("Consecutivo scale controller initialized")
 
     if (this.hasAutoSaveCheckboxTarget) {
       this.autoSaveCheckboxTarget.checked = this.autoSaveValue
@@ -48,7 +47,6 @@ export default class extends Controller {
         return false
       }
     } catch (error) {
-      this.log(`Serial server connection error: ${error.message}`)
       this.updateStatus("Serial server disconnected", "error")
       return false
     }
@@ -79,7 +77,6 @@ export default class extends Controller {
         this.updateStatus("Ports loaded", "success")
       }
     } catch (error) {
-      this.log(`Error loading ports: ${error.message}`)
       // Check if it's a connection error
       if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
         this.updateStatus("Serial server disconnected - Check connection", "error")
@@ -289,7 +286,7 @@ export default class extends Controller {
   }
 
   log(message) {
-    console.log(`[ConsecutivoScale] ${message}`)
+    // console.log(`[ConsecutivoScale] ${message}`)
   }
 
   saveAutoSaveState() {
