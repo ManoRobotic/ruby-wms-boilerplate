@@ -220,10 +220,18 @@ class Admin::ProductionOrdersController < AdminController
   end
 
   def destroy
-    if @production_order.can_be_started? || @production_order.pending?
-      @production_order.destroy
-      redirect_to admin_production_orders_path,
-                  notice: "Orden de producción eliminada exitosamente."
+    # Allow super admins and regular admins to delete any production order, others can only delete pending or startable orders
+    if current_admin.present? || @production_order.can_be_started? || @production_order.pending?
+      begin
+        @production_order.destroy
+        redirect_to admin_production_orders_path,
+                    notice: "Orden de producción eliminada exitosamente."
+      rescue => e
+        Rails.logger.error "Error destroying production order: #{e.message}"
+        Rails.logger.error e.backtrace.join("\n")
+        redirect_to admin_production_orders_path,
+                    alert: "Error al eliminar la orden de producción: #{e.message}"
+      end
     else
       redirect_to admin_production_orders_path,
                   alert: "No se puede eliminar una orden de producción en progreso."

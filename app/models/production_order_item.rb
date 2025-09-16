@@ -47,6 +47,9 @@ class ProductionOrderItem < ApplicationRecord
   private
 
   def update_production_order_quantity
+    # Only try to update if the production order still exists and is not being destroyed
+    return if production_order.nil? || production_order.destroyed? || production_order.frozen?
+    
     production_order.recalculate_quantity_produced_and_broadcast!
   end
 

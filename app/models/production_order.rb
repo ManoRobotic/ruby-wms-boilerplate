@@ -209,6 +209,9 @@ class ProductionOrder < ApplicationRecord
   end
 
   def recalculate_quantity_produced_and_broadcast!
+    # Don't try to recalculate if the record is frozen (e.g., during destruction)
+    return if frozen?
+    
     # Recalculate quantity_produced based on the count of associated items
     # Assuming each item represents 1 unit of produced quantity
     new_quantity_produced = production_order_items.count

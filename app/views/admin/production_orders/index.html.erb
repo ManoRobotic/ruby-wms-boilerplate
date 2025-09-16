@@ -256,6 +256,14 @@
                         <%= link_to edit_admin_production_order_path(order), class: "btn btn-accent btn-sm btn-icon" do %>
                             <%= icon('fa-solid', 'pencil-alt', class: 'w-4 h-4') %>
                         <% end %>
+                        <% if current_admin.present? %>
+                          <%= button_to admin_production_order_path(order), 
+                              method: :delete, 
+                              class: "btn btn-danger btn-sm btn-icon",
+                              data: { confirm: "¿Estás seguro de que deseas eliminar esta orden de producción?" } do %>
+                              <%= icon('fa-solid', 'trash', class: 'w-4 h-4') %>
+                          <% end %>
+                        <% end %>
                     </div>
                   </td>
                 </tr>
