@@ -1,16 +1,18 @@
 class Admin::ConfigurationsController < AdminController
+  before_action :check_edit_permissions, only: [:edit, :update]
+
   def show
-    @admin = current_admin
+    @admin = current_admin || current_user
     # Use company configuration for display
   end
 
   def edit
-    @admin = current_admin
+    @admin = current_admin || current_user
     # Use company configuration for editing
   end
 
   def update
-    @admin = current_admin
+    @admin = current_admin || current_user
     
     # Update company configuration instead of admin configuration
     unless @admin.company
@@ -222,6 +224,12 @@ class Admin::ConfigurationsController < AdminController
   end
 
   private
+
+  def check_edit_permissions
+    if current_user&.operador?
+      redirect_to admin_configurations_path, alert: "No tienes permisos para editar la configuración."
+    end
+  end
 
   def configurations_params
     params.require(:admin).permit(:google_sheets_enabled, :sheet_id, :serial_port, :serial_baud_rate, :serial_parity, :serial_stop_bits, :serial_data_bits, :printer_port, :printer_baud_rate, :printer_parity, :printer_stop_bits, :printer_data_bits)

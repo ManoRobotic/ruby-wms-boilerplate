@@ -198,7 +198,9 @@ class AdminController < ApplicationController
     end
 
     # Para usuarios, verificar permisos específicos
-    if current_user && !current_user.can?("read_admin_dashboard")
+    # Allow operadores to access configurations page
+    if current_user && !current_user.can?("read_admin_dashboard") && 
+       !(current_user.operador? && request.path == "/admin/configurations")
       redirect_to root_path, alert: "No tienes permisos para acceder al panel de administración."
     end
   end

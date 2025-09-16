@@ -139,7 +139,8 @@ module WmsHelper
           'Panel de Control',
           'Ordenes de Producción',
           'Impresión Manual',
-          'Códigos de Inventario'
+          'Códigos de Inventario',
+          'Configuraciones'
         ]
         
         all_menu_items.select do |item|

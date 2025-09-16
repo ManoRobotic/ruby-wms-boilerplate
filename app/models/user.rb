@@ -164,7 +164,7 @@ class User < ApplicationRecord
     when "read_inventory_codes"
       # Allow read_inventory_codes for all operators except flexiempaques
       super_admin_role != 'flexiempaques'
-    when "read_production_orders", "manage_manual_printing", "read_admin_dashboard"
+    when "read_production_orders", "manage_manual_printing", "read_admin_dashboard", "read_configurations", "admin_settings"
       true # These permissions are always allowed for operador
     else
       false
