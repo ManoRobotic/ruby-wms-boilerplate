@@ -207,8 +207,8 @@ class Admin::ProductionOrderItemsController < AdminController
             turbo_stream.remove("confirm-print-modal"),
             turbo_stream.append(
               "flashes",
-              partial: "shared/succes_alert",
-              locals: { notice: "Items marcados como impresos." }
+              partial: "shared/toast/toast_success",
+              locals: { message: "Items marcados como impresos." }
             )
           ] + updated_items.map { |item|
             turbo_stream.replace(
@@ -227,8 +227,8 @@ class Admin::ProductionOrderItemsController < AdminController
             turbo_stream.remove("confirm-print-modal"),
             turbo_stream.append(
               "flashes",
-              partial: "shared/error_alert",
-              locals: { alert: "Error al marcar items como impresos." }
+              partial: "shared/toast/toast_danger",
+              locals: { message: "Error al marcar items como impresos." }
             )
           ]
         end
