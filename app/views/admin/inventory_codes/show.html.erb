@@ -36,68 +36,126 @@
       <div class="mb-6">
         <span class="text-sm text-gray-500">Estado:</span>
         <% status_style = @inventory_code.tip_copr == 1 ? "background-color: var(--color-dark-fern-100); color: var(--color-dark-fern-800);" : "background-color: var(--color-mexican-red-100); color: var(--color-mexican-red-800);" %>
-        <span class="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full" style="<%= status_style %>">
+        <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full" style="<%= status_style %>">
           <%= @inventory_code.status_display %>
         </span>
       </div>
 
-      <!-- Main Content Grid -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-grow min-h-0">
-        
-        <!-- Basic Information -->
-        <div class="border shadow-md sm:rounded-lg p-6 flex flex-col" style="background-color: var(--color-blue-gem-50);">
-          <h3 class="text-lg font-semibold text-gray-800 mb-4">Información Básica</h3>
-          <div class="space-y-3 text-sm flex-grow">
-            <div class="flex justify-between"><span class="text-gray-500">No. Orden:</span><span class="font-medium"><%= @inventory_code.no_ordp %></span></div>
-            <div class="flex justify-between"><span class="text-gray-500">Código Producto:</span><span class="font-medium"><%= @inventory_code.cve_prod %></span></div>
-            <div class="flex justify-between"><span class="text-gray-500">Código Componente:</span><span class="font-medium"><%= @inventory_code.cve_copr %></span></div>
-            <div class="flex justify-between"><span class="text-gray-500">Lote:</span><span class="font-medium"><%= @inventory_code.lote %></span></div>
-            <div class="flex justify-between"><span class="text-gray-500">Fecha:</span><span class="font-medium"><%= @inventory_code.fech_cto&.strftime("%d/%m/%Y") || "N/A" %></span></div>
+      <!-- Unified Information Box -->
+      <div class="border shadow-md sm:rounded-lg p-6 bg-white">
+        <h3 class="text-lg font-semibold text-gray-800 mb-6 pb-2 border-b border-gray-100">Detalles del Código de Inventario</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <!-- Basic Information -->
+          <div class="space-y-4">
+            <h4 class="font-medium text-gray-700 text-sm uppercase tracking-wider">Información Básica</h4>
+            <div class="space-y-3">
+              <div class="flex justify-between">
+                <span class="text-gray-500 text-sm">No. Orden:</span>
+                <span class="font-medium text-gray-800"><%= @inventory_code.no_ordp %></span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-500 text-sm">Código Producto:</span>
+                <span class="font-medium text-gray-800"><%= @inventory_code.cve_prod %></span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-500 text-sm">Código Componente:</span>
+                <span class="font-medium text-gray-800"><%= @inventory_code.cve_copr %></span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-500 text-sm">Lote:</span>
+                <span class="font-medium text-gray-800"><%= @inventory_code.lote %></span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-500 text-sm">Fecha:</span>
+                <span class="font-medium text-gray-800"><%= @inventory_code.fech_cto&.strftime("%d/%m/%Y") || "N/A" %></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quantities and Costs -->
+          <div class="space-y-4">
+            <h4 class="font-medium text-gray-700 text-sm uppercase tracking-wider">Cantidades y Costos</h4>
+            <div class="space-y-3">
+              <div class="flex justify-between">
+                <span class="text-gray-500 text-sm">Cantidad:</span>
+                <span class="font-medium text-gray-800"><%= @inventory_code.formatted_quantity %></span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-500 text-sm">Costo:</span>
+                <span class="font-medium text-gray-800"><%= @inventory_code.formatted_cost %></span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-500 text-sm">Costo Reposición:</span>
+                <span class="font-medium text-gray-800"><%= @inventory_code.costo_rep.present? ? "$#{@inventory_code.costo_rep.round(2)}" : "N/A" %></span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-500 text-sm">Unidad:</span>
+                <span class="font-medium text-gray-800"><%= @inventory_code.undres || "N/A" %></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Additional Information -->
+          <div class="space-y-4">
+            <h4 class="font-medium text-gray-700 text-sm uppercase tracking-wider">Información Adicional</h4>
+            <div class="space-y-3">
+              <div class="flex justify-between">
+                <span class="text-gray-500 text-sm">Sucursal:</span>
+                <span class="font-medium text-gray-800"><%= @inventory_code.cve_suc %></span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-500 text-sm">Trans:</span>
+                <span class="font-medium text-gray-800"><%= @inventory_code.trans %></span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-500 text-sm">Nueva Medida:</span>
+                <span class="font-medium text-gray-800"><%= @inventory_code.new_med %></span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-500 text-sm">Nuevo Comp:</span>
+                <span class="font-medium text-gray-800"><%= @inventory_code.new_copr %></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Technical Details -->
+          <div class="space-y-4">
+            <h4 class="font-medium text-gray-700 text-sm uppercase tracking-wider">Detalles Técnicos</h4>
+            <div class="space-y-3">
+              <div class="flex justify-between">
+                <span class="text-gray-500 text-sm">Part Resp:</span>
+                <span class="font-medium text-gray-800"><%= @inventory_code.partresp %></span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-500 text-sm">D Mov:</span>
+                <span class="font-medium text-gray-800"><%= @inventory_code.dmov %></span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-500 text-sm">Part Op:</span>
+                <span class="font-medium text-gray-800"><%= @inventory_code.partop %></span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-500 text-sm">FCD Res:</span>
+                <span class="font-medium text-gray-800"><%= @inventory_code.fcdres %></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Timeline -->
+          <div class="space-y-4 md:col-span-2 pt-2">
+            <h4 class="font-medium text-gray-700 text-sm uppercase tracking-wider">Registro</h4>
+            <div class="flex flex-col sm:flex-row justify-between gap-4 bg-gray-50 p-4 rounded-lg">
+              <div class="flex justify-between sm:justify-start sm:gap-6">
+                <span class="text-gray-500 text-sm">Creado:</span>
+                <span class="font-medium text-gray-800"><%= @inventory_code.created_at.strftime("%d/%m/%Y %H:%M") %></span>
+              </div>
+              <div class="flex justify-between sm:justify-start sm:gap-6">
+                <span class="text-gray-500 text-sm">Actualizado:</span>
+                <span class="font-medium text-gray-800"><%= @inventory_code.updated_at.strftime("%d/%m/%Y %H:%M") %></span>
+              </div>
+            </div>
           </div>
         </div>
-
-        <!-- Quantities and Costs -->
-        <div class="border shadow-md sm:rounded-lg p-6 flex flex-col" style="background-color: var(--color-blue-gem-50);">
-          <h3 class="text-lg font-semibold text-gray-800 mb-4">Cantidades y Costos</h3>
-          <div class="space-y-3 text-sm flex-grow">
-            <div class="flex justify-between"><span class="text-gray-500">Cantidad:</span><span class="font-medium"><%= @inventory_code.formatted_quantity %></span></div>
-            <div class="flex justify-between"><span class="text-gray-500">Costo:</span><span class="font-medium"><%= @inventory_code.formatted_cost %></span></div>
-            <div class="flex justify-between"><span class="text-gray-500">Costo Reposición:</span><span class="font-medium"><%= @inventory_code.costo_rep.present? ? "$#{@inventory_code.costo_rep.round(2)}" : "N/A" %></span></div>
-            <div class="flex justify-between"><span class="text-gray-500">Unidad:</span><span class="font-medium"><%= @inventory_code.undres || "N/A" %></span></div>
-          </div>
-        </div>
-
-        <!-- Additional Information -->
-        <div class="border shadow-md sm:rounded-lg p-6 flex flex-col" style="background-color: var(--color-blue-gem-50);">
-          <h3 class="text-lg font-semibold text-gray-800 mb-4">Información Adicional</h3>
-          <div class="space-y-3 text-sm flex-grow">
-            <div class="flex justify-between"><span class="text-gray-500">Sucursal:</span><span class="font-medium"><%= @inventory_code.cve_suc %></span></div>
-            <div class="flex justify-between"><span class="text-gray-500">Trans:</span><span class="font-medium"><%= @inventory_code.trans %></span></div>
-            <div class="flex justify-between"><span class="text-gray-500">Nueva Medida:</span><span class="font-medium"><%= @inventory_code.new_med %></span></div>
-            <div class="flex justify-between"><span class="text-gray-500">Nuevo Comp:</span><span class="font-medium"><%= @inventory_code.new_copr %></span></div>
-          </div>
-        </div>
-
-        <!-- Technical Details -->
-        <div class="border shadow-md sm:rounded-lg p-6 flex flex-col" style="background-color: var(--color-blue-gem-50);">
-          <h3 class="text-lg font-semibold text-gray-800 mb-4">Detalles Técnicos</h3>
-          <div class="space-y-3 text-sm flex-grow">
-            <div class="flex justify-between"><span class="text-gray-500">Part Resp:</span><span class="font-medium"><%= @inventory_code.partresp %></span></div>
-            <div class="flex justify-between"><span class="text-gray-500">D Mov:</span><span class="font-medium"><%= @inventory_code.dmov %></span></div>
-            <div class="flex justify-between"><span class="text-gray-500">Part Op:</span><span class="font-medium"><%= @inventory_code.partop %></span></div>
-            <div class="flex justify-between"><span class="text-gray-500">FCD Res:</span><span class="font-medium"><%= @inventory_code.fcdres %></span></div>
-          </div>
-        </div>
-
-        <!-- Timeline -->
-        <div class="border shadow-md sm:rounded-lg p-6 flex flex-col" style="background-color: var(--color-bamboo-50);">
-          <h3 class="text-lg font-semibold text-gray-800 mb-4">Registro</h3>
-          <div class="space-y-4 text-sm flex-grow">
-            <div class="flex justify-between"><span class="text-gray-500">Creado:</span><span class="font-medium"><%= @inventory_code.created_at.strftime("%d/%m/%Y %H:%M") %></span></div>
-            <div class="flex justify-between"><span class="text-gray-500">Actualizado:</span><span class="font-medium"><%= @inventory_code.updated_at.strftime("%d/%m/%Y %H:%M") %></span></div>
-          </div>
-        </div>
-
       </div>
     </div>
   </div>
