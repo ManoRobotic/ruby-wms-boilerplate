@@ -12,12 +12,12 @@
           </h1>
         </div>
         <div class="flex justify-center gap-2 shrink-0 md:w-auto">
-          <button onclick="location.reload()" class="btn btn-secondary btn-sm">
+          <button onclick="location.reload()" class="btn btn-secondary btn-sm border border-gray-800">
             Actualizar tabla
           </button>
              <% if current_admin %>
                <%= link_to 'Nueva Orden de Producción', new_admin_production_order_path, 
-                   class: "btn btn-primary btn-sm" %>
+                   class: "btn btn-primary btn-sm border border-gray-800" %>
              <% end %>
         </div>
       </div>
@@ -117,9 +117,9 @@
           <!-- Action Buttons -->
           <div class="flex justify-end pt-2 space-x-3">
             <%= form.submit "Filtrar", 
-                class: "btn btn-primary btn-sm" %>
+                class: "btn btn-primary btn-sm border border-gray-800" %>
             <%= link_to "Limpiar", request.path, 
-                class: "btn btn-secondary btn-sm",
+                class: "btn btn-secondary btn-sm border border-gray-800",
                 data: { turbo: false } %>
           </div>
         <% end %>
