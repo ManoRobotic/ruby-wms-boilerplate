@@ -48,6 +48,8 @@ Rails.application.routes.draw do
       resources :production_order_items, path: "items" do
         collection do
           patch :mark_as_printed
+          post :show_print_confirmation
+          post :confirm_print
         end
       end
     end

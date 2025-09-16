@@ -93,6 +93,74 @@ export default class extends Controller {
     this.updatePrintButton()
   }
 
+  showPrintConfirmation() {
+    console.log("showPrintConfirmation called");
+    const selectedCheckboxes = this.consecutivoCheckboxTargets.filter(cb => cb.checked)
+
+    if (selectedCheckboxes.length === 0) {
+      console.log("No consecutivos selected for printing")
+      return
+    }
+
+    // Get the production order ID from the data attribute
+    const productionOrderElement = document.querySelector('[data-controller="production-order"]')
+    const productionOrderId = productionOrderElement ? productionOrderElement.dataset.orderId : null
+
+    if (!productionOrderId) {
+      console.error("No se encontró el ID de la orden de producción")
+      return
+    }
+
+    // Get selected item IDs
+    const itemIds = selectedCheckboxes.map(cb => cb.dataset.itemId)
+    console.log("Production Order ID:", productionOrderId);
+    console.log("Item IDs:", itemIds);
+
+    // Make a request to show the print confirmation modal
+    fetch(`/admin/production_orders/${productionOrderId}/items/show_print_confirmation`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content,
+        'Accept': 'text/html'
+      },
+      body: JSON.stringify({
+        item_ids: itemIds.join(',')
+      })
+    })
+    .then(response => {
+      console.log("Response status:", response.status);
+      if (response.status === 200) {
+        return response.text();
+      } else {
+        throw new Error('Network response was not ok.');
+      }
+    })
+    .then(html => {
+      console.log("Response HTML length:", html.length);
+      // Remove any existing modal first
+      const existingModal = document.getElementById('confirm-print-modal');
+      if (existingModal) {
+        existingModal.remove();
+      }
+      
+      // Append the modal HTML to the body
+      document.body.insertAdjacentHTML('beforeend', html);
+      
+      // Show the modal by removing the opacity-0 class and pointer-events-none
+      setTimeout(() => {
+        const modal = document.getElementById('confirm-print-modal');
+        if (modal) {
+          modal.classList.remove('opacity-0', 'pointer-events-none');
+          modal.classList.add('opacity-100');
+        }
+      }, 10);
+    })
+    .catch(error => {
+      console.error('Error:', error)
+    })
+  }
+
   pesarItem(event) {
     const itemId = event.target.dataset.itemId
     console.log(`Pesar consecutivo con ID: ${itemId}`)

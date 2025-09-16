@@ -1,0 +1,48 @@
+<div
+  data-controller="dialog production-order-item"
+  data-dialog-backdrop="confirm-print-modal"
+  data-dialog-backdrop-close="true"
+  class="pointer-events-none fixed inset-0 z-[9999] grid h-screen w-screen place-items-center bg-transparent opacity-0 backdrop-blur-sm transition-opacity duration-300"
+  id="confirm-print-modal"
+>
+  <div
+    data-dialog="confirm-print-modal"
+    class="relative m-4 p-6 w-4/5 max-w-md rounded-lg bg-white shadow-2xl max-h-[90vh] overflow-y-auto border border-gray-400"
+  >
+    <!-- Modal header -->
+    <div class="flex shrink-0 items-center pb-4 text-xl font-medium text-slate-800 border-b border-slate-200">
+      Confirmar Impresión de Etiquetas
+    </div>
+            
+    <!-- Modal body -->
+    <div class="relative border-t border-slate-200 py-4">
+      <p class="text-slate-700 mb-4">¿Está seguro que desea imprimir las etiquetas para la orden de producción <strong><%= production_order.no_opro || production_order.order_number %></strong>?</p>
+      
+      <div class="mb-6 p-4 bg-[var(--color-bamboo-300)] rounded-lg border border-blue-200">
+        <p class="text-sm bg-[var(--color-bamboo-300)]">
+          <i class="fa-solid fa-info-circle mr-2"></i>
+          Se imprimirán etiquetas para <strong><%= item_ids.count %></strong> items seleccionados.
+        </p>
+      </div>
+      
+      <!-- Hidden fields -->
+      <input type="hidden" id="confirm-print-item-ids" value="<%= item_ids.join(',') %>">
+      <input type="hidden" id="confirm-print-production-order-id" value="<%= production_order.id %>">
+      
+      <!-- Form buttons -->
+      <div class="flex shrink-0 flex-wrap items-center pt-4 justify-end border-t border-slate-200">
+        <button 
+          data-dialog-close="true" 
+          type="button"
+          class="rounded-md border border-transparent py-2 px-4 text-center text-sm transition-all text-slate-600 hover:bg-slate-100 focus:bg-slate-100 active:bg-slate-100 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none">
+          Cancelar
+        </button>
+        <button 
+          data-action="click->production-order-item#confirmPrint"
+          class="rounded-md bg-[var(--color-dark-fern-600)] py-2 px-4 border border-transparent text-center text-sm text-white transition-all shadow-md hover:shadow-lg focus:bg-green-700 focus:shadow-none active:bg-green-700 hover:bg-[var(--color-dark-fern-700)] active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none ml-2">
+          Imprimir Etiquetas
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

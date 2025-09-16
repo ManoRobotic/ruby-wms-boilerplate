@@ -137,36 +137,101 @@ class Admin::ProductionOrderItemsController < AdminController
 
     # Marcar como impresos
     if production_order_items.update_all(print_status: :printed)
-      # Obtener los items actualizados con solo los datos necesarios
-      updated_items_data = ProductionOrderItem.where(id: item_ids).map do |item|
-        {
-          id: item.id,
-          print_status: 'printed'
-        }
-      end
-      
       respond_to do |format|
-        format.turbo_stream do
-          render turbo_stream: updated_items_data.map { |item_data|
-            # Crear un objeto simple con solo los métodos necesarios
-            item_obj = Struct.new(:id, :print_status) do
-              def print_status_humanize
-                'Printed'
-              end
-            end.new(item_data[:id], item_data[:print_status])
-            
-            turbo_stream.replace(
-              "production_order_item_#{item_data[:id]}_print_status",
-              partial: "admin/production_order_items/print_status",
-              locals: { item: item_obj }
-            )
-          }
-        end
+        format.turbo_stream { head :ok }
         format.json { render json: { success: true, message: "Items marked as printed.", items: production_order_items.map(&:label_data) } }
       end
     else
       respond_to do |format|
         format.turbo_stream { head :unprocessable_entity }
+        format.json { render json: { success: false, error: "Failed to mark items as printed." }, status: :unprocessable_entity }
+      end
+    end
+  end
+
+  def show_print_confirmation
+    @production_order = ProductionOrder.find(params[:production_order_id])
+    @item_ids = params[:item_ids].split(',') if params[:item_ids].present?
+    
+    respond_to do |format|
+      format.turbo_stream do
+        render turbo_stream: turbo_stream.append(
+          "body",
+          partial: "admin/production_order_items/confirm_print_modal",
+          locals: { 
+            production_order: @production_order, 
+            item_ids: @item_ids || []
+          }
+        )
+      end
+      format.html do
+        render partial: "admin/production_order_items/confirm_print_modal", 
+               locals: { 
+                 production_order: @production_order, 
+                 item_ids: @item_ids || [] 
+               }, 
+               layout: false,
+               content_type: 'text/html'
+      end
+      format.json do
+        render json: { 
+          production_order_id: @production_order.id,
+          item_ids: @item_ids || []
+        }
+      end
+    end
+  end
+
+  def confirm_print
+    item_ids = params[:item_ids].split(',') if params[:item_ids].present?
+    production_order_items = ProductionOrderItem.where(id: item_ids)
+
+    # Imprimir los datos de las etiquetas en la consola
+    production_order_items.each do |item|
+      Rails.logger.info "Label data for item #{item.id}: #{item.label_data.to_json}"
+      # También imprimir en la consola del navegador para debugging
+      puts "Label data for item #{item.id}: #{item.label_data.to_json}"
+    end
+
+    # Marcar como impresos
+    if production_order_items.update_all(print_status: :printed)
+      # Obtener los datos de las etiquetas para devolverlos en la respuesta
+      label_data = production_order_items.map(&:label_data)
+      
+      # Recargar los items para obtener el estado actualizado
+      updated_items = ProductionOrderItem.where(id: item_ids)
+      
+      respond_to do |format|
+        format.turbo_stream do
+          render turbo_stream: [
+            turbo_stream.remove("confirm-print-modal"),
+            turbo_stream.append(
+              "flashes",
+              partial: "shared/succes_alert",
+              locals: { notice: "Items marcados como impresos." }
+            )
+          ] + updated_items.map { |item|
+            turbo_stream.replace(
+              "production_order_item_#{item.id}_print_status",
+              partial: "admin/production_order_items/print_status",
+              locals: { item: item.reload } # Recargar el item para obtener el estado actualizado
+            )
+          }
+        end
+        format.json { render json: { success: true, message: "Items marked as printed.", items: label_data } }
+      end
+    else
+      respond_to do |format|
+        format.turbo_stream do
+          render turbo_stream: [
+            turbo_stream.remove("confirm-print-modal"),
+            turbo_stream.append(
+              "flashes",
+              partial: "shared/error_alert",
+              locals: { alert: "Error al marcar items como impresos." }
+            )
+          ]
+        end
         format.json { render json: { success: false, error: "Failed to mark items as printed." }, status: :unprocessable_entity }
       end
     end
