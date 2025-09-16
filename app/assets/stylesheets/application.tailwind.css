@@ -62,8 +62,4 @@
 @tailwind utilities;
 
 /* 3. Tus componentes personalizados */
-/* @layer components {
-  .btn-primary {
-    @apply py-2 px-4 bg-[var(--color-bahama-blue-500)] text-white rounded;
-  }
-} */
+@import 'components/buttons';

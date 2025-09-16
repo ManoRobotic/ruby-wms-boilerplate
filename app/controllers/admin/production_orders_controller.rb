@@ -3,6 +3,10 @@ class Admin::ProductionOrdersController < AdminController
 
   before_action :set_production_order, only: [ :show, :edit, :update, :destroy, :start, :pause, :complete, :cancel, :print_bag_format, :print_box_format, :update_weight, :modal_details, :print_consecutivos ]
 
+  def test_buttons
+    # Just render the test page
+  end
+
   def index
     Rails.logger.debug "--- ProductionOrdersController#index Debug ---"
     Rails.logger.debug "current_admin: #{current_admin.inspect}"

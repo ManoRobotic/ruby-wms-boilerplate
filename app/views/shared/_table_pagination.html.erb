@@ -5,8 +5,8 @@
 %>
 
 <% if local_assigns[:collection] && collection.respond_to?(:current_page) %>
-  <div class="bg-white py-3 flex items-center justify-between border-t border-gray-200 rounded-b-lg">
-    <!-- Mobile pagination -->
+  <div class="py-3 flex items-center justify-between">
+    <!-- Paginación Móvil -->
     <div class="flex-1 flex justify-between sm:hidden">
       <% if collection.prev_page %>
         <%= link_to "Anterior", url_for(params.to_unsafe_h.merge(page: collection.prev_page)), 
@@ -27,7 +27,7 @@
       <% end %>
     </div>
 
-    <!-- Desktop pagination -->
+    <!-- Paginación de Escritorio -->
     <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
       <div>
         <p class="text-sm text-gray-700">
@@ -42,25 +42,21 @@
       </div>
       
       <div>
-        <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-          <!-- Previous button -->
+        <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px border border-gray-800" aria-label="Pagination">
+          <!-- Botón Anterior -->
           <% if collection.prev_page %>
             <%= link_to url_for(params.to_unsafe_h.merge(page: collection.prev_page)), 
                 class: "relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50" do %>
               <span class="sr-only">Anterior</span>
-              <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
-              </svg>
+              <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" /></svg>
             <% end %>
           <% else %>
             <span class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-gray-100 text-sm font-medium text-gray-400 cursor-not-allowed">
-              <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
-              </svg>
+              <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" /></svg>
             </span>
           <% end %>
 
-          <!-- Page numbers -->
+          <!-- Números de Página -->
           <% window = 2 %>
           <% start_page = [collection.current_page - window, 1].max %>
           <% end_page = [collection.current_page + window, collection.total_pages].min %>
@@ -75,7 +71,7 @@
 
           <% (start_page..end_page).each do |page_number| %>
             <% if page_number == collection.current_page %>
-              <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-blue-50 text-sm font-medium text-blue-600 cursor-default">
+              <span aria-current="page" class="relative z-10 inline-flex items-center border text-white px-4 py-2 text-sm font-medium" style="background-color: var(--color-blue-gem-500); border-color: var(--color-blue-gem-600);">
                 <%= page_number %>
               </span>
             <% else %>
@@ -92,20 +88,16 @@
                 class: "relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50" %>
           <% end %>
 
-          <!-- Next button -->
+          <!-- Botón Siguiente -->
           <% if collection.next_page %>
             <%= link_to url_for(params.to_unsafe_h.merge(page: collection.next_page)), 
                 class: "relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50" do %>
               <span class="sr-only">Siguiente</span>
-              <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-              </svg>
+              <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" /></svg>
             <% end %>
           <% else %>
             <span class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-gray-100 text-sm font-medium text-gray-400 cursor-not-allowed">
-              <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-              </svg>
+              <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" /></svg>
             </span>
           <% end %>
         </nav>

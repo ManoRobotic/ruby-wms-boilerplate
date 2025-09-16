@@ -1,0 +1,137 @@
+/* Define button styles using standard CSS with Tailwind color variables */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.btn:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.btn:active {
+  box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+}
+
+.btn:focus {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+
+/* Button Sizes */
+.btn-sm {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.btn-lg {
+  padding: 0.75rem 1.5rem;
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+}
+
+/* Primary (Blue-Gem) Buttons */
+.btn-primary {
+  background-color: var(--color-blue-gem-500);
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: var(--color-blue-gem-600);
+}
+
+.btn-primary:active {
+  background-color: var(--color-blue-gem-700);
+}
+
+.btn-primary:focus {
+  --tw-ring-color: var(--color-blue-gem-300);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Secondary (Dark-Fern) Buttons */
+.btn-secondary {
+  background-color: var(--color-dark-fern-500);
+  color: white;
+}
+
+.btn-secondary:hover {
+  background-color: var(--color-dark-fern-600);
+}
+
+.btn-secondary:active {
+  background-color: var(--color-dark-fern-700);
+}
+
+.btn-secondary:focus {
+  --tw-ring-color: var(--color-dark-fern-300);
+}
+
+.btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Danger (Mexican-Red) Buttons */
+.btn-danger {
+  background-color: var(--color-mexican-red-500);
+  color: white;
+}
+
+.btn-danger:hover {
+  background-color: var(--color-mexican-red-600);
+}
+
+.btn-danger:active {
+  background-color: var(--color-mexican-red-700);
+}
+
+.btn-danger:focus {
+  --tw-ring-color: var(--color-mexican-red-300);
+}
+
+.btn-danger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Accent (Bamboo) Buttons */
+.btn-accent {
+  background-color: var(--color-bamboo-500);
+  color: white;
+}
+
+.btn-accent:hover {
+  background-color: var(--color-bamboo-600);
+}
+
+.btn-accent:active {
+  background-color: var(--color-bamboo-700);
+}
+
+.btn-accent:focus {
+  --tw-ring-color: var(--color-bamboo-300);
+}
+
+.btn-accent:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Icon Button Variant */
+.btn-icon {
+  gap: 0.5rem;
+  flex-direction: row;
+}

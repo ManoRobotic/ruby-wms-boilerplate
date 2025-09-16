@@ -2,7 +2,7 @@
   <%= render "shared/succes_alert", notice: notice %>
 <% end %>
 
-<div class="w-full px-1 mt-12 mb-16 min-h-screen flex flex-col" style="max-width: calc(100% - 0.75rem); margin-right: 0;" data-responsive-right-margin="true" data-controller="inventory-code inventory-code-selection">
+<div class="w-full px-1 mt-12 mb-16 min-h-screen flex flex-col" data-responsive-right-margin="true" data-controller="inventory-code inventory-code-selection">
   <div class="relative flex flex-col w-full px-6 text-gray-700 bg-white shadow-md lg:px-10 rounded-xl bg-clip-border flex-1">
     <div class="relative p-4 text-gray-700 bg-white bg-clip-border lg:px-6 lg:py-8">
       <div class="container mx-auto">
@@ -13,16 +13,11 @@
             </h1>
           </div>
           <div class="flex justify-center gap-2 shrink-0 md:w-auto">
-            <!-- Bulk Actions -->
-            <div class="flex items-center gap-2">
-            </div>
-            
-            <button data-action="click->inventory-code#reloadTable" class="flex items-center gap-3 rounded-lg bg-gray-500 hover:bg-gray-600 py-2 px-4 text-white font-medium text-sm shadow-sm transition-colors">
+            <button data-action="click->inventory-code#reloadTable" class="btn btn-secondary btn-sm">
               Actualizar tabla
             </button>
             <% if current_admin %>
-              <%= link_to 'Nuevo Código', new_admin_inventory_code_path, 
-                  class: "flex items-center gap-3 rounded-lg bg-blue-500 hover:bg-blue-600 py-2 px-4 text-white font-medium text-sm shadow-sm transition-colors" %>
+              <%= link_to 'Nuevo Código', new_admin_inventory_code_path, class: "btn btn-primary btn-sm" %>
             <% end %>
           </div>
         </div>
@@ -31,55 +26,48 @@
 
     <!-- Inventory Codes Status Cards -->
     <div class="px-4 mb-6">
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div class="flex items-center">
-            <div class="flex-shrink-0">
-              <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                <span class="text-white font-semibold text-sm"><%= @total_count %></span>
-              </div>
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="relative p-5 overflow-hidden border border-gray-800 rounded-lg shadow-sm" style="background-color: var(--color-blue-gem-50);">
+          <div class="flex items-start justify-between">
+            <div class="flex flex-col">
+              <span class="text-sm font-medium text-blue-gem-700">Total Códigos</span>
+              <span class="text-2xl font-bold text-blue-gem-900 sm:text-3xl"><%= @total_count %></span>
             </div>
-            <div class="ml-3">
-              <p class="text-sm font-medium text-blue-800">Total Códigos</p>
-            </div>
-          </div>
-        </div>
-        
-        <div class="bg-green-50 border border-green-200 rounded-lg p-4">
-          <div class="flex items-center">
-            <div class="flex-shrink-0">
-              <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                <span class="text-white font-semibold text-sm"><%= @active_count %></span>
-              </div>
-            </div>
-            <div class="ml-3">
-              <p class="text-sm font-medium text-green-800">Activos</p>
+            <div class="p-2 text-blue-gem-600 bg-blue-gem-100 rounded-md">
+              <%= icon('fa-solid', 'barcode', class: 'w-5 h-5') %>
             </div>
           </div>
         </div>
-        
-        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-          <div class="flex items-center">
-            <div class="flex-shrink-0">
-              <div class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
-                <span class="text-white font-semibold text-sm"><%= @inactive_count %></span>
-              </div>
+        <div class="relative p-5 overflow-hidden border border-gray-800 rounded-lg shadow-sm" style="background-color: var(--color-dark-fern-50);">
+          <div class="flex items-start justify-between">
+            <div class="flex flex-col">
+              <span class="text-sm font-medium text-dark-fern-700">Activos</span>
+              <span class="text-2xl font-bold text-dark-fern-900 sm:text-3xl"><%= @active_count %></span>
             </div>
-            <div class="ml-3">
-              <p class="text-sm font-medium text-yellow-800">Inactivos</p>
+            <div class="p-2 text-dark-fern-600 bg-dark-fern-100 rounded-md">
+              <%= icon('fa-solid', 'check-circle', class: 'w-5 h-5') %>
             </div>
           </div>
         </div>
-        
-        <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
-          <div class="flex items-center">
-            <div class="flex-shrink-0">
-              <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
-                <span class="text-white font-semibold text-sm"><%= @unique_products_count %></span>
-              </div>
+        <div class="relative p-5 overflow-hidden border border-gray-800 rounded-lg shadow-sm" style="background-color: var(--color-bamboo-50);">
+          <div class="flex items-start justify-between">
+            <div class="flex flex-col">
+              <span class="text-sm font-medium text-bamboo-700">Inactivos</span>
+              <span class="text-2xl font-bold text-bamboo-900 sm:text-3xl"><%= @inactive_count %></span>
             </div>
-            <div class="ml-3">
-              <p class="text-sm font-medium text-purple-800">Productos Únicos</p>
+            <div class="p-2 text-bamboo-600 bg-bamboo-100 rounded-md">
+              <%= icon('fa-solid', 'times-circle', class: 'w-5 h-5') %>
+            </div>
+          </div>
+        </div>
+        <div class="relative p-5 overflow-hidden border border-gray-800 rounded-lg shadow-sm" style="background-color: var(--color-mexican-red-50);">
+          <div class="flex items-start justify-between">
+            <div class="flex flex-col">
+              <span class="text-sm font-medium text-mexican-red-700">Productos Únicos</span>
+              <span class="text-2xl font-bold text-mexican-red-900 sm:text-3xl"><%= @unique_products_count %></span>
+            </div>
+            <div class="p-2 text-mexican-red-600 bg-mexican-red-100 rounded-md">
+              <%= icon('fa-solid', 'cube', class: 'w-5 h-5') %>
             </div>
           </div>
         </div>
@@ -88,248 +76,112 @@
 
     <!-- Filters -->
     <div class="px-4 mb-6">
-      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <div class="p-6 bg-white border shadow-md sm:rounded-lg">
         <%= form_with url: request.path, method: :get, local: true, class: "space-y-4" do |form| %>
           <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <!-- Search Field -->
             <div class="md:col-span-2">
-              <%= form.text_field :search, 
-                  value: params[:search], 
-                  placeholder: 'Buscar por No. Orden, producto, componente o lote...',
-                  class: "w-full px-4 py-2.5 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" %>
+              <label class="block mb-2 text-sm font-medium text-gray-700">Buscar</label>
+              <%= form.text_field :search, value: params[:search], placeholder: 'Buscar por No. Orden, producto, componente o lote...', class: "block w-full px-3 py-2 text-base placeholder-gray-400 border border-gray-800 rounded-md shadow-sm focus:outline-none focus:ring-blue-gem-500 focus:border-blue-gem-500" %>
             </div>
-            
-            <!-- Start Date -->
             <div>
-              <%= form.date_field :start_date, 
-                  value: params[:start_date],
-                  class: "w-full px-4 py-2.5 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" %>
+              <label class="block mb-2 text-sm font-medium text-gray-700">Fecha Inicio</label>
+              <%= form.date_field :start_date, value: params[:start_date], class: "block w-full px-3 py-2 text-base border border-gray-800 rounded-md shadow-sm focus:outline-none focus:ring-blue-gem-500 focus:border-blue-gem-500" %>
             </div>
-            
-            <!-- End Date -->
             <div>
-              <%= form.date_field :end_date, 
-                  value: params[:end_date],
-                  class: "w-full px-4 py-2.5 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" %>
+              <label class="block mb-2 text-sm font-medium text-gray-700">Fecha Fin</label>
+              <%= form.date_field :end_date, value: params[:end_date], class: "block w-full px-3 py-2 text-base border border-gray-800 rounded-md shadow-sm focus:outline-none focus:ring-blue-gem-500 focus:border-blue-gem-500" %>
             </div>
           </div>
-          
-          <!-- Action Buttons -->
           <div class="flex flex-wrap justify-between pt-2">
             <div class="flex flex-wrap gap-3">
-              <button type="button" 
-                      id="print-selection-btn" 
-                      data-action="click->inventory-code-selection#printSelected"
-                      disabled
-                      class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-colors shadow-sm opacity-50 cursor-not-allowed">
+              <button type="button" id="print-selection-btn" data-action="click->inventory-code-selection#printSelected" disabled class="btn btn-primary btn-sm opacity-50 cursor-not-allowed">
                 <i class="fa-solid fa-print mr-2"></i>Imprimir (<span id="selected-count">0</span>)
               </button>
-              <button type="button" 
-                      id="clear-selection-btn"
-                      data-action="click->inventory-code-selection#clearSelection"
-                      disabled
-                      class="bg-[var(--color-mexican-red-500)] hover:bg-red-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-colors shadow-sm opacity-50 cursor-not-allowed">
+              <button type="button" id="clear-selection-btn" data-action="click->inventory-code-selection#clearSelection" disabled class="btn btn-danger btn-sm opacity-50 cursor-not-allowed">
                 <i class="fa-solid fa-broom mr-2"></i>Limpiar Selección
               </button>
             </div>
             <div class="flex flex-wrap gap-3">
-              <%= form.submit "Filtrar", 
-                  class: "bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-colors shadow-sm" %>
-              <%= link_to "Limpiar", request.path, 
-                  class: "bg-gray-500 hover:bg-gray-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-colors shadow-sm",
-                  data: { turbo: false } %>
+              <%= form.submit "Filtrar", class: "btn btn-primary btn-sm" %>
+              <%= link_to "Limpiar", request.path, class: "btn btn-secondary btn-sm", data: { turbo: false } %>
             </div>
           </div>
         <% end %>
       </div>
     </div>
 
-    <section class="flex flex-col w-full mb-4 bg-muted">
+    <section class="flex flex-col w-full mb-4">
       <div class="w-full px-4">
-        <div class="overflow-x-auto">
-          <table data-controller="table" 
-                 class="w-full bg-white border border-gray-200 text-sm">
-            <thead class="bg-gray-50">
-              <!-- Header Row -->
+        <div class="relative overflow-x-auto border shadow-md sm:rounded-lg">
+          <table data-controller="table" class="w-full text-sm text-left text-gray-500">
+            <thead class="text-xs text-gray-700 uppercase" style="background-color: var(--color-blue-gem-200);">
               <tr>
-                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  <div class="inline-flex items-center">
-                    <label class="flex items-center cursor-pointer relative">
-                      <input type="checkbox" 
-                             data-action="change->inventory-code-selection#toggleAll"
-                             data-inventory-code-selection-target="selectAll"
-                             class="peer h-4 w-4 cursor-pointer transition-all appearance-none rounded shadow hover:shadow-md border border-blue-300 checked:bg-blue-800 checked:border-blue-800" />
-                      <span class="absolute text-white opacity-0 peer-checked:opacity-100 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor" stroke="currentColor" stroke-width="1">
-                          <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                        </svg>
-                      </span>
-                    </label>
-                  </div>
-                </th>
-                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"><%= sort_link "no_ordp", "No. Orden" %></th>
-                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"><%= sort_link "cve_prod", "Código Producto" %></th>
-                <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 hidden md:table-cell"><%= sort_link "cve_copr", "Componente" %></th>
-                <th class="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 hidden sm:table-cell"><%= sort_link "can_copr", "Cantidad" %></th>
-                <th class="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"><%= sort_link "costo" %></th>
-                <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"><%= sort_link "lote" %></th>
-                <th class="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 hidden md:table-cell"><%= sort_link "fech_cto", "Fecha" %></th>
-                <th class="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"><%= sort_link "tip_copr", "Estado" %></th>
-                <th class="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                <th class="px-3 py-2 text-left text-xs font-medium tracking-wider"><input type="checkbox" data-action="change->inventory-code-selection#toggleAll" data-inventory-code-selection-target="selectAll" class="h-4 w-4 rounded border-gray-300 text-blue-gem-600 focus:ring-blue-gem-500"></th>
+                <th class="px-3 py-2 text-left text-xs font-medium tracking-wider cursor-pointer hover:bg-gray-100"><%= sort_link "no_ordp", "No. Orden" %></th>
+                <th class="px-3 py-2 text-left text-xs font-medium tracking-wider cursor-pointer hover:bg-gray-100"><%= sort_link "cve_prod", "Código Producto" %></th>
+                <th class="px-2 py-2 text-left text-xs font-medium tracking-wider cursor-pointer hover:bg-gray-100 hidden md:table-cell"><%= sort_link "cve_copr", "Componente" %></th>
+                <th class="px-2 py-2 text-center text-xs font-medium tracking-wider cursor-pointer hover:bg-gray-100 hidden sm:table-cell"><%= sort_link "can_copr", "Cantidad" %></th>
+                <th class="px-2 py-2 text-center text-xs font-medium tracking-wider cursor-pointer hover:bg-gray-100"><%= sort_link "costo" %></th>
+                <th class="px-2 py-2 text-left text-xs font-medium tracking-wider cursor-pointer hover:bg-gray-100"><%= sort_link "lote" %></th>
+                <th class="px-2 py-2 text-center text-xs font-medium tracking-wider cursor-pointer hover:bg-gray-100 hidden md:table-cell"><%= sort_link "fech_cto", "Fecha" %></th>
+                <th class="px-2 py-2 text-center text-xs font-medium tracking-wider"><%= sort_link "tip_copr", "Estado" %></th>
+                <th class="px-2 py-2 text-center text-xs font-medium tracking-wider">Acciones</th>
               </tr>
             </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
+            <tbody class="bg-white">
               <% @inventory_codes.each do |code| %>
-                <tr data-table-target="row" class="hover:bg-gray-50">
-                  <td class="px-3 py-2 text-sm text-gray-500">
-                    <div class="inline-flex items-center">
-                      <label class="flex items-center cursor-pointer relative">
-                        <input type="checkbox" 
-                               data-action="change->inventory-code-selection#updateSelection"
-                               data-inventory-code-selection-target="inventoryCodeCheckbox"
-                               data-code-id="<%= code.id %>"
-                               data-no-ordp="<%= code.no_ordp %>"
-                               data-cve-prod="<%= code.cve_prod %>"
-                               data-cve-copr="<%= code.cve_copr %>"
-                               data-lote="<%= code.lote %>"
-                               data-cantidad="<%= code.can_copr %>"
-                               data-costo="<%= code.costo %>"
-                               class="peer h-4 w-4 cursor-pointer transition-all appearance-none rounded shadow hover:shadow-md border border-blue-300 checked:bg-blue-800 checked:border-blue-800" />
-                        <span class="absolute text-white opacity-0 peer-checked:opacity-100 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none">
-                          <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor" stroke="currentColor" stroke-width="1">
-                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                          </svg>
-                        </span>
-                      </label>
-                    </div>
-                  </td>
-                  <td class="px-3 py-2 text-sm font-medium text-gray-900">
-                    <div>
-                      <span class="text-blue-600 font-semibold">
-                        <%= code.no_ordp %>
-                      </span>
-                      <div class="text-xs text-gray-500 mt-1 space-y-1">
-                        <div class="flex flex-wrap gap-1 sm:hidden mt-1">
-                          <span class="inline-flex items-center px-2 py-0.5 bg-gray-100 text-gray-700 text-xs rounded">
-                            <%= code.formatted_quantity %>
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-                  <td class="px-3 py-2 text-sm text-gray-500">
-                    <span class="font-mono text-xs bg-blue-100 px-2 py-1 rounded text-blue-800 font-semibold">
-                      <%= code.cve_prod %>
-                    </span>
-                    <div class="text-xs text-gray-400 mt-1">
-                      <%= truncate(code.cve_copr, length: 30) %>
-                    </div>
-                  </td>
-                  <td class="px-2 py-2 text-sm text-gray-500 hidden md:table-cell">
-                    <%= truncate(code.cve_copr, length: 30) %>
-                  </td>
-                  <td class="px-2 py-2 text-center text-sm text-gray-900 font-medium hidden sm:table-cell">
-                    <%= code.formatted_quantity %>
-                  </td>
-                  <td class="px-2 py-2 text-center text-sm text-gray-500">
-                    <span class="inline-flex items-center px-2 py-1 bg-green-100 text-green-900 text-xs font-bold rounded-full">
-                      <%= code.formatted_cost %>
-                    </span>
-                  </td>
-                  <td class="px-2 py-2 text-sm text-gray-500">
-                    <%= code.lote %>
-                  </td>
-                  <td class="px-2 py-2 text-center text-sm text-gray-500 hidden md:table-cell">
-                    <%= code.fech_cto&.strftime("%d/%m/%Y") || "N/A" %>
-                  </td>
+                <tr class="border-b hover:bg-gray-50">
+                  <td class="px-3 py-2 text-sm text-gray-500"><input type="checkbox" data-action="change->inventory-code-selection#updateSelection" data-inventory-code-selection-target="inventoryCodeCheckbox" data-code-id="<%= code.id %>" class="h-4 w-4 rounded border-gray-300 text-blue-gem-600 focus:ring-blue-gem-500"></td>
+                  <td class="px-3 py-2 text-sm font-medium text-gray-900"><span class="text-blue-gem-600 font-semibold"><%= code.no_ordp %></span></td>
+                  <td class="px-3 py-2 text-sm text-gray-500"><span class="font-mono text-xs px-2 py-1 rounded font-semibold"><%= code.cve_prod %></span></td>
+                  <td class="px-2 py-2 text-sm text-gray-500 hidden md:table-cell"><%= truncate(code.cve_copr, length: 30) %></td>
+                  <td class="px-2 py-2 text-center text-sm text-gray-900 font-medium hidden sm:table-cell"><%= code.formatted_quantity %></td>
+                  <td class="px-2 py-2 text-center text-sm text-gray-500"><span class="inline-flex items-center px-2 py-1 text-xs font-bold rounded-full" style="background-color: var(--color-dark-fern-100); color: var(--color-dark-fern-800);"><%= code.formatted_cost %></span></td>
+                  <td class="px-2 py-2 text-sm text-gray-500"><%= code.lote %></td>
+                  <td class="px-2 py-2 text-center text-sm text-gray-500 hidden md:table-cell"><%= code.fech_cto&.strftime("%d/%m/%Y") || "N/A" %></td>
                   <td class="px-2 py-2 text-center">
-                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-                      <%= code.tip_copr == 1 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' %>">
+                    <% status_style = code.tip_copr == 1 ? "background-color: var(--color-dark-fern-100); color: var(--color-dark-fern-800);" : "background-color: var(--color-mexican-red-100); color: var(--color-mexican-red-800);" %>
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full" style="<%= status_style %>">
                       <%= code.status_display %>
                     </span>
                   </td>
                   <td class="px-2 py-2 text-center text-sm font-medium">
-                    <%= link_to admin_inventory_code_path(code), 
-                        class: "text-blue-600 hover:text-blue-800 mr-2" do %>
-                      <%= icon('fa-solid', 'eye', class: 'w-4 h-4') %>
-                    <% end %>
-                    <button type="button" 
-                            class="text-green-600 hover:text-green-900"
-                            data-action="click->inventory-code#openPrintModal"
-                            data-inventory-code-id="<%= code.id %>"
-                            data-inventory-code-no-ordp="<%= code.no_ordp %>">
-                      <%= icon('fa-solid', 'print', class: 'w-4 h-4') %> Imprimir
-                    </button>
+                    <div class="flex items-center justify-center space-x-1">
+                      <%= link_to admin_inventory_code_path(code), class: "btn btn-primary btn-sm btn-icon" do %><%= icon('fa-solid', 'eye', class: 'w-4 h-4') %><% end %>
+                      <button type="button" class="btn btn-secondary btn-sm btn-icon" data-action="click->inventory-code#openPrintModal" data-inventory-code-id="<%= code.id %>" data-inventory-code-no-ordp="<%= code.no_ordp %>">
+                        <%= icon('fa-solid', 'print', class: 'w-4 h-4') %>
+                      </button>
+                    </div>
                   </td>
                 </tr>
               <% end %>
-              
               <% if @inventory_codes.empty? %>
-                <tr>
-                  <td colspan="9" class="p-8 text-center text-gray-500">
-                    No se encontraron códigos de inventario.
-                    <%= link_to 'Crear el primer código', new_admin_inventory_code_path, 
-                        class: "text-blue-600 hover:text-blue-800 font-medium" %>
-                  </td>
-                </tr>
+                <tr><td colspan="10" class="p-8 text-center text-gray-500">No se encontraron códigos de inventario.</td></tr>
               <% end %>
             </tbody>
           </table>
         </div>
-        <!-- Pagination -->
         <%= render 'shared/table_pagination', collection: @inventory_codes %>
       </div>
     </section>
   </div>
 </div>
 <!-- Print Modal -->
-<div
-  data-controller="dialog"
-  data-dialog-backdrop="print-modal"
-  data-dialog-backdrop-close="true"
-  class="pointer-events-none fixed inset-0 z-[9999] grid h-screen w-screen place-items-center bg-transparent opacity-0 backdrop-blur-sm transition-opacity duration-300"
->
-  <div
-    data-dialog="print-modal"
-    class="relative m-4 p-6 w-4/5 max-w-md rounded-lg bg-white shadow-2xl max-h-[90vh] overflow-y-auto border border-gray-400"
-  >
-    <!-- Modal header -->
-    <div class="flex shrink-0 items-center pb-4 text-xl font-medium text-slate-800 border-b border-slate-200">
-      Imprimir Código de Inventario
-    </div>
-            
-    <!-- Modal body -->
+<div data-controller="dialog" data-dialog-backdrop="print-modal" data-dialog-backdrop-close="true" class="pointer-events-none fixed inset-0 z-[9999] grid h-screen w-screen place-items-center bg-transparent opacity-0 backdrop-blur-sm transition-opacity duration-300">
+  <div data-dialog="print-modal" class="relative m-4 p-6 w-4/5 max-w-md rounded-lg bg-white shadow-2xl max-h-[90vh] overflow-y-auto border border-gray-400">
+    <div class="flex shrink-0 items-center pb-4 text-xl font-medium text-slate-800 border-b border-slate-200">Imprimir Código de Inventario</div>
     <form data-action="submit->inventory-code#print" class="relative border-t border-slate-200 py-4">
       <div class="grid gap-4 mb-4">
         <div>
           <label for="num_prints" class="block mb-2 text-sm font-medium text-slate-700">Número de Impresiones</label>
-          <input type="number" 
-                 id="num_prints" 
-                 name="num_prints" 
-                 min="1" 
-                 value="1"
-                 required
-                 class="bg-slate-50 border border-slate-300 text-slate-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-                 data-inventory-code-target="numPrintsInput">
+          <input type="number" id="num_prints" name="num_prints" min="1" value="1" required class="bg-slate-50 border border-slate-300 text-slate-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" data-inventory-code-target="numPrintsInput">
         </div>
       </div>
-
-      <!-- Hidden fields for inventory code data -->
       <input type="hidden" name="inventory_code_id" data-inventory-code-target="inventoryCodeId">
       <input type="hidden" name="inventory_code_no_ordp" data-inventory-code-target="inventoryCodeNoOrdP">
-      
-      <!-- Form buttons -->
       <div class="flex shrink-0 flex-wrap items-center pt-4 justify-end border-t border-slate-200">
-        <button 
-          data-dialog-close="true" 
-          type="button"
-          class="rounded-md border border-transparent py-2 px-4 text-center text-sm transition-all text-slate-600 hover:bg-slate-100 focus:bg-slate-100 active:bg-slate-100 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none">
-          Cancelar
-        </button>
-        <button type="submit" 
-                class="rounded-md bg-green-600 py-2 px-4 border border-transparent text-center text-sm text-white transition-all shadow-md hover:shadow-lg focus:bg-green-700 focus:shadow-none active:bg-green-700 hover:bg-green-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none ml-2">
-          Imprimir
-        </button>
+        <button data-dialog-close="true" type="button" class="btn btn-secondary btn-sm">Cancelar</button>
+        <button type="submit" class="btn btn-primary btn-sm ml-2">Imprimir</button>
       </div>
     </form>
   </div>

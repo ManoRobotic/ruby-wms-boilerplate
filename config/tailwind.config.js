@@ -5,10 +5,13 @@ module.exports = {
     './public/*.html',
     './app/helpers/**/*.rb',
     './app/javascript/**/*.js',
-    './app/views/**/*.{erb,haml,html,slim}'
+    './app/views/**/*.{erb,haml,html,slim}',
+    './app/components/**/*.{rb,html.erb}',
+    './app/assets/stylesheets/components/*.css'
   ],
   safelist: [
-    { pattern: /^(bg|text|border)-(blue-gem|dark-fern)-(50|100|200|300|400|500|600|700|800|900|950)$/ }
+    { pattern: /^(bg|text|border)-(blue-gem|dark-fern|mexican-red|bamboo)-(50|100|200|300|400|500|600|700|800|900|950)$/ },
+    { pattern: /^btn(-(primary|secondary|danger|accent|icon|sm|lg))?$/ }
   ],
   theme: {
     extend: {

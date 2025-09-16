@@ -7,115 +7,61 @@
 
 <div class="w-full px-1 mt-12 mb-16 min-h-screen flex flex-col" data-responsive-right-margin="true">
   <div class="relative flex flex-col w-full px-6 text-gray-700 bg-white shadow-md lg:px-10 rounded-xl bg-clip-border flex-1">
-    <div class=" mt-8 relative p-4 text-gray-700 bg-white bg-clip-border flex flex-col flex-grow"
+    <div class="mt-8 relative p-4 text-gray-700 bg-white bg-clip-border flex flex-col flex-grow"
          data-controller="production-order" 
          data-order-id="<%= @production_order.id %>">
-      <div class="flex flex-col flex-grow">
       
       <!-- Header -->
-      <div class="relative flex flex-col gap-3 mb-4 lg:flex-row lg:items-start lg:justify-between">
+      <div class="relative flex flex-col gap-3 mb-8 lg:flex-row lg:items-start lg:justify-between">
         <div class="flex-1">
-          <h1 class="text-lg font-semibold text-gray-900 mb-1">
+          <h1 class="text-2xl font-bold text-gray-900 mb-1">
             <%= @production_order.no_opro.present? ? "Orden No. #{@production_order.no_opro}" : "Orden ##{@production_order.order_number}" %>
           </h1>
-          <p class="text-sm text-gray-600">
-            Producto: <%= @production_order.product.name %>
+          <p class="text-base text-gray-600">
+            Producto: <span class="font-semibold"><%= @production_order.product.name %></span>
           </p>
-          <p class="text-xs text-gray-500">
+          <p class="text-sm text-gray-500">
             <%= @production_order.fecha_completa&.strftime("%d/%m/%Y") || @production_order.created_at.strftime("%d/%m/%Y a las %H:%M") %>
           </p>
         </div>
         
-        <div class="flex gap-2 shrink-0 lg:absolute lg:top-0 lg:right-0 lg:z-10">
-          <%= link_to admin_production_orders_path, 
-              class: "px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 flex items-center gap-1" do %>
+        <div class="flex gap-2 shrink-0">
+          <%= link_to admin_production_orders_path, class: "btn btn-secondary btn-sm btn-icon" do %>
             <%= icon('fa-solid', 'arrow-left', class: 'w-3 h-3') %>
-            Volver
+            <span class="hidden sm:inline">Volver</span>
           <% end %>
           
-          <%= link_to edit_admin_production_order_path(@production_order), 
-              class: "px-3 py-1.5 text-xs font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 flex items-center gap-1" do %>
+          <%= link_to edit_admin_production_order_path(@production_order), class: "btn btn-primary btn-sm btn-icon" do %>
             <%= icon('fa-solid', 'edit', class: 'w-3 h-3') %>
-            Editar
+            <span class="hidden sm:inline">Editar</span>
           <% end %>
         </div>
-      </div>
-
-      <!-- Status and Progress -->
-      <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-4">
-        <!-- Status -->
-        <div class="flex items-center gap-2">
-          <span class="text-xs text-gray-500">Estado:</span>
-          <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium
-            <%= case @production_order.status
-                when 'pending' then 'bg-yellow-100 text-yellow-800'
-                when 'scheduled' then 'bg-blue-100 text-blue-800'
-                when 'in_progress' then 'bg-green-100 text-green-800'
-                when 'paused' then 'bg-orange-100 text-orange-800'
-                when 'completed' then 'bg-gray-100 text-gray-800'
-                when 'cancelled' then 'bg-red-100 text-red-800'
-                end %>">
-            <%= @production_order.status.humanize %>
-          </span>
-        </div>
-        
-        <!-- Priority -->
-        <div class="flex items-center gap-2">
-          <span class="text-xs text-gray-500">Prioridad:</span>
-          <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium
-            <%= case @production_order.priority
-                when 'low' then 'bg-gray-100 text-gray-800'
-                when 'medium' then 'bg-blue-100 text-blue-800'
-                when 'high' then 'bg-orange-100 text-orange-800'
-                when 'urgent' then 'bg-red-100 text-red-800'
-                end %>">
-            <%= @production_order.priority.humanize %>
-          </span>
-        </div>
-
-       
       </div>
 
       <!-- Consecutivos/Folios Section -->
       <div class="mb-6" data-controller="consecutivo-selection">
-        <div class="bg-emerald-50 rounded-xl p-6 shadow-sm hover:shadow-lg transition-shadow duration-300">
+        <div class="border shadow-md sm:rounded-lg p-6" style="background-color: var(--color-blue-gem-50);">
           <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-3">
-            <h3 class="text-base font-semibold text-emerald-900">Consecutivos / Folios</h3>
+            <h3 class="text-lg font-semibold text-gray-800">Consecutivos / Folios</h3>
             <div class="flex flex-wrap items-center gap-2">
-              <button 
-                id="print-labels-btn"
-                class="rounded-md bg-purple-600 py-2 px-4 border border-transparent text-center text-sm font-semibold text-white transition-all shadow-md hover:shadow-lg focus:bg-purple-700 focus:shadow-none active:bg-purple-700 hover:bg-purple-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none flex items-center gap-2"
-                type="button"
-                disabled
-                data-action="click->consecutivo-selection#showPrintConfirmation">
+              <button id="print-labels-btn" class="btn btn-primary btn-sm btn-icon" type="button" disabled data-action="click->consecutivo-selection#showPrintConfirmation">
                 <%= icon('fa-solid', 'print', class: 'w-4 h-4') %>
                 Imprimir Etiqueta
               </button>
               <% if @production_order.production_order_items.any? %>
-                <%= link_to print_consecutivos_admin_production_order_path(@production_order, format: :pdf), 
-                    method: :get,
-                    class: "rounded-md bg-purple-600 py-2 px-4 border border-transparent text-center text-sm font-semibold text-white transition-all shadow-md hover:shadow-lg focus:bg-purple-700 focus:shadow-none active:bg-purple-700 hover:bg-purple-700 active:shadow-none flex items-center gap-2" do %>
+                <%= link_to print_consecutivos_admin_production_order_path(@production_order, format: :pdf), method: :get, class: "btn btn-accent btn-sm btn-icon" do %>
                   <%= icon('fa-solid', 'file-pdf', class: 'w-4 h-4') %>
-                  Descargar PDF Packing
+                  Descargar PDF
                 <% end %>
               <% end %>
-              <button 
-                data-dialog-target="consecutivo-modal"
-                class="rounded-md bg-emerald-600 py-2 px-4 border border-transparent text-center text-sm font-semibold text-white transition-all shadow-md hover:shadow-lg focus:bg-emerald-700 focus:shadow-none active:bg-emerald-700 hover:bg-emerald-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none flex items-center gap-2" 
-                type="button">
+              <button data-dialog-target="consecutivo-modal" class="btn btn-secondary btn-sm btn-icon" type="button">
                 <%= icon('fa-solid', 'plus', class: 'w-4 h-4') %>
                 Agregar
               </button>
               
               <!-- Hidden form for printing labels -->
-              <%= form_with url: mark_as_printed_admin_production_order_production_order_items_path(@production_order), 
-                           method: :patch, 
-                           id: "print-labels-form", 
-                           local: true, 
-                           style: "display: none;" do |form| %>
-                <div id="print-item-ids-container">
-                  <!-- Item IDs will be added here by JavaScript -->
-                </div>
+              <%= form_with url: mark_as_printed_admin_production_order_production_order_items_path(@production_order), method: :patch, id: "print-labels-form", local: true, style: "display: none;" do |form| %>
+                <div id="print-item-ids-container"></div>
               <% end %>
             </div>
           </div>
@@ -130,130 +76,59 @@
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-grow min-h-0">
         
         <!-- Production Details -->
-        <div class="bg-slate-50 rounded-xl p-6 shadow-sm hover:shadow-lg transition-shadow duration-300 flex flex-col">
-          <h3 class="text-base font-semibold text-slate-900 mb-4">Detalles de Producción</h3>
-          
+        <div class="bg-white border shadow-md sm:rounded-lg p-6 flex flex-col">
+          <h3 class="text-lg font-semibold text-gray-800 mb-4">Detalles de Producción</h3>
           <div class="space-y-3 text-sm flex-grow">
-            <div class="flex justify-between">
-              <span class="text-slate-500">Almacén:</span>
-              <span class="text-slate-900 font-medium"><%= @production_order.warehouse.name %></span>
-            </div>
+            <div class="flex justify-between"><span class="text-gray-500">Almacén:</span><span class="font-medium"><%= @production_order.warehouse.name %></span></div>
+            <div class="flex justify-between"><span class="text-gray-500">Lote:</span><span class="font-medium"><%= @production_order.lote_referencia || 'N/A' %></span></div>
+            <div class="flex justify-between"><span class="text-gray-500">Cantidad:</span><span class="font-semibold"><%= @production_order.quantity_requested %></span></div>
+            <div class="flex justify-between"><span class="text-gray-500">Carga:</span><span class="font-medium"><%= @production_order.carga_copr&.to_f || 'N/A' %></span></div>
+            <div class="flex justify-between"><span class="text-gray-500">Año:</span><span class="font-medium"><%= @production_order.ano || 'N/A' %></span></div>
+            <div class="flex justify-between"><span class="text-gray-500">Mes:</span><span class="font-medium"><%= @production_order.mes || 'N/A' %></span></div>
             
-            <div class="flex justify-between">
-              <span class="text-slate-500">Lote:</span>
-              <span class="text-slate-900 font-medium"><%= @production_order.lote_referencia || 'N/A' %></span>
-            </div>
-            
-            <div class="flex justify-between">
-              <span class="text-slate-500">Cantidad:</span>
-              <span class="text-slate-900 font-semibold"><%= @production_order.quantity_requested %></span>
-            </div>
-            
-            <div class="flex justify-between">
-              <span class="text-slate-500">Carga:</span>
-              <span class="text-slate-900 font-medium"><%= @production_order.carga_copr&.to_f || 'N/A' %></span>
-            </div>
-            
-            <div class="flex justify-between">
-              <span class="text-slate-500">Año:</span>
-              <span class="text-slate-900 font-medium"><%= @production_order.ano || 'N/A' %></span>
-            </div>
-            
-            <div class="flex justify-between">
-              <span class="text-slate-500">Mes:</span>
-              <span class="text-slate-900 font-medium"><%= @production_order.mes || 'N/A' %></span>
-            </div>
-            
-
-
-               <!-- Notes Section -->
-      <% if @production_order.notes.present? %>
-        <div class=" flex flex-col gap-4 mt-4">
-          <div class="bg-amber-50 rounded-lg p-3">
-            <h3 class="text-sm font-medium text-gray-900 mb-2">Notas</h3>
-            <p class="text-xs text-gray-700 whitespace-pre-wrap"><%= @production_order.notes %></p>
-          </div>
-        </div>
-      <% end %>
-            
-            <!-- Separator -->
-            <div class="border-t border-slate-200 pt-3 mt-3">
-              <ul class="space-y-1 text-xs text-slate-700">
-                <li>• No. OPRO: <%= @production_order.no_opro || @production_order.order_number %></li>
-                <li>• Producto: <%= @production_order.product.name %></li>
-                <li>• Cantidad: <%= @production_order.quantity_requested %></li>
-                <li>• Lote: <%= @production_order.lote_referencia || 'N/A' %></li>
-                <% if @production_order.peso.present? %>
-                  <li>• Peso: <%= @production_order.peso %> kg</li>
-                <% end %>
-              </ul>
-            </div>
+            <% if @production_order.notes.present? %>
+              <div class="pt-3">
+                <h4 class="text-sm font-medium text-gray-800 mb-1">Notas</h4>
+                <div class="p-3 rounded-md" style="background-color: var(--color-bamboo-50);">
+                  <p class="text-sm text-bamboo-800 whitespace-pre-wrap"><%= @production_order.notes %></p>
+                </div>
+              </div>
+            <% end %>
           </div>
         </div>
 
         <!-- Timeline -->
-        <div class="bg-amber-50 rounded-xl p-6 shadow-sm hover:shadow-lg transition-shadow duration-300 flex flex-col">
-          <h3 class="text-base font-semibold text-amber-900 mb-4">Cronología</h3>
-          
-          <div class="space-y-3 text-sm flex-grow">
-            <div>
-              <span class="text-amber-600">Creación:</span>
-              <span class="text-amber-900 font-medium block"><%= @production_order.created_at.strftime("%d/%m/%Y %H:%M") %></span>
-            </div>
-            
+        <div class="border shadow-md sm:rounded-lg p-6 flex flex-col" style="background-color: var(--color-bamboo-50);">
+          <h3 class="text-lg font-semibold text-gray-800 mb-4">Cronología</h3>
+          <div class="space-y-4 text-sm flex-grow">
+            <div class="flex justify-between"><span class="text-gray-500">Creación:</span><span class="font-medium"><%= @production_order.created_at.strftime("%d/%m/%Y %H:%M") %></span></div>
             <% if @production_order.start_date.present? %>
-              <div>
-                <span class="text-amber-600">Inicio:</span>
-                <span class="text-amber-900 font-medium block"><%= @production_order.start_date.strftime("%d/%m/%Y %H:%M") %></span>
-              </div>
+              <div class="flex justify-between"><span class="text-gray-500">Inicio:</span><span class="font-medium"><%= @production_order.start_date.strftime("%d/%m/%Y %H:%M") %></span></div>
             <% end %>
-            
             <% if @production_order.estimated_completion.present? %>
-              <div>
-                <span class="text-amber-600">Est. Finalización:</span>
-                <span class="text-amber-900 font-medium block <%= 'text-red-600' if @production_order.is_overdue? %>">
+              <div class="flex justify-between">
+                <span class="text-gray-500">Est. Finalización:</span>
+                <span class="font-medium <%= 'text-mexican-red-600' if @production_order.is_overdue? %>">
                   <%= @production_order.estimated_completion.strftime("%d/%m/%Y %H:%M") %>
                   <% if @production_order.is_overdue? %>
-                    <span class="text-red-600">(Atrasado)</span>
+                    <span>(Atrasado)</span>
                   <% end %>
                 </span>
               </div>
             <% end %>
-            
             <% if @production_order.actual_completion.present? %>
-              <div>
-                <span class="text-amber-600">Finalización:</span>
-                <span class="text-amber-900 font-medium block"><%= @production_order.actual_completion.strftime("%d/%m/%Y %H:%M") %></span>
-              </div>
+              <div class="flex justify-between"><span class="text-gray-500">Finalización:</span><span class="font-medium"><%= @production_order.actual_completion.strftime("%d/%m/%Y %H:%M") %></span></div>
             <% end %>
           </div>
         </div>
-
-      </div>
-
-
-   
-      
       </div>
     </div>
   </div>
 </div>
-
-<style>
-@media (min-width: 768px) {
-  [data-responsive-right-margin="true"] {
-    max-width: calc(100% - 0.75rem) !important;
-  }
-}
-@media (max-width: 767px) {
-  [data-responsive-right-margin="true"] {
-    max-width: 100% !important;
-  }
-}
-</style>
 
 <!-- Consecutivo Modal -->
 <%= render(ConsecutivoModalComponent.new(production_order: @production_order)) %>
 
 <!-- Edit Consecutivo Modal -->
 <%= render(EditConsecutivoModalComponent.new) %>
+>
