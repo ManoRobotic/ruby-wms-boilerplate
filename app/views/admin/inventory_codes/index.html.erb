@@ -13,11 +13,11 @@
             </h1>
           </div>
           <div class="flex justify-center gap-2 shrink-0 md:w-auto">
-            <button data-action="click->inventory-code#reloadTable" class="btn btn-secondary btn-sm">
+            <button data-action="click->inventory-code#reloadTable" class="btn btn-secondary btn-sm border border-gray-800">
               Actualizar tabla
             </button>
             <% if current_admin %>
-              <%= link_to 'Nuevo Código', new_admin_inventory_code_path, class: "btn btn-primary btn-sm" %>
+              <%= link_to 'Nuevo Código', new_admin_inventory_code_path, class: "btn btn-primary btn-sm border border-gray-800" %>
             <% end %>
           </div>
         </div>
@@ -94,16 +94,16 @@
           </div>
           <div class="flex flex-wrap justify-between pt-2">
             <div class="flex flex-wrap gap-3">
-              <button type="button" id="print-selection-btn" data-action="click->inventory-code-selection#printSelected" disabled class="btn btn-primary btn-sm opacity-50 cursor-not-allowed">
+              <button type="button" id="print-selection-btn" data-action="click->inventory-code-selection#printSelected" disabled class="btn btn-primary btn-sm border border-gray-800 opacity-50 cursor-not-allowed">
                 <i class="fa-solid fa-print mr-2"></i>Imprimir (<span id="selected-count">0</span>)
               </button>
-              <button type="button" id="clear-selection-btn" data-action="click->inventory-code-selection#clearSelection" disabled class="btn btn-danger btn-sm opacity-50 cursor-not-allowed">
+              <button type="button" id="clear-selection-btn" data-action="click->inventory-code-selection#clearSelection" disabled class="btn btn-danger btn-sm border border-gray-800 opacity-50 cursor-not-allowed">
                 <i class="fa-solid fa-broom mr-2"></i>Limpiar Selección
               </button>
             </div>
             <div class="flex flex-wrap gap-3">
-              <%= form.submit "Filtrar", class: "btn btn-primary btn-sm" %>
-              <%= link_to "Limpiar", request.path, class: "btn btn-secondary btn-sm", data: { turbo: false } %>
+              <%= form.submit "Filtrar", class: "btn btn-primary btn-sm border border-gray-800" %>
+              <%= link_to "Limpiar", request.path, class: "btn btn-secondary btn-sm border border-gray-800", data: { turbo: false } %>
             </div>
           </div>
         <% end %>
@@ -147,8 +147,8 @@
                   </td>
                   <td class="px-2 py-2 text-center text-sm font-medium">
                     <div class="flex items-center justify-center space-x-1">
-                      <%= link_to admin_inventory_code_path(code), class: "btn btn-primary btn-sm btn-icon" do %><%= icon('fa-solid', 'eye', class: 'w-4 h-4') %><% end %>
-                      <button type="button" class="btn btn-secondary btn-sm btn-icon" data-action="click->inventory-code#openPrintModal" data-inventory-code-id="<%= code.id %>" data-inventory-code-no-ordp="<%= code.no_ordp %>">
+                      <%= link_to admin_inventory_code_path(code), class: "btn btn-primary btn-sm btn-icon border border-gray-800" do %><%= icon('fa-solid', 'eye', class: 'w-4 h-4') %><% end %>
+                      <button type="button" class="btn btn-secondary btn-sm btn-icon border border-gray-800" data-action="click->inventory-code#openPrintModal" data-inventory-code-id="<%= code.id %>" data-inventory-code-no-ordp="<%= code.no_ordp %>">
                         <%= icon('fa-solid', 'print', class: 'w-4 h-4') %>
                       </button>
                     </div>
@@ -180,8 +180,8 @@
       <input type="hidden" name="inventory_code_id" data-inventory-code-target="inventoryCodeId">
       <input type="hidden" name="inventory_code_no_ordp" data-inventory-code-target="inventoryCodeNoOrdP">
       <div class="flex shrink-0 flex-wrap items-center pt-4 justify-end border-t border-slate-200">
-        <button data-dialog-close="true" type="button" class="btn btn-secondary btn-sm">Cancelar</button>
-        <button type="submit" class="btn btn-primary btn-sm ml-2">Imprimir</button>
+        <button data-dialog-close="true" type="button" class="btn btn-secondary btn-sm border border-gray-800">Cancelar</button>
+        <button type="submit" class="btn btn-primary btn-sm ml-2 border border-gray-800">Imprimir</button>
       </div>
     </form>
   </div>

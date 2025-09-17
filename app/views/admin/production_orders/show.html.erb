@@ -26,12 +26,12 @@
         </div>
         
         <div class="flex gap-2 shrink-0">
-          <%= link_to admin_production_orders_path, class: "btn btn-secondary btn-sm btn-icon" do %>
+          <%= link_to admin_production_orders_path, class: "btn btn-secondary btn-sm btn-icon border border-gray-800" do %>
             <%= icon('fa-solid', 'arrow-left', class: 'w-3 h-3') %>
             <span class="hidden sm:inline">Volver</span>
           <% end %>
           
-          <%= link_to edit_admin_production_order_path(@production_order), class: "btn btn-primary btn-sm btn-icon" do %>
+          <%= link_to edit_admin_production_order_path(@production_order), class: "btn btn-primary btn-sm btn-icon border border-gray-800" do %>
             <%= icon('fa-solid', 'edit', class: 'w-3 h-3') %>
             <span class="hidden sm:inline">Editar</span>
           <% end %>
@@ -39,7 +39,7 @@
           <% if current_admin.present? %>
             <%= button_to admin_production_order_path(@production_order), 
                 method: :delete, 
-                class: "btn btn-danger btn-sm btn-icon",
+                class: "btn btn-danger btn-sm btn-icon border border-gray-800",
                 data: { confirm: "¿Estás seguro de que deseas eliminar esta orden de producción?" } do %>
               <%= icon('fa-solid', 'trash', class: 'w-3 h-3') %>
               <span class="hidden sm:inline">Eliminar</span>
@@ -54,17 +54,17 @@
           <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-3">
             <h3 class="text-lg font-semibold text-gray-800">Consecutivos / Folios</h3>
             <div class="flex flex-wrap items-center gap-2">
-              <button id="print-labels-btn" class="btn btn-primary btn-sm btn-icon" type="button" disabled data-action="click->consecutivo-selection#showPrintConfirmation">
+              <button id="print-labels-btn" class="btn btn-primary btn-sm btn-icon border border-gray-800" type="button" disabled data-action="click->consecutivo-selection#showPrintConfirmation">
                 <%= icon('fa-solid', 'print', class: 'w-4 h-4') %>
                 Imprimir Etiqueta
               </button>
               <% if @production_order.production_order_items.any? %>
-                <%= link_to print_consecutivos_admin_production_order_path(@production_order, format: :pdf), method: :get, class: "btn btn-accent btn-sm btn-icon" do %>
+                <%= link_to print_consecutivos_admin_production_order_path(@production_order, format: :pdf), method: :get, class: "btn btn-accent btn-sm btn-icon border border-gray-800" do %>
                   <%= icon('fa-solid', 'file-pdf', class: 'w-4 h-4') %>
                   Descargar PDF
                 <% end %>
               <% end %>
-              <button data-dialog-target="consecutivo-modal" class="btn btn-secondary btn-sm btn-icon" type="button">
+              <button data-dialog-target="consecutivo-modal" class="btn btn-secondary btn-sm btn-icon border border-gray-800" type="button">
                 <%= icon('fa-solid', 'plus', class: 'w-4 h-4') %>
                 Agregar
               </button>
