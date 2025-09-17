@@ -7,17 +7,57 @@ class Api::ProductionOrdersController < ActionController::API
       return
     end
 
-    # Assuming production_order_params will contain product_id, quantity, etc.
-    # You might need to adjust these parameters based on your ProductionOrder model's requirements.
-    @production_order = ProductionOrder.new(production_order_params)
+    # Map API parameter names to model field names
+    mapped_params = map_api_params_to_model_fields(params[:production_order] || {})
+    
+    # Sanitize parameters using strong parameters
+    begin
+      sanitized_params = sanitize_production_order_params(mapped_params)
+    rescue ActionController::ParameterMissing => e
+      render json: { errors: [ "Missing required parameter: #{e.param}" ] }, status: :bad_request
+      return
+    end
+
+    # Create a new production order with the provided parameters
+    @production_order = ProductionOrder.new(sanitized_params)
     @production_order.company = company
+
+    # Explicitly set associations if IDs are provided
+    if params[:production_order]["product_id"].present?
+      product = Product.find_by(id: params[:production_order]["product_id"])
+      if product
+        @production_order.product = product
+      else
+        render json: { errors: [ "Product not found with ID: #{params[:production_order]["product_id"]}" ] }, status: :not_found
+        return
+      end
+    end
+    # Note: product_key is just stored as a text value, not used to look up a product
+    # This allows storing product identifiers from external systems
+
+    if params[:production_order]["warehouse_id"].present?
+      warehouse = Warehouse.find_by(id: params[:production_order]["warehouse_id"])
+      if warehouse
+        @production_order.warehouse = warehouse
+      else
+        render json: { errors: [ "Warehouse not found with ID: #{params[:production_order]["warehouse_id"]}" ] }, status: :not_found
+        return
+      end
+    end
+
+    # Set admin_id to the first admin of the company if not provided
+    @production_order.admin ||= company.admins.first
+
+    # Set default status if not provided
+    @production_order.status ||= "pending"
+    @production_order.priority ||= "medium"
 
     if @production_order.save
       # Send notifications to all users who should be notified about production orders
       notification_data = {
         production_order_id: @production_order.id,
         order_number: @production_order.no_opro || @production_order.order_number,
-        product_name: @production_order.product.name,
+        product_name: @production_order.product&.name || @production_order.product_key || "Sin producto",
         quantity: @production_order.quantity_requested,
         status: @production_order.status
       }.to_json
@@ -78,9 +118,12 @@ class Api::ProductionOrdersController < ActionController::API
     company = Company.find_by(name: params[:company_name])
 
     unless company
+      Rails.logger.error "Company not found: #{params[:company_name]}"
       render json: { error: "Company not found" }, status: :not_found
       return
     end
+    
+    Rails.logger.info "Found company: #{company.name} with ID: #{company.id}"
 
     # Extract production orders from params
     orders_params = params[:production_orders] || []
@@ -94,14 +137,24 @@ class Api::ProductionOrdersController < ActionController::API
     results = []
     success_count = 0
     orders_params.each_with_index do |order_params, index|
+      Rails.logger.info "Processing order #{index + 1}: #{order_params}"
       # Create a new production order with the provided parameters
       production_order = ProductionOrder.new
       production_order.company = company
 
+      # Map API parameter names to model field names
+      mapped_params = map_api_params_to_model_fields(order_params)
+      Rails.logger.info "Mapped params: #{mapped_params}"
+      
+      # Log specifically the notes field
+      Rails.logger.info "Notes field: #{mapped_params['notes'] || mapped_params[:notes]}"
+      
       # Sanitize parameters using strong parameters
       begin
-        sanitized_params = sanitize_production_order_params(order_params)
+        sanitized_params = sanitize_production_order_params(mapped_params)
+        Rails.logger.info "Sanitized params: #{sanitized_params}"
         production_order.assign_attributes(sanitized_params)
+        Rails.logger.info "Assigned attributes, notes: #{production_order.notes}"
       rescue ActionController::ParameterMissing => e
         results << {
           index: index,
@@ -112,29 +165,31 @@ class Api::ProductionOrdersController < ActionController::API
       end
 
       # Explicitly set associations if IDs are provided
-      if order_params["product_id"].present?
-        product = Product.find_by(id: order_params["product_id"])
+      if mapped_params["product_id"].present?
+        product = Product.find_by(id: mapped_params["product_id"])
         if product
           production_order.product = product
         else
           results << {
             index: index,
             status: "error",
-            errors: [ "Product not found with ID: #{order_params["product_id"]}" ]
+            errors: [ "Product not found with ID: #{mapped_params["product_id"]}" ]
           }
           next
         end
       end
+      # Note: product_key is just stored as a text value, not used to look up a product
+      # This allows storing product identifiers from external systems
 
-      if order_params["warehouse_id"].present?
-        warehouse = Warehouse.find_by(id: order_params["warehouse_id"])
+      if mapped_params["warehouse_id"].present?
+        warehouse = Warehouse.find_by(id: mapped_params["warehouse_id"])
         if warehouse
           production_order.warehouse = warehouse
         else
           results << {
             index: index,
             status: "error",
-            errors: [ "Warehouse not found with ID: #{order_params["warehouse_id"]}" ]
+            errors: [ "Warehouse not found with ID: #{mapped_params["warehouse_id"]}" ]
           }
           next
         end
@@ -146,9 +201,13 @@ class Api::ProductionOrdersController < ActionController::API
       # Set default status if not provided
       production_order.status ||= "pending"
       production_order.priority ||= "medium"
+      
+      # Log the notes value before saving
+      Rails.logger.info "Before save - Notes value: '#{production_order.notes}'"
 
       if production_order.save
         success_count += 1
+        Rails.logger.info "Successfully saved production order: #{production_order.id}"
         results << {
           index: index,
           status: "success",
@@ -163,6 +222,8 @@ class Api::ProductionOrdersController < ActionController::API
           }
         }
       else
+        # Log the errors for debugging
+        Rails.logger.error "Failed to save production order: #{production_order.errors.full_messages.join(', ')}"
         results << {
           index: index,
           status: "error",
@@ -233,8 +294,29 @@ class Api::ProductionOrdersController < ActionController::API
       :status,
       :priority,
       :warehouse_id,
+      :product_id,
       :product_key,
-      :no_opro # If you want to allow setting this via API
+      :no_opro, # If you want to allow setting this via API
+      :lote_referencia,
+      :ano,
+      :stat_opro,
+      :orden_produccion,
+      :referencia,
+      :sucursal,
+      :pedido_numero,
+      :fecha_completa,
+      :tipo_material,
+      :ancho_material,
+      :estatus,
+      :observaciones,
+      :lote_base,
+      :programa_referencia,
+      :nivel,
+      :turno,
+      :cantidad_liquidada,
+      :hora_orden,
+      :year,
+      :master_prod
       # Add any other fields that are required or you want to allow
     )
   end
@@ -243,7 +325,7 @@ class Api::ProductionOrdersController < ActionController::API
     if production_order.company
       notification_data = {
         title: "Orden creada!",
-        message: "Orden #{production_order.no_opro || production_order.order_number} para #{production_order.product.name}",
+        message: "Orden #{production_order.no_opro || production_order.order_number} para #{production_order.product&.name || production_order.product_key || "Sin producto"}",
         type: "success",
         duration: 15000, # 15 seconds
         action_url: "/admin/production_orders/#{production_order.id}",
@@ -283,17 +365,60 @@ class Api::ProductionOrdersController < ActionController::API
     )
   end
 
+  def map_api_params_to_model_fields(order_params)
+    # Map API parameter names to model field names
+    mapped_params = order_params.dup
+    
+    # Map specific parameter names to model fields
+    mapped_params[:lote_referencia] = mapped_params.delete(:lote) if mapped_params[:lote]
+    mapped_params[:ano] = mapped_params.delete(:year) if mapped_params[:year]
+    mapped_params[:fecha_completa] = mapped_params.delete(:fecha_orden) if mapped_params[:fecha_orden]
+    
+    # Handle special cases for field mappings
+    # If master_prod is provided, it might be a product identifier
+    if mapped_params[:master_prod].present? && mapped_params[:product_key].blank?
+      mapped_params[:product_key] = mapped_params.delete(:master_prod)
+    end
+    
+    # Ensure product_id is preserved in the mapped parameters
+    # This is needed for batch processing with direct product_id references
+    mapped_params[:product_id] = order_params[:product_id] if order_params[:product_id].present?
+    
+    mapped_params
+  end
+
   def sanitize_production_order_params(order_params)
     # Create a fake params object to use with strong parameters
     fake_params = ActionController::Parameters.new(production_order: order_params)
     fake_params.require(:production_order).permit(
+      :product_id,
       :product_key,
       :quantity_requested,
       :notes,
       :status,
       :priority,
       :warehouse_id,
-      :no_opro
+      :no_opro,
+      :lote_referencia,
+      :ano,
+      :stat_opro,
+      :orden_produccion,
+      :referencia,
+      :sucursal,
+      :pedido_numero,
+      :fecha_completa,
+      :tipo_material,
+      :ancho_material,
+      :estatus,
+      :observaciones,
+      :lote_base,
+      :programa_referencia,
+      :nivel,
+      :turno,
+      :cantidad_liquidada,
+      :hora_orden,
+      :year,
+      :master_prod
     )
   end
 end
