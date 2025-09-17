@@ -4,6 +4,7 @@ FactoryBot.define do
     sequence(:description) { |n| "Description for product #{n}" }
     price { rand(10.0..100.0).round(2) }
     association :category
+    association :company
 
     trait :expensive do
       price { rand(500.0..2000.0).round(2) }

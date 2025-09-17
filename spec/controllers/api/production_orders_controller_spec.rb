@@ -2,15 +2,15 @@ require 'rails_helper'
 
 RSpec.describe Api::ProductionOrdersController, type: :controller do
   describe 'POST #create' do
-    let(:company) { create(:company, name: 'Flexiempaques') }
-    let(:warehouse) { create(:warehouse, company: company) }
-    let(:product) { create(:product, company: company) }
+    let!(:company) { create(:company, name: 'Flexiempaques') }
+    let!(:warehouse) { create(:warehouse, company: company) }
+    let!(:product) { create(:product, company: company) }
     
     let(:valid_params) do
       {
         company_name: 'Flexiempaques',
         production_order: {
-          product_id: product.id,
+          product_key: product.name,
           quantity_requested: 1000,
           warehouse_id: warehouse.id,
           priority: 'high',
@@ -44,17 +44,17 @@ RSpec.describe Api::ProductionOrdersController, type: :controller do
   end
 
   describe 'POST #batch' do
-    let(:company) { create(:company, name: 'Flexiempaques') }
-    let(:warehouse) { create(:warehouse, company: company) }
-    let(:product1) { create(:product, company: company) }
-    let(:product2) { create(:product, company: company) }
+    let!(:company) { create(:company, name: 'Flexiempaques') }
+    let!(:warehouse) { create(:warehouse, company: company) }
+    let!(:product1) { create(:product, company: company) }
+    let!(:product2) { create(:product, company: company) }
     
     let(:valid_batch_params) do
       {
         company_name: 'Flexiempaques',
         production_orders: [
           {
-            product_id: product1.id,
+            product_key: product1.name,
             quantity_requested: 1000,
             warehouse_id: warehouse.id,
             priority: 'high',
@@ -62,7 +62,7 @@ RSpec.describe Api::ProductionOrdersController, type: :controller do
             no_opro: 'OP-2025-010'
           },
           {
-            product_id: product2.id,
+            product_key: product2.name,
             quantity_requested: 500,
             warehouse_id: warehouse.id,
             priority: 'medium',
@@ -121,7 +121,7 @@ RSpec.describe Api::ProductionOrdersController, type: :controller do
           company_name: 'Flexiempaques',
           production_orders: [
             {
-              product_id: product1.id,
+              product_key: product1.name,
               quantity_requested: 1000,
               warehouse_id: warehouse.id,
               priority: 'high',
