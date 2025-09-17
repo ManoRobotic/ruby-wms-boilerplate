@@ -240,7 +240,11 @@ Rails.application.routes.draw do
       end
     end
     # New API route for production orders
-    resources :production_orders, only: [:create]
+    resources :production_orders, only: [:create] do
+      collection do
+        post :batch
+      end
+    end
   end
 
   post "/checkout", to: "checkouts#create"
