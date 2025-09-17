@@ -1,8 +1,7 @@
 <div class="relative flex items-center justify-center min-h-screen overflow-hidden">
   <!-- Blurred gradient background -->
   <div class="absolute inset-0 z-0">
-    <div class="absolute inset-0 opacity-75 bg-gradient-to-br from-blue-400 via-purple-500 to-indigo-500"></div>
-    <div class="absolute inset-0 opacity-50 bg-gradient-to-tr from-blue-300 via-purple-400 to-indigo-500 mix-blend-overlay"></div>
+    <div class="absolute inset-0 bg-gradient-to-br from-[#4421e0] to-[#57ff0f]"></div>
     <div class="absolute inset-0 backdrop-blur-3xl"></div>
   </div>
   
@@ -48,12 +47,7 @@
       </div>
     </form>
     
-    <div class="flex justify-center mt-4">
-      <%- if devise_mapping.recoverable? && controller_name != 'passwords' && controller_name != 'registrations' %>
-        <%= link_to "Forgot your password?", new_password_path(resource_name), class: "text-sm font-semibold text-slate-700 underline hover:text-slate-900" %>
-      <% end %>
-    </div>
+    
   </div>
 </div>
 
-<%= render "admins/shared/links" %>
