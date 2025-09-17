@@ -228,12 +228,12 @@ class Api::ProductionOrdersController < ActionController::API
     # Adjust these parameters based on what your ProductionOrder model requires
     # and what you expect to receive in the POST request.
     params.require(:production_order).permit(
-      :product_id,
       :quantity_requested, # Assuming this is the field for quantity
       :notes,
       :status,
       :priority,
       :warehouse_id,
+      :product_key,
       :no_opro # If you want to allow setting this via API
       # Add any other fields that are required or you want to allow
     )
@@ -287,7 +287,7 @@ class Api::ProductionOrdersController < ActionController::API
     # Create a fake params object to use with strong parameters
     fake_params = ActionController::Parameters.new(production_order: order_params)
     fake_params.require(:production_order).permit(
-      :product_id,
+      :product_key,
       :quantity_requested,
       :notes,
       :status,

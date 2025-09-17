@@ -18,7 +18,7 @@
             <%= @production_order.no_opro.present? ? "Orden No. #{@production_order.no_opro}" : "Orden ##{@production_order.order_number}" %>
           </h1>
           <p class="text-base text-gray-600">
-            Producto: <span class="font-semibold"><%= @production_order.product.name %></span>
+            CVE_PROD: <span class="font-semibold"><%= @production_order.clave_producto %></span>
           </p>
           <p class="text-sm text-gray-500">
             <%= @production_order.fecha_completa&.strftime("%d/%m/%Y") || @production_order.created_at.strftime("%d/%m/%Y a las %H:%M") %>

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_09_233047) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_17_081126) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -399,7 +399,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_09_233047) do
     t.string "status", default: "pending", null: false
     t.string "priority", default: "medium", null: false
     t.uuid "warehouse_id", null: false
-    t.uuid "product_id", null: false
+    t.uuid "product_id"
     t.uuid "admin_id"
     t.integer "quantity_requested", null: false
     t.integer "quantity_produced", default: 0
@@ -428,6 +428,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_09_233047) do
     t.string "last_sheet_update"
     t.boolean "needs_update_to_sheet"
     t.uuid "company_id"
+    t.string "product_key"
     t.index ["admin_id"], name: "index_production_orders_on_admin_id"
     t.index ["company_id"], name: "index_production_orders_on_company_id"
     t.index ["created_at"], name: "index_production_orders_on_created_at"

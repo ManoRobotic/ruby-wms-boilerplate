@@ -51,11 +51,19 @@
               </div>
 
               <div>
-                <%= form.label :product_id, "Producto", class: "block text-sm font-medium text-gray-600 mb-1" %>
+                <%= form.label :product_id, "Producto (Opcional)", class: "block text-sm font-medium text-gray-600 mb-1" %>
                 <%= form.select :product_id, 
                     options_from_collection_for_select(Product.all, :id, :name, @production_order.product_id),
-                    { prompt: "Seleccionar producto" },
+                    { prompt: "Seleccionar producto (opcional)" },
                     { class: "w-full bg-gray-200 border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5" } %>
+              </div>
+
+              <div>
+                <%= form.label :product_key, "Clave del Producto", class: "block text-sm font-medium text-gray-600 mb-1" %>
+                <%= form.text_field :product_key,
+                    class: "w-full bg-gray-200 border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5",
+                    placeholder: "Ingrese la clave del producto si no selecciona uno de la lista",
+                    value: @production_order.product_key || "" %>
               </div>
 
               <div>

@@ -1,5 +1,5 @@
 class Admin::ProductionOrdersController < AdminController
-  require 'net/http'
+  require "net/http"
 
   before_action :set_production_order, only: [ :show, :edit, :update, :destroy, :start, :pause, :complete, :cancel, :print_bag_format, :print_box_format, :update_weight, :modal_details, :print_consecutivos ]
 
@@ -104,7 +104,7 @@ class Admin::ProductionOrdersController < AdminController
   def create
     @production_order = ProductionOrder.new(production_order_params)
     @production_order.admin_id = current_user&.id || current_admin&.id
-    
+
     # Asignar company_id del usuario/admin actual
     if current_admin&.company_id
       @production_order.company_id = current_admin.company_id
@@ -114,12 +114,12 @@ class Admin::ProductionOrdersController < AdminController
 
     if @production_order.save
       Rails.logger.info "Production order saved successfully."
-      
+
       # Send notifications to all users who should be notified about production orders
       notification_data = {
         production_order_id: @production_order.id,
         order_number: @production_order.no_opro || @production_order.order_number,
-        product_name: @production_order.product.name,
+        product_name: @production_order.product&.name || @production_order.product_key || "Sin producto",
         quantity: @production_order.quantity_requested,
         status: @production_order.status
       }.to_json
@@ -128,16 +128,16 @@ class Admin::ProductionOrdersController < AdminController
       # Create notifications for all relevant users in the same company
       if @production_order.company
         Rails.logger.info "Production order has a company: #{@production_order.company.name}"
-        target_users = User.where(company: @production_order.company, role: ['admin', 'manager', 'supervisor', 'operador'])
+        target_users = User.where(company: @production_order.company, role: [ "admin", "manager", "supervisor", "operador" ])
         Rails.logger.info "Target users for notification: #{target_users.pluck(:email)}"
-        
+
         notification_records = target_users.map do |user|
           {
             user_id: user.id,
             company_id: @production_order.company_id,
             notification_type: "production_order_created",
             title: "Nueva orden de producción creada",
-            message: "Se ha creado la orden de producción #{@production_order.no_opro || @production_order.order_number} para el producto #{@production_order.product.name}",
+            message: "Se ha creado la orden de producción #{@production_order.no_opro || @production_order.order_number} para el producto #{@production_order.product&.name || @production_order.product_key || "Sin producto"}",
             action_url: "/admin/production_orders/#{@production_order.id}",
             data: notification_data,
             created_at: Time.current,
@@ -149,14 +149,14 @@ class Admin::ProductionOrdersController < AdminController
           Rails.logger.info "Inserting #{notification_records.size} notification records."
           Notification.insert_all(notification_records)
           Rails.logger.info "Notification records inserted."
-          
+
           # Expire notification caches for all target users BEFORE touching them
           # This ensures we're clearing the current cache entries
           target_users.find_each do |user|
             cache_key = "notifications_data:#{user.class.name.downcase}:#{user.id}:#{user.updated_at}"
             Rails.cache.delete(cache_key)
           end
-          
+
           # Touch user records to update their updated_at timestamps
           # This ensures new cache entries will have different keys
           target_users.find_each(&:touch)
@@ -169,7 +169,7 @@ class Admin::ProductionOrdersController < AdminController
 
       # Expire notification caches for all users in the company before broadcasting
       if @production_order.company
-        User.where(company: @production_order.company, role: ['admin', 'manager', 'supervisor', 'operador']).find_each do |user|
+        User.where(company: @production_order.company, role: [ "admin", "manager", "supervisor", "operador" ]).find_each do |user|
           # Manually expire the cache by deleting the cache key
           cache_key = "notifications_data:#{user.class.name.downcase}:#{user.id}:#{user.updated_at}"
           Rails.cache.delete(cache_key)
@@ -187,17 +187,17 @@ class Admin::ProductionOrdersController < AdminController
         end
         format.json do
           render json: {
-            status: 'success',
-            message: 'Orden de producción creada exitosamente',
+            status: "success",
+            message: "Orden de producción creada exitosamente",
             toast: {
-              type: 'success',
-              title: 'Orden creada!',
+              type: "success",
+              title: "Orden creada!",
               message: "Orden #{@production_order.no_opro || @production_order.order_number} creada exitosamente"
             },
             production_order: {
               id: @production_order.id,
               order_number: @production_order.no_opro || @production_order.order_number,
-              product_name: @production_order.product.name
+              product_name: @production_order.product&.name || @production_order.product_key || "Sin producto"
             }
           }
         end
@@ -340,7 +340,7 @@ class Admin::ProductionOrdersController < AdminController
     end
   end
 
-  
+
 
   def update_weight
     peso = params[:peso]
@@ -364,7 +364,7 @@ class Admin::ProductionOrdersController < AdminController
       id: @production_order.id,
       order_number: @production_order.order_number,
       no_opro: @production_order.no_opro,
-      product_name: @production_order.product.name,
+      product_name: @production_order.product&.name || @production_order.product_key || "Sin producto",
       warehouse_name: @production_order.warehouse.name,
       status: @production_order.status,
       priority: @production_order.priority,
@@ -389,7 +389,7 @@ class Admin::ProductionOrdersController < AdminController
 
   def test_broadcast
     Rails.logger.info "🧪 Manual broadcast test triggered"
-    
+
     # Create test notification data
     notification_data = {
       title: "Test Notification!",
@@ -400,22 +400,22 @@ class Admin::ProductionOrdersController < AdminController
     }
 
     # Broadcast to all users
-    User.where(role: ['admin', 'manager', 'supervisor', 'operador']).find_each do |user|
+    User.where(role: [ "admin", "manager", "supervisor", "operador" ]).find_each do |user|
       channel_name = "notifications_#{user.id}"
       Rails.logger.info "🧪 Test broadcasting to: #{channel_name}"
-      
+
       ActionCable.server.broadcast(
         channel_name,
         {
-          type: 'new_notification',
+          type: "new_notification",
           notification: notification_data
         }
       )
     end
 
-    render json: { 
-      status: 'success', 
-      message: 'Test broadcast sent',
+    render json: {
+      status: "success",
+      message: "Test broadcast sent",
       notification: notification_data
     }
   end
@@ -428,7 +428,7 @@ class Admin::ProductionOrdersController < AdminController
 
   def sync_google_sheets_opro
     unless current_admin.google_sheets_configured?
-      redirect_to admin_production_orders_path, 
+      redirect_to admin_production_orders_path,
                   alert: "Google Sheets no está configurado. Ve a Configuración para configurarlo."
       return
     end
@@ -436,32 +436,32 @@ class Admin::ProductionOrdersController < AdminController
     begin
       service = AdminGoogleSheetsService.new(current_admin)
       result = service.sync_production_orders
-      
+
       if result[:success]
-        redirect_to admin_production_orders_path, 
+        redirect_to admin_production_orders_path,
                     notice: "#{result[:message]}. #{result[:errors].any? ? "Errores: #{result[:errors].count}" : ""}"
       else
-        redirect_to admin_production_orders_path, 
+        redirect_to admin_production_orders_path,
                     alert: "Error en la sincronización: #{result[:message]}"
       end
     rescue => e
       Rails.logger.error "Error en sync_google_sheets_opro para admin #{current_admin.email}: #{e.message}"
       Rails.logger.error e.backtrace.join("\n")
-      redirect_to admin_production_orders_path, 
+      redirect_to admin_production_orders_path,
                   alert: "Error inesperado durante la sincronización. Verifique la configuración."
     end
   end
 
   def print_selected
     order_ids = params[:order_ids]
-    
+
     if order_ids.blank?
       redirect_to admin_production_orders_path, alert: "No se seleccionaron órdenes para imprimir."
       return
     end
 
     @production_orders = ProductionOrder.where(id: order_ids).includes(:warehouse, :product, :packing_records)
-    
+
     respond_to do |format|
       format.html { render "print_selected", layout: "print" }
     end
@@ -470,62 +470,62 @@ class Admin::ProductionOrdersController < AdminController
   def bulk_toggle_selection
     begin
       request_body = JSON.parse(request.body.read)
-      order_ids = request_body['order_ids'] || []
-      action = request_body['action'] # 'select_all' or 'deselect_all'
-      
+      order_ids = request_body["order_ids"] || []
+      action = request_body["action"] # 'select_all' or 'deselect_all'
+
       # Validate input
       if order_ids.empty?
         render json: {
-          status: 'error',
-          message: 'No order IDs provided'
+          status: "error",
+          message: "No order IDs provided"
         }, status: 422
         return
       end
-      
+
       # Ensure order_ids are strings for consistency
       order_ids = order_ids.map(&:to_s)
-      
+
       # Get current selections from session
       selected_orders = get_selected_orders.map(&:to_s)
-      
+
       case action
-      when 'select_all'
+      when "select_all"
         # Use array union for better performance
         selected_orders = (selected_orders + order_ids).uniq
-      when 'deselect_all'
+      when "deselect_all"
         # Use array subtraction for better performance
         selected_orders = selected_orders - order_ids
       else
         render json: {
-          status: 'error',
-          message: 'Invalid action'
+          status: "error",
+          message: "Invalid action"
         }, status: 422
         return
       end
-      
+
       # Store back in session
       set_selected_orders(selected_orders)
-      
-      
+
+
       render json: {
-        status: 'success',
+        status: "success",
         selected_count: selected_orders.count,
         action: action,
         processed_count: order_ids.size
       }
-      
+
     rescue JSON::ParserError => e
       Rails.logger.error "JSON Parse Error in bulk_toggle_selection: #{e.message}"
       render json: {
-        status: 'error',
-        message: 'Invalid JSON format'
+        status: "error",
+        message: "Invalid JSON format"
       }, status: 422
     rescue StandardError => e
       Rails.logger.error "Error in bulk_toggle_selection: #{e.class} - #{e.message}"
       Rails.logger.error e.backtrace.join("\n")
       render json: {
-        status: 'error',
-        message: 'Internal server error'
+        status: "error",
+        message: "Internal server error"
       }, status: 500
     end
   end
@@ -533,13 +533,13 @@ class Admin::ProductionOrdersController < AdminController
   def selected_orders_data
     begin
       selected_order_ids = get_selected_orders
-      
+
       if selected_order_ids.empty?
         render json: {
-          status: 'success',
+          status: "success",
           data: [],
           count: 0,
-          message: 'No hay Ordenes seleccionadas'
+          message: "No hay Ordenes seleccionadas"
         }
         return
       end
@@ -549,15 +549,15 @@ class Admin::ProductionOrdersController < AdminController
 
       @production_orders = ProductionOrder.where(id: selected_order_ids)
                                          .includes(:warehouse, :product, :packing_records)
-    
+
     orders_data = @production_orders.map do |order|
       {
         id: order.id,
         order_number: order.order_number,
         no_opro: order.no_opro,
         product: {
-          id: order.product.id,
-          name: order.product.name
+          id: order.product&.id,
+          name: order.product&.name || order.product_key || "Sin producto"
         },
         warehouse: {
           id: order.warehouse.id,
@@ -594,10 +594,10 @@ class Admin::ProductionOrdersController < AdminController
         can_be_cancelled: order.can_be_cancelled?
       }
     end
-    
-      
+
+
       render json: {
-        status: 'success',
+        status: "success",
         data: orders_data,
         count: orders_data.length,
         message: "#{orders_data.length} Ordenes seleccionadas"
@@ -606,8 +606,8 @@ class Admin::ProductionOrdersController < AdminController
       Rails.logger.error "Error in selected_orders_data: #{e.class} - #{e.message}"
       Rails.logger.error e.backtrace.join("\n")
       render json: {
-        status: 'error',
-        message: 'Error al obtener datos de Ordenes seleccionadas'
+        status: "error",
+        message: "Error al obtener datos de Ordenes seleccionadas"
       }, status: 500
     end
   end
@@ -615,14 +615,14 @@ class Admin::ProductionOrdersController < AdminController
   def clear_all_selections
     previous_orders = get_selected_orders
     previous_count = previous_orders.count
-    
+
     # Clear both session and cache
     session[:selected_production_orders] = nil
     session[:using_cache_storage] = false
     Rails.cache.delete(selection_cache_key)
-    
+
     render json: {
-      status: 'success',
+      status: "success",
       message: "Se eliminaron #{previous_count} órdenes de la selección",
       previous_count: previous_count,
       selected_count: 0
@@ -633,22 +633,22 @@ class Admin::ProductionOrdersController < AdminController
     begin
       # Parse request body to get order_id
       request_body = JSON.parse(request.body.read)
-      order_id = request_body['order_id']
-      
+      order_id = request_body["order_id"]
+
       if order_id.blank?
         render json: {
-          status: 'error',
-          message: 'Order ID is required'
+          status: "error",
+          message: "Order ID is required"
         }, status: 422
         return
       end
-      
+
       @production_order = ProductionOrder.find(order_id)
 
       # Get current selections from cache
       selected_orders = get_selected_orders.map(&:to_s)
       order_id_str = @production_order.id.to_s
-      
+
       if selected_orders.include?(order_id_str)
         selected_orders.delete(order_id_str)
         selected = false
@@ -662,28 +662,28 @@ class Admin::ProductionOrdersController < AdminController
 
 
       render json: {
-        status: 'success',
+        status: "success",
         selected: selected,
         selected_count: selected_orders.count
       }
     rescue JSON::ParserError => e
       Rails.logger.error "JSON Parse Error in toggle_selection: #{e.message}"
       render json: {
-        status: 'error',
-        message: 'Invalid JSON format'
+        status: "error",
+        message: "Invalid JSON format"
       }, status: 422
     rescue ActiveRecord::RecordNotFound => e
       Rails.logger.error "Order not found in toggle_selection: #{e.message}"
       render json: {
-        status: 'error',
-        message: 'Order not found'
+        status: "error",
+        message: "Order not found"
       }, status: 404
     rescue StandardError => e
       Rails.logger.error "Error in toggle_selection: #{e.class} - #{e.message}"
       Rails.logger.error e.backtrace.join("\n")
       render json: {
-        status: 'error',
-        message: 'Internal server error'
+        status: "error",
+        message: "Internal server error"
       }, status: 500
     end
   end
@@ -744,7 +744,7 @@ class Admin::ProductionOrdersController < AdminController
     respond_to do |format|
       format.pdf do
         pdf = ProductionOrderPdf.new(@production_order, @production_order.production_order_items)
-        send_data pdf.render, 
+        send_data pdf.render,
                   filename: "consecutivos_#{@production_order.order_number}.pdf",
                   type: "application/pdf",
                   disposition: "attachment"
@@ -756,12 +756,12 @@ class Admin::ProductionOrdersController < AdminController
 
   def selection_cache_key
     # Use user ID and a stable session identifier
-    user_id = current_user&.id || current_admin&.id || 'anonymous'
-    
+    user_id = current_user&.id || current_admin&.id || "anonymous"
+
     # Create or get a stable session key for selections
     session[:selection_session_key] ||= SecureRandom.hex(16)
     selection_session = session[:selection_session_key]
-    
+
     "selected_orders:#{user_id}:#{selection_session}"
   end
 
@@ -775,7 +775,7 @@ class Admin::ProductionOrdersController < AdminController
       # Small selections are stored in session
       selected_orders = session[:selected_production_orders] || []
     end
-    
+
     # Validate that the data is correct
     if selected_orders.present? && !selected_orders.is_a?(Array)
       # Reset both storages
@@ -784,7 +784,7 @@ class Admin::ProductionOrdersController < AdminController
       session[:using_cache_storage] = false
       return []
     end
-    
+
     selected_orders
   end
 
@@ -807,7 +807,7 @@ class Admin::ProductionOrdersController < AdminController
     if production_order.company
       notification_data = {
         title: "Orden creada!",
-        message: "Orden #{production_order.no_opro || production_order.order_number} para #{production_order.product.name}",
+        message: "Orden #{production_order.no_opro || production_order.order_number} para #{production_order.product&.name || production_order.product_key || "Sin producto"}",
         type: "success",
         duration: 15000, # 15 seconds
         action_url: "/admin/production_orders/#{production_order.id}",
@@ -819,7 +819,7 @@ class Admin::ProductionOrdersController < AdminController
       ActionCable.server.broadcast(
         broadcasting_name,
         {
-          type: 'new_notification',
+          type: "new_notification",
           notification: notification_data
         }
       )
@@ -832,7 +832,7 @@ class Admin::ProductionOrdersController < AdminController
 
   def production_order_params
     params.require(:production_order).permit(
-      :warehouse_id, :product_id, :quantity_requested, :quantity_produced,
+      :warehouse_id, :product_id, :product_key, :quantity_requested, :quantity_produced,
       :priority, :estimated_completion, :notes, :bag_size, :bag_measurement,
       :pieces_count, :package_count, :package_measurement, :peso, :lote_referencia,
       :no_opro, :carga_copr, :ano, :mes, :fecha_completa, :company_id

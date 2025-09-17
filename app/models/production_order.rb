@@ -1,6 +1,6 @@
 class ProductionOrder < ApplicationRecord
   belongs_to :warehouse
-  belongs_to :product
+  belongs_to :product, optional: true
   belongs_to :admin, optional: true
   belongs_to :company, optional: true
   has_many :packing_records, dependent: :destroy
@@ -11,7 +11,7 @@ class ProductionOrder < ApplicationRecord
   end
 
   def total_net_weight
-    production_order_items.sum(:peso_neto) 
+    production_order_items.sum(:peso_neto)
   end
 
   def total_meters
@@ -21,10 +21,10 @@ class ProductionOrder < ApplicationRecord
   def print_status_summary
     items = production_order_items
     return "Sin items" if items.empty?
-    
+
     printed_count = items.where(print_status: "printed").count
     total_count = items.count
-    
+
     if printed_count == total_count
       "Impreso (#{printed_count}/#{total_count})"
     elsif printed_count > 0
@@ -70,7 +70,8 @@ class ProductionOrder < ApplicationRecord
 
   # Instance methods
   def display_name
-    "#{order_number} - #{product.name}"
+    product_name = product&.name || "Sin producto"
+    "#{order_number} - #{product_name}"
   end
 
   def progress_percentage
@@ -158,7 +159,7 @@ class ProductionOrder < ApplicationRecord
 
   def clave_producto
     # Buscar en packing_records primero, luego en product
-    packing_records.first&.cve_prod || product&.name
+    packing_records.first&.cve_prod || product&.name || product_key || "Sin clave"
   end
 
   def is_emitida?
@@ -174,7 +175,7 @@ class ProductionOrder < ApplicationRecord
       bolsa: bag_size,
       medida_bolsa: bag_measurement,
       numero_piezas: pieces_count,
-      product: product.name,
+      product: product&.name || product_key || "Sin producto",
       created_at: created_at.iso8601
     }.to_json
   end
@@ -189,7 +190,7 @@ class ProductionOrder < ApplicationRecord
       numero_piezas: pieces_count,
       cantidad_paquetes: package_count,
       medida_paquetes: package_measurement,
-      product: product.name,
+      product: product&.name || product_key || "Sin producto",
       created_at: created_at.iso8601
     }.to_json
   end
@@ -211,11 +212,11 @@ class ProductionOrder < ApplicationRecord
   def recalculate_quantity_produced_and_broadcast!
     # Don't try to recalculate if the record is frozen (e.g., during destruction)
     return if frozen?
-    
+
     # Recalculate quantity_produced based on the count of associated items
     # Assuming each item represents 1 unit of produced quantity
     new_quantity_produced = production_order_items.count
-    
+
     # Only update if the quantity has actually changed to avoid unnecessary saves/broadcasts
     if self.quantity_produced != new_quantity_produced
       self.quantity_produced = new_quantity_produced

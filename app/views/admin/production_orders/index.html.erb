@@ -136,7 +136,7 @@
             <thead class="text-xs text-gray-700 uppercase" style="background-color: var(--color-blue-gem-200);">
               <tr>
                 <th scope="col" data-sortable="order_number" class="px-4 py-3 cursor-pointer hover:bg-gray-100">No. OPRO</th>
-                <th scope="col" data-sortable="cve_prod" class="px-4 py-3 cursor-pointer hover:bg-gray-100">Producto</th>
+                <th scope="col" data-sortable="cve_prod" class="px-4 py-3 cursor-pointer hover:bg-gray-100">CVE_PROD</th>
                 <th scope="col" data-sortable="lote" class="px-4 py-3 hidden cursor-pointer md:table-cell hover:bg-gray-100">Lote</th>
                 <th scope="col" data-sortable="quantity" class="px-4 py-3 text-center hidden cursor-pointer sm:table-cell hover:bg-gray-100">Cantidad</th>
                 <th scope="col" data-sortable="metros_lineales" class="px-4 py-3 text-center cursor-pointer hover:bg-gray-100">Metros</th>
@@ -173,8 +173,8 @@
                   
                   <!-- CVE_PROD -->
                   <td class="px-3 py-2 text-sm text-gray-500">
-                    <% cve_prod = order.packing_records.first&.cve_prod || order.product.name %>
-                    <span class="font-mono text-xs px-2 py-1 rounded font-semibol">
+                    <% cve_prod = order.clave_producto %>
+                    <span class="font-mono text-xs px-2 py-1 rounded font-semibold">
                       <%= cve_prod %>
                     </span>
                   </td>
