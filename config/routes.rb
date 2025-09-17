@@ -245,6 +245,12 @@ Rails.application.routes.draw do
         post :batch
       end
     end
+    # API routes for inventory codes
+    resources :inventory_codes, only: [:create] do
+      collection do
+        post :batch
+      end
+    end
   end
 
   post "/checkout", to: "checkouts#create"
