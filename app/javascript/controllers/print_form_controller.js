@@ -2,7 +2,7 @@ import { Controller } from "@hotwired/stimulus"
 
 // Connects to data-controller="print-form"
 export default class extends Controller {
-  static targets = ["weightField", "weightDisplay", "formatInfo", "submitButton"]
+  static targets = ["weightField", "weightDisplay", "submitButton"]
 
   connect() {
     console.log("Print form controller connected")
@@ -22,8 +22,14 @@ export default class extends Controller {
 
   // Método para inicializar la visualización de campos según el formato seleccionado
   initializeFormatFields() {
-    const selectedFormat = this.element.querySelector('input[name*="print_format"]:checked').value
-    this.updateFormatInfo({ target: { value: selectedFormat } })
+    const selectedFormat = this.element.querySelector('input[name="format_type"]:checked')?.value || 'bag'
+    // Create a mock event object to pass to toggleFormat
+    const mockEvent = {
+      target: {
+        value: selectedFormat
+      }
+    }
+    this.toggleFormat(mockEvent)
   }
 
   // Método actualizado para manejar eventos del controlador serial
@@ -44,7 +50,7 @@ export default class extends Controller {
     // Validar si se puede imprimir
     this.validatePrintButton()
     
-    // Ocultar warning de peso si hay peso válido
+    // Ocultar warning de peso si hay peso válido y el elemento existe
     const warningDiv = document.getElementById('weight-warning')
     if (numericWeight > 0 && warningDiv) {
       warningDiv.classList.add('hidden')
@@ -85,38 +91,26 @@ export default class extends Controller {
   }
 
   addFormatListeners() {
-    const radioButtons = this.element.querySelectorAll('input[name*="print_format"]')
+    const radioButtons = this.element.querySelectorAll('input[name="format_type"]')
     radioButtons.forEach(radio => {
-      radio.addEventListener('change', this.updateFormatInfo.bind(this))
+      radio.addEventListener('change', this.toggleFormat.bind(this))
     })
   }
 
-  updateFormatInfo(event) {
-    const selectedFormat = event.target.value
+  toggleFormat(event) {
+    // Get the selected format value from the event
+    const selectedFormat = event.target.value || event.target.querySelector('input[name="format_type"]:checked')?.value || 'bag'
     
-    // Ocultar todas las listas de información
-    const infoLists = ['bag-info', 'box-info', 'custom-info']
-    infoLists.forEach(listId => {
-      const list = document.getElementById(listId)
-      if (list) list.classList.add('hidden')
-    })
+    // Mostrar/ocultar campos según el formato seleccionado
+    const bagFields = document.getElementById('bag-format-fields')
+    const boxFields = document.getElementById('box-format-fields')
     
-    // Mostrar la lista correspondiente al formato seleccionado
-    const selectedInfo = document.getElementById(`${selectedFormat}-info`)
-    if (selectedInfo) {
-      selectedInfo.classList.remove('hidden')
-    }
-    
-    // Manejar campos específicos por formato
-    const formatFields = document.querySelectorAll('.format-specific-fields')
-    formatFields.forEach(field => {
-      field.classList.add('hidden')
-    })
-    
-    // Mostrar campos específicos del formato seleccionado
-    const selectedFormatFields = document.getElementById(`${selectedFormat}-format-fields`)
-    if (selectedFormatFields) {
-      selectedFormatFields.classList.remove('hidden')
+    if (selectedFormat === 'bag') {
+      bagFields.classList.remove('hidden')
+      boxFields.classList.add('hidden')
+    } else {
+      bagFields.classList.add('hidden')
+      boxFields.classList.remove('hidden')
     }
     
     console.log(`Print format changed to: ${selectedFormat}`)
@@ -131,7 +125,7 @@ export default class extends Controller {
       if (this.hasSubmitButtonTarget) {
         this.submitButtonTarget.disabled = false
       }
-      // Ocultar warning
+      // Ocultar warning si existe
       if (warningDiv) {
         warningDiv.classList.add('hidden')
       }
@@ -140,7 +134,7 @@ export default class extends Controller {
       if (this.hasSubmitButtonTarget) {
         this.submitButtonTarget.disabled = true
       }
-      // Mostrar warning
+      // Mostrar warning si existe
       if (warningDiv) {
         warningDiv.classList.remove('hidden')
       }
@@ -165,20 +159,20 @@ export default class extends Controller {
       product_name: formData.get('product_name') || 'Producto',
       barcode_data: formData.get('barcode_data') || '',
       current_weight: currentWeight.toFixed(1),
-      print_format: formData.get('print_format') || 'bag',
+      format_type: formData.get('format_type') || 'bag',
       ancho_mm: formData.get('ancho_mm') || '80',
       alto_mm: formData.get('alto_mm') || '50',
       gap_mm: formData.get('gap_mm') || '2',
       // Campos específicos para formato bolsa
       bag_type: formData.get('bag_type') || '',
-      bag_size: formData.get('bag_size') || '',
-      bag_pieces: formData.get('bag_pieces') || '1',
+      bag_measurement: formData.get('bag_measurement') || '',
+      pieces_count: formData.get('pieces_count') || '1',
       // Campos específicos para formato caja
-      box_bag_type: formData.get('box_bag_type') || '',
-      box_bag_size: formData.get('box_bag_size') || '',
-      box_bag_pieces: formData.get('box_bag_pieces') || '1',
-      box_packages_count: formData.get('box_packages_count') || '1',
-      box_packages_measurements: formData.get('box_packages_measurements') || ''
+      bag_type_box: formData.get('bag_type_box') || '',
+      bag_measurement_box: formData.get('bag_measurement_box') || '',
+      pieces_count_box: formData.get('pieces_count_box') || '1',
+      package_count: formData.get('package_count') || '1',
+      package_measurement: formData.get('package_measurement') || ''
     }
     
     // Generar contenido de etiqueta
@@ -219,32 +213,25 @@ export default class extends Controller {
   generateLabelContent(data) {
     const timestamp = new Date().toLocaleString()
     
-    switch (data.print_format) {
+    switch (data.format_type) {
       case 'bag':
         return `${data.product_name}
 Peso: ${data.current_weight}kg
 Código: ${data.barcode_data}
 Bolsa: ${data.bag_type || 'No especificada'}
-Medida: ${data.bag_size || 'No especificada'}
-Piezas: ${data.bag_pieces || '1'}
+Medida: ${data.bag_measurement || 'No especificada'}
+Piezas: ${data.pieces_count || '1'}
 ${timestamp}`
       
       case 'box':
         return `CAJA: ${data.product_name}
 Peso Total: ${data.current_weight}kg
 Barcode: ${data.barcode_data}
-Bolsa: ${data.box_bag_type || 'No especificada'}
-Medida: ${data.box_bag_size || 'No especificada'}
-Piezas: ${data.box_bag_pieces || '1'}
-Paquetes: ${data.box_packages_count || '1'} de ${data.box_packages_measurements || 'No especificadas'}
+Bolsa: ${data.bag_type_box || 'No especificada'}
+Medida: ${data.bag_measurement_box || 'No especificada'}
+Piezas: ${data.pieces_count_box || '1'}
+Paquetes: ${data.package_count || '1'} de ${data.package_measurement || 'No especificadas'}
 Fecha: ${timestamp}`
-      
-      case 'custom':
-        return `${data.product_name}
-${data.current_weight}kg
-${data.barcode_data}
-${data.ancho_mm}x${data.alto_mm}mm
-${timestamp}`
       
       default:
         return `${data.product_name} - ${data.current_weight}kg - ${data.barcode_data}`
