@@ -6,6 +6,13 @@ export default class extends Controller {
   connect() {
     this.restoreSelection()
     this.updatePrintButton()
+    
+    // Listen for custom confirm print event
+    this.element.addEventListener('confirm-print-selected', this.handleConfirmPrint.bind(this))
+  }
+
+  handleConfirmPrint(event) {
+    this.confirmPrint()
   }
 
   toggleAll(event) {
@@ -83,9 +90,47 @@ export default class extends Controller {
       return
     }
 
-    // You can now use these IDs to fetch the data from the server
-    // and generate the labels to print.
-    console.log("Códigos de inventario a imprimir (IDs):", selectedIds)
+    // Update the modal content with the count of selected items
+    const modalTitle = document.querySelector('[data-dialog="confirm-print-modal"] .flex.shrink-0.items-center');
+    const modalMessage = document.querySelector('[data-dialog="confirm-print-modal"] .text-slate-700');
+    
+    if (modalTitle) {
+      modalTitle.textContent = "Confirmar Impresión";
+    }
+    
+    if (modalMessage) {
+      modalMessage.textContent = `¿Está seguro que desea imprimir ${selectedIds.length} etiquetas seleccionadas?`;
+    }
+
+    // Open the confirm print modal by dispatching a global event with the selected IDs
+    const openEvent = new CustomEvent('open-confirm-print-modal', {
+      detail: { 
+        selectedCount: selectedIds.length,
+        selectedIds: selectedIds
+      }
+    });
+    document.dispatchEvent(openEvent);
+  }
+
+  confirmPrint() {
+    console.log("confirmPrint method called");
+    const hiddenInput = document.getElementById('confirm-print-item-ids');
+    console.log("Hidden input element:", hiddenInput);
+    if (hiddenInput) {
+      const selectedIds = hiddenInput.value.split(',').filter(id => id.length > 0);
+      console.log("Códigos de inventario a imprimir (IDs):", selectedIds);
+      
+      // Close the modal
+      const modalElement = document.querySelector('[data-dialog="confirm-print-modal"]').closest('[data-controller="dialog"]');
+      console.log("Modal element:", modalElement);
+      if (modalElement) {
+        const dialogController = this.application.getControllerForElementAndIdentifier(modalElement, 'dialog');
+        console.log("Dialog controller:", dialogController);
+        if (dialogController) {
+          dialogController.close("confirm-print-modal");
+        }
+      }
+    }
   }
 
   saveSelection() {

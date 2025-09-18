@@ -1,5 +1,5 @@
 <div
-  data-controller="dialog"
+  data-controller="dialog confirm-print-modal"
   data-dialog-backdrop="confirm-print-modal"
   data-dialog-backdrop-close="true"
   class="pointer-events-none fixed inset-0 z-[9999] grid h-screen w-screen place-items-center bg-transparent opacity-0 backdrop-blur-sm transition-opacity duration-300"
@@ -26,7 +26,7 @@
           Cancelar
         </button>
         <button 
-          data-action="click->production-order-item#confirmPrint"
+          data-action="click->confirm-print-modal#confirmPrint"
           class="rounded-md bg-green-600 py-2 px-4 border border-transparent text-center text-sm text-white transition-all shadow-md hover:shadow-lg focus:bg-green-700 focus:shadow-none active:bg-green-700 hover:bg-green-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none ml-2">
           Confirmar Impresión
         </button>

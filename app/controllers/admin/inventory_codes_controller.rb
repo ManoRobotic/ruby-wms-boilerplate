@@ -29,7 +29,14 @@ class Admin::InventoryCodesController < AdminController
   end
 
   def selected_data
-    selected_ids = get_selected_codes
+    # Handle both GET (using session) and POST (using provided IDs) requests
+    if request.post?
+      request_body = JSON.parse(request.body.read)
+      selected_ids = request_body['selected_ids'] || []
+    else
+      selected_ids = get_selected_codes
+    end
+    
     @inventory_codes = InventoryCode.where(id: selected_ids)
     
     codes_data = @inventory_codes.map do |code|
