@@ -1,29 +1,59 @@
-<div class="w-full px-1 mt-12 mb-16 min-h-screen flex flex-col">
+<div class="w-full px-1 mt-12 mb-16 min-h-screen flex flex-col" data-responsive-right-margin="true">
   <div class="relative flex flex-col w-full px-6 text-gray-700 bg-white shadow-md lg:px-10 rounded-xl bg-clip-border flex-1">
+    <!-- Header -->
     <div class="relative p-4 text-gray-700 bg-white bg-clip-border">
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-        <div>
-          <h1 class="text-2xl font-semibold text-gray-900 mb-2">Configuraciones</h1>
-          <p class="text-gray-600">Configura la sincronización con Google Sheets y los ajustes del puerto serie.</p>
-        </div>
-        <% if current_user&.admin? || current_user&.supervisor? %>
-          <div class="flex gap-2 mt-4 md:mt-0">
-            <%= link_to "Editar Configuración", 
-                admin_configurations_edit_path, 
-                class: "px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors" %>
+      <div class="container mx-auto">
+        <div class="flex flex-col items-center gap-8 px-4 mb-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h1 class="mt-12 font-sans text-2xl font-bold leading-snug tracking-normal text-center md:text-left text-blue-gem-800">
+              Configuraciones
+            </h1>
+            <p class="text-sm text-gray-600 mt-2">Configura la sincronización con Google Sheets y los ajustes del puerto serie.</p>
           </div>
-        <% end %>
+          <% if current_user&.admin? || current_user&.supervisor? %>
+            <div class="flex gap-2 mt-4 md:mt-0">
+              <%= link_to "Editar Configuración", 
+                  admin_configurations_edit_path, 
+                  class: "px-4 py-2 bg-blue-gem-600 text-white text-sm font-medium rounded-lg hover:bg-blue-gem-700 transition-colors" %>
+            </div>
+          <% end %>
+        </div>
       </div>
+    </div>
 
-      <div class="px-6 pb-6">
+    <!-- Layout 2 Columnas -->
+    <div class="px-6 pb-6">
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Estado de Configuración -->
-        <div class="bg-slate-50 rounded-xl p-6 shadow-sm">
-          <h3 class="text-lg font-semibold text-slate-900 mb-4">Estado de Configuración</h3>
+        <!-- Columna Izquierda: Comunicación Serial -->
+        <div class="bg-white rounded-xl border border-blue-gem-200 shadow-sm p-6">
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-bold text-gray-900">Comunicación Serial</h2>
+            <div class="p-2 rounded-full bg-blue-gem-100">
+              <i class="fa-solid fa-plug text-blue-gem-600"></i>
+            </div>
+          </div>
+          
+          <div class="serial-panel" 
+               data-controller="serial" 
+               data-serial-base-url-value="/api/serial"
+               data-serial-auto-connect-value="true"
+               data-serial-poll-interval-value="2000">
+            <%= render 'admin/serial/panel_without_logs' %>
+          </div>
+        </div>
+
+        <!-- Columna Derecha: Estado de Configuración -->
+        <div class="bg-white rounded-xl border border-blue-gem-200 shadow-sm p-6">
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-bold text-gray-900">Estado de Configuración</h2>
+            <div class="p-2 rounded-full bg-blue-gem-100">
+              <i class="fa-solid fa-sliders text-blue-gem-600"></i>
+            </div>
+          </div>
           
           <div class="space-y-4">
             <div class="flex items-center justify-between">
-              <span class="text-sm text-slate-600">Google Sheets Habilitado:</span>
+              <span class="text-sm text-gray-600">Google Sheets Habilitado:</span>
               <% if @admin.company&.google_sheets_enabled? %>
                 <span class="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">Sí</span>
               <% else %>
@@ -32,7 +62,7 @@
             </div>
             
             <div class="flex items-center justify-between">
-              <span class="text-sm text-slate-600">Credenciales Configuradas:</span>
+              <span class="text-sm text-gray-600">Credenciales Configuradas:</span>
               <% if @admin.company&.google_credentials.present? %>
                 <span class="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">Sí</span>
               <% else %>
@@ -41,7 +71,7 @@
             </div>
             
             <div class="flex items-center justify-between">
-              <span class="text-sm text-slate-600">ID de Hoja:</span>
+              <span class="text-sm text-gray-600">ID de Hoja:</span>
               <% if @admin.company&.sheet_id.present? %>
                 <code class="px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded"><%= @admin.company.sheet_id[0..20] %>...</code>
               <% else %>
@@ -50,7 +80,7 @@
             </div>
 
             <div class="flex items-center justify-between">
-              <span class="text-sm text-slate-600">Puerto Serie (Báscula):</span>
+              <span class="text-sm text-gray-600">Puerto Serie (Báscula):</span>
               <% if @admin.company&.serial_port.present? %>
                 <code class="px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded"><%= @admin.company.serial_port %></code>
               <% else %>
@@ -59,7 +89,7 @@
             </div>
             
             <div class="flex items-center justify-between">
-              <span class="text-sm text-slate-600">Puerto Impresora:</span>
+              <span class="text-sm text-gray-600">Puerto Impresora:</span>
               <% if @admin.company&.printer_port.present? %>
                 <code class="px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded"><%= @admin.company.printer_port %></code>
               <% else %>
@@ -68,12 +98,12 @@
             </div>
             
             <div class="flex items-center justify-between">
-              <span class="text-sm text-slate-600">Auto-detección de Hoja:</span>
+              <span class="text-sm text-gray-600">Auto-detección de Hoja:</span>
               <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">Habilitada</span>
             </div>
           </div>
           
-          <div class="mt-6 pt-6 border-t border-slate-200">
+          <div class="mt-6 pt-6 border-t border-gray-200">
             <div class="flex items-center gap-2 mb-3">
               <% if @admin.company&.google_sheets_configured? %>
                 <div class="w-3 h-3 bg-green-500 rounded-full"></div>
@@ -83,7 +113,7 @@
                 <span class="text-sm font-medium text-red-700">Configuración de Google Sheets Incompleta</span>
               <% end %>
             </div>
-            <p class="text-xs text-slate-600">
+            <p class="text-xs text-gray-600">
               <% if @admin.company&.google_sheets_configured? %>
                 Tu configuración de Google Sheets está lista.
               <% else %>
@@ -92,211 +122,38 @@
             </p>
           </div>
         </div>
-
-        <!-- Estado de Sincronización -->
-        <div class="bg-green-50 rounded-xl p-6 shadow-sm">
-          <h3 class="text-lg font-semibold text-green-900 mb-4">Estado de Sincronización</h3>
-          
-          <div class="space-y-4">
-            <div class="flex items-center justify-between">
-              <span class="text-sm text-green-600">Última Sincronización:</span>
-              <% if @admin.company&.last_sync_at.present? %>
-                <code class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded"><%= @admin.company.last_sync_at.strftime('%d/%m/%Y %H:%M') %></code>
-              <% else %>
-                <span class="px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full">Nunca</span>
-              <% end %>
-            </div>
-            
-            <div class="flex items-center justify-between">
-              <span class="text-sm text-green-600">Órdenes Sincronizadas:</span>
-              <span class="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full"><%= @admin.company&.total_orders_synced || 0 %></span>
-            </div>
-            
-            <div class="flex items-center justify-between">
-              <span class="text-sm text-green-600">Órdenes Pendientes de Actualizar:</span>
-              <% pending_updates = @admin.company ? ProductionOrder.joins(:admin).where(admins: { company_id: @admin.company.id }, needs_update_to_sheet: true).count : 0 %>
-              <span class="px-2 py-1 <%= pending_updates > 0 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800' %> text-xs font-medium rounded-full"><%= pending_updates %></span>
-            </div>
-            
-            <div class="flex items-center justify-between">
-              <span class="text-sm text-green-600">Checksum Actual:</span>
-              <% if @admin.company&.last_sync_checksum.present? %>
-                <code class="px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded"><%= @admin.company.last_sync_checksum[0..8] %>...</code>
-              <% else %>
-                <span class="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">N/A</span>
-              <% end %>
-            </div>
-          </div>
-          
-          <div class="mt-6 pt-6 border-t border-green-200">
-            <div class="flex items-center gap-2 mb-3">
-              <% if @admin.company&.last_sync_at.present? %>
-                <div class="w-3 h-3 bg-green-500 rounded-full"></div>
-                <span class="text-sm font-medium text-green-700">Sincronizado</span>
-              <% else %>
-                <div class="w-3 h-3 bg-gray-500 rounded-full"></div>
-                <span class="text-sm font-medium text-gray-700">No Sincronizado</span>
-              <% end %>
-            </div>
-          </div>
-        </div>
-
-      <!-- Comunicación Serial -->
-      </div>
-    </div>
-
-    <div class="px-6 pb-6">
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      
-      <!-- Columna Izquierda: Hardware y Terminal -->
-      <div class="space-y-6">
-        <!-- Panel de Comunicación Serial -->
-        <%= render 'admin/serial/panel' %>
       </div>
 
-      <!-- Columna Derecha: Información -->
-      <div class="bg-white rounded-lg border border-gray-200 p-4">
-        <h2 class="text-lg font-medium text-gray-900 mb-4">Información de Configuración</h2>
-        <div class="space-y-4 text-sm text-gray-600">
-          <p>Configure los puertos serie para la báscula y la impresora TSC TX200.</p>
-          <p>Los ajustes se guardarán automáticamente al editar la configuración.</p>
-          <div class="p-3 bg-blue-50 rounded-md">
-            <p class="text-blue-800">💡 Consejo: Asegúrese de que los dispositivos estén conectados antes de intentar la conexión.</p>
-          </div>
-        </div>
-      </div>
+      <!-- Panel de logs abajo de ambas columnas -->
+      <div class="mt-6">
+        <%= render 'admin/serial/logs_panel' %>
       </div>
     </div>
   </div>
 </div>
 
 <!-- Modal para resultado de conexión -->
-<div id="connection-result-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-  <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-    <div class="mt-3 text-center">
-      <div id="result-icon" class="mx-auto flex items-center justify-center h-12 w-12 rounded-full mb-4">
-        <!-- Icon will be inserted via JavaScript -->
-      </div>
-      <h3 class="text-lg leading-6 font-medium text-gray-900 mb-2" id="result-title">
-        Resultado de Conexión
-      </h3>
-      <div class="mt-2 px-7 py-3">
-        <p class="text-sm text-gray-500" id="result-message">
-          <!-- Message will be inserted via JavaScript -->
-        </p>
-      </div>
-      <div class="items-center px-4 py-3">
-        <button id="close-modal-btn" class="px-4 py-2 bg-blue-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-blue-600 transition-colors">
-          Cerrar
-        </button>
+<div data-controller="configuration">
+  <div data-configuration-target="modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+      <div class="mt-3 text-center">
+        <div data-configuration-target="resultIcon" class="mx-auto flex items-center justify-center h-12 w-12 rounded-full mb-4">
+          <!-- Icon will be inserted via JavaScript -->
+        </div>
+        <h3 data-configuration-target="resultTitle" class="text-lg leading-6 font-medium text-gray-900 mb-2">
+          Resultado de Conexión
+        </h3>
+        <div class="mt-2 px-7 py-3">
+          <p data-configuration-target="resultMessage" class="text-sm text-gray-500">
+            <!-- Message will be inserted via JavaScript -->
+          </p>
+        </div>
+        <div class="items-center px-4 py-3">
+          <button data-action="click->configuration#closeModal" class="px-4 py-2 bg-blue-gem-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-blue-gem-600 transition-colors">
+            Cerrar
+          </button>
+        </div>
       </div>
     </div>
   </div>
-</div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  const testBtn = document.getElementById('test-connection-btn');
-  const checkChangesBtn = document.getElementById('check-changes-btn');
-  const modal = document.getElementById('connection-result-modal');
-  const closeBtn = document.getElementById('close-modal-btn');
-  const resultIcon = document.getElementById('result-icon');
-  const resultTitle = document.getElementById('result-title');
-  const resultMessage = document.getElementById('result-message');
-
-  if (testBtn) {
-    testBtn.addEventListener('click', function() {
-      testBtn.disabled = true;
-      testBtn.textContent = 'Probando...';
-      
-      fetch('/admin/configurations/test_connection', {
-        method: 'POST',
-        headers: {
-          'X-CSRF-Token': document.querySelector("meta[name='csrf-token']").content,
-          'Content-Type': 'application/json',
-        }
-      })
-      .then(response => response.json())
-      .then(data => {
-        showResult(data.success, data.message, data.success ? 'Conexión Exitosa' : 'Error de Conexión');
-      })
-      .catch(error => {
-        showResult(false, 'Error de conexión: ' + error.message, 'Error de Conexión');
-      })
-      .finally(() => {
-        testBtn.disabled = false;
-        testBtn.textContent = 'Probar Conexión';
-      });
-    });
-  }
-
-  if (checkChangesBtn) {
-    checkChangesBtn.addEventListener('click', function() {
-      checkChangesBtn.disabled = true;
-      checkChangesBtn.textContent = 'Verificando...';
-      
-      fetch('/admin/configurations/check_changes', {
-        method: 'POST',
-        headers: {
-          'X-CSRF-Token': document.querySelector("meta[name='csrf-token']").content,
-          'Content-Type': 'application/json',
-        }
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          let message = `${data.message}: ${data.details}`;
-          if (data.current_rows) {
-            message += ` (${data.current_rows} filas)`;
-          }
-          if (data.last_sync) {
-            message += ` - Última sync: ${data.last_sync}`;
-          }
-          
-          showResult(data.has_changes, message, data.has_changes ? 'Cambios Detectados' : 'Sin Cambios');
-        } else {
-          showResult(false, data.message, 'Error');
-        }
-      })
-      .catch(error => {
-        showResult(false, 'Error verificando cambios: ' + error.message, 'Error');
-      })
-      .finally(() => {
-        checkChangesBtn.disabled = false;
-        checkChangesBtn.textContent = 'Verificar Cambios';
-      });
-    });
-  }
-
-  function showResult(success, message, title = null) {
-    if (success) {
-      resultIcon.innerHTML = '<svg class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
-      resultIcon.className = 'mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4';
-      resultTitle.textContent = title || 'Operación Exitosa';
-    } else {
-      resultIcon.innerHTML = '<svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
-      resultIcon.className = 'mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4';
-      resultTitle.textContent = title || 'Error';
-    }
-    resultMessage.textContent = message;
-    modal.classList.remove('hidden');
-  }
-
-  closeBtn.addEventListener('click', function() {
-    modal.classList.add('hidden');
-  });
-
-  // Close modal when clicking outside
-  modal.addEventListener('click', function(e) {
-    if (e.target === modal) {
-      modal.classList.add('hidden');
-    }
-  });
-});
-</script>
-
-
-</div>
-</div>
-</div>
 </div>

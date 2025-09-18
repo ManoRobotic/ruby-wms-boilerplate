@@ -1,0 +1,22 @@
+<div class="logs-section bg-white rounded-xl border border-blue-gem-200 shadow-sm p-6">
+  <div class="flex items-center justify-between mb-4">
+    <h3 class="text-lg font-semibold text-gray-900">Registro de Comunicación Serial</h3>
+    <button data-action="serial#clearLogs" 
+            class="px-3 py-1 bg-white text-gray-700 text-sm font-medium rounded-md border border-gray-300 hover:bg-gray-50 transition-colors">
+      Limpiar
+    </button>
+  </div>
+  <div data-serial-target="logs" 
+       class="h-32 overflow-y-auto p-3 bg-gray-900 text-green-400 text-xs font-mono rounded border border-gray-300">
+    <div class="mb-1">[5:50:55 PM] Serial controller initialized</div>
+    <div class="mb-1">[5:51:22 PM] Detecting available ports...</div>
+    <div class="mb-1">[5:51:23 PM] Found 3 available ports</div>
+    <div class="mb-1">[5:52:10 PM] Connecting to scale on /dev/ttyUSB0</div>
+    <div class="mb-1">[5:52:11 PM] Scale connected successfully</div>
+    <div class="mb-1">[5:53:05 PM] Reading weight: 12.45 kg</div>
+    <div class="mb-1">[5:53:58 PM] Printer status: Disconnected</div>
+  </div>
+  <div class="mt-2 text-xs text-gray-500">
+    <%= Time.current.strftime("[%I:%M:%S %p]") %> Serial controller initialized
+  </div>
+</div>

@@ -23,7 +23,7 @@
            data-action="serial:weightRead->print-form#updateWeight serial:labelPrinted->print-form#onLabelPrinted">
       
         <!-- Columna Izquierda: Información -->
-        <div class="bg-white rounded-xl border-2 border-blue-gem-200 shadow-lg p-6">
+        <div class="bg-white rounded-xl border border-blue-gem-200 shadow-sm p-6">
           <div class="flex items-center justify-between mb-6">
             <h2 class="text-xl font-bold text-gray-900">Información de Dispositivos</h2>
             <div class="p-2 rounded-full bg-blue-gem-100">
@@ -56,7 +56,7 @@
         </div>
 
         <!-- Columna Derecha: Configuración de Etiqueta -->
-        <div class="bg-white rounded-xl border-2 border-blue-gem-200 shadow-lg p-6">
+        <div class="bg-white rounded-xl border border-blue-gem-200 shadow-sm p-6">
           <div class="flex items-center justify-between mb-6">
             <h2 class="text-xl font-bold text-gray-900">Configuración de Etiqueta</h2>
             <div class="p-2 rounded-full bg-blue-gem-100">
@@ -69,11 +69,11 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
                 <%= form.label :product_name, "Nombre del Producto", class: "block text-sm font-medium text-gray-700 mb-2" %>
-                <%= form.text_field :product_name, placeholder: "Ej: Rollo plástico 1kg", class: "block w-full px-4 py-3 text-base placeholder-gray-400 border-2 border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-gem-500 focus:border-blue-gem-500 transition" %>
+                <%= form.text_field :product_name, placeholder: "Ej: Rollo plástico 1kg", class: "block w-full px-4 py-3 text-base placeholder-gray-400 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-gem-500 focus:border-blue-gem-500 transition" %>
               </div>
               <div>
                 <%= form.label :barcode_data, "Código de Barras", class: "block text-sm font-medium text-gray-700 mb-2" %>
-                <%= form.text_field :barcode_data, placeholder: "Ej: 1234567890123", class: "block w-full px-4 py-3 text-base placeholder-gray-400 border-2 border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-gem-500 focus:border-blue-gem-500 transition", required: true %>
+                <%= form.text_field :barcode_data, placeholder: "Ej: 1234567890123", class: "block w-full px-4 py-3 text-base placeholder-gray-400 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-gem-500 focus:border-blue-gem-500 transition", required: true %>
               </div>
             </div>
 
@@ -83,14 +83,14 @@
               <div class="grid grid-cols-2 gap-4 mb-4">
                 <div>
                   <%= form.radio_button :format_type, "bag", { checked: true, class: "absolute opacity-0 w-0 h-0 peer", data: { action: "change->print-form#toggleFormat" } } %>
-                  <%= form.label :format_type_bag, "Formato Bolsa", class: "flex items-center justify-center p-4 bg-white border-2 border-blue-gem-200 rounded-lg cursor-pointer peer-checked:border-[#8d87fe] peer-checked:bg-blue-gem-50 transition" do %>
+                  <%= form.label :format_type_bag, "Formato Bolsa", class: "flex items-center justify-center p-4 bg-white border border-blue-gem-200 rounded-lg cursor-pointer peer-checked:border-[#8d87fe] peer-checked:bg-blue-gem-50 transition" do %>
                     <i class="fa-solid fa-bag-shopping mr-2 text-blue-gem-600 peer-checked:text-[#8d87fe]"></i>
                     <span class="font-medium text-blue-gem-800 peer-checked:text-[#8d87fe]">Bolsa</span>
                   <% end %>
                 </div>
                 <div>
                   <%= form.radio_button :format_type, "box", { class: "absolute opacity-0 w-0 h-0 peer", data: { action: "change->print-form#toggleFormat" } } %>
-                  <%= form.label :format_type_box, "Formato Caja", class: "flex items-center justify-center p-4 bg-white border-2 border-blue-gem-200 rounded-lg cursor-pointer peer-checked:border-[#8d87fe] peer-checked:bg-blue-gem-50 transition" do %>
+                  <%= form.label :format_type_box, "Formato Caja", class: "flex items-center justify-center p-4 bg-white border border-blue-gem-200 rounded-lg cursor-pointer peer-checked:border-[#8d87fe] peer-checked:bg-blue-gem-50 transition" do %>
                     <i class="fa-solid fa-box-archive mr-2 text-blue-gem-600 peer-checked:text-[#8d87fe]"></i>
                     <span class="font-medium text-blue-gem-800 peer-checked:text-[#8d87fe]">Caja</span>
                   <% end %>
@@ -103,16 +103,16 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <%= form.label :bag_type, "Bolsa", class: "block text-sm font-medium text-gray-700 mb-2" %>
-                    <%= form.text_field :bag_type, placeholder: "Ej: PE, PP, PVC", class: "block w-full px-4 py-3 text-base placeholder-gray-400 border-2 border-blue-gem-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-gem-500 focus:border-blue-gem-500 transition" %>
+                    <%= form.text_field :bag_type, placeholder: "Ej: PE, PP, PVC", class: "block w-full px-4 py-3 text-base placeholder-gray-400 border border-blue-gem-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-gem-500 focus:border-blue-gem-500 transition" %>
                   </div>
                   <div>
                     <%= form.label :bag_measurement, "Medida Bolsa", class: "block text-sm font-medium text-gray-700 mb-2" %>
-                    <%= form.text_field :bag_measurement, placeholder: "Ej: 30x40 cm", class: "block w-full px-4 py-3 text-base placeholder-gray-400 border-2 border-blue-gem-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-gem-500 focus:border-blue-gem-500 transition" %>
+                    <%= form.text_field :bag_measurement, placeholder: "Ej: 30x40 cm", class: "block w-full px-4 py-3 text-base placeholder-gray-400 border border-blue-gem-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-gem-500 focus:border-blue-gem-500 transition" %>
                   </div>
                 </div>
                 <div class="mt-3">
                   <%= form.label :pieces_count, "Número de Piezas", class: "block text-sm font-medium text-gray-700 mb-2" %>
-                  <%= form.number_field :pieces_count, min: 1, value: 1, class: "block w-full px-4 py-3 text-base border-2 border-blue-gem-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-gem-500 focus:border-blue-gem-500 transition" %>
+                  <%= form.number_field :pieces_count, min: 1, value: 1, class: "block w-full px-4 py-3 text-base border border-blue-gem-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-gem-500 focus:border-blue-gem-500 transition" %>
                 </div>
               </div>
 
@@ -122,27 +122,27 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <%= form.label :bag_type_box, "Bolsa", class: "block text-sm font-medium text-gray-700 mb-2" %>
-                    <%= form.text_field :bag_type_box, placeholder: "Ej: PE, PP, PVC", class: "block w-full px-4 py-3 text-base placeholder-gray-400 border-2 border-blue-gem-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-gem-500 focus:border-blue-gem-500 transition" %>
+                    <%= form.text_field :bag_type_box, placeholder: "Ej: PE, PP, PVC", class: "block w-full px-4 py-3 text-base placeholder-gray-400 border border-blue-gem-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-gem-500 focus:border-blue-gem-500 transition" %>
                   </div>
                   <div>
                     <%= form.label :bag_measurement_box, "Medida Bolsa", class: "block text-sm font-medium text-gray-700 mb-2" %>
-                    <%= form.text_field :bag_measurement_box, placeholder: "Ej: 30x40 cm", class: "block w-full px-4 py-3 text-base placeholder-gray-400 border-2 border-blue-gem-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-gem-500 focus:border-blue-gem-500 transition" %>
+                    <%= form.text_field :bag_measurement_box, placeholder: "Ej: 30x40 cm", class: "block w-full px-4 py-3 text-base placeholder-gray-400 border border-blue-gem-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-gem-500 focus:border-blue-gem-500 transition" %>
                   </div>
                 </div>
                 <div class="mt-3">
                   <%= form.label :pieces_count_box, "Número de Piezas", class: "block text-sm font-medium text-gray-700 mb-2" %>
-                  <%= form.number_field :pieces_count_box, min: 1, value: 1, class: "block w-full px-4 py-3 text-base border-2 border-blue-gem-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-gem-500 focus:border-blue-gem-500 transition" %>
+                  <%= form.number_field :pieces_count_box, min: 1, value: 1, class: "block w-full px-4 py-3 text-base border border-blue-gem-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-gem-500 focus:border-blue-gem-500 transition" %>
                 </div>
                 
                 <h4 class="text-md font-semibold text-blue-gem-700 mt-4 mb-3">Información de Paquetes</h4>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <%= form.label :package_count, "Cantidad de Paquetes", class: "block text-sm font-medium text-gray-700 mb-2" %>
-                    <%= form.number_field :package_count, min: 1, value: 1, class: "block w-full px-4 py-3 text-base border-2 border-blue-gem-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-gem-500 focus:border-blue-gem-500 transition" %>
+                    <%= form.number_field :package_count, min: 1, value: 1, class: "block w-full px-4 py-3 text-base border border-blue-gem-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-gem-500 focus:border-blue-gem-500 transition" %>
                   </div>
                   <div>
                     <%= form.label :package_measurement, "Medida de Paquetes", class: "block text-sm font-medium text-gray-700 mb-2" %>
-                    <%= form.text_field :package_measurement, placeholder: "Ej: 50x60x40 cm", class: "block w-full px-4 py-3 text-base placeholder-gray-400 border-2 border-blue-gem-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-gem-500 focus:border-blue-gem-500 transition" %>
+                    <%= form.text_field :package_measurement, placeholder: "Ej: 50x60x40 cm", class: "block w-full px-4 py-3 text-base placeholder-gray-400 border border-blue-gem-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-gem-500 focus:border-blue-gem-500 transition" %>
                   </div>
                 </div>
               </div>
@@ -153,15 +153,15 @@
               <div class="grid grid-cols-3 gap-4">
                 <div>
                   <%= form.label :ancho_mm, "Ancho", class: "block text-sm font-medium text-blue-gem-700 mb-2" %>
-                  <%= form.number_field :ancho_mm, value: 80, min: 10, max: 200, step: 1, class: "block w-full px-4 py-3 text-base border-2 border-blue-gem-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-gem-500 focus:border-blue-gem-500 transition" %>
+                  <%= form.number_field :ancho_mm, value: 80, min: 10, max: 200, step: 1, class: "block w-full px-4 py-3 text-base border border-blue-gem-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-gem-500 focus:border-blue-gem-500 transition" %>
                 </div>
                 <div>
                   <%= form.label :alto_mm, "Alto", class: "block text-sm font-medium text-blue-gem-700 mb-2" %>
-                  <%= form.number_field :alto_mm, value: 50, min: 10, max: 200, step: 1, class: "block w-full px-4 py-3 text-base border-2 border-blue-gem-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-gem-500 focus:border-blue-gem-500 transition" %>
+                  <%= form.number_field :alto_mm, value: 50, min: 10, max: 200, step: 1, class: "block w-full px-4 py-3 text-base border border-blue-gem-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-gem-500 focus:border-blue-gem-500 transition" %>
                 </div>
                 <div>
                   <%= form.label :gap_mm, "Separación", class: "block text-sm font-medium text-blue-gem-700 mb-2" %>
-                  <%= form.number_field :gap_mm, value: 2, min: 0, max: 10, step: 0.5, class: "block w-full px-4 py-3 text-base border-2 border-blue-gem-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-gem-500 focus:border-blue-gem-500 transition" %>
+                  <%= form.number_field :gap_mm, value: 2, min: 0, max: 10, step: 0.5, class: "block w-full px-4 py-3 text-base border border-blue-gem-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-gem-500 focus:border-blue-gem-500 transition" %>
                 </div>
               </div>
             </div>
@@ -182,15 +182,15 @@
 </div>
 
 <style>
-  .peer:checked ~ .peer-checked\:border-\[\#8d87fe\] {
+  .peer:checked ~ .peer-checked\:\border-\[\#8d87fe\] {
     border-color: var(--color-blue-gem-400);
   }
   
-  .peer:checked ~ .peer-checked\:bg-blue-gem-50 {
+  .peer:checked ~ .peer-checked\:\:bg-blue-gem-50 {
     background-color: var(--color-blue-gem-50);
   }
   
-  .peer:checked ~ .peer-checked\:text-\[\#8d87fe\] {
+  .peer:checked ~ .peer-checked\:\:text-\[\#8d87fe\] {
     color: var(--color-blue-gem-400);
   }
 </style>
