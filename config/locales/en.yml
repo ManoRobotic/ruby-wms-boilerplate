@@ -112,6 +112,7 @@ en:
       daily_status: 'Daily Status'
       recent_orders: 'Recent Unfulfilled Orders'
       revenue: 'Revenue'
+      production_orders: 'Production Orders'
       total_sales: 'Total Sales'
       avg_sale: 'Average Sale'
       items_per_sale: 'Items/Sale'

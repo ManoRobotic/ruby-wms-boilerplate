@@ -83,16 +83,16 @@
               <div class="grid grid-cols-2 gap-4 mb-4">
                 <div>
                   <%= form.radio_button :format_type, "bag", { checked: true, class: "absolute opacity-0 w-0 h-0 peer", data: { action: "change->print-form#toggleFormat" } } %>
-                  <%= form.label :format_type_bag, "Formato Bolsa", class: "flex items-center justify-center p-4 bg-white border border-blue-gem-200 rounded-lg cursor-pointer peer-checked:border-[#8d87fe] peer-checked:bg-blue-gem-50 transition" do %>
-                    <i class="fa-solid fa-bag-shopping mr-2 text-blue-gem-600 peer-checked:text-[#8d87fe]"></i>
-                    <span class="font-medium text-blue-gem-800 peer-checked:text-[#8d87fe]">Bolsa</span>
+                  <%= form.label :format_type_bag, "Formato Bolsa", class: "flex items-center justify-center p-4 bg-white border-2 border-blue-gem-200 rounded-lg cursor-pointer peer-checked:border-[#d4d5ff] peer-checked:bg-[#d4d5ff] transition" do %>
+                    <i class="fa-solid fa-bag-shopping mr-2 text-blue-gem-600 peer-checked:text-white"></i>
+                    <span class="font-medium text-blue-gem-800 peer-checked:text-white">Bolsa</span>
                   <% end %>
                 </div>
                 <div>
                   <%= form.radio_button :format_type, "box", { class: "absolute opacity-0 w-0 h-0 peer", data: { action: "change->print-form#toggleFormat" } } %>
-                  <%= form.label :format_type_box, "Formato Caja", class: "flex items-center justify-center p-4 bg-white border border-blue-gem-200 rounded-lg cursor-pointer peer-checked:border-[#8d87fe] peer-checked:bg-blue-gem-50 transition" do %>
-                    <i class="fa-solid fa-box-archive mr-2 text-blue-gem-600 peer-checked:text-[#8d87fe]"></i>
-                    <span class="font-medium text-blue-gem-800 peer-checked:text-[#8d87fe]">Caja</span>
+                  <%= form.label :format_type_box, "Formato Caja", class: "flex items-center justify-center p-4 bg-white border-2 border-blue-gem-200 rounded-lg cursor-pointer peer-checked:border-[#d4d5ff] peer-checked:bg-[#d4d5ff] transition" do %>
+                    <i class="fa-solid fa-box-archive mr-2 text-blue-gem-600 peer-checked:text-white"></i>
+                    <span class="font-medium text-blue-gem-800 peer-checked:text-white">Caja</span>
                   <% end %>
                 </div>
               </div>
@@ -182,15 +182,15 @@
 </div>
 
 <style>
-  .peer:checked ~ .peer-checked\:\border-\[\#8d87fe\] {
-    border-color: var(--color-blue-gem-400);
+  .peer:checked ~ .peer-checked\:border-\[\#d4d5ff\] {
+    border-color: #d4d5ff;
   }
   
-  .peer:checked ~ .peer-checked\:\:bg-blue-gem-50 {
-    background-color: var(--color-blue-gem-50);
+  .peer:checked ~ .peer-checked\:bg-\[\#d4d5ff\] {
+    background-color: #d4d5ff;
   }
   
-  .peer:checked ~ .peer-checked\:\:text-\[\#8d87fe\] {
-    color: var(--color-blue-gem-400);
+  .peer:checked ~ .peer-checked\:text-white {
+    color: white;
   }
 </style>

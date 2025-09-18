@@ -8,7 +8,7 @@
     <div class="relative mx-4 mt-4 mb-8 overflow-hidden text-gray-700 bg-white rounded-none bg-clip-border">
       <div class="flex flex-col items-center justify-between gap-8 mb-4 md:flex-row md:items-center">
         <div>
-          <h2 class="block mt-12 text-xl font-semibold text-center text-blue-gray-900 md:text-left">
+          <h2 class="mt-12 font-sans text-2xl font-bold leading-snug tracking-normal text-center md:text-left text-blue-gem-800">
             <%= t('admin.dashboard.sales_summary') %>
           </h2>
         </div>
@@ -29,17 +29,18 @@
           { title: 'Productos Vencidos', value: @inventory_alerts ? (@inventory_alerts[:expired] || 0) : 0, icon: '🔴', alert: true },
         ] %>
         <% wms_stats.each do |stat| %>
-          <div class="relative flex flex-col w-full bg-white border rounded-lg shadow-sm <%= stat[:alert] && stat[:value].to_i > 0 ? 'border-red-300 bg-red-50' : 'border-slate-200' %>">
-            <div class="px-1 pt-3 pb-2 mx-3 mb-0 border-b border-slate-200">
-              <span class="text-sm font-medium text-slate-600">
-                <%= stat[:icon] %> <%= stat[:title] %>
-              </span>
+          <div class="relative flex flex-col w-full bg-white rounded-xl border border-blue-gem-200 shadow-sm p-6 <%= stat[:alert] && stat[:value].to_i > 0 ? 'bg-red-50' : '' %>">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-lg font-bold text-gray-900"><%= stat[:title] %></h3>
+              <div class="p-2 rounded-full bg-blue-gem-100">
+                <span class="text-blue-gem-600"><%= stat[:icon] %></span>
+              </div>
             </div>
             <div class="p-4">
-              <p class="mb-2 text-xl font-semibold <%= stat[:alert] && stat[:value].to_i > 0 ? 'text-red-800' : 'text-slate-800' %>">
+              <p class="mb-2 text-2xl font-bold <%= stat[:alert] && stat[:value].to_i > 0 ? 'text-red-800' : 'text-blue-gem-800' %>">
                 <%= stat[:value] %>
               </p>
-              <p class="font-light leading-normal text-slate-600">
+              <p class="font-light leading-normal text-gray-600">
                 Estado actual del sistema WMS.
               </p>
             </div>
@@ -50,12 +51,12 @@
     <% end %>
 
 
-    <!-- Tabla de Ganancias - Show only to admins -->
+    <!-- Tabla de Ordenes de Producción - Show only to admins -->
     <% if current_admin %>
     <div class="w-full align-left mb-16 mt-2" style="max-width: 85%">
-      <h2 class="text-2xl font-medium text-gray-800 "><%= t('admin.dashboard.revenue') %></h2>
-      <div class="relative w-full" data-controller="dashboard" data-dashboard-revenue-value="<%= @revenue_by_day_chart.to_json %>">
-        <canvas id="revenueChart"></canvas>
+      <h2 class="text-2xl font-medium text-gray-800 "><%= t('admin.dashboard.production_orders') %></h2>
+      <div class="relative w-full" data-controller="dashboard" data-dashboard-production-value="<%= @revenue_by_day_chart.to_json %>">
+        <canvas id="productionChart"></canvas>
       </div>
     </div>
     <% end %>
@@ -169,17 +170,18 @@
           { title: t('admin.dashboard.items_per_sale'), value: @quick_stats[:per_sale].to_i }
         ] %>
         <% stats.each do |stat| %>
-          <div class="relative flex flex-col w-full bg-white border rounded-lg shadow-sm border-slate-200">
-            <div class="px-1 pt-3 pb-2 mx-3 mb-0 border-b border-slate-200">
-              <span class="text-sm font-medium text-slate-600">
-                <%= stat[:title] %>
-              </span>
+          <div class="relative flex flex-col w-full bg-white rounded-xl border border-blue-gem-200 shadow-sm p-6">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-lg font-bold text-gray-900"><%= stat[:title] %></h3>
+              <div class="p-2 rounded-full bg-blue-gem-100">
+                <i class="fa-solid fa-chart-line text-blue-gem-600"></i>
+              </div>
             </div>
             <div class="p-4">
-              <p class="mb-2 text-xl font-semibold text-slate-800">
+              <p class="mb-2 text-2xl font-bold text-blue-gem-800">
                 <%= stat[:value] %>
               </p>
-              <p class="font-light leading-normal text-slate-600">
+              <p class="font-light leading-normal text-gray-600">
                 <%= t('admin.dashboard.relevant_data') %> <%= stat[:title] %>.
               </p>
             </div>

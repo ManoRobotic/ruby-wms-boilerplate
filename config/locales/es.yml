@@ -180,6 +180,7 @@ es:
       daily_status: 'Status del día'
       recent_orders: 'Ordenes Recientes No Cumplidas'
       revenue: 'Ganancias'
+      production_orders: 'Órdenes de Producción'
       total_sales: 'Ventas totales'
       avg_sale: 'Venta promedio'
       items_per_sale: 'Items/Venta'
