@@ -33,12 +33,12 @@
             <!-- Mensajes de modo -->
             <div data-consecutivo-form-target="scaleWeightSection">
                 <!-- Mensaje cuando está en modo báscula (por defecto) -->
-                <p class="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-md p-2 scale-mode-message">
+                <p class="text-sm text-[var(--color-bamboo-700)] bg-[var(--color-bamboo-50)] border border-[var(--color-bamboo-300)] rounded-md p-2 scale-mode-message">
                     <span class="font-medium">Modo Báscula Activo:</span> Use el control de pesaje abajo para obtener el peso automáticamente.
                 </p>
                 
                 <!-- Mensaje cuando está en modo manual (oculto por defecto) -->
-                <p class="text-sm text-blue-700 bg-blue-50 border border-blue-200 rounded-md p-2 manual-mode-message hidden">
+                <p class="text-sm text-[var(--color-blue-gem-700)] bg-[var(--color-blue-gem-500)] border border-[var(--color-blue-gem-200)] rounded-md p-2 manual-mode-message hidden">
                     <span class="font-medium">Modo de Uso:</span> Ingreso manual, ingrese peso del folio manualmente.
                 </p>
             </div>
@@ -76,77 +76,77 @@
         </div>
 
         <!-- Componente de Pesaje -->
-        <div class="bg-gray-50 rounded-md p-2 mb-2 transition-opacity duration-300" 
+        <div class="bg-[var(--color-blue-gem-50)] rounded-md p-2 mb-2 transition-opacity duration-300" 
              data-controller="consecutivo-scale" 
              data-consecutivo-scale-base-url-value="<%= ENV['SERIAL_SERVER_URL'] || 'http://localhost:5000' %>"
              data-consecutivo-scale-auto-connect-value="true"
              data-consecutivo-scale-saved-port-value="<%= helpers.current_admin&.company&.serial_port || '' %>"
              data-consecutivo-scale-auto-save-value="<%= helpers.current_admin&.company&.auto_save_consecutivo || false %>"
              data-consecutivo-form-target="serialSection">
-          <h4 class="font-medium text-gray-700 mb-1.5 text-sm">Control de Pesaje</h4>
+          <h4 class="font-medium text-[var(--color-blue-gem-900)] mb-1.5 text-sm">Control de Pesaje</h4>
           
           <!-- Status de Conexión -->
           <div class="flex items-center justify-between mb-1.5">
-            <span class="text-sm font-medium text-gray-600">Estado:</span>
-            <span data-consecutivo-scale-target="status" class="px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800">Iniciando...</span>
+            <span class="text-sm font-medium text-[var(--color-blue-gem-700)]">Estado:</span>
+            <span data-consecutivo-scale-target="status" class="px-2 py-1 rounded text-xs font-medium bg-[var(--color-bamboo-100)] text-[var(--color-bamboo-400)]">Iniciando...</span>
           </div>
 
           <!-- Weight Display -->
-          <div class="weight-section p-2 bg-white rounded-md border mb-2">
+          <div class="weight-section p-2 bg-white rounded-md border mb-2 border-[var(--color-blue-gem-200)]">
             <div class="flex items-center justify-between mb-1.5">
-              <span class="font-medium text-gray-700 text-sm">Peso actual:</span>
+              <span class="font-medium text-[var(--color-blue-gem-700)] text-sm">Peso actual:</span>
               <div class="flex gap-1">
                 <button data-consecutivo-scale-target="readBtn"
                         data-action="click->consecutivo-scale#getWeight" 
                         type="button"
-                        class="w-full px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                        class="w-full px-4 py-2 bg-[var(--color-blue-gem-600)] text-white font-medium rounded-lg hover:bg-[var(--color-blue-gem-700)] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
                   Leer Peso
                 </button>
                 
               </div>
             </div>
             <div data-consecutivo-scale-target="weight" class="weight-display">
-              <div class="text-xl font-bold block text-center transition-all duration-300 ease-in-out text-gray-400">--</div>
-              <div class="text-xs text-gray-500 block text-center">--</div>
+              <div class="text-xl font-bold block text-center transition-all duration-300 ease-in-out text-[var(--color-blue-gem-400)]">--</div>
+              <div class="text-xs text-[var(--color-blue-gem-500)] block text-center">--</div>
             </div>
           </div>
         </div>
 
         <!-- Campos calculados automáticamente -->
-        <div class="bg-emerald-50 rounded-md p-2 mb-2">
-            <h4 class="text-sm font-semibold text-emerald-900 mb-1.5">Cálculos Automáticos</h4>
+        <div class="bg-[var(--color-blue-gem-50)] rounded-md p-2 mb-2 border border-[var(--color-blue-gem-200)]">
+            <h4 class="text-sm font-semibold text-[var(--color-blue-gem-900)] mb-1.5">Cálculos Automáticos</h4>
             
             <div class="grid grid-cols-2 gap-1.5">
                 <!-- Peso Neto -->
-                <div class="bg-white rounded p-1.5 border border-emerald-200">
-                    <div class="text-xs text-emerald-600 font-medium">Peso Neto</div>
-                    <div class="text-sm font-bold text-emerald-900" data-consecutivo-form-target="pesoNetoDisplay">
+                <div class="bg-white rounded p-1.5 border border-[var(--color-blue-gem-200)]">
+                    <div class="text-xs text-[var(--color-blue-gem-700)] font-medium">Peso Neto</div>
+                    <div class="text-sm font-bold text-[var(--color-blue-gem-900)]" data-consecutivo-form-target="pesoNetoDisplay">
                       <%= consecutivo_form.peso_neto ? "#{consecutivo_form.peso_neto.round(3)} kg" : "0.000 kg" %>
                     </div>
                     <%= form.hidden_field :peso_neto, data: { "consecutivo-form-target": "pesoNeto" } %>
                 </div>
 
                 <!-- Peso Core -->
-                <div class="bg-white rounded p-1.5 border border-emerald-200">
-                    <div class="text-xs text-emerald-600 font-medium">Peso Core</div>
-                    <div class="text-sm font-bold text-emerald-900" data-consecutivo-form-target="pesoCoreDisplay">
+                <div class="bg-white rounded p-1.5 border border-[var(--color-blue-gem-200)]">
+                    <div class="text-xs text-[var(--color-blue-gem-700)] font-medium">Peso Core</div>
+                    <div class="text-sm font-bold text-[var(--color-blue-gem-900)]" data-consecutivo-form-target="pesoCoreDisplay">
                       <%= consecutivo_form.peso_core_gramos ? "#{consecutivo_form.peso_core_gramos} g" : "200 g" %>
                     </div>
                 </div>
 
                 <!-- Metros Lineales -->
-                <div class="bg-white rounded p-1.5 border border-emerald-200">
-                    <div class="text-xs text-emerald-600 font-medium">Metros Lineales</div>
-                    <div class="text-sm font-bold text-emerald-900" data-consecutivo-form-target="metrosLinealesDisplay">
+                <div class="bg-white rounded p-1.5 border border-[var(--color-blue-gem-200)]">
+                    <div class="text-xs text-[var(--color-blue-gem-700)] font-medium">Metros Lineales</div>
+                    <div class="text-sm font-bold text-[var(--color-blue-gem-900)]" data-consecutivo-form-target="metrosLinealesDisplay">
                       <%= consecutivo_form.metros_lineales ? "#{consecutivo_form.metros_lineales.round(4)} m" : "0.0000 m" %>
                     </div>
                     <%= form.hidden_field :metros_lineales, data: { "consecutivo-form-target": "metrosLineales" } %>
                 </div>
 
                 <!-- Especificaciones -->
-                <div class="bg-white rounded p-1.5 border border-emerald-200">
-                    <div class="text-xs text-emerald-600 font-medium">Especificaciones</div>
-                    <div class="text-xs font-semibold text-emerald-900" data-consecutivo-form-target="especificacionesDisplay">
+                <div class="bg-white rounded p-1.5 border border-[var(--color-blue-gem-200)]">
+                    <div class="text-xs text-[var(--color-blue-gem-700)] font-medium">Especificaciones</div>
+                    <div class="text-xs font-semibold text-[var(--color-blue-gem-900)]" data-consecutivo-form-target="especificacionesDisplay">
                       <%= "#{consecutivo_form.micras || 35}μ / #{consecutivo_form.ancho_mm || 420}mm" %>
                     </div>
                     <%= form.hidden_field :micras, value: consecutivo_form.micras || 35 %>
@@ -154,7 +154,7 @@
                 </div>
             </div>
 
-            <div class="text-xs text-emerald-700 mt-1.5 opacity-75">
+            <div class="text-xs text-[var(--color-blue-gem-700)] mt-1.5 opacity-75">
                 Los cálculos se actualizan automáticamente al ingresar el peso bruto
             </div>
         </div>
@@ -177,7 +177,7 @@
         Cancelar
       </button>
       <%= form.submit consecutivo_form.persisted? ? "Guardar Consecutivo" : "Crear Consecutivo", 
-          class: "rounded-md bg-emerald-600 py-1 px-2.5 border border-transparent text-center text-sm text-white transition-all shadow hover:shadow focus:bg-emerald-700 focus:shadow-none active:bg-emerald-700 hover:bg-emerald-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none ml-1.5",
+          class: "rounded-md bg-[var(--color-dark-fern-600)] py-1 px-2.5 border border-transparent text-center text-sm text-white transition-all shadow hover:shadow focus:bg-[var(--color-dark-fern-700)] focus:shadow-none active:bg-[var(--color-dark-fern-700)] hover:bg-[var(--color-dark-fern-700)] active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none ml-1.5",
           data: { "form-validation-target": "submit" } %>
     </div>
 <% end %>
