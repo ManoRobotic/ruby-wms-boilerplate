@@ -6,6 +6,20 @@ class Admin::ConfigurationsController < AdminController
     # Use company configuration for display
   end
 
+  def saved_config
+    @admin = current_admin || current_user
+    if @admin.company
+      render json: {
+        serial_port: @admin.company.serial_port,
+        printer_port: @admin.company.printer_port,
+        serial_baud_rate: @admin.company.serial_baud_rate,
+        printer_baud_rate: @admin.company.printer_baud_rate
+      }
+    else
+      render json: {}
+    end
+  end
+
   def edit
     @admin = current_admin || current_user
     # Use company configuration for editing

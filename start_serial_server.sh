@@ -1,46 +1,27 @@
 #!/bin/bash
 
-# Script para iniciar el servidor serial Flask
-echo "=== Iniciando Servidor Serial para WMS ==="
+# Script para iniciar el servidor serial automáticamente
+# Este script debe ser ejecutado desde el directorio raíz del proyecto
 
-# Verificar si Python está instalado
-if ! command -v python3 &> /dev/null; then
-    echo "Error: Python3 no está instalado"
-    exit 1
+echo "Iniciando servidor serial..."
+
+# Verificar si el entorno virtual existe
+if [ ! -d "venv" ]; then
+  echo "Creando entorno virtual..."
+  python3 -m venv venv
 fi
 
-# Verificar si Flask está instalado
-if ! python3 -c "import flask" 2>/dev/null; then
-    echo "Instalando dependencias..."
-    pip3 install -r requirements.txt
-fi
+# Activar el entorno virtual
+echo "Activando entorno virtual..."
+source venv/bin/activate
 
-# Crear directorio de logs
-mkdir -p logs
+# Verificar si las dependencias están instaladas
+echo "Verificando dependencias..."
+pip install --break-system-packages -r requirements.txt
 
-# Variables de entorno
-export FLASK_ENV=development
-export PYTHONUNBUFFERED=1
+# Iniciar el servidor serial en segundo plano
+echo "Iniciando servidor serial en segundo plano..."
+nohup python3 serial_server.py > serial_server.log 2>&1 &
 
-echo "Configuración:"
-echo "- Puerto: 5000"
-echo "- Modo: desarrollo"
-echo "- Host: 0.0.0.0"
-echo "- Logs: logs/"
-
-echo ""
-echo "Endpoints disponibles:"
-echo "  GET  http://localhost:5000/health"
-echo "  GET  http://localhost:5000/ports"
-echo "  POST http://localhost:5000/scale/connect"
-echo "  POST http://localhost:5000/scale/start"
-echo "  GET  http://localhost:5000/scale/read"
-echo "  POST http://localhost:5000/printer/connect"
-echo "  POST http://localhost:5000/printer/print"
-
-echo ""
-echo "Iniciando servidor..."
-echo "Presiona Ctrl+C para detener"
-echo "=================================="
-
-python3 serial_server.py
+echo "Servidor serial iniciado con PID $!"
+echo "Logs disponibles en serial_server.log"

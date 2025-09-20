@@ -5,7 +5,8 @@ require 'json'
 require 'uri'
 
 class SerialCommunicationService
-  BASE_URL = ENV['SERIAL_SERVER_URL'] || 'http://localhost:5002'
+  # Hardcodear la URL del servidor serial
+  BASE_URL = 'http://192.168.200.16:5000'
   
   class << self
     def health_check
@@ -18,6 +19,7 @@ class SerialCommunicationService
 
     def list_serial_ports
       response = get('/ports')
+      Rails.logger.info "Serial ports response: #{response}"
       response['ports'] || []
     rescue StandardError => e
       Rails.logger.error "Failed to list serial ports: #{e.message}"

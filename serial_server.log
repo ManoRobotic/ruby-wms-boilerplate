@@ -1,0 +1,27 @@
+2025-09-20 20:10:08,267 - INFO - === Servidor Flask para Comunicación Serial ===
+2025-09-20 20:10:08,268 - INFO - Compatible con TSC TX200 y báscula serial
+2025-09-20 20:10:08,269 - INFO - ===============================================
+2025-09-20 20:10:08,269 - INFO - Endpoints disponibles:
+2025-09-20 20:10:08,270 - INFO -   GET  /health - Estado del servidor
+2025-09-20 20:10:08,270 - INFO -   GET  /ports - Puertos seriales disponibles
+2025-09-20 20:10:08,270 - INFO - 
+2025-09-20 20:10:08,271 - INFO - BÁSCULA:
+2025-09-20 20:10:08,271 - INFO -   POST /scale/connect - Conectar báscula
+2025-09-20 20:10:08,272 - INFO -   POST /scale/start - Iniciar lectura continua
+2025-09-20 20:10:08,272 - INFO -   POST /scale/stop - Detener lectura
+2025-09-20 20:10:08,272 - INFO -   GET  /scale/read - Leer peso actual
+2025-09-20 20:10:08,274 - INFO -   GET  /scale/last - Última lectura
+2025-09-20 20:10:08,275 - INFO -   GET  /scale/latest - Lecturas de la cola
+2025-09-20 20:10:08,275 - INFO -   GET  /scale/get_weight_now - Obtener peso con timeout
+2025-09-20 20:10:08,276 - INFO - 
+2025-09-20 20:10:08,276 - INFO - IMPRESORA TSC TX200:
+2025-09-20 20:10:08,277 - INFO -   POST /printer/connect - Conectar impresora USB
+2025-09-20 20:10:08,277 - INFO -   POST /printer/print - Imprimir etiqueta
+2025-09-20 20:10:08,278 - INFO -   POST /printer/test - Test de impresión
+2025-09-20 20:10:08,278 - INFO -   POST /printer/disconnect - Desconectar impresora
+2025-09-20 20:10:08,279 - INFO - ===============================================
+ * Tip: There are .env or .flaskenv files present. Do "pip install python-dotenv" to use them.
+ * Serving Flask app 'serial_server'
+ * Debug mode: on
+Address already in use
+Port 5000 is in use by another program. Either identify and stop that program, or start the server with a different port.

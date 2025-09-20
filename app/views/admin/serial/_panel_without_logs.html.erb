@@ -3,7 +3,9 @@
   <div class="status-section">
     <div class="flex items-center justify-between">
       <span class="font-medium">Estado:</span>
-      <span data-serial-target="status" class="px-2 py-1 rounded text-sm font-medium bg-blue-100 text-blue-800">Iniciando...</span>
+      <div class="flex items-center">
+        <span data-serial-target="status" class="px-2 py-1 rounded text-sm font-medium bg-blue-100 text-blue-800">Iniciando...</span>
+      </div>
     </div>
   </div>
 
@@ -14,10 +16,16 @@
     <div class="grid grid-cols-1 md:grid-cols-1 gap-4">
       <div>
         <label for="serial_port" class="block text-sm font-medium text-gray-700 mb-1">Puerto</label>
-        <select data-serial-target="port" id="serial_port" 
-                class="w-full px-3 py-2 border border-gray-300 rounded-md">
-          <option value="">Detectando puertos...</option>
-        </select>
+        <div class="flex gap-2">
+          <select data-serial-target="port" id="serial_port" 
+                  class="flex-1 px-3 py-2 border border-gray-300 rounded-md">
+            <option value="">Detectando puertos...</option>
+          </select>
+          <button data-action="click->serial#refreshPorts" 
+                  class="px-3 py-2 bg-gray-200 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-300 transition-colors">
+            <i class="fa-solid fa-sync"></i>
+          </button>
+        </div>
       </div>
       
       <div class="flex items-end space-x-2">
@@ -37,6 +45,7 @@
       <div class="flex items-center justify-between">
         <span class="font-medium">Peso actual:</span>
         <button data-action="click->serial#readWeightNow" 
+                data-serial-target="readButton"
                 class="px-3 py-1 bg-white text-gray-700 text-sm font-medium rounded-md border border-gray-300 hover:bg-gray-50 transition-colors">
           Leer ahora
         </button>

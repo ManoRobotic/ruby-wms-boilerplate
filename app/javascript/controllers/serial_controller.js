@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["status", "weight", "port", "logs", "printerStatus"]
+  static targets = ["status", "weight", "port", "logs", "printerStatus", "readButton"]
   static values = { 
     baseUrl: String,
     autoConnect: Boolean,
@@ -15,6 +15,8 @@ export default class extends Controller {
     
     if (this.autoConnectValue) {
       this.checkHealth()
+      // Iniciar verificación periódica del estado
+      this.startHealthCheck()
     }
     
     // Add event listener for port selection changes
@@ -24,14 +26,51 @@ export default class extends Controller {
       })
     }
     
+    // Cargar configuración guardada
+    this.loadSavedConfiguration()
+    
     this.log("Serial controller initialized")
+  }
+
+  // Método para cargar la configuración guardada
+  loadSavedConfiguration() {
+    // Obtener la configuración guardada del servidor a través de una API
+    fetch('/admin/configurations/saved_config')
+      .then(response => response.json())
+      .then(data => {
+        if (data.serial_port && this.hasPortTarget) {
+          // Establecer el puerto guardado en el select
+          this.portTarget.value = data.serial_port;
+        }
+      })
+      .catch(error => {
+        this.log(`Error loading saved configuration: ${error.message}`);
+      });
   }
 
   disconnect() {
     this.stopPolling()
+    this.stopHealthCheck()
+  }
+
+  startHealthCheck() {
+    // Verificar el estado cada 30 segundos
+    this.healthCheckInterval = setInterval(() => {
+      this.checkHealth()
+    }, 30000)
+  }
+
+  stopHealthCheck() {
+    if (this.healthCheckInterval) {
+      clearInterval(this.healthCheckInterval)
+      this.healthCheckInterval = null
+    }
   }
 
   async checkHealth() {
+    // Mostrar estado de verificación en progreso
+    this.updateStatus("↻ Verificando conexión...", "info")
+    
     try {
       const response = await fetch(`${this.baseUrlValue}/health`)
       const data = await response.json()
@@ -54,17 +93,53 @@ export default class extends Controller {
       const data = await response.json()
       
       if (data.status === 'success' && this.hasPortTarget) {
-        this.portTarget.innerHTML = '<option value="">Select port...</option>'
-        data.ports.forEach(port => {
-          const option = document.createElement('option')
-          option.value = port.device
-          option.textContent = `${port.device} - ${port.description}`
-          this.portTarget.appendChild(option)
-        })
+        // Guardar el puerto actualmente seleccionado
+        const currentSelection = this.portTarget.value;
+        
+        // Limpiar opciones actuales
+        this.portTarget.innerHTML = '<option value="">Detectando puertos...</option>'
+        
+        // Agregar puertos disponibles
+        if (data.ports && data.ports.length > 0) {
+          this.portTarget.innerHTML = '<option value="">Seleccionar puerto...</option>'
+          data.ports.forEach(port => {
+            const option = document.createElement('option')
+            option.value = port.device
+            option.textContent = `${port.device} - ${port.description || 'Dispositivo serial'}`
+            this.portTarget.appendChild(option)
+          })
+          
+          // Restaurar selección anterior si existe
+          if (currentSelection) {
+            this.portTarget.value = currentSelection
+          } else {
+            // Cargar configuración guardada si no hay selección previa
+            this.loadSavedConfiguration()
+          }
+        } else {
+          this.portTarget.innerHTML = '<option value="">No se encontraron puertos</option>'
+        }
       }
     } catch (error) {
       this.log(`Error loading ports: ${error.message}`)
+      if (this.hasPortTarget) {
+        this.portTarget.innerHTML = '<option value="">Error al detectar puertos</option>'
+      }
     }
+  }
+
+  async refreshPorts(event) {
+    if (event) event.preventDefault();
+    
+    // Mostrar mensaje de carga
+    if (this.hasPortTarget) {
+      this.portTarget.innerHTML = '<option value="">Detectando puertos...</option>';
+    }
+    
+    // Cargar puertos
+    await this.loadPorts();
+    
+    this.log("Puertos refrescados");
   }
 
   async connectScale(event) {
@@ -193,6 +268,20 @@ export default class extends Controller {
   async readWeightNow(event) {
     event.preventDefault()
     
+    // Mostrar spinner en el botón
+    if (this.hasReadButtonTarget) {
+      this.readButtonTarget.innerHTML = `
+        <div class="flex items-center">
+          <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-gray-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          Leyendo...
+        </div>
+      `;
+      this.readButtonTarget.disabled = true;
+    }
+    
     try {
       const response = await fetch(`${this.baseUrlValue}/get_weight_now?timeout=5`)
       const data = await response.json()
@@ -207,9 +296,19 @@ export default class extends Controller {
         })
       } else {
         this.log("No weight reading available")
+        // Mostrar mensaje de error en el display de peso
+        this.updateWeight("Error", "--")
       }
     } catch (error) {
       this.log(`Error reading weight: ${error.message}`)
+      // Mostrar mensaje de error en el display de peso
+      this.updateWeight("Error", "--")
+    } finally {
+      // Restaurar el botón
+      if (this.hasReadButtonTarget) {
+        this.readButtonTarget.innerHTML = "Leer ahora";
+        this.readButtonTarget.disabled = false;
+      }
     }
   }
 
@@ -361,6 +460,9 @@ export default class extends Controller {
         case "error":
           this.statusTarget.className = "px-2 py-1 rounded text-sm font-medium bg-red-100 text-red-800"
           break
+        case "warning":
+          this.statusTarget.className = "px-2 py-1 rounded text-sm font-medium bg-yellow-100 text-yellow-800"
+          break
         case "info":
         default:
           this.statusTarget.className = "px-2 py-1 rounded text-sm font-medium bg-blue-100 text-blue-800"
@@ -444,9 +546,19 @@ export default class extends Controller {
   onPortChange(event) {
     const selectedPort = event.target.value
     if (selectedPort) {
+      // Guardar el puerto seleccionado antes de guardar la configuración
+      const selectedPortText = event.target.options[event.target.selectedIndex].text;
+      
       // Trigger Rails form submission for automatic saving
       this.saveConfiguration({ serial_port: selectedPort })
       this.log(`Puerto seleccionado: ${selectedPort}`)
+      
+      // Restaurar el puerto seleccionado después de guardar
+      setTimeout(() => {
+        if (this.hasPortTarget) {
+          this.portTarget.value = selectedPort;
+        }
+      }, 100);
     }
   }
 
@@ -480,7 +592,31 @@ export default class extends Controller {
     if (formId) {
       const form = document.getElementById(formId);
       if (form) {
-        form.requestSubmit(); // Use requestSubmit for better Rails integration
+        // Prevenir la recarga de la página
+        form.addEventListener('submit', (e) => {
+          e.preventDefault();
+        });
+        
+        // Usar fetch para enviar la solicitud sin recargar la página
+        const formData = new FormData(form);
+        fetch(form.action, {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            this.log(`Configuración guardada: ${JSON.stringify(configData)}`);
+          } else {
+            this.log(`Error al guardar configuración: ${data.message}`);
+          }
+        })
+        .catch(error => {
+          this.log(`Error de red al guardar configuración: ${error.message}`);
+        });
       }
     }
   }

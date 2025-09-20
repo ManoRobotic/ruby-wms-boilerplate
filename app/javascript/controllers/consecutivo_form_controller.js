@@ -9,6 +9,13 @@ export default class extends Controller {
     this.currentWeight = null
     this.listenForWeightUpdates()
     this.isManualMode = false
+    
+    // Escuchar el nuevo evento de peso actualizado desde la báscula
+    this.element.addEventListener('scale:weightUpdated', (event) => {
+      console.log('Received scale:weightUpdated event:', event.detail);
+      this.currentWeight = parseFloat(event.detail.weight);
+      this.calculateWeights(); // Trigger calculations
+    });
   }
 
   toggleManualMode(event) {
