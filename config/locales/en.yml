@@ -32,6 +32,57 @@ en:
     sessions:
       admin:
         signed_in: 'Login Successfully'
+    confirmations:
+      confirmed: "Your email has been successfully confirmed."
+      send_instructions: "You will receive an email with instructions to confirm your email within a few minutes."
+      send_paranoid_instructions: "If your email exists in our database, you will receive an email with instructions to confirm it within a few minutes."
+    failure:
+      already_authenticated: "You are already signed in."
+      inactive: "Your account has not been activated yet."
+      invalid: "Invalid %{authentication_keys} or password."
+      locked: "Your account is locked."
+      last_attempt: "You have one more attempt before your account is locked."
+      not_found_in_database: "Invalid %{authentication_keys} or password."
+      timeout: "Your session has expired. Please sign in again."
+      unauthenticated: "You need to sign in or register before continuing."
+      unconfirmed: "You must confirm your email before continuing."
+    mailer:
+      confirmation_instructions:
+        subject: "Confirmation Instructions"
+      reset_password_instructions:
+        subject: "Password Recovery Instructions"
+      unlock_instructions:
+        subject: "Account Unlock Instructions"
+      email_changed:
+        subject: "Email Changed"
+      password_change:
+        subject: "Password Changed"
+    omniauth_callbacks:
+      failure: "We could not authenticate your %{kind} account for the following reason: \"%{reason}\"."
+      success: "You have been successfully authenticated with your %{kind} account."
+    passwords:
+      no_token: "You cannot access this page without coming from the password recovery email. If you came from there, make sure to use the full URL."
+      send_instructions: "You will receive an email with instructions to recover your password within a few minutes."
+      send_paranoid_instructions: "If your email exists in our database, you will receive a link to recover your password within a few minutes."
+      updated: "Your password was successfully changed. You are now signed in."
+      updated_not_active: "Your password was successfully changed."
+    registrations:
+      destroyed: "Goodbye! Your account has been deleted. We hope to see you again soon."
+      signed_up: "Welcome! You have successfully registered."
+      signed_up_but_inactive: "You have registered successfully, but your account has not been activated yet."
+      signed_up_but_locked: "You have registered successfully, but your account is locked."
+      signed_up_but_unconfirmed: "We have sent you an email with a confirmation link. Please check your inbox."
+      update_needs_confirmation: "You updated your account successfully, but we need to verify your new email. Please check your email and click the confirmation link."
+      updated: "Your account was successfully updated."
+      updated_but_not_signed_in: "Your account was successfully updated, but since your password changed, you need to sign in again."
+    sessions:
+      signed_in: "Sign in successful."
+      signed_out: "Sign out successful."
+      already_signed_out: "Sign out successful."
+    unlocks:
+      send_instructions: "You will receive an email with instructions to unlock your account within a few minutes."
+      send_paranoid_instructions: "If your account exists, you will receive an email with instructions to unlock it within a few minutes."
+      unlocked: "Your account has been successfully unlocked. Please sign in to continue."
   footer:
     info: '2024 CoinMex. All rights reserved.'
     about_coinmex: 'About CoinMex'
