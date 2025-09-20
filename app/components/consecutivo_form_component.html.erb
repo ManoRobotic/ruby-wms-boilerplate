@@ -85,19 +85,6 @@
              data-consecutivo-form-target="serialSection">
           <h4 class="font-medium text-gray-700 mb-1.5 text-sm">Control de Pesaje</h4>
           
-          <!-- Puerto Serial -->
-          <div class="mb-2">
-            <label class="block text-xs font-medium text-gray-600 mb-1" for="serial_port_select">Puerto Serial</label>
-            <select id="serial_port_select" name="serial_port_select" data-consecutivo-scale-target="portSelect" 
-                    class="w-full text-xs rounded border-gray-300 focus:border-blue-500 focus:ring-blue-500">
-              <option value="">Detectando puertos...</option>
-            </select>
-            <div class="flex items-center mt-2">
-              <input id="auto-save-checkbox" type="checkbox" data-consecutivo-scale-target="autoSaveCheckbox" data-action="change->consecutivo-scale#saveAutoSaveState" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
-              <label for="auto-save-checkbox" class="ml-2 block text-sm text-gray-900">Guardar al recibir peso</label>
-            </div>
-          </div>
-          
           <!-- Status de Conexión -->
           <div class="flex items-center justify-between mb-1.5">
             <span class="text-sm font-medium text-gray-600">Estado:</span>
