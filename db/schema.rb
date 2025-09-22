@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_17_081126) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_22_190342) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -72,6 +72,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_17_081126) do
     t.string "printer_parity"
     t.integer "printer_stop_bits"
     t.integer "printer_data_bits"
+    t.string "serial_server_url"
     t.index ["company_id"], name: "index_admins_on_company_id"
     t.index ["email"], name: "index_admins_on_email", unique: true
     t.index ["reset_password_token"], name: "index_admins_on_reset_password_token", unique: true
@@ -119,6 +120,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_17_081126) do
     t.string "last_sync_checksum"
     t.integer "total_orders_synced"
     t.boolean "auto_save_consecutivo"
+    t.string "serial_server_url"
+    t.string "serial_service_url"
   end
 
   create_table "cycle_count_items", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|

@@ -5,8 +5,8 @@ require 'json'
 require 'uri'
 
 class SerialCommunicationService
-  # Hardcodear la URL del servidor serial
-  BASE_URL = 'http://192.168.200.16:5000'
+  # Use dynamic URL from company configuration
+  # BASE_URL = 'http://192.168.1.91:5000'  # This is now configured per company
   
   class << self
     def health_check
@@ -152,7 +152,8 @@ class SerialCommunicationService
     private
 
     def get(endpoint)
-      uri = URI("#{BASE_URL}#{endpoint}")
+      base_url = get_base_url
+      uri = URI("#{base_url}#{endpoint}")
       http = Net::HTTP.new(uri.host, uri.port)
       http.read_timeout = 10
       
@@ -164,7 +165,8 @@ class SerialCommunicationService
     end
 
     def post(endpoint, payload = {})
-      uri = URI("#{BASE_URL}#{endpoint}")
+      base_url = get_base_url
+      uri = URI("#{base_url}#{endpoint}")
       http = Net::HTTP.new(uri.host, uri.port)
       http.read_timeout = 10
       
@@ -174,6 +176,13 @@ class SerialCommunicationService
       
       response = http.request(request)
       parse_response(response)
+    end
+
+    def get_base_url
+      # For service classes, we need to get company from database directly
+      # In a multi-company setup, we would need to pass the company context
+      company = Company.first
+      company&.serial_service_base_url || 'http://192.168.1.91:5000'
     end
 
     def parse_response(response)

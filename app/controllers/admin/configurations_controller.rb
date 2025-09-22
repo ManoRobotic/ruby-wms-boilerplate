@@ -218,9 +218,9 @@ class Admin::ConfigurationsController < AdminController
     
     # Handle both formats: direct parameters and nested under company
     params_to_update = if params[:company].present?
-                        params.require(:company).permit(:serial_port, :printer_port, :serial_baud_rate, :printer_baud_rate, :serial_parity, :printer_parity, :serial_stop_bits, :printer_stop_bits, :serial_data_bits, :printer_data_bits, :auto_save_consecutivo)
+                        params.require(:company).permit(:serial_port, :printer_port, :serial_baud_rate, :printer_baud_rate, :serial_parity, :printer_parity, :serial_stop_bits, :printer_stop_bits, :serial_data_bits, :printer_data_bits, :auto_save_consecutivo, :serial_service_url)
                       else
-                        params.permit(:serial_port, :printer_port, :serial_baud_rate, :printer_baud_rate, :serial_parity, :printer_parity, :serial_stop_bits, :printer_stop_bits, :serial_data_bits, :printer_data_bits, :auto_save_consecutivo)
+                        params.permit(:serial_port, :printer_port, :serial_baud_rate, :printer_baud_rate, :serial_parity, :printer_parity, :serial_stop_bits, :printer_stop_bits, :serial_data_bits, :printer_data_bits, :auto_save_consecutivo, :serial_service_url)
                       end
     
     # Solo actualizar los campos que se envían
@@ -246,7 +246,7 @@ class Admin::ConfigurationsController < AdminController
   end
 
   def configurations_params
-    params.require(:admin).permit(:google_sheets_enabled, :sheet_id, :serial_port, :serial_baud_rate, :serial_parity, :serial_stop_bits, :serial_data_bits, :printer_port, :printer_baud_rate, :printer_parity, :printer_stop_bits, :printer_data_bits)
+    params.require(:admin).permit(:google_sheets_enabled, :sheet_id, :serial_port, :serial_baud_rate, :serial_parity, :serial_stop_bits, :serial_data_bits, :printer_port, :printer_baud_rate, :printer_parity, :printer_stop_bits, :printer_data_bits, :serial_service_url)
     # Ya no requerimos worksheet_gid porque se auto-detecta
   end
 end

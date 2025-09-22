@@ -5,6 +5,9 @@ class Company < ApplicationRecord
   has_many :warehouses
   has_many :admins
 
+  # Validations
+  validates :serial_service_url, format: { with: URI::DEFAULT_PARSER.make_regexp(%w[http https]), message: "debe ser una URL válida" }, allow_blank: true
+
   # Google Sheets Configuration
   def google_sheets_configured?
     google_sheets_enabled? && 
@@ -45,5 +48,14 @@ class Company < ApplicationRecord
 
   def scale_and_printer_configured?
     serial_configured? && printer_configured?
+  end
+
+  # Serial service URL helpers
+  def serial_service_url_configured?
+    serial_service_url.present?
+  end
+
+  def serial_service_base_url
+    serial_service_url.presence || 'http://192.168.1.91:5000'
   end
 end
