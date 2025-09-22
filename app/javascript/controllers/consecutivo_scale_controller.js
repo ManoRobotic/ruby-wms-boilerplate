@@ -125,7 +125,7 @@ export default class extends Controller {
     this.isReading = true
     // Mostrar spinner inmediatamente al iniciar la lectura automática
     this.showSpinner()
-    this.updateStatus("Connecting to scale...", "info")
+    this.updateStatus("Letendo datos de la bascula...", "info")
     
     try {
       // Conectar con la báscula
