@@ -9,20 +9,8 @@ export default class extends Controller {
   }
 
   connect() {
-    // Get the base URL from the company configuration if available
-    const companyConfig = document.querySelector('[data-serial-company-config]')
-    if (companyConfig) {
-      try {
-        const config = JSON.parse(companyConfig.textContent)
-        if (config.serial_service_url) {
-          this.baseUrlValue = config.serial_service_url.replace(/\/$/, '') // Remove trailing slash
-        }
-      } catch (e) {
-        console.error('Error parsing company config:', e)
-      }
-    }
-    
-    this.baseUrlValue = this.baseUrlValue || "/api/serial"
+    // Always use our Rails API as a proxy for external serial service requests
+    this.baseUrlValue = "/api/serial"
     this.pollIntervalValue = this.pollIntervalValue || 2000
     this.isPolling = false
     
@@ -42,7 +30,7 @@ export default class extends Controller {
     // Cargar configuración guardada
     this.loadSavedConfiguration()
     
-    this.log("Serial controller initialized")
+    this.log("Serial controller initialized with base URL: " + this.baseUrlValue)
   }
 
   // Método para cargar la configuración guardada
@@ -89,14 +77,23 @@ export default class extends Controller {
       const data = await response.json()
       
       if (data.status === 'healthy') {
-        this.updateStatus("✓ Serial server connected", "success")
+        // Check individual service statuses
+        const printerStatus = data.services && data.services.printer ? "✓" : "✗"
+        const scaleStatus = data.services && data.services.scale ? "✓" : "✗"
+        this.updateStatus(`✓ Serial server connected`, "success")
         await this.loadPorts()
       } else {
-        this.updateStatus("✗ Serial server unavailable", "error")
+        this.updateStatus(`✗ Serial server unavailable: ${data.message || 'Unknown error'}`, "error")
       }
     } catch (error) {
-      this.updateStatus("✗ Cannot reach serial server", "error")
-      this.log(`Health check error: ${error.message}`)
+      // Better error handling for CORS issues
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        this.updateStatus("✗ CORS or Network error - Check console for details", "error")
+        this.log(`CORS/Network error: ${error.message}`)
+      } else {
+        this.updateStatus("✗ Cannot reach serial server", "error")
+        this.log(`Health check error: ${error.message}`)
+      }
     }
   }
 

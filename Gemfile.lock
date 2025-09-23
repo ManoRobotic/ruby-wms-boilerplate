@@ -365,6 +365,8 @@ GEM
     rack (3.2.1)
     rack-attack (6.7.0)
       rack (>= 1.0, < 4)
+    rack-cors (2.0.2)
+      rack (>= 2.0.0)
     rack-session (2.1.1)
       base64 (>= 0.1.0)
       rack (>= 3.0.0)
@@ -603,6 +605,7 @@ DEPENDENCIES
   pry (~> 0.15.2)
   puma (>= 5.0)
   rack-attack (~> 6.6)
+  rack-cors (~> 2.0)
   rails (~> 8.0.2)
   rails-controller-testing
   redis

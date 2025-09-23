@@ -11,10 +11,11 @@ class SerialCommunicationService
   class << self
     def health_check
       response = get('/health')
-      response['status'] == 'healthy'
+      # Return the full response instead of just checking status
+      response
     rescue StandardError => e
       Rails.logger.error "Serial server health check failed: #{e.message}"
-      false
+      { 'status' => 'error', 'message' => "Health check failed: #{e.message}" }
     end
 
     def list_serial_ports
@@ -155,6 +156,13 @@ class SerialCommunicationService
       base_url = get_base_url
       uri = URI("#{base_url}#{endpoint}")
       http = Net::HTTP.new(uri.host, uri.port)
+      
+      # Use SSL if the URL is HTTPS
+      if uri.scheme == 'https'
+        http.use_ssl = true
+        http.verify_mode = OpenSSL::SSL::VERIFY_NONE # For development only, use proper certificates in production
+      end
+      
       http.read_timeout = 10
       
       request = Net::HTTP::Get.new(uri)
@@ -168,6 +176,13 @@ class SerialCommunicationService
       base_url = get_base_url
       uri = URI("#{base_url}#{endpoint}")
       http = Net::HTTP.new(uri.host, uri.port)
+      
+      # Use SSL if the URL is HTTPS
+      if uri.scheme == 'https'
+        http.use_ssl = true
+        http.verify_mode = OpenSSL::SSL::VERIFY_NONE # For development only, use proper certificates in production
+      end
+      
       http.read_timeout = 10
       
       request = Net::HTTP::Post.new(uri)
@@ -182,7 +197,14 @@ class SerialCommunicationService
       # For service classes, we need to get company from database directly
       # In a multi-company setup, we would need to pass the company context
       company = Company.first
-      company&.serial_service_base_url 
+      url = company&.serial_service_url || 'http://192.168.1.91:5000'
+      
+      # Ensure the URL has a protocol
+      unless url.match?(/^https?:\/\//)
+        url = "http://#{url}"
+      end
+      
+      url
     end
 
     def parse_response(response)

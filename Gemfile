@@ -76,6 +76,8 @@ gem "google_drive"
 gem "prawn"
 gem "prawn-table"
 
+# CORS handling
+gem "rack-cors", "~> 2.0"
 
 gem "aws-sdk-s3"
 

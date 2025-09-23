@@ -5,9 +5,26 @@ class Api::SerialController < ApplicationController
   skip_before_action :authenticate_user_or_admin!  # Para permitir acceso a la API serial
   skip_before_action :verify_authenticity_token   # Para APIs sin CSRF
   
+  # Add CORS headers for all actions
+  before_action :set_cors_headers
+  
+  # Handle preflight OPTIONS requests
+  before_action :handle_preflight, only: [:health, :ports, :connect_scale, :disconnect_scale, 
+                                          :start_scale, :stop_scale, :read_weight, :last_reading,
+                                          :latest_readings, :connect_printer, :print_label,
+                                          :test_printer, :disconnect_printer, :get_weight_now]
+  
+  def handle_preflight
+    if request.method == 'OPTIONS'
+      set_cors_headers
+      render plain: '', content_type: 'text/plain'
+    end
+  end
+
   def health
-    if SerialCommunicationService.health_check
-      render json: { status: 'healthy', message: 'Serial server is running' }
+    response = SerialCommunicationService.health_check
+    if response
+      render json: response
     else
       render json: { status: 'error', message: 'Serial server is not available' }, status: 503
     end
@@ -130,7 +147,7 @@ class Api::SerialController < ApplicationController
     end
   end
 
-  # Endpoint especial para obtener peso con timeout para procesos de pesaje
+  # Endpoint especial para obtener peso en tiempo real con polling
   def get_weight_now
     timeout = params[:timeout]&.to_i || 10
     
@@ -145,5 +162,14 @@ class Api::SerialController < ApplicationController
     else
       render json: { status: 'error', message: 'No weight reading within timeout' }, status: 408
     end
+  end
+
+  private
+
+  def set_cors_headers
+    headers['Access-Control-Allow-Origin'] = '*'
+    headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, PATCH, DELETE, OPTIONS'
+    headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Content-Type, Accept, Authorization'
+    headers['Access-Control-Max-Age'] = '1728000'
   end
 end
