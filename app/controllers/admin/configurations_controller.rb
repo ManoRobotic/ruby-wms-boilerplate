@@ -1,9 +1,30 @@
 class Admin::ConfigurationsController < AdminController
-  before_action :check_edit_permissions, only: [:edit, :update]
 
   def show
     @admin = current_admin || current_user
     # Use company configuration for display
+    
+    # Handle form submission
+    if request.patch? && params[:company].present?
+      handle_configuration_update
+    end
+  end
+
+  def handle_configuration_update
+    unless @admin.company
+      redirect_to admin_configurations_path, alert: "No se puede actualizar la configuración: el administrador no está asociado a una empresa."
+      return
+    end
+    
+    # Permit only the specific parameters we want to update
+    permitted_params = params.require(:company).permit(:name, :serial_service_url)
+    
+    if @admin.company.update(permitted_params)
+      redirect_to admin_configurations_path, notice: "Configuración actualizada exitosamente."
+    else
+      # Re-render the show view with errors
+      render :show, status: :unprocessable_entity
+    end
   end
 
   def saved_config
@@ -17,51 +38,6 @@ class Admin::ConfigurationsController < AdminController
       }
     else
       render json: {}
-    end
-  end
-
-  def edit
-    @admin = current_admin || current_user
-    # Use company configuration for editing
-  end
-
-  def update
-    @admin = current_admin || current_user
-    
-    # Update company configuration instead of admin configuration
-    unless @admin.company
-      @admin.errors.add(:base, "No se puede actualizar la configuración: el administrador no está asociado a una empresa.")
-      render :edit, status: :unprocessable_entity
-      return
-    end
-    
-    if @admin.company.update(configurations_params)
-      # Validar las credenciales si se proporcionaron
-      if params[:admin][:google_credentials_json].present?
-        begin
-          credentials_hash = JSON.parse(params[:admin][:google_credentials_json])
-          @admin.company.set_google_credentials(credentials_hash)
-          
-          unless @admin.company.validate_google_credentials
-            @admin.company.errors.add(:google_credentials, "Las credenciales de Google no tienen el formato correcto")
-            render :edit, status: :unprocessable_entity
-            return
-          end
-          
-          @admin.company.save!
-          redirect_to admin_configurations_path, notice: "Configuración de Google Sheets actualizada exitosamente."
-        rescue JSON::ParserError
-          @admin.company.errors.add(:google_credentials, "El JSON de credenciales no es válido")
-          render :edit, status: :unprocessable_entity
-        rescue => e
-          @admin.company.errors.add(:base, "Error al procesar las credenciales: #{e.message}")
-          render :edit, status: :unprocessable_entity
-        end
-      else
-        redirect_to admin_configurations_path, notice: "Configuración actualizada exitosamente."
-      end
-    else
-      render :edit, status: :unprocessable_entity
     end
   end
 
@@ -243,10 +219,5 @@ class Admin::ConfigurationsController < AdminController
     if current_user&.operador?
       redirect_to admin_configurations_path, alert: "No tienes permisos para editar la configuración."
     end
-  end
-
-  def configurations_params
-    params.require(:admin).permit(:google_sheets_enabled, :sheet_id, :serial_port, :serial_baud_rate, :serial_parity, :serial_stop_bits, :serial_data_bits, :printer_port, :printer_baud_rate, :printer_parity, :printer_stop_bits, :printer_data_bits, :serial_service_url)
-    # Ya no requerimos worksheet_gid porque se auto-detecta
   end
 end

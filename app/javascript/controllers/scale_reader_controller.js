@@ -21,7 +21,6 @@ export default class extends Controller {
   }
 
   async connectScale() {
-    console.log("Connecting to scale...")
     this.updateStatus("Conectando...", "connecting")
     this.connectButtonTarget.disabled = true
     

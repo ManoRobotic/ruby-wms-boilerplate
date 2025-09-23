@@ -182,7 +182,7 @@ class SerialCommunicationService
       # For service classes, we need to get company from database directly
       # In a multi-company setup, we would need to pass the company context
       company = Company.first
-      company&.serial_service_base_url || 'http://192.168.1.91:5000'
+      company&.serial_service_base_url 
     end
 
     def parse_response(response)

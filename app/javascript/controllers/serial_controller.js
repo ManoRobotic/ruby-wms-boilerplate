@@ -9,6 +9,19 @@ export default class extends Controller {
   }
 
   connect() {
+    // Get the base URL from the company configuration if available
+    const companyConfig = document.querySelector('[data-serial-company-config]')
+    if (companyConfig) {
+      try {
+        const config = JSON.parse(companyConfig.textContent)
+        if (config.serial_service_url) {
+          this.baseUrlValue = config.serial_service_url.replace(/\/$/, '') // Remove trailing slash
+        }
+      } catch (e) {
+        console.error('Error parsing company config:', e)
+      }
+    }
+    
     this.baseUrlValue = this.baseUrlValue || "/api/serial"
     this.pollIntervalValue = this.pollIntervalValue || 2000
     this.isPolling = false
