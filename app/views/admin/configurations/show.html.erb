@@ -19,56 +19,8 @@
 
     <!-- Formulario de Configuración -->
     <div class="px-6 pb-6">
-      <%= form_with model: @admin.company, url: admin_configurations_path, local: true, method: :patch, class: "mb-8" do |form| %>
-        <div class="bg-white rounded-xl border border-blue-gem-200 shadow-sm p-6">
-          <div class="flex items-center justify-between mb-6">
-            <h2 class="text-xl font-bold text-gray-900">Configuración General</h2>
-            <div class="p-2 rounded-full bg-blue-gem-100">
-              <i class="fa-solid fa-gear text-blue-gem-600"></i>
-            </div>
-          </div>
-          
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Companies -->
-            <div>
-              <label for="companies" class="block text-sm font-medium text-gray-700 mb-2">
-                Nombre de la Empresa
-              </label>
-              <%= form.text_field :name, 
-                  id: "companies",
-                  placeholder: "Nombre de la empresa",
-                  class: "block w-full text-sm rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500",
-                  value: @admin.company&.name %>
-              <p class="mt-1 text-xs text-gray-500">
-                Nombre de la empresa asociada.
-              </p>
-            </div>
-
-            <!-- Serial Service URL -->
-            <div>
-              <label for="serial_service_url" class="block text-sm font-medium text-gray-700 mb-2">
-                URL del Servicio Serial
-              </label>
-              <%= form.text_field :serial_service_url, 
-                  id: "serial_service_url",
-                  placeholder: "http://192.168.1.91:5000",
-                  class: "block w-full text-sm rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500",
-                  value: @admin.company&.serial_service_url %>
-              <p class="mt-1 text-xs text-gray-500">
-                La URL del servicio serial para la báscula e impresora.
-              </p>
-            </div>
-          </div>
-          
-          <div class="mt-6">
-            <%= form.submit "Guardar Configuración", 
-                class: "px-4 py-2 bg-blue-gem-500 text-white text-sm font-medium rounded-lg hover:bg-blue-gem-600 transition-colors" %>
-          </div>
-        </div>
-      <% end %>
-
-      <!-- Layout 2 Columnas -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+      <!-- Layout 2 Columnas: Comunicación Serial y Estado de Configuración -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Columna Izquierda: Comunicación Serial -->
         <div class="bg-white rounded-xl border border-blue-gem-200 shadow-sm p-6">
           <div class="flex items-center justify-between mb-6">
@@ -96,7 +48,45 @@
             </div>
           </div>
           
-          <div class="space-y-4">
+          <%= form_with model: @admin.company, url: admin_configurations_path, local: true, method: :patch, class: "space-y-6" do |form| %>
+            <div class="space-y-6">
+              <div>
+                <label for="companies" class="block text-sm font-medium text-gray-700 mb-2">
+                  Nombre de la Empresa
+                </label>
+                <%= form.text_field :name, 
+                    id: "companies",
+                    placeholder: "Nombre de la empresa",
+                    class: "block w-full text-sm rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500",
+                    value: @admin.company&.name %>
+                <p class="mt-1 text-xs text-gray-500">
+                  Flexiempaques
+                  Nombre de la empresa asociada.
+                </p>
+              </div>
+
+              <div>
+                <label for="serial_service_url" class="block text-sm font-medium text-gray-700 mb-2">
+                  URL del Servicio Serial
+                </label>
+                <%= form.text_field :serial_service_url, 
+                    id: "serial_service_url",
+                    placeholder: "https://1xhof6kqlfil.share.zrok.io",
+                    class: "block w-full text-sm rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500",
+                    value: @admin.company&.serial_service_url %>
+                <p class="mt-1 text-xs text-gray-500">
+                  La URL del servicio serial para la báscula e impresora.
+                </p>
+              </div>
+            </div>
+            
+            <div class="mt-6">
+              <%= form.submit "Guardar Configuración", 
+                  class: "px-4 py-2 bg-blue-gem-500 text-white text-sm font-medium rounded-lg hover:bg-blue-gem-600 transition-colors" %>
+            </div>
+          <% end %>
+
+          <div class="space-y-4 mt-6 pt-6 border-t border-black">
             <div class="flex items-center justify-between">
               <span class="text-sm text-gray-600">Puerto Serie (Báscula):</span>
               <% if @admin.company&.serial_port.present? %>
@@ -120,7 +110,18 @@
 
       <!-- Panel de logs abajo de ambas columnas -->
       <div class="mt-6">
-        <%= render 'admin/serial/logs_panel' %>
+        <div class="logs-section bg-white rounded-xl border border-blue-gem-200 shadow-sm p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-900">Registro de Comunicación Serial</h3>
+            <button id="external-clear-logs" 
+                    class="px-3 py-1 bg-white text-gray-700 text-sm font-medium rounded-md border border-gray-300 hover:bg-gray-50 transition-colors">
+              Limpiar
+            </button>
+          </div>
+          <div id="external-serial-logs" 
+               class="h-32 overflow-y-auto p-3 bg-gray-900 text-green-400 text-xs font-mono rounded border border-gray-300">
+          </div>
+        </div>
       </div>
     </div>
   </div>

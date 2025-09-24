@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["status", "weight", "port", "logs", "printerStatus", "readButton"]
+  static targets = ["status", "weight", "scalePort", "printerPort", "logs", "printerStatus", "scaleStatus", "readButton"]
   static values = { 
     baseUrl: String,
     autoConnect: Boolean,
@@ -34,12 +34,25 @@ export default class extends Controller {
       this.startHealthCheck()
     }
     
-    // Add event listener for port selection changes
-    if (this.hasPortTarget) {
-      this.portTarget.addEventListener('change', (event) => {
-        this.onPortChange(event)
+    // Add event listener for scale port selection changes
+    if (this.hasScalePortTarget) {
+      this.scalePortTarget.addEventListener('change', (event) => {
+        this.onScalePortChange(event)
       })
     }
+    
+    // Add event listener for printer port selection changes
+    if (this.hasPrinterPortTarget) {
+      this.printerPortTarget.addEventListener('change', (event) => {
+        this.onPrinterPortChange(event)
+      })
+    }
+    
+    // Setup external logs panel if it exists
+    this.setupExternalLogs()
+    
+    // Setup external clear logs button if it exists
+    this.setupExternalClearLogs()
     
     // Cargar configuración guardada
     this.loadSavedConfiguration()
@@ -53,9 +66,14 @@ export default class extends Controller {
     fetch('/admin/configurations/saved_config')
       .then(response => response.json())
       .then(data => {
-        if (data.serial_port && this.hasPortTarget) {
-          // Establecer el puerto guardado en el select
-          this.portTarget.value = data.serial_port;
+        if (data.serial_port && this.hasScalePortTarget) {
+          // Establecer el puerto guardado en el select de la báscula
+          this.scalePortTarget.value = data.serial_port;
+        }
+        
+        if (data.printer_port && this.hasPrinterPortTarget) {
+          // Establecer el puerto guardado en el select de la impresora
+          this.printerPortTarget.value = data.printer_port;
         }
       })
       .catch(error => {
@@ -107,38 +125,78 @@ export default class extends Controller {
       const response = await fetch(`${this.baseUrlValue}/ports`)
       const data = await response.json()
       
-      if (data.status === 'success' && this.hasPortTarget) {
-        // Guardar el puerto actualmente seleccionado
-        const currentSelection = this.portTarget.value;
-        
-        // Limpiar opciones actuales
-        this.portTarget.innerHTML = '<option value="">Detectando puertos...</option>'
-        
-        // Agregar puertos disponibles
-        if (data.ports && data.ports.length > 0) {
-          this.portTarget.innerHTML = '<option value="">Seleccionar puerto...</option>'
-          data.ports.forEach(port => {
-            const option = document.createElement('option')
-            option.value = port.device
-            option.textContent = `${port.device} - ${port.description || 'Dispositivo serial'}`
-            this.portTarget.appendChild(option)
-          })
+      if (data.status === 'success') {
+        // Cargar puertos en el dropdown de la báscula si existe
+        if (this.hasScalePortTarget) {
+          // Guardar el puerto actualmente seleccionado
+          const currentScaleSelection = this.scalePortTarget.value;
           
-          // Restaurar selección anterior si existe
-          if (currentSelection) {
-            this.portTarget.value = currentSelection
+          // Limpiar opciones actuales
+          this.scalePortTarget.innerHTML = '<option value="">Detectando puertos...</option>'
+          
+          // Agregar puertos disponibles
+          if (data.ports && data.ports.length > 0) {
+            this.scalePortTarget.innerHTML = '<option value="">Seleccionar puerto...</option>'
+            data.ports.forEach(port => {
+              const option = document.createElement('option')
+              option.value = port.device
+              option.textContent = `${port.device} - ${port.description || 'Dispositivo serial'}`            
+              this.scalePortTarget.appendChild(option)
+            })
+            
+            // Restaurar selección anterior si existe
+            if (currentScaleSelection) {
+              this.scalePortTarget.value = currentScaleSelection
+            }
           } else {
-            // Cargar configuración guardada si no hay selección previa
-            this.loadSavedConfiguration()
+            this.scalePortTarget.innerHTML = '<option value="">No se encontraron puertos</option>'
           }
-        } else {
-          this.portTarget.innerHTML = '<option value="">No se encontraron puertos</option>'
+        }
+        
+        // Cargar puertos en el dropdown de la impresora si existe
+        if (this.hasPrinterPortTarget) {
+          // Guardar el puerto actualmente seleccionado
+          const currentPrinterSelection = this.printerPortTarget.value;
+          
+          // Limpiar opciones actuales
+          this.printerPortTarget.innerHTML = '<option value="">Detectando puertos...</option>'
+          
+          // Agregar puertos disponibles
+          if (data.ports && data.ports.length > 0) {
+            this.printerPortTarget.innerHTML = '<option value="">Seleccionar puerto...</option>'
+            data.ports.forEach(port => {
+              const option = document.createElement('option')
+              option.value = port.device
+              option.textContent = `${port.device} - ${port.description || 'Dispositivo serial'}`            
+              this.printerPortTarget.appendChild(option)
+            })
+            
+            // Restaurar selección anterior si existe
+            if (currentPrinterSelection) {
+              this.printerPortTarget.value = currentPrinterSelection
+            }
+          } else {
+            this.printerPortTarget.innerHTML = '<option value="">No se encontraron puertos</option>'
+          }
+        }
+        
+        
+      } else {
+        // Handle case where API returns non-success status
+        if (this.hasScalePortTarget) {
+          this.scalePortTarget.innerHTML = '<option value="">No se encontraron puertos</option>'
+        }
+        if (this.hasPrinterPortTarget) {
+          this.printerPortTarget.innerHTML = '<option value="">No se encontraron puertos</option>'
         }
       }
     } catch (error) {
       this.log(`Error loading ports: ${error.message}`)
-      if (this.hasPortTarget) {
-        this.portTarget.innerHTML = '<option value="">Error al detectar puertos</option>'
+      if (this.hasScalePortTarget) {
+        this.scalePortTarget.innerHTML = '<option value="">Error al detectar puertos</option>'
+      }
+      if (this.hasPrinterPortTarget) {
+        this.printerPortTarget.innerHTML = '<option value="">Error al detectar puertos</option>'
       }
     }
   }
@@ -146,9 +204,13 @@ export default class extends Controller {
   async refreshPorts(event) {
     if (event) event.preventDefault();
     
-    // Mostrar mensaje de carga
-    if (this.hasPortTarget) {
-      this.portTarget.innerHTML = '<option value="">Detectando puertos...</option>';
+    // Mostrar mensaje de carga en ambos dropdowns
+    if (this.hasScalePortTarget) {
+      this.scalePortTarget.innerHTML = '<option value="">Detectando puertos...</option>';
+    }
+    
+    if (this.hasPrinterPortTarget) {
+      this.printerPortTarget.innerHTML = '<option value="">Detectando puertos...</option>';
     }
     
     // Cargar puertos
@@ -160,7 +222,7 @@ export default class extends Controller {
   async connectScale(event) {
     event.preventDefault()
     
-    const port = this.hasPortTarget ? this.portTarget.value : '/dev/ttyS0'
+    const port = this.hasScalePortTarget ? this.scalePortTarget.value : '/dev/ttyS0'
     const baudrate = 115200
     
     if (!port) {
@@ -179,6 +241,7 @@ export default class extends Controller {
       
       if (data.status === 'success') {
         this.updateStatus("✓ Scale connected", "success")
+        this.updateScaleStatus("Conectada", "success")
         this.log(`Scale connected on ${port}`)
         
         // Trigger Rails form submission for automatic saving
@@ -187,6 +250,7 @@ export default class extends Controller {
         await this.startReading()
       } else {
         this.updateStatus("✗ Failed to connect scale", "error")
+        this.updateScaleStatus("Error", "error")
         this.log(`Connection failed: ${data.message}`)
       }
     } catch (error) {
@@ -206,11 +270,11 @@ export default class extends Controller {
       })
       
       const data = await response.json()
-      
-      if (data.status === 'success') {
-        this.updateStatus("Scale disconnected", "info")
-        this.updateWeight("--", "--")
-        this.log("Scale disconnected")
+        if (data.status === "success") {
+        this.updateStatus("Scale disconnected", "info");
+        this.updateScaleStatus("Desconectada", "info");
+        this.updateWeight("--", "--");
+        this.log("Scale disconnected");
       }
     } catch (error) {
       this.log(`Error disconnecting: ${error.message}`)
@@ -330,21 +394,33 @@ export default class extends Controller {
   async connectPrinter(event) {
     event.preventDefault()
     
+    // Get the selected printer port if available
+    const printerPort = this.hasPrinterPortTarget ? this.printerPortTarget.value : null
+    
     try {
+      const requestBody = {}
+      if (printerPort) {
+        requestBody.port = printerPort
+      }
+      
       const response = await fetch(`${this.baseUrlValue}/connect_printer`, {
-        method: 'POST'
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody)
       })
       
       const data = await response.json()
       
       if (data.status === 'success') {
-        this.updatePrinterStatus("✓ Printer connected", "success")
-        this.log("Printer connected")
+        this.updatePrinterStatus("Conectada", "success")
+        this.log(`Printer connected on ${printerPort || 'auto-detected port'}`)
         
-        // Trigger Rails form submission for automatic saving
-        this.saveConfiguration({ printer_port: 'auto_detected' })
+        // Trigger Rails form submission for automatic saving if we have a specific port
+        if (printerPort) {
+          this.saveConfiguration({ printer_port: printerPort })
+        }
       } else {
-        this.updatePrinterStatus("✗ Failed to connect printer", "error")
+        this.updatePrinterStatus("Error", "error")
         this.log(`Printer connection failed: ${data.message}`)
       }
     } catch (error) {
@@ -511,6 +587,25 @@ export default class extends Controller {
     }
   }
 
+  updateScaleStatus(message, type = "info") {
+    if (this.hasScaleStatusTarget) {
+      this.scaleStatusTarget.textContent = message
+      // Use Tailwind classes instead of custom CSS
+      switch(type) {
+        case "success":
+          this.scaleStatusTarget.className = "px-2 py-1 rounded text-sm font-medium bg-green-100 text-green-800"
+          break
+        case "error":
+          this.scaleStatusTarget.className = "px-2 py-1 rounded text-sm font-medium bg-red-100 text-red-800"
+          break
+        case "info":
+        default:
+          this.scaleStatusTarget.className = "px-2 py-1 rounded text-sm font-medium bg-gray-100 text-gray-800"
+          break
+      }
+    }
+  }
+
   updatePrinterStatus(message, type = "info") {
     if (this.hasPrinterStatusTarget) {
       this.printerStatusTarget.textContent = message
@@ -524,7 +619,7 @@ export default class extends Controller {
           break
         case "info":
         default:
-          this.printerStatusTarget.className = "px-2 py-1 rounded text-sm font-medium bg-blue-100 text-blue-800"
+          this.printerStatusTarget.className = "px-2 py-1 rounded text-sm font-medium bg-gray-100 text-gray-800"
           break
       }
     }
@@ -549,31 +644,80 @@ export default class extends Controller {
         this.logsTarget.removeChild(this.logsTarget.firstChild)
       }
     }
+    
+    // Also add to external logs panel
+    this.appendToExternalLogs(logMessage)
   }
 
+  setupExternalLogs() {
+    this.externalLogsElement = document.getElementById('external-serial-logs');
+  }
+  
+  setupExternalClearLogs() {
+    const externalClearLogsButton = document.getElementById('external-clear-logs');
+    if (externalClearLogsButton) {
+      externalClearLogsButton.addEventListener('click', () => {
+        this.clearExternalLogs();
+      });
+    }
+  }
+  
   clearLogs() {
     if (this.hasLogsTarget) {
       this.logsTarget.innerHTML = ''
     }
+    this.clearExternalLogs();
+  }
+  
+  clearExternalLogs() {
+    if (this.externalLogsElement) {
+      this.externalLogsElement.innerHTML = '';
+    }
+  }
+  
+  appendToExternalLogs(message) {
+    if (this.externalLogsElement) {
+      const logLine = document.createElement('div');
+      logLine.textContent = message;
+      logLine.className = 'log-line';
+      
+      this.externalLogsElement.appendChild(logLine);
+      this.externalLogsElement.scrollTop = this.externalLogsElement.scrollHeight;
+      
+      // Mantener solo las últimas 50 líneas
+      while (this.externalLogsElement.children.length > 50) {
+        this.externalLogsElement.removeChild(this.externalLogsElement.firstChild);
+      }
+    }
   }
 
-  // Método para manejar cambios en la selección de puerto
-  onPortChange(event) {
+  // Método para manejar cambios en la selección de puerto de la báscula
+  onScalePortChange(event) {
     const selectedPort = event.target.value
     if (selectedPort) {
-      // Guardar el puerto seleccionado antes de guardar la configuración
-      const selectedPortText = event.target.options[event.target.selectedIndex].text;
-      
       // Trigger Rails form submission for automatic saving
       this.saveConfiguration({ serial_port: selectedPort })
-      this.log(`Puerto seleccionado: ${selectedPort}`)
+      this.log(`Puerto de báscula seleccionado: ${selectedPort}`)
       
-      // Restaurar el puerto seleccionado después de guardar
-      setTimeout(() => {
-        if (this.hasPortTarget) {
-          this.portTarget.value = selectedPort;
-        }
-      }, 100);
+      // If both scale and printer ports are the same, update the printer port selection too
+      if (this.hasPrinterPortTarget && this.printerPortTarget.value === selectedPort) {
+        this.saveConfiguration({ printer_port: selectedPort })
+      }
+    }
+  }
+
+  // Método para manejar cambios en la selección de puerto de la impresora
+  onPrinterPortChange(event) {
+    const selectedPort = event.target.value
+    if (selectedPort) {
+      // Trigger Rails form submission for automatic saving
+      this.saveConfiguration({ printer_port: selectedPort })
+      this.log(`Puerto de impresora seleccionado: ${selectedPort}`)
+      
+      // If both scale and printer ports are the same, update the scale port selection too
+      if (this.hasScalePortTarget && this.scalePortTarget.value === selectedPort) {
+        this.saveConfiguration({ serial_port: selectedPort })
+      }
     }
   }
 
