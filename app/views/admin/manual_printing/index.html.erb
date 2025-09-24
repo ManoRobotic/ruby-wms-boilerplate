@@ -77,12 +77,19 @@
             <!-- Format Selection -->
             <div class="bg-blue-gem-50 rounded-xl p-5 border border-blue-gem-100">
               <h3 class="text-lg font-semibold text-blue-gem-800 mb-4">Formato de Impresión</h3>
-              <div class="grid grid-cols-2 gap-4 mb-4">
+              <div class="grid grid-cols-3 gap-4 mb-4">
                 <div>
                   <%= form.radio_button :format_type, "bag", { checked: true, class: "absolute opacity-0 w-0 h-0 peer", data: { action: "change->print-form#toggleFormat" } } %>
                   <%= form.label :format_type_bag, "Formato Bolsa", class: "flex items-center justify-center p-4 bg-white border-2 border-blue-gem-200 rounded-lg cursor-pointer peer-checked:border-[#d4d5ff] peer-checked:bg-[#d4d5ff] transition" do %>
                     <i class="fa-solid fa-bag-shopping mr-2 text-blue-gem-600 peer-checked:text-white"></i>
                     <span class="font-medium text-blue-gem-800 peer-checked:text-white">Bolsa</span>
+                  <% end %>
+                </div>
+                <div>
+                  <%= form.radio_button :format_type, "roll", { class: "absolute opacity-0 w-0 h-0 peer", data: { action: "change->print-form#toggleFormat" } } %>
+                  <%= form.label :format_type_roll, "Formato Rollo", class: "flex items-center justify-center p-4 bg-white border-2 border-blue-gem-200 rounded-lg cursor-pointer peer-checked:border-[#d4d5ff] peer-checked:bg-[#d4d5ff] transition" do %>
+                    <i class="fa-solid fa-ribbon mr-2 text-blue-gem-600 peer-checked:text-white"></i>
+                    <span class="font-medium text-blue-gem-800 peer-checked:text-white">Rollo</span>
                   <% end %>
                 </div>
                 <div>
@@ -110,6 +117,25 @@
                 <div class="mt-3">
                   <%= form.label :pieces_count, "Número de Piezas", class: "block text-sm font-medium text-gray-700 mb-2" %>
                   <%= form.number_field :pieces_count, min: 1, value: 1, class: "block w-full px-4 py-3 text-base border border-blue-gem-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-gem-500 focus:border-blue-gem-500 transition" %>
+                </div>
+              </div>
+
+              <!-- Roll Format Fields (Hidden by default) -->
+              <div id="roll-format-fields" class="hidden">
+                <h4 class="text-md font-semibold text-blue-gem-700 mb-3">Información de Rollo</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <%= form.label :roll_type, "Tipo de Rollo", class: "block text-sm font-medium text-gray-700 mb-2" %>
+                    <%= form.text_field :roll_type, placeholder: "Ej: Plástico, Papel, Aluminio", class: "block w-full px-4 py-3 text-base placeholder-gray-400 border border-blue-gem-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-gem-500 focus:border-blue-gem-500 transition" %>
+                  </div>
+                  <div>
+                    <%= form.label :roll_measurement, "Medida Rollo", class: "block text-sm font-medium text-gray-700 mb-2" %>
+                    <%= form.text_field :roll_measurement, placeholder: "Ej: 30x40 cm", class: "block w-full px-4 py-3 text-base placeholder-gray-400 border border-blue-gem-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-gem-500 focus:border-blue-gem-500 transition" %>
+                  </div>
+                </div>
+                <div class="mt-3">
+                  <%= form.label :pieces_count_roll, "Número de Piezas", class: "block text-sm font-medium text-gray-700 mb-2" %>
+                  <%= form.number_field :pieces_count_roll, min: 1, value: 1, class: "block w-full px-4 py-3 text-base border border-blue-gem-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-gem-500 focus:border-blue-gem-500 transition" %>
                 </div>
               </div>
 
