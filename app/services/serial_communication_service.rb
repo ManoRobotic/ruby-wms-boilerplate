@@ -196,12 +196,35 @@ class SerialCommunicationService
       when 200..299
         JSON.parse(response.body)
       else
-        Rails.logger.error "Serial server error: #{response.code} - #{response.body}"
-        { 'status' => 'error', 'message' => response.body }
+        # Sanitize response body to remove HTML content for logging
+        sanitized_body = sanitize_response_body(response.body)
+        Rails.logger.error "Serial server error: #{response.code} - #{sanitized_body}"
+        { 'status' => 'error', 'message' => sanitized_body }
       end
     rescue JSON::ParserError => e
       Rails.logger.error "Failed to parse response: #{e.message}"
       { 'status' => 'error', 'message' => 'Invalid response format' }
+    end
+
+    private def sanitize_response_body(body)
+      # If the response looks like HTML (contains <html> tags), return a generic message
+      if body.to_s.include?('<html') || body.to_s.include?('<!DOCTYPE')
+        # Extract the HTTP error status description if possible
+        if body.to_s.include?('404') || body.to_s.include?('not found')
+          '404 - Not Found'
+        elsif body.to_s.include?('500') || body.to_s.include?('Internal Server Error')
+          '500 - Internal Server Error'
+        elsif body.to_s.include?('502') || body.to_s.include?('Bad Gateway')
+          '502 - Bad Gateway'
+        elsif body.to_s.include?('503') || body.to_s.include?('Service Unavailable')
+          '503 - Service Unavailable'
+        else
+          'Response contains HTML content (likely a web server error page)'
+        end
+      else
+        # For non-HTML responses, return the original body (typically JSON error)
+        body
+      end
     end
   end
 end
