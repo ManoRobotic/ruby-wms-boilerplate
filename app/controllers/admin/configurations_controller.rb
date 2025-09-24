@@ -17,7 +17,7 @@ class Admin::ConfigurationsController < AdminController
     end
     
     # Permit only the specific parameters we want to update
-    permitted_params = params.require(:company).permit(:name, :serial_service_url)
+    permitted_params = params.require(:company).permit(:name, :serial_service_url, :printer_model)
     
     if @admin.company.update(permitted_params)
       redirect_to admin_configurations_path, notice: "Configuración actualizada exitosamente."
@@ -194,9 +194,9 @@ class Admin::ConfigurationsController < AdminController
     
     # Handle both formats: direct parameters and nested under company
     params_to_update = if params[:company].present?
-                        params.require(:company).permit(:serial_port, :printer_port, :serial_baud_rate, :printer_baud_rate, :serial_parity, :printer_parity, :serial_stop_bits, :printer_stop_bits, :serial_data_bits, :printer_data_bits, :auto_save_consecutivo, :serial_service_url)
+                        params.require(:company).permit(:serial_port, :printer_port, :serial_baud_rate, :printer_baud_rate, :serial_parity, :printer_parity, :serial_stop_bits, :printer_stop_bits, :serial_data_bits, :printer_data_bits, :auto_save_consecutivo, :serial_service_url, :printer_model)
                       else
-                        params.permit(:serial_port, :printer_port, :serial_baud_rate, :printer_baud_rate, :serial_parity, :printer_parity, :serial_stop_bits, :printer_stop_bits, :serial_data_bits, :printer_data_bits, :auto_save_consecutivo, :serial_service_url)
+                        params.permit(:serial_port, :printer_port, :serial_baud_rate, :printer_baud_rate, :serial_parity, :printer_parity, :serial_stop_bits, :printer_stop_bits, :serial_data_bits, :printer_data_bits, :auto_save_consecutivo, :serial_service_url, :printer_model)
                       end
     
     # Solo actualizar los campos que se envían

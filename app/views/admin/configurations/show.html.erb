@@ -78,6 +78,19 @@
                   La URL del servicio serial para la báscula e impresora.
                 </p>
               </div>
+
+              <div>
+                <label for="printer_model" class="block text-sm font-medium text-gray-700 mb-2">
+                  Modelo de Impresora
+                </label>
+                <%= form.select :printer_model, 
+                    options_for_select([['Zebra', 'zebra'], ['TSC', 'tsc']], @admin.company&.printer_model),
+                    { prompt: 'Seleccionar modelo de impresora' },
+                    { class: "block w-full text-sm rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500" } %>
+                <p class="mt-1 text-xs text-gray-500">
+                  Seleccione el modelo de su impresora de etiquetas.
+                </p>
+              </div>
             </div>
             
             <div class="mt-6">

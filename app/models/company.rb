@@ -7,6 +7,18 @@ class Company < ApplicationRecord
 
   # Validations
   validates :serial_service_url, format: { with: URI::DEFAULT_PARSER.make_regexp(%w[http https]), message: "debe ser una URL válida" }, allow_blank: true
+  
+  # Printer model enum
+  validates :printer_model, inclusion: { in: %w[zebra tsc], message: "must be either 'zebra' or 'tsc'" }, allow_nil: true
+
+  # Set default printer model
+  after_initialize :set_default_printer_model
+
+  private
+
+  def set_default_printer_model
+    self.printer_model ||= 'zebra'
+  end
 
   # Google Sheets Configuration
   def google_sheets_configured?
