@@ -13,14 +13,14 @@
 
     <!-- Layout 2 Columnas -->
     <div class="px-6 pb-6">
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6" 
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6" 
            data-controller="serial printer print-form" 
            data-serial-base-url-value="/api/serial"
            data-serial-auto-connect-value="true"
            data-action="serial:weightRead->print-form#updateWeight serial:labelPrinted->print-form#onLabelPrinted">
       
         <!-- Columna Izquierda: Información -->
-        <div class="bg-white rounded-xl border border-blue-gem-200 shadow-sm p-6">
+        <div class="bg-white rounded-xl border border-blue-gem-200 shadow-sm p-6 lg:col-span-1">
           <div class="flex items-center justify-between mb-6">
             <h2 class="text-xl font-bold text-gray-900">Información de Dispositivos</h2>
             <div class="p-2 rounded-full bg-blue-gem-100">
@@ -53,7 +53,7 @@
         </div>
 
         <!-- Columna Derecha: Configuración de Etiqueta -->
-        <div class="bg-white rounded-xl border border-blue-gem-200 shadow-sm p-6">
+        <div class="bg-white rounded-xl border border-blue-gem-200 shadow-sm p-6 lg:col-span-2">
           <div class="flex items-center justify-between mb-6">
             <h2 class="text-xl font-bold text-gray-900">Configuración de Etiqueta</h2>
             <div class="p-2 rounded-full bg-blue-gem-100">
