@@ -154,7 +154,9 @@ class SerialCommunicationService
     def get(endpoint)
       base_url = get_base_url
       uri = URI("#{base_url}#{endpoint}")
+      
       http = Net::HTTP.new(uri.host, uri.port)
+      http.use_ssl = (uri.scheme == 'https')
       http.read_timeout = 10
       
       request = Net::HTTP::Get.new(uri)
@@ -167,7 +169,9 @@ class SerialCommunicationService
     def post(endpoint, payload = {})
       base_url = get_base_url
       uri = URI("#{base_url}#{endpoint}")
+      
       http = Net::HTTP.new(uri.host, uri.port)
+      http.use_ssl = (uri.scheme == 'https')
       http.read_timeout = 10
       
       request = Net::HTTP::Post.new(uri)

@@ -78,7 +78,7 @@
         <!-- Componente de Pesaje -->
         <div class="bg-[var(--color-blue-gem-50)] rounded-md p-2 mb-2 transition-opacity duration-300" 
              data-controller="consecutivo-scale" 
-             data-consecutivo-scale-base-url-value="<%= ENV['SERIAL_SERVER_URL'] || 'http://localhost:5000' %>"
+             data-consecutivo-scale-base-url-value="<%= helpers.current_admin&.company&.serial_service_url %>"
              data-consecutivo-scale-auto-connect-value="true"
              data-consecutivo-scale-saved-port-value="<%= helpers.current_admin&.company&.serial_port || '' %>"
              data-consecutivo-scale-auto-save-value="<%= helpers.current_admin&.company&.auto_save_consecutivo || false %>"

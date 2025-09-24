@@ -15,14 +15,16 @@ export default class extends Controller {
       try {
         const config = JSON.parse(companyConfig.textContent)
         if (config.serial_service_url) {
-          this.baseUrlValue = config.serial_service_url.replace(/\/$/, '') // Remove trailing slash
+          // Store the external service URL for potential later use, but use Rails API for browser requests
+          this.externalBaseUrl = config.serial_service_url.replace(/\/$/, '') // Remove trailing slash
         }
       } catch (e) {
         console.error('Error parsing company config:', e)
       }
     }
     
-    this.baseUrlValue = this.baseUrlValue || "/api/serial"
+    // Always use the Rails API for browser requests to avoid CORS issues
+    this.baseUrlValue = "/api/serial"
     this.pollIntervalValue = this.pollIntervalValue || 2000
     this.isPolling = false
     

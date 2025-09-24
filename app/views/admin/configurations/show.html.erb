@@ -3,7 +3,7 @@
     <!-- Company config data for JavaScript -->
     <script type="application/json" data-serial-company-config>
       <%= raw({
-        serial_service_url: @admin.company&.serial_service_base_url
+        serial_service_url: @admin.company&.serial_service_url
       }.to_json) %>
     </script>
     <!-- Header -->
@@ -80,7 +80,7 @@
           
           <div class="serial-panel" 
                data-controller="serial" 
-               data-serial-base-url-value="<%= @admin.company&.serial_service_base_url || '/api/serial' %>"
+               data-serial-base-url-value="/api/serial"
                data-serial-auto-connect-value="true"
                data-serial-poll-interval-value="2000">
             <%= render 'admin/serial/panel_without_logs' %>
