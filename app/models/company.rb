@@ -9,16 +9,10 @@ class Company < ApplicationRecord
   validates :serial_service_url, format: { with: URI::DEFAULT_PARSER.make_regexp(%w[http https]), message: "debe ser una URL válida" }, allow_blank: true
   
   # Printer model enum
-  validates :printer_model, inclusion: { in: %w[zebra tsc], message: "must be either 'zebra' or 'tsc'" }, allow_nil: true
+  validates :printer_model, inclusion: { in: %w[zebra tsc], message: "must be either 'zebra' or 'tsc'"}, allow_nil: true
 
   # Set default printer model
   after_initialize :set_default_printer_model
-
-  private
-
-  def set_default_printer_model
-    self.printer_model ||= 'zebra'
-  end
 
   # Google Sheets Configuration
   def google_sheets_configured?
@@ -39,7 +33,7 @@ class Company < ApplicationRecord
   # Validate Google credentials format
   def validate_google_credentials
     return true unless google_credentials.present?
-    
+
     begin
       parsed = JSON.parse(google_credentials)
       required_keys = %w[type project_id private_key_id private_key client_email client_id auth_uri token_uri]
@@ -64,10 +58,16 @@ class Company < ApplicationRecord
 
   # Serial service URL helpers
   def serial_service_url_configured?
-    serial_service_url.present?
+    read_attribute(:serial_service_url).present?
   end
 
-  def serial_service_base_url
-    serial_service_url.presence || 'http://192.168.1.91:5000'
+  def serial_service_url
+    read_attribute(:serial_service_url).presence || ''
+  end
+
+  private
+
+  def set_default_printer_model
+    self.printer_model ||= 'zebra'
   end
 end

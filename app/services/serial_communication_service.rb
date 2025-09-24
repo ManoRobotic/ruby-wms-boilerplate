@@ -188,7 +188,7 @@ class SerialCommunicationService
                   company
                 end
 
-      company&.serial_service_base_url 
+      company&.serial_service_url 
     end
 
     def parse_response(response)
