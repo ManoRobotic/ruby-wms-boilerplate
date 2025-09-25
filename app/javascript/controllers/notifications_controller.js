@@ -12,6 +12,9 @@ export default class extends Controller {
     
     window.activeNotificationsController = this.controllerId
     
+    // Initialize local storage for notifications cache
+    this.notificationsCache = this.getNotificationsFromCache() || []
+    
     // Check if we have clickable notification elements
     const clickableElements = this.element.querySelectorAll('[data-action*="markAsRead"]')
     
@@ -23,8 +26,14 @@ export default class extends Controller {
     
     this.connectToCable()
     
-    // Initialize the notifications list DOM element
-    this.notificationsListElement = document.getElementById('notifications-list')
+    // Initialize the notifications container element
+    this.updateNotificationsContainerElement()
+    
+    // Set up a periodic check for the notifications container element availability
+    this.watchForNotificationsContainer()
+    
+    // Update UI based on cached read states
+    this.syncReadStatusToUI()
   }
   
   disconnect() {
@@ -35,13 +44,10 @@ export default class extends Controller {
       document.removeEventListener('notification:new', this.handleNewNotification.bind(this))
       this.disconnectFromCable()
       
-      // Clear active toasts set
-      if (this.activeToasts) {
-        this.activeToasts.clear()
-      }
-      
-      if (window.showNotificationToast) {
-        delete window.showNotificationToast
+      // Clear the container watcher interval
+      if (this.containerWatcher) {
+        clearInterval(this.containerWatcher)
+        this.containerWatcher = null
       }
     }
   }
@@ -50,6 +56,7 @@ export default class extends Controller {
     const consumer = (window.App && window.App.cable) || window.createConsumer?.('/cable')
     
     if (!consumer) {
+      console.error('ActionCable consumer not available');
       return
     }
 
@@ -60,11 +67,14 @@ export default class extends Controller {
         }
         
         if (data.type === 'new_notification' && data.notification) {
+          console.log('Received new notification via WebSocket:', data.notification);
+          
           // Create a unique key to prevent duplicate processing
-          const notificationKey = `${data.notification.id}_${data.notification.title}_${data.notification.message}`
+          const notificationKey = `${data.notification.title}_${data.notification.message}_${data.notification.timestamp || Date.now()}`
           
           // Check if we've already processed this notification recently
           if (this.recentNotifications && this.recentNotifications.has(notificationKey)) {
+            console.log('Duplicate notification detected, skipping:', data.notification);
             return
           }
           
@@ -81,24 +91,41 @@ export default class extends Controller {
             }
           }, 30000)
           
+          // Add the notification to the DOM list immediately
+          const tempNotification = {
+            ...data.notification,
+            id: data.notification.id || `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            created_at: data.notification.timestamp || new Date().toISOString(),
+            read: false
+          };
+          
           // Add the notification to the DOM list
-          this.addNotificationToDOM(data.notification)
+          this.addNotificationToDOM(tempNotification)
           
           // Show the notification as a toast
-          this.showNotificationToast(data.notification)
+          this.showNotificationToast(tempNotification)
           
           // Increment the notification count indicator
           this.incrementNotificationCount()
+          
+          // Create the notification on the server if not already persistent
+          // But only do this after a short delay to avoid overwhelming the server
+          setTimeout(() => {
+            this.createPersistentNotification(data.notification);
+          }, 1000); // Delay the persistent creation by 1 second
         }
       },
       
       connected: () => {
+        console.log('Connected to NotificationsChannel');
       },
       
       disconnected: () => {
+        console.log('Disconnected from NotificationsChannel');
       },
       
       rejected: () => {
+        console.log('Connection to NotificationsChannel rejected');
       }
     })
   }
@@ -116,6 +143,251 @@ export default class extends Controller {
       container.id = 'toast-container'
       container.className = 'fixed top-4 right-4 z-50 space-y-2'
       document.body.appendChild(container)
+    }
+  }
+  
+  updateNotificationsContainerElement() {
+    // The notifications container is the div with class 'max-h-60 overflow-y-auto' inside the dropdown
+    this.notificationsContainerElement = this.element.querySelector('.max-h-60.overflow-y-auto');
+    
+    // If not found in this element, try to find it in the document
+    if (!this.notificationsContainerElement) {
+      this.notificationsContainerElement = document.querySelector('.max-h-60.overflow-y-auto');
+    }
+    
+    // Try to find by other possible identifiers if the specific class is not available
+    if (!this.notificationsContainerElement) {
+      // Look for the div that contains notification items inside the dropdown
+      const dropdown = this.element.querySelector('[data-dropdown-target="menu"]');
+      if (dropdown) {
+        this.notificationsContainerElement = dropdown.querySelector('.max-h-60.overflow-y-auto') || 
+                                             dropdown.querySelector('.max-h-60') ||
+                                             dropdown.querySelector('.overflow-y-auto');
+      }
+    }
+  }
+  
+  watchForNotificationsContainer() {
+    // Periodically check if the notifications container is available
+    this.containerWatcher = setInterval(() => {
+      this.updateNotificationsContainerElement()
+      if (this.notificationsContainerElement) {
+        // If notifications container is available, make sure it's populated correctly
+        if (this.notificationsContainerElement.children.length <= 1 && this.notificationsCache.length > 0) {
+          // If container is available but has no or only placeholder notification, populate it with cached notifications
+          this.populateNotificationsFromCache()
+        } else if (this.notificationsCache.length > 0) {
+          // If container exists and has notifications, make sure new ones are added
+          this.ensureAllCachedNotificationsAreDisplayed()
+        }
+      }
+    }, 500) // Check every 500ms
+  }
+  
+  populateNotificationsFromCache() {
+    // Clear the container, but keep the "No tienes notificaciones" message if it exists
+    const emptyMessage = this.notificationsContainerElement.querySelector('.p-4.text-center.text-gray-500');
+    if (emptyMessage) {
+      this.notificationsContainerElement.innerHTML = '';
+      this.notificationsContainerElement.appendChild(emptyMessage);
+    } else {
+      this.notificationsContainerElement.innerHTML = '';
+    }
+    
+    // Add all cached notifications to the container
+    this.notificationsCache.forEach(notification => {
+      this.renderNotificationToElement(notification, this.notificationsContainerElement)
+    })
+    
+    // If there are no notifications, show the empty message
+    if (this.notificationsCache.length === 0) {
+      this.showEmptyMessage();
+    }
+  }
+  
+  ensureAllCachedNotificationsAreDisplayed() {
+    // Check if all cached notifications are displayed in the DOM
+    this.notificationsCache.forEach(notification => {
+      const existingElement = this.notificationsContainerElement.querySelector(`[data-notification-id="${notification.id}"]`)
+      if (!existingElement) {
+        // If notification is not in DOM, add it at the beginning
+        this.renderNotificationToElement(notification, this.notificationsContainerElement)
+      }
+    })
+    
+    // Remove empty message if notifications exist
+    if (this.notificationsCache.length > 0) {
+      const emptyMessage = this.notificationsContainerElement.querySelector('.p-4.text-center.text-gray-500');
+      if (emptyMessage) {
+        emptyMessage.remove();
+      }
+    }
+    
+    // Limit to 20 items
+    const notificationItems = this.notificationsContainerElement.querySelectorAll('.notification-item');
+    while (notificationItems.length > 20) {
+      // Remove the last notification item since we're adding new ones at the beginning
+      if (notificationItems.length > 0) {
+        notificationItems[notificationItems.length - 1].remove();
+      }
+    }
+  }
+  
+  formatDate(dateString) {
+    try {
+      // Handle case where dateString is already a Date object
+      if (dateString instanceof Date) {
+        return dateString.toLocaleString('es-ES', { 
+          day: '2-digit', 
+          month: '2-digit', 
+          year: 'numeric',
+          hour: '2-digit', 
+          minute: '2-digit'
+        });
+      }
+      
+      // Handle null, undefined, or empty string
+      if (!dateString) {
+        return 'Fecha desconocida';
+      }
+      
+      // Try to parse the date string using various formats
+      let date;
+      
+      // First, try to parse as ISO string (most common from Rails)
+      date = new Date(dateString);
+      
+      // If it's not a valid date, try parsing without timezone (Rails often sends times in local format)
+      if (isNaN(date.getTime())) {
+        // Try to handle various common date formats
+        // Format 1: "2025-02-10T15:30:00.000Z" (ISO 8601)
+        date = new Date(dateString);
+        
+        // Format 2: "2025-02-10 15:30:00 -0600" (String with timezone offset)
+        if (isNaN(date.getTime())) {
+          // Remove timezone and treat as local time
+          const withoutTz = dateString.replace(/\s+[+-]\d{4}$/, '');
+          date = new Date(withoutTz);
+        }
+        
+        // Format 3: "2025-02-10 15:30:00" (String without timezone)
+        if (isNaN(date.getTime())) {
+          date = new Date(dateString.split(' ')[0] + 'T' + dateString.split(' ')[1]);
+        }
+      }
+      
+      // Check if the date is valid
+      if (isNaN(date.getTime())) {
+        console.warn('Invalid date received:', dateString);
+        return 'Fecha desconocida';
+      }
+      
+      // Format the date in a more compatible way
+      return date.toLocaleString('es-ES', { 
+        day: '2-digit', 
+        month: '2-digit', 
+        year: 'numeric',
+        hour: '2-digit', 
+        minute: '2-digit'
+      });
+    } catch (error) {
+      console.error('Error formatting date:', error, 'Input:', dateString);
+      return 'Fecha desconocida';
+    }
+  }
+
+  renderNotificationToElement(notification, containerElement) {
+    // Check if notification already exists in the container to prevent duplicates
+    const existingNotification = containerElement.querySelector(`[data-notification-id="${notification.id}"]`)
+    if (existingNotification) {
+      return // Notification already exists in DOM
+    }
+
+    // Create a new notification item element matching the original HTML structure
+    const notificationItem = document.createElement('div')
+    notificationItem.className = `notification-item p-3 border-b border-gray-100 hover:bg-gray-50 ${!notification.read ? 'bg-blue-50' : ''}`
+    notificationItem.setAttribute('data-notification-id', notification.id)
+
+    // Create the inner structure matching the original ERB template
+    notificationItem.innerHTML = `
+      <div class="flex items-start space-x-3">
+        <div class="flex-shrink-0">
+          <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM11 15H6a2 2 0 01-2-2V7a2 2 0 012-2h5m5 0v5a2 2 0 01-2 2H9a2 2 0 01-2-2V7a2 2 0 012-2h5m5 0v5a2 2 0 01-2 2H9a2 2 0 01-2-2V7a2 2 0 012-2h5m0 0V5a2 2 0 00-2-2H9a2 2 0 00-2 2v2"></path>
+          </svg>
+        </div>
+        <div class="flex-1 min-w-0 cursor-pointer" 
+             data-action="click->notifications#markAsRead"
+             data-notification-id="${notification.id}"
+             data-notification-action-url="${notification.action_url || ''}">
+          <p class="text-sm font-medium text-gray-900">${notification.title}</p>
+          <p class="text-sm text-gray-600">${notification.message}</p>
+          <p class="text-xs text-gray-500 mt-1">${this.formatDate(notification.created_at)}</p>
+        </div>
+        ${!notification.read ? '<div class="flex-shrink-0 unread-indicator"><div class="w-2 h-2 bg-blue-600 rounded-full"></div></div>' : ''}
+      </div>
+    `
+
+    // Add to the beginning of the container for newest first
+    containerElement.insertBefore(notificationItem, containerElement.firstChild)
+  }
+  
+  showEmptyMessage() {
+    // Add the empty message if there are no notifications
+    if (this.notificationsContainerElement && this.notificationsContainerElement.children.length === 0) {
+      const emptyMessage = document.createElement('div');
+      emptyMessage.className = 'p-4 text-center text-gray-500';
+      emptyMessage.innerHTML = '<p>No tienes notificaciones</p>';
+      this.notificationsContainerElement.appendChild(emptyMessage);
+    }
+  }
+  
+  addNotificationToCache(notification) {
+    // Ensure all required fields are present
+    const normalizedNotification = {
+      id: notification.id || `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      title: notification.title || 'Título desconocido',
+      message: notification.message || 'Mensaje desconocido',
+      notification_type: notification.notification_type || 'info',
+      created_at: notification.created_at || new Date().toISOString(),
+      read: notification.read || false,
+      action_url: notification.action_url || ''
+    };
+
+    // Check if notification already exists in cache to prevent duplicates
+    const existingIndex = this.notificationsCache.findIndex(n => n.id === normalizedNotification.id)
+    if (existingIndex !== -1) {
+      // Update existing notification
+      this.notificationsCache[existingIndex] = { ...this.notificationsCache[existingIndex], ...normalizedNotification }
+    } else {
+      // Add new notification
+      this.notificationsCache.unshift(normalizedNotification)
+    }
+    
+    // Limit cache to 20 items
+    if (this.notificationsCache.length > 20) {
+      this.notificationsCache = this.notificationsCache.slice(0, 20)
+    }
+    
+    // Save to localStorage
+    this.saveNotificationsToCache()
+  }
+  
+  getNotificationsFromCache() {
+    try {
+      const cached = localStorage.getItem('notificationsCache')
+      return cached ? JSON.parse(cached) : []
+    } catch (e) {
+      console.error('Error reading notifications cache:', e)
+      return []
+    }
+  }
+  
+  saveNotificationsToCache() {
+    try {
+      localStorage.setItem('notificationsCache', JSON.stringify(this.notificationsCache))
+    } catch (e) {
+      console.error('Error saving notifications cache:', e)
     }
   }
   
@@ -318,6 +590,7 @@ export default class extends Controller {
     
     // Check if this notification is already being processed
     if (processingElement && processingElement.dataset.processing) {
+      console.log('Notification already being processed');
       return
     }
     
@@ -333,38 +606,80 @@ export default class extends Controller {
     const clickedElement = event.currentTarget || event.target
     
     if (!clickedElement) {
+      console.error('No clicked element found');
       return
     }
     
-    
     const notificationElement = clickedElement.closest('.notification-item')
     
-    
     if (!notificationElement) {
+      console.error('Could not find notification item element');
       return
     }
     
     // Try to get notification ID from either the clicked element or the parent notification element
     let notificationId = clickedElement.dataset.notificationId || notificationElement.dataset.notificationId
-    let actionUrl = clickedElement.dataset.notificationActionUrl
+    let actionUrl = clickedElement.dataset.notificationActionUrl || notificationElement.dataset.notificationActionUrl
     
+    console.log('Marking notification as read:', { notificationId, actionUrl, element: notificationElement })
     
     if (!notificationId) {
+      console.error('No notification ID found');
       return
     }
-    
     
     // Small delay to ensure DOM is stable and avoid race conditions
     setTimeout(() => {
       const url = `/admin/notifications/${notificationId}/mark_read`
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
       
+      if (!csrfToken) {
+        console.error('CSRF token not found');
+        return
+      }
       
+      console.log('Attempting to mark notification as read with URL:', url);
       this.performMarkAsRead(url, csrfToken, notificationElement, actionUrl, event, processingElement)
     }, 50)
   }
   
   performMarkAsRead(url, csrfToken, notificationElement, actionUrl, event, processingElement) {
+    // Get the notification ID from the element
+    const notificationId = notificationElement.dataset.notificationId;
+    
+    console.log('Performing mark as read request:', { url, notificationId });
+    
+    // Check if this is a temporary notification (has ID starting with 'temp_')
+    if (notificationId && notificationId.startsWith('temp_')) {
+      // This is a temporary notification, just update visual state and cache
+      console.log('Temporary notification, updating visual state only');
+      
+      notificationElement.classList.remove('bg-blue-50')
+      const unreadIndicator = notificationElement.querySelector('.unread-indicator')
+      if (unreadIndicator) {
+        unreadIndicator.remove()
+      }
+      
+      // Update the notification in the cache to mark it as read
+      this.updateNotificationInCache(notificationId, { read: true });
+      
+      this.updateNotificationCount()
+      
+      if (actionUrl && actionUrl.trim() !== '' && !event.ctrlKey && !event.metaKey) {
+        setTimeout(() => {
+          window.location.href = actionUrl
+        }, 800)
+      }
+      
+      // Clean up processing flag
+      if (processingElement) {
+        delete processingElement.dataset.processing
+      }
+      
+      return; // Exit early for temporary notifications
+    }
+    
+    // This is a persistent notification, make the server request
     fetch(url, {
       method: 'PATCH',
       headers: {
@@ -372,19 +687,23 @@ export default class extends Controller {
         'Content-Type': 'application/json',
       }
     })
-    .then(response => {
+    .then(async response => {
+      console.log('Response received:', response.status);
       
       if (response.ok) {
+        console.log('Notification marked as read successfully');
         
-        notificationElement.classList.remove('bg-blue-50', 'border-l-4', 'border-l-blue-500')
-        notificationElement.classList.remove('border-l-blue-500')
+        // Remove visual indicators of unread status
+        notificationElement.classList.remove('bg-blue-50')
         const unreadIndicator = notificationElement.querySelector('.unread-indicator')
         if (unreadIndicator) {
           unreadIndicator.remove()
         }
         
-        this.updateNotificationCount()
+        // Update the notification in the cache to mark it as read
+        this.updateNotificationInCache(notificationId, { read: true });
         
+        this.updateNotificationCount()
         
         if (actionUrl && actionUrl.trim() !== '' && !event.ctrlKey && !event.metaKey) {
           setTimeout(() => {
@@ -392,9 +711,26 @@ export default class extends Controller {
           }, 800)
         }
       } else {
-        response.text().then(text => {
-        })
-        this.showToast('error', 'Error al marcar la notificación')
+        // Even if server request failed, update visual state and cache
+        console.warn('Server request failed, updating visual state only:', response.status);
+        
+        // Update visual indicators anyway
+        notificationElement.classList.remove('bg-blue-50')
+        const unreadIndicator = notificationElement.querySelector('.unread-indicator')
+        if (unreadIndicator) {
+          unreadIndicator.remove()
+        }
+        
+        // Update the notification in the cache to mark it as read
+        this.updateNotificationInCache(notificationId, { read: true });
+        
+        this.updateNotificationCount()
+        
+        if (actionUrl && actionUrl.trim() !== '' && !event.ctrlKey && !event.metaKey) {
+          setTimeout(() => {
+            window.location.href = actionUrl
+          }, 800)
+        }
       }
       
       // Clean up processing flag
@@ -403,13 +739,161 @@ export default class extends Controller {
       }
     })
     .catch(error => {
-      this.showToast('error', 'Error al marcar la notificación')
+      console.error('Network error marking notification as read:', error);
       
-      // Clean up processing flag on error too
+      // Update visual state and cache on network error
+      notificationElement.classList.remove('bg-blue-50')
+      const unreadIndicator = notificationElement.querySelector('.unread-indicator')
+      if (unreadIndicator) {
+        unreadIndicator.remove()
+      }
+      
+      // Update the notification in the cache to mark it as read
+      this.updateNotificationInCache(notificationId, { read: true });
+      
+      this.updateNotificationCount()
+      
+      // Clean up processing flag
       if (processingElement) {
         delete processingElement.dataset.processing
       }
-    })
+    });
+  }
+  
+  async createPersistentNotification(notificationData) {
+    try {
+      // Check if we're authenticated and have a current user
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+      
+      // Attempt to create the notification via the API
+      const response = await fetch('/admin/notifications', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken
+        },
+        body: JSON.stringify({
+          notification: {
+            title: notificationData.title,
+            message: notificationData.message,
+            notification_type: notificationData.type || 'system',
+            action_url: notificationData.action_url || null
+          }
+        })
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Persistent notification created:', result);
+        
+        // Update our cache with the real ID from the server
+        if (result.notification && result.notification.id) {
+          // Find the temporary notification in our cache and update it with the real ID
+          const tempIndex = this.notificationsCache.findIndex(n => 
+            n.title === notificationData.title && 
+            n.message === notificationData.message &&
+            n.created_at === (notificationData.timestamp || n.created_at)
+          );
+          
+          if (tempIndex !== -1) {
+            // Update the notification in cache with the real server ID
+            const updatedNotification = { ...this.notificationsCache[tempIndex], id: result.notification.id };
+            this.notificationsCache[tempIndex] = updatedNotification;
+            this.saveNotificationsToCache();
+            
+            // Update the DOM to use the real ID
+            this.updateNotificationIdInDOM(this.notificationsCache[tempIndex].id, result.notification.id);
+          }
+        }
+        
+        return result.notification; // Return the server-created notification with ID
+      } else {
+        console.error('Failed to create persistent notification:', response.status);
+        // If creation failed, return null so we use a temporary notification
+        return null;
+      }
+    } catch (error) {
+      console.error('Error creating persistent notification:', error);
+      // If there was a network error, return null so we use a temporary notification
+      return null;
+    }
+  }
+  
+  updateNotificationIdInDOM(oldId, newId) {
+    // Find the notification element with the old ID and update it to use the new ID
+    const notificationElement = document.querySelector(`[data-notification-id="${oldId}"]`);
+    if (notificationElement) {
+      notificationElement.setAttribute('data-notification-id', newId);
+      
+      // Update the data-action attribute if it contains the old ID
+      const actionAttr = notificationElement.getAttribute('data-action');
+      if (actionAttr) {
+        const updatedAction = actionAttr.replace(`data-notification-id-param="${oldId}"`, `data-notification-id-param="${newId}"`);
+        notificationElement.setAttribute('data-action', updatedAction);
+      }
+    }
+  }
+  
+  syncReadStatusToUI() {
+    // This function syncs read status from our local cache to the UI
+    // It will be called on connect to ensure visual consistency
+    if (this.notificationsContainerElement) {
+      // Loop through all notification elements in the container
+      const notificationElements = this.notificationsContainerElement.querySelectorAll('.notification-item');
+      
+      notificationElements.forEach(element => {
+        const notificationId = element.dataset.notificationId;
+        
+        if (notificationId) {
+          // Find the notification in our cache
+          const cachedNotification = this.notificationsCache.find(n => n.id === notificationId);
+          
+          if (cachedNotification && cachedNotification.read) {
+            // If the notification is marked as read in cache, update the UI
+            element.classList.remove('bg-blue-50');
+            const unreadIndicator = element.querySelector('.unread-indicator');
+            if (unreadIndicator) {
+              unreadIndicator.remove();
+            }
+          }
+        }
+      });
+      
+      // Update the notification count based on cached unread notifications
+      this.updateNotificationCountFromCache();
+    }
+  }
+  
+  updateNotificationCountFromCache() {
+    // Calculate unread notifications from cache
+    const unreadCount = this.notificationsCache.filter(n => !n.read).length;
+    
+    // Update the indicator element
+    const indicatorContainer = this.indicatorTarget;
+    if (!indicatorContainer) return;
+
+    let countElement = indicatorContainer.querySelector('.notification-count');
+
+    if (unreadCount > 0) {
+      if (!countElement) {
+        countElement = document.createElement('span');
+        countElement.className = 'notification-count inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full';
+        indicatorContainer.appendChild(countElement);
+      }
+      countElement.textContent = unreadCount > 99 ? "99+" : unreadCount.toString();
+    } else {
+      if (countElement) {
+        countElement.remove();
+      }
+    }
+  }
+  
+  updateNotificationInCache(notificationId, updates) {
+    const index = this.notificationsCache.findIndex(n => n.id == notificationId);
+    if (index !== -1) {
+      this.notificationsCache[index] = { ...this.notificationsCache[index], ...updates };
+      this.saveNotificationsToCache();
+    }
   }
 
   updateNotificationCount() {
@@ -450,42 +934,30 @@ export default class extends Controller {
   
   
   addNotificationToDOM(notification) {
-    if (!this.notificationsListElement) return;
-
-    // Check if notification already exists in the list to prevent duplicates
-    const existingNotification = this.notificationsListElement.querySelector(`[data-notification-id="${notification.id}"]`);
-    if (existingNotification) {
-      return; // Notification already exists in DOM
-    }
-
-    // Create a new notification item element
-    const notificationItem = document.createElement('div');
-    notificationItem.className = notification.read ? 
-      'notification-item flex items-start p-4 border-b border-gray-200 cursor-pointer hover:bg-gray-50' : 
-      'notification-item flex items-start p-4 border-b border-gray-200 bg-blue-50 border-l-4 border-l-blue-500 cursor-pointer hover:bg-blue-100';
-    notificationItem.setAttribute('data-notification-id', notification.id);
-    notificationItem.setAttribute('data-action', 'click->notifications#markAsRead');
-    notificationItem.setAttribute('data-notification-id-param', notification.id);
-    notificationItem.setAttribute('data-notification-action-url', notification.action_url || '');
-
-    // Add unread indicator if not read
-    const unreadIndicator = !notification.read ? '<span class="unread-indicator flex-shrink-0 w-3 h-3 bg-red-500 rounded-full mt-1 mr-3" aria-hidden="true"></span>' : '<span class="flex-shrink-0 w-3 h-3 mt-1 mr-3" aria-hidden="true"></span>';
-
-    notificationItem.innerHTML = `
-      ${unreadIndicator}
-      <div class="flex-1 min-w-0">
-        <p class="text-sm font-medium text-gray-900">${notification.title}</p>
-        <p class="text-sm text-gray-500 truncate">${notification.message}</p>
-        <p class="text-xs text-gray-400 mt-1">${new Date(notification.created_at).toLocaleString()}</p>
-      </div>
-    `;
-
-    // Add to the beginning of the list for newest first
-    this.notificationsListElement.insertBefore(notificationItem, this.notificationsListElement.firstChild);
+    // Add to the local cache
+    this.addNotificationToCache(notification)
     
-    // Limit the notifications list to 20 items to prevent excessive DOM growth
-    if (this.notificationsListElement.children.length > 20) {
-      this.notificationsListElement.removeChild(this.notificationsListElement.lastChild);
+    // Update the reference to the notifications container element
+    this.updateNotificationsContainerElement()
+    
+    // If the notifications container element exists, add the notification to it immediately
+    if (this.notificationsContainerElement) {
+      this.renderNotificationToElement(notification, this.notificationsContainerElement)
+      
+      // Remove empty message if it exists
+      const emptyMessage = this.notificationsContainerElement.querySelector('.p-4.text-center.text-gray-500');
+      if (emptyMessage) {
+        emptyMessage.remove();
+      }
+      
+      // Limit the notifications container to 20 items to prevent excessive DOM growth
+      const notificationItems = this.notificationsContainerElement.querySelectorAll('.notification-item');
+      while (notificationItems.length > 20) {
+        // Remove the last notification item since we're adding new ones at the beginning
+        if (notificationItems.length > 0) {
+          notificationItems[notificationItems.length - 1].remove();
+        }
+      }
     }
   }
 }
