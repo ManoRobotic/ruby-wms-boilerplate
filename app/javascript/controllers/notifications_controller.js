@@ -17,18 +17,14 @@ export default class extends Controller {
     
     document.addEventListener('notification:new', this.handleNewNotification.bind(this))
     // Removed toast:show listener to prevent conflict with toast_controller
-    document.addEventListener('notifications:poll', this.handleImmediatePoll.bind(this))
+    // Removed the immediate poll listener that was previously added but is no longer needed
     
     this.createToastContainer()
     
     this.connectToCable()
     
-    // Start polling immediately to ensure notifications are up to date
-    this.startPolling()
-    // Also do an immediate poll to get current notification count
-    setTimeout(() => {
-      this.pollForNotifications()
-    }, 100)
+    // Initialize the notifications list DOM element
+    this.notificationsListElement = document.getElementById('notifications-list')
   }
   
   disconnect() {
@@ -37,11 +33,7 @@ export default class extends Controller {
       window.activeNotificationsController = null
       
       document.removeEventListener('notification:new', this.handleNewNotification.bind(this))
-      // Removed toast:show listener to prevent conflict with toast_controller
-      document.removeEventListener('notifications:poll', this.handleImmediatePoll.bind(this))
       this.disconnectFromCable()
-      this.stopPolling()
-      this.stopImmediatePolling()
       
       // Clear active toasts set
       if (this.activeToasts) {
@@ -69,7 +61,7 @@ export default class extends Controller {
         
         if (data.type === 'new_notification' && data.notification) {
           // Create a unique key to prevent duplicate processing
-          const notificationKey = `${data.notification.title}_${data.notification.message}_${Date.now()}`
+          const notificationKey = `${data.notification.id}_${data.notification.title}_${data.notification.message}`
           
           // Check if we've already processed this notification recently
           if (this.recentNotifications && this.recentNotifications.has(notificationKey)) {
@@ -89,10 +81,14 @@ export default class extends Controller {
             }
           }, 30000)
           
-          // Show the notification
+          // Add the notification to the DOM list
+          this.addNotificationToDOM(data.notification)
+          
+          // Show the notification as a toast
           this.showNotificationToast(data.notification)
+          
+          // Increment the notification count indicator
           this.incrementNotificationCount()
-          this.refreshNotifications()
         }
       },
       
@@ -126,12 +122,14 @@ export default class extends Controller {
   handleNewNotification(event) {
     const { notification } = event.detail
     
+    // Add the notification to the DOM list
+    this.addNotificationToDOM(notification)
+    
     // Show toast for new notification
     this.showNotificationToast(notification)
     
-    // Update notification count and refresh notifications in sidebar
+    // Update notification count
     this.incrementNotificationCount()
-    this.refreshNotifications()
   }
 
   showNotificationToast(notification) {
@@ -157,11 +155,7 @@ export default class extends Controller {
     }
   }
 
-  refreshNotifications() {
-    // Refresh the notifications dropdown content
-    // This could trigger a fetch to get updated notifications
-    this.pollForNotifications()
-  }
+  
   
   // Removed handleToastShow to prevent conflict with toast_controller
   
@@ -453,112 +447,45 @@ export default class extends Controller {
     countElement.textContent = newCount > 99 ? "99+" : newCount.toString();
   }
   
-  startPolling() {
-    this.lastPoll = new Date().toISOString()
-    // Poll every 10 seconds instead of 30 seconds for more responsive updates
-    this.pollInterval = setInterval(() => {
-      this.pollForNotifications()
-    }, 10000)
-  }
   
-  stopPolling() {
-    if (this.pollInterval) {
-      clearInterval(this.pollInterval)
-      this.pollInterval = null
-    }
-  }
   
-  async pollForNotifications() {
-    try {
-      const response = await fetch(`/admin/notifications/poll?last_poll=${encodeURIComponent(this.lastPoll)}`, {
-        method: 'GET',
-        headers: {
-          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-          'Content-Type': 'application/json',
-        }
-      })
-      
-      if (response.ok) {
-        const data = await response.json()
-        
-        this.lastPoll = data.last_poll
-        
-        // Show toasts for new notifications
-        data.notifications.forEach(notification => {
-          this.showToast('notification', notification.title, notification.message, 8000)
-        })
-        
-        // Always update the notification count from server, regardless of whether there are new notifications
-        // This ensures the counter is accurate even if notifications were marked as read elsewhere
-        this.updateNotificationCountFromServer(data.unread_count)
-      }
-    } catch (error) {
-      console.error('Error polling notifications:', error)
-    }
-  }
-  
-  updateNotificationCountFromServer(serverCount) {
-    const indicatorContainer = this.indicatorTarget;
-    if (!indicatorContainer) return;
+  addNotificationToDOM(notification) {
+    if (!this.notificationsListElement) return;
 
-    let countElement = indicatorContainer.querySelector('.notification-count');
+    // Check if notification already exists in the list to prevent duplicates
+    const existingNotification = this.notificationsListElement.querySelector(`[data-notification-id="${notification.id}"]`);
+    if (existingNotification) {
+      return; // Notification already exists in DOM
+    }
 
-    if (serverCount > 0) {
-      if (!countElement) {
-        countElement = document.createElement('span');
-        countElement.className = 'notification-count inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full';
-        indicatorContainer.appendChild(countElement);
-      }
-      countElement.textContent = serverCount > 99 ? "99+" : serverCount.toString();
-    } else {
-      if (countElement) {
-        countElement.remove();
-      }
-    }
-  }
-  
-  handleImmediatePoll() {
-    this.pollForNotifications()
-  }
-  
-  startImmediatePolling() {
-    this.lastImmediateCheck = new Date().toISOString()
-    this.immediatePollingInterval = setInterval(() => {
-      this.pollForImmediateNotifications()
-    }, 2000)
-  }
-  
-  stopImmediatePolling() {
-    if (this.immediatePollingInterval) {
-      clearInterval(this.immediatePollingInterval)
-      this.immediatePollingInterval = null
-    }
-  }
-  
-  async pollForImmediateNotifications() {
-    try {
-      const response = await fetch(`/admin/notifications/poll_immediate?last_check=${encodeURIComponent(this.lastImmediateCheck)}`, {
-        method: 'GET',
-        headers: {
-          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-          'Content-Type': 'application/json',
-        }
-      })
-      
-      if (response.ok) {
-        const data = await response.json()
-        this.lastImmediateCheck = data.last_check
-        
-        data.immediate_notifications.forEach(notification => {
-          this.showToast('notification', notification.title, notification.message, notification.duration || 10000)
-          this.incrementNotificationCount()
-        })
-        
-        if (data.immediate_notifications.length > 0) {
-          this.pollForNotifications()
-        }
-      }
-    } catch (error) {
+    // Create a new notification item element
+    const notificationItem = document.createElement('div');
+    notificationItem.className = notification.read ? 
+      'notification-item flex items-start p-4 border-b border-gray-200 cursor-pointer hover:bg-gray-50' : 
+      'notification-item flex items-start p-4 border-b border-gray-200 bg-blue-50 border-l-4 border-l-blue-500 cursor-pointer hover:bg-blue-100';
+    notificationItem.setAttribute('data-notification-id', notification.id);
+    notificationItem.setAttribute('data-action', 'click->notifications#markAsRead');
+    notificationItem.setAttribute('data-notification-id-param', notification.id);
+    notificationItem.setAttribute('data-notification-action-url', notification.action_url || '');
+
+    // Add unread indicator if not read
+    const unreadIndicator = !notification.read ? '<span class="unread-indicator flex-shrink-0 w-3 h-3 bg-red-500 rounded-full mt-1 mr-3" aria-hidden="true"></span>' : '<span class="flex-shrink-0 w-3 h-3 mt-1 mr-3" aria-hidden="true"></span>';
+
+    notificationItem.innerHTML = `
+      ${unreadIndicator}
+      <div class="flex-1 min-w-0">
+        <p class="text-sm font-medium text-gray-900">${notification.title}</p>
+        <p class="text-sm text-gray-500 truncate">${notification.message}</p>
+        <p class="text-xs text-gray-400 mt-1">${new Date(notification.created_at).toLocaleString()}</p>
+      </div>
+    `;
+
+    // Add to the beginning of the list for newest first
+    this.notificationsListElement.insertBefore(notificationItem, this.notificationsListElement.firstChild);
+    
+    // Limit the notifications list to 20 items to prevent excessive DOM growth
+    if (this.notificationsListElement.children.length > 20) {
+      this.notificationsListElement.removeChild(this.notificationsListElement.lastChild);
     }
   }
 }
