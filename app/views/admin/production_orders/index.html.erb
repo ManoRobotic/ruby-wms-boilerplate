@@ -253,10 +253,10 @@
                         <%= link_to admin_production_order_path(order), class: "btn btn-primary btn-sm btn-icon border border-gray-800" do %>
                             <%= icon('fa-solid', 'eye', class: 'w-4 h-4') %>
                         <% end %>
-                        <%= link_to edit_admin_production_order_path(order), class: "btn btn-accent btn-sm btn-icon border border-gray-800" do %>
-                            <%= icon('fa-solid', 'pencil-alt', class: 'w-4 h-4') %>
-                        <% end %>
                         <% if current_admin.present? %>
+                          <%= link_to edit_admin_production_order_path(order), class: "btn btn-accent btn-sm btn-icon border border-gray-800" do %>
+                              <%= icon('fa-solid', 'pencil-alt', class: 'w-4 h-4') %>
+                          <% end %>
                           <%= button_to admin_production_order_path(order), 
                               method: :delete, 
                               class: "btn btn-danger btn-sm btn-icon border border-gray-800",

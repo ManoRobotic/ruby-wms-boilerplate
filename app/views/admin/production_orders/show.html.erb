@@ -31,11 +31,7 @@
             <span class="hidden sm:inline">Volver</span>
           <% end %>
           
-          <%= link_to edit_admin_production_order_path(@production_order), class: "btn btn-primary btn-sm btn-icon border border-gray-800" do %>
-            <%= icon('fa-solid', 'edit', class: 'w-3 h-3') %>
-            <span class="hidden sm:inline">Editar</span>
-          <% end %>
-          
+
           <% if current_admin.present? %>
             <%= button_to admin_production_order_path(@production_order), 
                 method: :delete, 
