@@ -19,27 +19,9 @@
 
     <!-- Formulario de Configuración -->
     <div class="px-6 pb-6">
-      <!-- Layout 2 Columnas: Comunicación Serial y Estado de Configuración -->
+      <!-- Layout 2 Columnas: Estado de Configuración y Comunicación Serial -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Columna Izquierda: Comunicación Serial -->
-        <div class="bg-white rounded-xl border border-blue-gem-200 shadow-sm p-6">
-          <div class="flex items-center justify-between mb-6">
-            <h2 class="text-xl font-bold text-gray-900">Comunicación Serial</h2>
-            <div class="p-2 rounded-full bg-blue-gem-100">
-              <i class="fa-solid fa-plug text-blue-gem-600"></i>
-            </div>
-          </div>
-          
-          <div class="serial-panel" 
-               data-controller="serial" 
-               data-serial-base-url-value="/api/serial"
-               data-serial-auto-connect-value="true"
-               data-serial-poll-interval-value="2000">
-            <%= render 'admin/serial/panel_without_logs' %>
-          </div>
-        </div>
-
-        <!-- Columna Derecha: Estado de Configuración -->
+        <!-- Columna Izquierda: Estado de Configuración -->
         <div class="bg-white rounded-xl border border-blue-gem-200 shadow-sm p-6">
           <div class="flex items-center justify-between mb-6">
             <h2 class="text-xl font-bold text-gray-900">Estado de Configuración</h2>
@@ -117,6 +99,24 @@
                 <span class="px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full">No configurado</span>
               <% end %>
             </div>
+          </div>
+        </div>
+
+        <!-- Columna Derecha: Comunicación Serial -->
+        <div class="bg-white rounded-xl border border-blue-gem-200 shadow-sm p-6">
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-bold text-gray-900">Comunicación Serial</h2>
+            <div class="p-2 rounded-full bg-blue-gem-100">
+              <i class="fa-solid fa-plug text-blue-gem-600"></i>
+            </div>
+          </div>
+          
+          <div class="serial-panel" 
+               data-controller="serial" 
+               data-serial-base-url-value="/api/serial"
+               data-serial-auto-connect-value="true"
+               data-serial-poll-interval-value="2000">
+            <%= render 'admin/serial/panel_without_logs' %>
           </div>
         </div>
       </div>
