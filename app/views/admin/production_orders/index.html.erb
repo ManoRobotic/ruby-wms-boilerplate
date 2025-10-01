@@ -142,6 +142,7 @@
                 <th scope="col" data-sortable="metros_lineales" class="px-4 py-3 text-center cursor-pointer hover:bg-gray-100">Metros</th>
                 <th scope="col" data-sortable="peso_bruto" class="px-4 py-3 text-center cursor-pointer hover:bg-gray-100">P. Bruto</th>
                 <th scope="col" data-sortable="peso_neto" class="px-4 py-3 text-center cursor-pointer hover:bg-gray-100">P. Neto</th>
+                <th scope="col" data-sortable="carga" class="px-4 py-3 text-center hidden cursor-pointer md:table-cell hover:bg-gray-100">Carga</th>
                 <th scope="col" class="px-4 py-3 text-center">Impresión</th>
                 <th scope="col" data-sortable="date" class="px-4 py-3 text-center hidden cursor-pointer md:table-cell hover:bg-gray-100">Fecha</th>
                 <th scope="col" class="px-4 py-3 text-center">Acciones</th>
@@ -219,6 +220,17 @@
                     <% if total_peso_neto > 0 %>
                       <span class="inline-flex items-center px-2 py-1 text-xs font-bold rounded-full text-black" style="background-color: var(--color-dark-fern-400);">
                         ✅ <%= total_peso_neto.round(1) %> kg
+                      </span>
+                    <% else %>
+                      <span class="text-gray-400">-</span>
+                    <% end %>
+                  </td>
+                  
+                  <!-- Carga -->
+                  <td class="px-2 py-2 text-center text-sm text-gray-500 hidden md:table-cell">
+                    <% if order.carga_copr.present? %>
+                      <span class="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 text-xs font-bold rounded-full">
+                        <%= order.carga_copr.to_f %> kg
                       </span>
                     <% else %>
                       <span class="text-gray-400">-</span>
