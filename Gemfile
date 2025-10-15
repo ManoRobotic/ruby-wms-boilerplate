@@ -54,7 +54,7 @@ gem "kaminari"
 gem "mercadopago-sdk"
 
 # Rate limiting and security
-gem "rack-attack", "~> 6.6"
+gem "rack-attack", "~> 6.8"
 
 # Money handling
 gem "money-rails", "~> 1.15"
