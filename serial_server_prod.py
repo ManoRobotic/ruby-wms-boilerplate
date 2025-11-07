@@ -172,29 +172,48 @@ class PrinterManager:
         """Conecta con impresora TSC TX200 via USB usando tu código"""
         try:
             logger.info("Buscando impresora TSC TX200...")
-            
+
             # Buscar dispositivo TSC TX200 (Vendor ID: 0x1203, Product ID: 0x0230)
             self.device = usb.core.find(idVendor=0x1203, idProduct=0x0230)
-            
+
             if self.device is None:
                 logger.warning("✗ Impresora TSC TX200 no encontrada")
                 logger.warning("Verifica que esté conectada y encendida")
                 return False
-            
+
             logger.info(f"✓ Impresora encontrada: {self.device}")
-            
-            # Configurar dispositivo como en tu código
-            if self.device.is_kernel_driver_active(0):
-                logger.info("Desconectando driver del kernel...")
-                self.device.detach_kernel_driver(0)
-            
+
+            try:
+                # Configurar dispositivo como en tu código
+                if self.device.is_kernel_driver_active(0):
+                    logger.info("Desconectando driver del kernel...")
+                    self.device.detach_kernel_driver(0)
+            except usb.core.USBError as e:
+                if e.errno == 13:  # Permission denied
+                    logger.error("✗ Error de permisos al intentar acceder al dispositivo USB")
+                    logger.error("   Necesitas ejecutar este script con permisos adecuados")
+                    logger.error("   Verifica que el entorno tenga permisos para acceder a dispositivos USB")
+                    return False
+                else:
+                    logger.error(f"✗ Error al manipular driver del kernel: {str(e)}")
+                    return False
+
             # Establecer configuración
-            self.device.set_configuration()
-            
+            try:
+                self.device.set_configuration()
+            except usb.core.USBError as e:
+                if e.errno == 13:  # Permission denied
+                    logger.error("✗ Error de permisos al intentar configurar el dispositivo USB")
+                    logger.error("   Necesitas ejecutar este script con permisos adecuados")
+                    return False
+                else:
+                    logger.error(f"✗ Error al configurar el dispositivo: {str(e)}")
+                    return False
+
             # Obtener interface y endpoints
             cfg = self.device.get_active_configuration()
             intf = cfg[(0,0)]
-            
+
             # Encontrar endpoints
             self.endpoint_out = usb.util.find_descriptor(
                 intf,
@@ -202,29 +221,29 @@ class PrinterManager:
                     usb.util.endpoint_direction(e.bEndpointAddress) == \
                     usb.util.ENDPOINT_OUT
             )
-            
+
             self.endpoint_in = usb.util.find_descriptor(
                 intf,
                 custom_match = lambda e: \
                     usb.util.endpoint_direction(e.bEndpointAddress) == \
                     usb.util.ENDPOINT_IN
             )
-            
+
             if self.endpoint_out is None:
                 logger.error("✗ No se encontró endpoint de salida")
                 return False
-            
+
             logger.info(f"✓ Endpoint OUT: {self.endpoint_out.bEndpointAddress}")
             if self.endpoint_in:
                 logger.info(f"✓ Endpoint IN: {self.endpoint_in.bEndpointAddress}")
-            
+
             logger.info("✓ Impresora conectada exitosamente!")
             return True
-            
+
         except Exception as e:
             logger.error(f"✗ Error al configurar dispositivo: {str(e)}")
             return False
-    
+
     def enviar_comando(self, comando: str) -> bool:
         """Envía comando TSPL2 a la impresora"""
         if not self.device or not self.endpoint_out:
@@ -241,6 +260,15 @@ class PrinterManager:
             logger.debug(f"✓ Enviados {bytes_escritos} bytes: {comando.decode('utf-8').strip()}")
             return True
             
+        except usb.core.USBError as e:
+            if e.errno == 13:  # Permission denied
+                logger.error("✗ Error de permisos al intentar enviar comando al dispositivo USB")
+                logger.error("   Necesitas ejecutar este script con permisos adecuados")
+                logger.error("   Verifica que el entorno tenga permisos para acceder a dispositivos USB")
+                return False
+            else:
+                logger.error(f"✗ Error de USB al enviar comando: {str(e)}")
+                return False
         except Exception as e:
             logger.error(f"✗ Error enviando comando: {str(e)}")
             return False
@@ -294,8 +322,17 @@ class PrinterManager:
             logger.info("✓ Etiqueta enviada a impresora correctamente")
             return True
                 
+        except usb.core.USBError as e:
+            if e.errno == 13:  # Permission denied
+                logger.error("✗ Error de permisos durante la impresión de etiqueta")
+                logger.error("   Necesitas ejecutar este script con permisos adecuados")
+                logger.error("   Verifica que el entorno tenga permisos para acceder a dispositivos USB")
+                return False
+            else:
+                logger.error(f"✗ Error de USB durante la impresión de etiqueta: {str(e)}")
+                return False
         except Exception as e:
-            logger.error(f"Error imprimiendo: {str(e)}")
+            logger.error(f"✗ Error durante la impresión de etiqueta: {str(e)}")
             return False
     
     def test_impresora(self, ancho_mm: int = 80, alto_mm: int = 50) -> bool:
@@ -348,6 +385,19 @@ class PrinterManager:
             logger.info(f"✓ Test completado para papel {ancho_mm}x{alto_mm}mm")
             logger.info("La etiqueta debería salir completa y centrada.")
             return True
+
+        except usb.core.USBError as e:
+            if e.errno == 13:  # Permission denied
+                logger.error("✗ Error de permisos durante la impresión de prueba")
+                logger.error("   Necesitas ejecutar este script con permisos adecuados")
+                logger.error("   Verifica que el entorno tenga permisos para acceder a dispositivos USB")
+                return False
+            else:
+                logger.error(f"✗ Error de USB durante la impresión de prueba: {str(e)}")
+                return False
+        except Exception as e:
+            logger.error(f"✗ Error durante la impresión de prueba: {str(e)}")
+            return False
             
         except Exception as e:
             logger.error(f"Error en test de impresora: {str(e)}")
@@ -479,6 +529,34 @@ def connect_printer():
     else:
         return jsonify({'status': 'error', 'message': 'Error conectando impresora'}), 500
 
+@app.route('/connect', methods=['POST'])
+def connect_port():
+    """Conecta a un puerto serial o dispositivo USB"""
+    data = request.get_json()
+    if not data or 'port' not in data:
+        return jsonify({'status': 'error', 'message': 'Puerto requerido'}), 400
+    
+    port = data['port']
+    
+    # Si es la impresora USB, usar la conexión USB directa
+    if port == 'USB://TSC-TX200-0x0230':
+        if printer_manager.connect_usb_printer():
+            return jsonify({'status': 'success', 'message': 'Impresora conectada'})
+        else:
+            return jsonify({'status': 'error', 'message': 'Error conectando impresora'}), 500
+    else:
+        # Para otros puertos seriales tradicionales
+        try:
+            # Configurar el puerto en el manager de báscula
+            scale_manager.port = port
+            if scale_manager.connect():
+                return jsonify({'status': 'success', 'message': 'Conexión serial establecida'})
+            else:
+                return jsonify({'status': 'error', 'message': f'Error conectando al puerto {port}'}), 500
+        except Exception as e:
+            logger.error(f"Error conectando al puerto {port}: {str(e)}")
+            return jsonify({'status': 'error', 'message': f'Error conectando al puerto: {str(e)}'}), 500
+
 @app.route('/printer/print', methods=['POST'])
 def print_label():
     """Imprime etiqueta"""
@@ -523,7 +601,20 @@ def list_serial_ports():
             'description': port.description,
             'hwid': port.hwid
         })
-    
+
+    # Agregar dispositivo USB de la impresora TSC TX200 si está conectado
+    try:
+        # Buscar dispositivo TSC TX200 (Vendor ID: 0x1203, Product ID: 0x0230)
+        tsc_device = usb.core.find(idVendor=0x1203, idProduct=0x0230)
+        if tsc_device is not None:
+            ports.append({
+                'device': 'USB://TSC-TX200-0x0230',
+                'description': 'TSC TX200 USB Printer',
+                'hwid': 'USB VID:PID=1203:0230'
+            })
+    except Exception as e:
+        logger.warning(f"Error buscando dispositivo TSC: {str(e)}")
+
     return jsonify({'status': 'success', 'ports': ports})
 
 import argparse
@@ -554,6 +645,7 @@ if __name__ == '__main__':
     logger.info("Endpoints disponibles:")
     logger.info("  GET  /health - Estado del servidor")
     logger.info("  GET  /ports - Puertos seriales disponibles")
+    logger.info("  POST /connect - Conectar a puerto serial o dispositivo USB")
     logger.info("")
     logger.info("BÁSCULA:")
     logger.info("  POST /scale/connect - Conectar báscula")
