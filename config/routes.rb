@@ -205,6 +205,7 @@ Rails.application.routes.draw do
         get :export_excel
         get :selected_data
         post :selected_data
+        post :print_selected_labels
         post :toggle_selection
         delete :clear_selection
       end

@@ -212,4 +212,144 @@ class Admin::InventoryCodesController < AdminController
   def set_selected_codes(codes)
     session[:selected_inventory_codes] = codes
   end
+
+  def selected_data
+    # Handle both GET (using session) and POST (using provided IDs) requests
+    if request.post?
+      request_body = JSON.parse(request.body.read)
+      selected_ids = request_body['selected_ids'] || []
+    else
+      selected_ids = get_selected_codes
+    end
+
+    @inventory_codes = InventoryCode.where(id: selected_ids)
+
+    codes_data = @inventory_codes.map do |code|
+      {
+        id: code.id,
+        no_ordp: code.no_ordp,
+        cve_prod: code.cve_prod,
+        cve_copr: code.cve_copr,
+        can_copr: code.can_copr,
+        formatted_quantity: code.formatted_quantity,
+        costo: code.costo,
+        formatted_cost: code.formatted_cost,
+        lote: code.lote,
+        fech_cto: code.fech_cto,
+        status_display: code.status_display,
+        tip_copr: code.tip_copr
+      }
+    end
+
+    render json: {
+      status: 'success',
+      data: codes_data,
+      count: codes_data.length,
+      message: "#{codes_data.length} códigos seleccionados"
+    }
+  end
+
+  def print_selected_labels
+    # Handle POST request with selected IDs
+    request_body = JSON.parse(request.body.read)
+    selected_ids = request_body['selected_ids'] || []
+
+    @inventory_codes = InventoryCode.where(id: selected_ids)
+
+    codes_data = @inventory_codes.map do |code|
+      {
+        no_ordp: code.no_ordp,
+        cve_prod: code.cve_prod,
+        cve_copr: code.cve_copr,
+        can_copr: code.can_copr,
+        formatted_quantity: code.formatted_quantity,
+        lote: code.lote,
+        fech_cto: code.fech_cto&.strftime("%d/%m/%Y"),
+        status: code.status_display,
+        tip_copr: code.tip_copr
+      }
+    end
+
+    # Intentar imprimir las etiquetas físicamente si hay una impresora configurada
+    print_success = true
+    
+    Rails.logger.info "Checking if printer is configured for current admin: #{current_admin&.printer_configured?}"
+    Rails.logger.info "Checking if printer is configured for current user: #{current_user&.printer_configured?}"
+    
+    if current_admin&.printer_configured?
+      Rails.logger.info "Printer is configured for admin, proceeding with printing"
+      codes_data.each do |data|
+        # Crear contenido de la etiqueta en formato TSPL2 para la impresora
+        label_content = generate_inventory_code_tspl2_label_content(data)
+        Rails.logger.info "Generated label content: #{label_content}"
+
+        # Enviar a la impresora
+        result = SerialCommunicationService.print_label(
+          label_content,
+          ancho_mm: 80,  # Configurable según el tamaño de la etiqueta
+          alto_mm: 50,
+          company: current_admin.company
+        )
+        Rails.logger.info "Print result: #{result}"
+        print_success = print_success && result
+      end
+    elsif current_user&.printer_configured?
+      Rails.logger.info "Printer is configured for user, proceeding with printing"
+      codes_data.each do |data|
+        # Crear contenido de la etiqueta en formato TSPL2 para la impresora
+        label_content = generate_inventory_code_tspl2_label_content(data)
+        Rails.logger.info "Generated label content: #{label_content}"
+
+        # Enviar a la impresora
+        result = SerialCommunicationService.print_label(
+          label_content,
+          ancho_mm: 80,  # Configurable según el tamaño de la etiqueta
+          alto_mm: 50,
+          company: current_user.company
+        )
+        Rails.logger.info "Print result: #{result}"
+        print_success = print_success && result
+      end
+    else
+      Rails.logger.info "Printer not configured for current user/admin"
+    end
+
+    render json: {
+      status: 'success',
+      print_success: print_success,
+      message: print_success ? "#{codes_data.length} etiquetas enviadas a imprimir." : "#{codes_data.length} códigos procesados pero hubo un problema al enviar a la impresora.",
+      data: codes_data,
+      count: codes_data.length
+    }
+  end
+
+  private
+
+  # Generate TSPL2 label content for inventory codes
+  def generate_inventory_code_tspl2_label_content(label_data)
+    # Prepare label content in TSPL2 format for inventory codes
+    tspl2_commands = [
+      "SIZE 80 mm, 50 mm",     # Tamaño de la etiqueta
+      "GAP 2 mm, 0 mm",        # Espacio entre etiquetas
+      "DIRECTION 1,0",         # Dirección
+      "REFERENCE 0,0",         # Punto de referencia
+      "SET TEAR ON",           # Modo tear
+      "CLS"                    # Limpiar buffer
+    ]
+
+    # Add content - adjust positioning as needed
+    tspl2_commands << "TEXT 160,75,\"4\",0,1,1,\"#{label_data[:no_ordp] || 'N/A'}\""
+    tspl2_commands << "TEXT 160,150,\"3\",0,1,1,\"Prod: #{label_data[:cve_prod] || 'N/A'}\""
+    tspl2_commands << "TEXT 160,225,\"3\",0,1,1,\"Cve Copr: #{label_data[:cve_copr] || 'N/A'}\""
+    tspl2_commands << "TEXT 160,300,\"3\",0,1,1,\"Cantidad: #{label_data[:can_copr] || 0}\""
+    tspl2_commands << "TEXT 160,375,\"2\",0,1,1,\"Lote: #{label_data[:lote] || 'N/A'}\""
+    tspl2_commands << "TEXT 160,450,\"2\",0,1,1,\"Fecha: #{label_data[:fech_cto] || 'N/A'}\""
+    tspl2_commands << "TEXT 160,525,\"2\",0,1,1,\"Tipo: #{label_data[:tip_copr] || 'N/A'}\""
+
+    # Print command
+    tspl2_commands << "PRINT 1,1"
+
+    # Join commands with newline characters
+    tspl2_commands.join("\n") + "\n"
+  end
 end
