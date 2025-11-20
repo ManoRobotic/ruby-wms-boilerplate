@@ -66,7 +66,7 @@ gem "ougai", "~> 2.0"
 gem "barby", "~> 0.7.0"
 
 # Excel file processing
-gem "roo", "~> 2.10"
+gem "roo", "~> 3.0"
 gem "chunky_png", "~> 1.3"
 
 # Google Sheets API
