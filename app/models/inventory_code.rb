@@ -46,4 +46,16 @@ class InventoryCode < ApplicationRecord
       "Desconocido"
     end
   end
+
+  def label_data
+    {
+      no_ordp: no_ordp || "N/A",
+      cve_prod: cve_prod || "N/A",
+      cve_copr: cve_copr || "N/A",
+      can_copr: can_copr || 0,
+      lote: lote || "N/A",
+      fech_cto: fech_cto&.strftime("%d/%m/%Y") || "N/A",
+      tip_copr: status_display
+    }
+  end
 end

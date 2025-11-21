@@ -32,34 +32,32 @@ export default class extends Controller {
   }
   
   confirmPrint() {
-    console.log("Confirm print button clicked", this.selectedIds)
-    
-    // // Fetch the selected items data from the server using the stored IDs
-    // fetch('/admin/inventory_codes/selected_data', {
-    //   method: 'POST',
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //     'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content
-    //   },
-    //   body: JSON.stringify({ selected_ids: this.selectedIds })
-    // })
-    // .then(response => response.json())
-    // .then(data => {
-    //   console.log("Datos de los códigos de inventario seleccionados:", JSON.stringify(data, null, 2));
-    // })
-    // .catch(error => {
-    //   console.error("Error al obtener los datos de los códigos seleccionados:", error);
-    // });
-    
-    // Dispatch a custom event that can be listened to by other controllers
-    const event = new CustomEvent('confirm-print-selected', {
-      bubbles: true,
-      cancelable: true
-    })
-    this.element.dispatchEvent(event)
-    
-    // Close the modal using the dialog controller
-    this.closeModal()
+    console.log("Confirm print button clicked", this.selectedIds);
+
+    if (this.selectedIds && this.selectedIds.length > 0) {
+      fetch('/admin/inventory_codes/print_selected_labels', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content
+        },
+        body: JSON.stringify({ selected_ids: this.selectedIds })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if(data.print_success) {
+          alert(data.message);
+        } else {
+          alert(`Error: ${data.message}`);
+        }
+      })
+      .catch(error => {
+        console.error('Error printing labels:', error);
+        alert('An unexpected error occurred while trying to print.');
+      });
+    }
+
+    this.closeModal();
   }
   
   closeModal() {

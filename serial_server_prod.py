@@ -274,49 +274,27 @@ class PrinterManager:
             return False
     
     def print_label(self, content: str, ancho_mm: int = 80, alto_mm: int = 50) -> bool:
-        """Imprime etiqueta con el contenido TSPL2 proporcionado"""
+        """Imprime etiqueta con el contenido TSPL2 proporcionado, enviando todo en un solo bloque."""
         try:
+            # Auto-conectar si no hay un dispositivo activo
             if not self.device or not self.endpoint_out:
-                logger.error("✗ Impresora no conectada")
-                return False
+                logger.info("Impresora no conectada, intentando auto-conectar...")
+                if not self.connect_usb_printer():
+                    logger.error("✗ Fallo al auto-conectar con la impresora.")
+                    return False
 
-            logger.info(f"=== IMPRIMIENDO ETIQUETA ===")
+            logger.info(f"=== IMPRIMIENDO ETIQUETA (BLOQUE UNICO) ===")
             logger.info(f"Tamaño: {ancho_mm}x{alto_mm}mm")
-            logger.info(f"Contenido completo: {content}")
+            logger.info(f"Contenido completo enviado:\n{content}")
 
-            # Parsear el contenido como comandos TSPL2 y enviarlos línea por línea
-            # Si el contenido incluye tamaño, mantenerlo; si no, usar los parámetros
-            lines = content.strip().split('\n')
-
-            # Verificar si el contenido ya incluye SIZE (común en TSPL2)
-            has_size_command = any(line.strip().startswith('SIZE ') for line in lines)
-
-            # Si no hay comando SIZE en el contenido, agregarlo
-            if not has_size_command:
-                # Añadir tamaño antes del contenido
-                lines = [f"SIZE {ancho_mm} mm, {alto_mm} mm\n"] + lines
-
-            # Enviar cada comando con logging detallado
-            for i, line in enumerate(lines, 1):
-                if line.strip():  # Solo enviar líneas no vacías
-                    logger.info(f"Enviando comando {i}: {line.strip()}")
-                    if not self.enviar_comando(line + '\n'):
-                        logger.error(f"Falló comando {i}: {line.strip()}")
-                        return False
-                    time.sleep(0.1)  # Pausa entre comandos como en scaner.py
-
-            logger.info("✓ Etiqueta enviada a impresora correctamente")
-            return True
-
-        except usb.core.USBError as e:
-            if e.errno == 13:  # Permission denied
-                logger.error("✗ Error de permisos durante la impresión de etiqueta")
-                logger.error("   Necesitas ejecutar este script con permisos adecuados")
-                logger.error("   Verifica que el entorno tenga permisos para acceder a dispositivos USB")
-                return False
+            # Enviar el bloque completo de comandos de una sola vez
+            if self.enviar_comando(content):
+                logger.info("✓ Bloque de comandos enviado a impresora correctamente.")
+                return True
             else:
-                logger.error(f"✗ Error de USB durante la impresión de etiqueta: {str(e)}")
+                logger.error("✗ Falló el envío del bloque de comandos.")
                 return False
+
         except Exception as e:
             logger.error(f"✗ Error durante la impresión de etiqueta: {str(e)}")
             return False
