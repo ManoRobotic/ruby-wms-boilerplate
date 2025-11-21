@@ -198,48 +198,32 @@ class Admin::ProductionOrderItemsController < AdminController
       # Obtener los datos de las etiquetas para devolverlos en la respuesta
       label_data = production_order_items.map(&:label_data)
 
-      # Intentar imprimir las etiquetas físicamente si hay una impresora configurada
+      # Determine the company to use for the printing service
+      company = current_admin&.company || current_user&.company
       print_success = true
-      
-      Rails.logger.info "Checking if printer is configured for current admin: #{current_admin&.printer_configured?}"
-      Rails.logger.info "Checking if printer is configured for current user: #{current_user&.printer_configured?}"
-      
-      if current_admin&.printer_configured?
-        Rails.logger.info "Printer is configured for admin, proceeding with printing"
+
+      # Verify the serial service is accessible before attempting to print
+      if company&.serial_service_url_configured? && SerialCommunicationService.health_check(company: company)
+        Rails.logger.info "Serial server is accessible, proceeding with printing"
+
         label_data.each do |data|
           # Crear contenido de la etiqueta en formato TSPL2 para la impresora
           label_content = generate_tspl2_label_content(data)
           Rails.logger.info "Generated label content: #{label_content}"
 
-          # Enviar a la impresora
+          # Enviar a la impresora (asumiendo que el servicio maneja la conexión)
           result = SerialCommunicationService.print_label(
             label_content,
-            ancho_mm: 80,  # Configurable según el tamaño de la etiqueta
+            ancho_mm: 80,
             alto_mm: 50,
-            company: current_admin.company
-          )
-          Rails.logger.info "Print result: #{result}"
-          print_success = print_success && result
-        end
-      elsif current_user&.printer_configured?
-        Rails.logger.info "Printer is configured for user, proceeding with printing"
-        label_data.each do |data|
-          # Crear contenido de la etiqueta en formato TSPL2 para la impresora
-          label_content = generate_tspl2_label_content(data)
-          Rails.logger.info "Generated label content: #{label_content}"
-
-          # Enviar a la impresora
-          result = SerialCommunicationService.print_label(
-            label_content,
-            ancho_mm: 80,  # Configurable según el tamaño de la etiqueta
-            alto_mm: 50,
-            company: current_user.company
+            company: company
           )
           Rails.logger.info "Print result: #{result}"
           print_success = print_success && result
         end
       else
-        Rails.logger.info "Printer not configured for current user/admin"
+        Rails.logger.info "Serial service not configured or not accessible"
+        print_success = false
       end
 
       # Recargar los items para obtener el estado actualizado
@@ -298,6 +282,10 @@ class Admin::ProductionOrderItemsController < AdminController
     @production_order_item = @production_order.production_order_items.includes(:production_order).find(params[:id])
   end
 
+  def post_serial_endpoint(endpoint, payload, company = nil)
+    SerialCommunicationService.send(:post, endpoint, payload: payload, company: company)
+  end
+
   def production_order_item_params
     item_params = params.require(:production_order_item).permit(
       :folio_consecutivo, :peso_bruto, :peso_neto, :metros_lineales,
@@ -313,14 +301,21 @@ class Admin::ProductionOrderItemsController < AdminController
 
   # Generate TSPL2 label content for the printer
   def generate_tspl2_label_content(label_data)
-    # Prepare label content in TSPL2 format for TSC printers
+    Rails.logger.info "Generating TSPL2 label content with data: #{label_data}"
+
+    # Prepare label content in TSPL2 format for TSC printers with complete initialization sequence
     tspl2_commands = [
       "SIZE 80 mm, 50 mm",     # Tamaño de la etiqueta
       "GAP 2 mm, 0 mm",        # Espacio entre etiquetas
       "DIRECTION 1,0",         # Dirección
       "REFERENCE 0,0",         # Punto de referencia
-      "SET TEAR ON",           # Modo tear
-      "CLS"                    # Limpiar buffer
+      "OFFSET 0 mm",           # Offset
+      "SET PEEL OFF",          # Modo peeling desactivado
+      "SET CUTTER OFF",        # Cortador desactivado
+      "SET PARTIAL_CUTTER OFF", # Cortador parcial desactivado
+      "SET TEAR ON",           # Modo tear activado
+      "CLS",                   # Limpiar buffer de impresión
+      "CODEPAGE 1252"          # Página de códigos occidental
     ]
 
     # Add content - adjust positioning as needed
@@ -336,7 +331,10 @@ class Admin::ProductionOrderItemsController < AdminController
     # Print command
     tspl2_commands << "PRINT 1,1"
 
-    # Join commands with newline characters
-    tspl2_commands.join("\n") + "\n"
+    label_content = tspl2_commands.join("\n") + "\n"
+    Rails.logger.info "Generated TSPL2 label content: #{label_content}"
+
+    # Return the label content string
+    label_content
   end
 end

@@ -1,4 +1,6 @@
 class Admin::ConfigurationsController < AdminController
+  skip_before_action :authenticate_admin_or_privileged_user!, only: [:auto_save]
+  skip_before_action :ensure_admin_permissions!, only: [:auto_save]
 
   def show
     @admin = current_admin || current_user
@@ -185,30 +187,81 @@ class Admin::ConfigurationsController < AdminController
 
   # Endpoint para guardar configuración automáticamente
   def auto_save
-    @admin = current_admin
-    
-    unless @admin.company
-      render json: { success: false, message: "No se puede actualizar la configuración: el administrador no está asociado a una empresa." }, status: :unprocessable_entity
+    @admin = current_admin || current_user
+
+    # Manual authentication check for auto_save since before_actions are skipped
+    unless @admin
+      respond_to do |format|
+        format.json { render json: { success: false, message: "No autenticado. Por favor, inicie sesión." }, status: :unauthorized }
+      end
       return
     end
-    
+
+    unless @admin.company
+      respond_to do |format|
+        format.html { redirect_back(fallback_location: admin_configurations_path, alert: "No se puede actualizar la configuración: el administrador no está asociado a una empresa.") }
+        format.json { render json: { success: false, message: "No se puede actualizar la configuración: el administrador no está asociado a una empresa." }, status: :unprocessable_entity }
+      end
+      return
+    end
+
+    # Log incoming parameters
+    Rails.logger.info "Auto save params: #{params}"
+
     # Handle both formats: direct parameters and nested under company
     params_to_update = if params[:company].present?
-                        params.require(:company).permit(:serial_port, :printer_port, :serial_baud_rate, :printer_baud_rate, :serial_parity, :printer_parity, :serial_stop_bits, :printer_stop_bits, :serial_data_bits, :printer_data_bits, :auto_save_consecutivo, :serial_service_url, :printer_model)
+                        # Permit company nested parameters
+                        permitted_params = params.require(:company).permit(
+                          :serial_port, :printer_port, :serial_baud_rate, :printer_baud_rate,
+                          :serial_parity, :printer_parity, :serial_stop_bits, :printer_stop_bits,
+                          :serial_data_bits, :printer_data_bits, :auto_save_consecutivo,
+                          :serial_service_url, :printer_model
+                        )
+                        # Log what will be updated in company
+                        Rails.logger.info "Updating company with: #{permitted_params}"
+                        permitted_params
                       else
-                        params.permit(:serial_port, :printer_port, :serial_baud_rate, :printer_baud_rate, :serial_parity, :printer_parity, :serial_stop_bits, :printer_stop_bits, :serial_data_bits, :printer_data_bits, :auto_save_consecutivo, :serial_service_url, :printer_model)
+                        # Permit direct parameters
+                        permitted_params = params.permit(
+                          :serial_port, :printer_port, :serial_baud_rate, :printer_baud_rate,
+                          :serial_parity, :printer_parity, :serial_stop_bits, :printer_stop_bits,
+                          :serial_data_bits, :printer_data_bits, :auto_save_consecutivo,
+                          :serial_service_url, :printer_model, :authenticity_token, :locale
+                        )
+
+                        # Remove authenticity_token and locale if present since they're not in the model
+                        permitted_params.except(:authenticity_token, :locale)
                       end
-    
+
+    # Update only the fields that exist and have values
+    update_fields = {}
+    params_to_update.each do |key, value|
+      # Only add fields if they exist in the company model and have values
+      if @admin.company.respond_to?("#{key}=") && value.present?
+        update_fields[key.to_sym] = value
+      end
+    end
+
+    Rails.logger.info "Attempting to update company with fields: #{update_fields}"
+
     # Solo actualizar los campos que se envían
-    if @admin.company.update(params_to_update)
+    if @admin.company.update(update_fields)
+      Rails.logger.info "Successfully updated company configuration. Printer port: #{@admin.company.printer_port}, Serial port: #{@admin.company.serial_port}"
+
+      # Update admin's serial_service_url as well to ensure consistency
+      if params[:serial_service_url].present? && @admin.respond_to?(:serial_service_url=)
+        @admin.update_column(:serial_service_url, params[:serial_service_url]) if @admin.serial_service_url != params[:serial_service_url]
+      end
+
       respond_to do |format|
         format.html { redirect_back(fallback_location: admin_configurations_path, notice: "Configuración guardada automáticamente.") }
-        format.json { render json: { success: true, message: "Configuración guardada automáticamente." } }
+        format.json { render json: { success: true, message: "Configuración guardada automáticamente.", updated_params: update_fields } }
       end
     else
+      Rails.logger.error "Failed to update company configuration: #{@admin.company.errors.full_messages}"
       respond_to do |format|
-        format.html { redirect_back(fallback_location: admin_configurations_path, alert: "Error al guardar la configuración.") }
-        format.json { render json: { success: false, message: "Error al guardar la configuración.", errors: @admin.company.errors }, status: :unprocessable_entity }
+        format.html { redirect_back(fallback_location: admin_configurations_path, alert: "Error al guardar la configuración: #{@admin.company.errors.full_messages.join(', ')}") }
+        format.json { render json: { success: false, message: "Error al guardar la configuración.", errors: @admin.company.errors.full_messages }, status: :unprocessable_entity }
       end
     end
   end

@@ -111,12 +111,36 @@
             </div>
           </div>
           
-          <div class="serial-panel" 
-               data-controller="serial" 
+          <div class="serial-panel"
+               data-controller="serial"
                data-serial-base-url-value="/api/serial"
                data-serial-auto-connect-value="true"
                data-serial-poll-interval-value="2000">
             <%= render 'admin/serial/panel_without_logs' %>
+            <div class="mt-4">
+              <%= form_with model: @admin.company, url: admin_configurations_auto_save_path, method: :post, local: true, class: "space-y-4", id: "serial-config-form" do |form| %>
+                <!-- Hidden fields that will be populated by JavaScript -->
+                <%= form.hidden_field :serial_port, id: "auto-save-serial-port", value: @admin.company.serial_port %>
+                <%= form.hidden_field :printer_port, id: "auto-save-printer-port", value: @admin.company.printer_port %>
+                <%= form.hidden_field :serial_baud_rate, id: "auto-save-serial-baud-rate", value: @admin.company.serial_baud_rate %>
+                <%= form.hidden_field :printer_baud_rate, id: "auto-save-printer-baud-rate", value: @admin.company.printer_baud_rate %>
+                <%= form.hidden_field :serial_parity, id: "auto-save-serial-parity", value: @admin.company.serial_parity %>
+                <%= form.hidden_field :printer_parity, id: "auto-save-printer-parity", value: @admin.company.printer_parity %>
+                <%= form.hidden_field :serial_stop_bits, id: "auto-save-serial-stop-bits", value: @admin.company.serial_stop_bits %>
+                <%= form.hidden_field :printer_stop_bits, id: "auto-save-printer-stop-bits", value: @admin.company.printer_stop_bits %>
+                <%= form.hidden_field :serial_data_bits, id: "auto-save-serial-data-bits", value: @admin.company.serial_data_bits %>
+                <%= form.hidden_field :printer_data_bits, id: "auto-save-printer-data-bits", value: @admin.company.printer_data_bits %>
+
+                <div class="grid grid-cols-2 gap-2">
+                  <button type="submit"
+                          class="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 transition-colors"
+                          data-action="click->serial#saveConfiguration">
+                    <i class="fa-solid fa-save mr-2"></i>
+                    Guardar Configuración Serial
+                  </button>
+                </div>
+              <% end %>
+            </div>
           </div>
         </div>
       </div>

@@ -19,9 +19,9 @@ source venv/bin/activate
 echo "Verificando dependencias..."
 pip install --break-system-packages -r requirements.txt
 
-# Iniciar el servidor serial en segundo plano
-echo "Iniciando servidor serial en segundo plano..."
-nohup python3 serial_server.py > serial_server.log 2>&1 &
+# Iniciar el servidor serial de producción en segundo plano
+echo "Iniciando servidor serial de producción en segundo plano..."
+nohup python3 serial_server_prod.py > serial_server.log 2>&1 &
 
 echo "Servidor serial iniciado con PID $!"
 echo "Logs disponibles en serial_server.log"

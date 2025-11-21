@@ -274,54 +274,40 @@ class PrinterManager:
             return False
     
     def print_label(self, content: str, ancho_mm: int = 80, alto_mm: int = 50) -> bool:
-        """Imprime etiqueta usando comandos exactos de scaner.py"""
+        """Imprime etiqueta con el contenido TSPL2 proporcionado"""
         try:
             if not self.device or not self.endpoint_out:
                 logger.error("✗ Impresora no conectada")
                 return False
-            
+
             logger.info(f"=== IMPRIMIENDO ETIQUETA ===")
             logger.info(f"Tamaño: {ancho_mm}x{alto_mm}mm")
-            logger.info(f"Contenido: {content}")
-            
-            # Comandos TSPL2 exactos de tu scaner.py que funciona
-            comandos = [
-                f"SIZE {ancho_mm} mm, {alto_mm} mm\n",
-                "GAP 2 mm, 0 mm\n",
-                "DIRECTION 1,0\n",
-                "REFERENCE 0,0\n",
-                "OFFSET 0 mm\n",
-                "SET PEEL OFF\n",
-                "SET CUTTER OFF\n", 
-                "SET PARTIAL_CUTTER OFF\n",
-                "SET TEAR ON\n",
-                "CLS\n",
-                "CODEPAGE 1252\n",
-                
-                # Texto usando las mismas posiciones de scaner.py
-                f"TEXT {int(ancho_mm*2)},{int(alto_mm*1.5)},\"4\",0,1,1,\"{content}\"\n",
-                f"TEXT {int(ancho_mm*2)},{int(alto_mm*2.5)},\"2\",0,1,1,\"Peso: --kg\"\n",
-                
-                # Línea de separación
-                f"BAR {int(ancho_mm*1.5)},{int(alto_mm*4.5)},{int(ancho_mm*5)},2\n",
-                
-                # Fecha/hora
-                f"TEXT {int(ancho_mm*2)},{int(alto_mm*5.5)},\"1\",0,1,1,\"{time.strftime('%Y-%m-%d %H:%M')}\"\n",
-                
-                "PRINT 1,1\n"
-            ]
-            
+            logger.info(f"Contenido completo: {content}")
+
+            # Parsear el contenido como comandos TSPL2 y enviarlos línea por línea
+            # Si el contenido incluye tamaño, mantenerlo; si no, usar los parámetros
+            lines = content.strip().split('\n')
+
+            # Verificar si el contenido ya incluye SIZE (común en TSPL2)
+            has_size_command = any(line.strip().startswith('SIZE ') for line in lines)
+
+            # Si no hay comando SIZE en el contenido, agregarlo
+            if not has_size_command:
+                # Añadir tamaño antes del contenido
+                lines = [f"SIZE {ancho_mm} mm, {alto_mm} mm\n"] + lines
+
             # Enviar cada comando con logging detallado
-            for i, comando in enumerate(comandos, 1):
-                logger.info(f"Enviando comando {i}: {comando.strip()}")
-                if not self.enviar_comando(comando):
-                    logger.error(f"Falló comando {i}: {comando.strip()}")
-                    return False
-                time.sleep(0.1)  # Pausa entre comandos como en scaner.py
-            
+            for i, line in enumerate(lines, 1):
+                if line.strip():  # Solo enviar líneas no vacías
+                    logger.info(f"Enviando comando {i}: {line.strip()}")
+                    if not self.enviar_comando(line + '\n'):
+                        logger.error(f"Falló comando {i}: {line.strip()}")
+                        return False
+                    time.sleep(0.1)  # Pausa entre comandos como en scaner.py
+
             logger.info("✓ Etiqueta enviada a impresora correctamente")
             return True
-                
+
         except usb.core.USBError as e:
             if e.errno == 13:  # Permission denied
                 logger.error("✗ Error de permisos durante la impresión de etiqueta")

@@ -245,7 +245,10 @@ export default class extends Controller {
         this.log(`Scale connected on ${port}`)
         
         // Trigger Rails form submission for automatic saving
-        this.saveConfiguration({ serial_port: port })
+        const form = document.getElementById('serial-config-form');
+        if (form) {
+          this._submitAutoSaveForm({ serial_port: port, serial_baud_rate: baudrate }, form);
+        }
         
         await this.startReading()
       } else {
@@ -416,8 +419,10 @@ export default class extends Controller {
         this.log(`Printer connected on ${printerPort || 'auto-detected port'}`)
         
         // Trigger Rails form submission for automatic saving if we have a specific port
-        if (printerPort) {
-          this.saveConfiguration({ printer_port: printerPort })
+        const form = document.getElementById('serial-config-form');
+        const baudrate = 115200; // Default baud rate for printer
+        if (form && printerPort) {
+          this._submitAutoSaveForm({ printer_port: printerPort, printer_baud_rate: baudrate }, form);
         }
       } else {
         this.updatePrinterStatus("Error", "error")
@@ -485,10 +490,14 @@ export default class extends Controller {
       if (data.status === 'success') {
         this.log(`Printer test executed (${ancho_mm}x${alto_mm}mm)`)
         // Trigger Rails form submission for automatic saving
-        this.saveConfiguration({ 
-          printer_port: 'auto_detected',
-          printer_baud_rate: 9600
-        })
+        const form = document.getElementById('serial-config-form');
+        if (form) {
+          // Assuming default baud rate for test, or retrieve from another source if available
+          this._submitAutoSaveForm({ 
+            printer_port: this.hasPrinterPortTarget ? this.printerPortTarget.value : 'auto_detected',
+            printer_baud_rate: 9600 
+          }, form);
+        }
       } else {
         this.log(`Test failed: ${data.message}`)
       }
@@ -694,89 +703,88 @@ export default class extends Controller {
   // Método para manejar cambios en la selección de puerto de la báscula
   onScalePortChange(event) {
     const selectedPort = event.target.value
-    if (selectedPort) {
-      // Trigger Rails form submission for automatic saving
-      this.saveConfiguration({ serial_port: selectedPort })
+    const form = document.getElementById('serial-config-form');
+    if (selectedPort && form) {
+      this._submitAutoSaveForm({ serial_port: selectedPort }, form);
       this.log(`Puerto de báscula seleccionado: ${selectedPort}`)
-      
-      // If both scale and printer ports are the same, update the printer port selection too
-      if (this.hasPrinterPortTarget && this.printerPortTarget.value === selectedPort) {
-        this.saveConfiguration({ printer_port: selectedPort })
-      }
     }
   }
 
   // Método para manejar cambios en la selección de puerto de la impresora
   onPrinterPortChange(event) {
     const selectedPort = event.target.value
-    if (selectedPort) {
-      // Trigger Rails form submission for automatic saving
-      this.saveConfiguration({ printer_port: selectedPort })
+    const form = document.getElementById('serial-config-form');
+    if (selectedPort && form) {
+      this._submitAutoSaveForm({ printer_port: selectedPort }, form);
       this.log(`Puerto de impresora seleccionado: ${selectedPort}`)
-      
-      // If both scale and printer ports are the same, update the scale port selection too
-      if (this.hasScalePortTarget && this.scalePortTarget.value === selectedPort) {
-        this.saveConfiguration({ serial_port: selectedPort })
-      }
     }
   }
 
-  // Método para guardar configuración usando Rails forms
-  saveConfiguration(configData) {
-    // Update the hidden form fields with the new configuration data
+  // Internal method to update hidden fields and submit the form
+  _submitAutoSaveForm(configData, form) {
     Object.keys(configData).forEach(key => {
-      let fieldId;
-      if (key.startsWith('serial_')) {
-        fieldId = `auto-save-serial-${key.replace('serial_', '')}`;
-      } else if (key.startsWith('printer_')) {
-        fieldId = `auto-save-printer-${key.replace('printer_', '')}`;
-      }
-      
-      if (fieldId) {
-        const field = document.getElementById(fieldId);
-        if (field) {
-          field.value = configData[key];
-        }
+      // Find the hidden input field based on its ID
+      // This assumes hidden fields are named like auto-save-serial-port
+      const field = form.querySelector(`#auto-save-${key.replace(/_/g, '-')}`);
+      if (field) {
+        field.value = configData[key];
+      } else {
+        this.log(`Warning: Hidden field for ${key} not found in auto-save form.`);
       }
     });
-    
-    // Submit the appropriate form
-    let formId;
-    if (Object.keys(configData).some(key => key.startsWith('serial_'))) {
-      formId = 'auto-save-serial-form';
-    } else if (Object.keys(configData).some(key => key.startsWith('printer_'))) {
-      formId = 'auto-save-printer-form';
-    }
-    
-    if (formId) {
-      const form = document.getElementById(formId);
-      if (form) {
-        // Prevenir la recarga de la página
-        form.addEventListener('submit', (e) => {
-          e.preventDefault();
-        });
-        
-        // Usar fetch para enviar la solicitud sin recargar la página
-        const formData = new FormData(form);
-        fetch(form.action, {
-          method: 'POST',
-          body: formData,
-          headers: {
-            'X-Requested-With': 'XMLHttpRequest'
-          }
-        })
-        .then(response => response.json())
-        .then(data => {
-          if (data.success) {
-            this.log(`Configuración guardada: ${JSON.stringify(configData)}`);
-          } else {
-            this.log(`Error al guardar configuración: ${data.message}`);
-          }
-        })
-        .catch(error => {
-          this.log(`Error de red al guardar configuración: ${error.message}`);
-        });
+
+    const formData = new FormData(form);
+    fetch(form.action, {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
       }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        this.log(`Configuración guardada automáticamente: ${JSON.stringify(configData)}`);
+        this.updateStatus('✓ Configuración guardada automáticamente', 'success');
+      } else {
+        this.log(`Error al guardar configuración automáticamente: ${data.message}`);
+        this.updateStatus('✗ Error al guardar configuración automáticamente', 'error');
+      }
+    })
+    .catch(error => {
+      this.log(`Error de red al guardar configuración automáticamente: ${error.message}`);
+      this.updateStatus('✗ Error de red al guardar configuración automáticamente', 'error');
+    });
+  }
+
+  async saveConfiguration(event) {
+    event.preventDefault();
+
+    const form = event.target.closest('form');
+    if (!form) {
+      this.log('Error: Auto-save form not found for manual submission.');
+      this.updateStatus('✗ Error al guardar configuración: formulario no encontrado', 'error');
+      return;
     }
+
+    const configData = {};
+    
+    // Collect all hidden fields starting with 'auto-save-' and populate configData
+    form.querySelectorAll('input[type="hidden"][id^="auto-save-"]').forEach(field => {
+      // Convert id like 'auto-save-serial-port' to 'serial_port'
+      const key = field.id.replace('auto-save-', '').replace(/-/g, '_');
+      configData[key] = field.value;
+    });
+
+    // Ensure essential parameters like baud rates are set, using defaults if not already present
+    if (!configData.serial_baud_rate) {
+      configData.serial_baud_rate = 115200; 
+    }
+    if (!configData.printer_baud_rate) {
+      configData.printer_baud_rate = 115200;
+    }
+    
+    this._submitAutoSaveForm(configData, form);
   }
 }
