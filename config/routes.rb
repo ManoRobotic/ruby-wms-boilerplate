@@ -43,7 +43,7 @@ Rails.application.routes.draw do
         get :selected_orders_data
         delete :clear_all_selections
       end
-      
+
       # Nested routes for production order items (consecutivos/folios)
       resources :production_order_items, path: "items" do
         collection do
@@ -245,6 +245,7 @@ Rails.application.routes.draw do
     resources :production_orders, only: [:create] do
       collection do
         post :batch
+        get :last_no_opro
       end
     end
     # API routes for inventory codes
@@ -262,7 +263,7 @@ Rails.application.routes.draw do
 
   resources :products, only: [ :show ]
   resources :templates
-  
+
   # Test page for serial system
   get '/test_serial', to: proc { |env| [200, {}, [File.read(Rails.root.join('test_serial_system.html'))]] }
 end

@@ -122,7 +122,7 @@ class Api::ProductionOrdersController < ActionController::API
       render json: { error: "Company not found" }, status: :not_found
       return
     end
-    
+
     Rails.logger.info "Found company: #{company.name} with ID: #{company.id}"
 
     # Extract production orders from params
@@ -145,10 +145,10 @@ class Api::ProductionOrdersController < ActionController::API
       # Map API parameter names to model field names
       mapped_params = map_api_params_to_model_fields(order_params)
       Rails.logger.info "Mapped params: #{mapped_params}"
-      
+
       # Log specifically the notes field
       Rails.logger.info "Notes field: #{mapped_params['notes'] || mapped_params[:notes]}"
-      
+
       # Sanitize parameters using strong parameters
       begin
         sanitized_params = sanitize_production_order_params(mapped_params)
@@ -201,7 +201,7 @@ class Api::ProductionOrdersController < ActionController::API
       # Set default status if not provided
       production_order.status ||= "pending"
       production_order.priority ||= "medium"
-      
+
       # Log the notes value before saving
       Rails.logger.info "Before save - Notes value: '#{production_order.notes}'"
 
@@ -281,6 +281,11 @@ class Api::ProductionOrdersController < ActionController::API
       total_count: orders_params.length,
       results: results
     }, status: :ok
+  end
+
+  def last_no_opro
+    last = ProductionOrder.maximum(:no_opro).to_i
+    render json: { last_no_opro: last }
   end
 
   private
