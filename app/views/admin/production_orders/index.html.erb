@@ -11,15 +11,6 @@
             Ordenes de Producción
           </h1>
         </div>
-        <div class="flex justify-center gap-2 shrink-0 md:w-auto">
-          <button onclick="location.reload()" class="btn btn-secondary btn-sm border border-gray-800">
-            Actualizar tabla
-          </button>
-             <% if current_admin %>
-               <%= link_to 'Nueva Orden de Producción', new_admin_production_order_path,
-                   class: "btn btn-primary btn-sm border border-gray-800" %>
-             <% end %>
-        </div>
       </div>
     </div>
 
