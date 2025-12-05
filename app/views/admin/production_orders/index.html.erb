@@ -16,7 +16,7 @@
             Actualizar tabla
           </button>
              <% if current_admin %>
-               <%= link_to 'Nueva Orden de Producción', new_admin_production_order_path, 
+               <%= link_to 'Nueva Orden de Producción', new_admin_production_order_path,
                    class: "btn btn-primary btn-sm border border-gray-800" %>
              <% end %>
         </div>
@@ -88,37 +88,37 @@
             <!-- Search Field -->
             <div class="md:col-span-2">
               <label for="search" class="block mb-2 text-sm font-medium text-gray-700">Buscar</label>
-              <%= form.text_field :search, 
+              <%= form.text_field :search,
                   id: :search,
-                  value: params[:search], 
+                  value: params[:search],
                   placeholder: 'No. OPRO, producto, lote...',
                   class: "block w-full px-3 py-2 text-base placeholder-gray-400 border border-gray-800 rounded-md shadow-sm focus:outline-none focus:ring-blue-gem-500 focus:border-blue-gem-500" %>
             </div>
-            
+
             <!-- Start Date -->
             <div>
               <label for="start_date" class="block mb-2 text-sm font-medium text-gray-700">Fecha Inicio</label>
-              <%= form.date_field :start_date, 
+              <%= form.date_field :start_date,
                   id: :start_date,
                   value: params[:start_date],
                   class: "block w-full px-3 py-2 text-base border border-gray-800 rounded-md shadow-sm focus:outline-none focus:ring-blue-gem-500 focus:border-blue-gem-500" %>
             </div>
-            
+
             <!-- End Date -->
             <div>
               <label for="end_date" class="block mb-2 text-sm font-medium text-gray-700">Fecha Fin</label>
-              <%= form.date_field :end_date, 
+              <%= form.date_field :end_date,
                   id: :end_date,
                   value: params[:end_date],
                   class: "block w-full px-3 py-2 text-base border border-gray-800 rounded-md shadow-sm focus:outline-none focus:ring-blue-gem-500 focus:border-blue-gem-500" %>
             </div>
           </div>
-          
+
           <!-- Action Buttons -->
           <div class="flex justify-end pt-2 space-x-3">
-            <%= form.submit "Filtrar", 
+            <%= form.submit "Filtrar",
                 class: "btn btn-primary btn-sm border border-gray-800" %>
-            <%= link_to "Limpiar", request.path, 
+            <%= link_to "Limpiar", request.path,
                 class: "btn btn-secondary btn-sm border border-gray-800",
                 data: { turbo: false } %>
           </div>
@@ -130,7 +130,7 @@
     <section class="flex flex-col w-full mb-4">
       <div class="w-full px-4">
         <div class="relative overflow-x-auto border shadow-md sm:rounded-lg">
-          <table data-controller="table" 
+          <table data-controller="table"
                  data-table-sortable-value="true"
                  class="w-full text-sm text-left text-gray-500">
             <thead class="text-xs text-gray-700 uppercase" style="background-color: var(--color-blue-gem-200);">
@@ -157,7 +157,7 @@
                   <td class="px-3 py-2 text-sm font-medium text-gray-900">
                     <div>
                       <span class="text-blue-gem-600 font-semibold">
-                        <%= order.no_opro.present? ? order.no_opro : order.order_number %>
+                        <%= order.lote_referencia.present? ? order.lote_referencia : '' %><%= order.no_opro.present? ? order.no_opro : order.order_number %>
                       </span>
                       <div class="text-xs text-gray-500 mt-1 space-y-1">
                         <div>
@@ -171,7 +171,7 @@
                       </div>
                     </div>
                   </td>
-                  
+
                   <!-- CVE_PROD -->
                   <td class="px-3 py-2 text-sm text-gray-500">
                     <% cve_prod = order.clave_producto %>
@@ -179,17 +179,17 @@
                       <%= cve_prod %>
                     </span>
                   </td>
-                  
+
                   <!-- Lote -->
                   <td class="px-2 py-2 text-sm text-gray-500 hidden md:table-cell">
                     <%= order.lote_referencia || '-' %>
                   </td>
-                  
+
                   <!-- Cantidad -->
                   <td class="px-2 py-2 text-center text-sm text-gray-900 font-medium hidden sm:table-cell">
                     <%= order.quantity_requested %>
                   </td>
-                  
+
                   <!-- Metros -->
                   <td class="px-2 py-2 text-center text-sm text-gray-500">
                     <% total_metros = order.total_meters.to_f %>
@@ -201,7 +201,7 @@
                       <span class="text-gray-400">-</span>
                     <% end %>
                   </td>
-                  
+
                   <!-- Peso Bruto -->
                   <td class="px-2 py-2 text-center text-sm text-gray-500">
                     <% total_peso_bruto = order.total_gross_weight.to_f %>
@@ -213,7 +213,7 @@
                       <span class="text-gray-400">-</span>
                     <% end %>
                   </td>
-                  
+
                   <!-- Peso Neto -->
                   <td class="px-2 py-2 text-center text-sm text-gray-500">
                     <% total_peso_neto = order.total_net_weight.to_f %>
@@ -225,7 +225,7 @@
                       <span class="text-gray-400">-</span>
                     <% end %>
                   </td>
-                  
+
                   <!-- Carga -->
                   <td class="px-2 py-2 text-center text-sm text-gray-500 hidden md:table-cell">
                     <% if order.carga_copr.present? %>
@@ -236,10 +236,10 @@
                       <span class="text-gray-400">-</span>
                     <% end %>
                   </td>
-                  
+
                   <!-- Impresión -->
                   <td class="px-2 py-2 text-center">
-                    <% 
+                    <%
                       print_summary = order.print_status_summary
                       status_style = if print_summary.include?("Impreso")
                         "background-color: var(--color-dark-fern-100); color: var(--color-dark-fern-800);"
@@ -253,12 +253,12 @@
                       <%= print_summary %>
                     </span>
                   </td>
-                  
+
                   <!-- Fecha -->
                   <td class="px-2 py-2 text-center text-sm text-gray-500 hidden md:table-cell">
                     <%= order.fecha_completa&.strftime("%d/%m/%Y") || order.created_at.strftime("%d/%m/%Y") %>
                   </td>
-                  
+
                   <!-- Acciones -->
                   <td class="px-2 py-2 text-center text-sm font-medium" data-action="click->production-order#stopPropagation">
                     <div class="flex items-center justify-center space-x-1">
@@ -269,8 +269,8 @@
                           <%= link_to edit_admin_production_order_path(order), class: "btn btn-accent btn-sm btn-icon border border-gray-800" do %>
                               <%= icon('fa-solid', 'pencil-alt', class: 'w-4 h-4') %>
                           <% end %>
-                          <%= button_to admin_production_order_path(order), 
-                              method: :delete, 
+                          <%= button_to admin_production_order_path(order),
+                              method: :delete,
                               class: "btn btn-danger btn-sm btn-icon border border-gray-800",
                               data: { confirm: "¿Estás seguro de que deseas eliminar esta orden de producción?" } do %>
                               <%= icon('fa-solid', 'trash', class: 'w-4 h-4') %>
@@ -280,7 +280,7 @@
                   </td>
                 </tr>
               <% end %>
-              
+
               <% if @production_orders.empty? %>
                 <tr>
                   <td colspan="10" class="p-8 text-center text-gray-500">
@@ -301,7 +301,7 @@
 </div>
 
 <!-- Modal for Production Order Details -->
-<div class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" 
+<div class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
      data-production-order-target="modal"
      data-controller="production-order">
   <div class="relative top-4 sm:top-20 mx-auto p-3 sm:p-5 border w-full h-full sm:h-auto sm:w-11/12 md:w-3/4 lg:w-1/2 xl:w-2/5 shadow-lg sm:rounded-md bg-white">
@@ -310,12 +310,12 @@
       <h3 class="text-base sm:text-lg font-semibold text-gray-900" data-production-order-target="modalTitle">
         Detalles de Orden de Producción
       </h3>
-      <button class="text-gray-400 hover:text-gray-600 p-2 -mr-2" 
+      <button class="text-gray-400 hover:text-gray-600 p-2 -mr-2"
               data-action="click->production-order#closeModal">
         <%= icon('fa-solid', 'times', class: 'w-4 h-4 sm:w-5 sm:h-5') %>
       </button>
     </div>
-    
+
     <!-- Modal Content -->
     <div class="pt-3 sm:pt-4 pb-6 overflow-y-auto max-h-full" data-production-order-target="modalContent">
       <!-- Content will be loaded here -->
