@@ -12,14 +12,6 @@
               Códigos de Inventario
             </h1>
           </div>
-          <div class="flex justify-center gap-2 shrink-0 md:w-auto">
-            <button data-action="click->inventory-code#reloadTable" class="btn btn-secondary btn-sm border border-gray-800">
-              Actualizar tabla
-            </button>
-            <% if current_admin %>
-              <%= link_to 'Nuevo Código', new_admin_inventory_code_path, class: "btn btn-primary btn-sm border border-gray-800" %>
-            <% end %>
-          </div>
         </div>
       </div>
     </div>
