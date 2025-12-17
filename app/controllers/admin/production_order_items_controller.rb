@@ -193,82 +193,106 @@ class Admin::ProductionOrderItemsController < AdminController
       puts "Label data for item #{item.id}: #{item.label_data.to_json}"
     end
 
-    # Marcar como impresos
-    if production_order_items.update_all(print_status: :printed)
-      # Obtener los datos de las etiquetas para devolverlos en la respuesta
-      label_data = production_order_items.map(&:label_data)
+    # Determine the company to use for the printing service
+    company = current_admin&.company || current_user&.company
+    
+    # Store successful prints to mark them later
+    successfully_printed_items = []
+    failed_items = []
+    
+    # Verify the serial service is accessible before attempting to print
+    if company&.serial_service_url_configured? && SerialCommunicationService.health_check(company: company)
+      Rails.logger.info "Serial server is accessible, proceeding with printing"
 
-      # Determine the company to use for the printing service
-      company = current_admin&.company || current_user&.company
-      print_success = true
+      production_order_items.each do |item|
+        data = item.label_data
+        
+        # Crear contenido de la etiqueta en formato TSPL2 para la impresora
+        label_content = generate_tspl2_label_content(data)
+        Rails.logger.info "Generated label content for item #{item.id}: #{label_content}"
 
-      # Verify the serial service is accessible before attempting to print
-      if company&.serial_service_url_configured? && SerialCommunicationService.health_check(company: company)
-        Rails.logger.info "Serial server is accessible, proceeding with printing"
-
-        label_data.each do |data|
-          # Crear contenido de la etiqueta en formato TSPL2 para la impresora
-          label_content = generate_tspl2_label_content(data)
-          Rails.logger.info "Generated label content: #{label_content}"
-
-          # Enviar a la impresora (asumiendo que el servicio maneja la conexión)
-          result = SerialCommunicationService.print_label(
-            label_content,
-            ancho_mm: 80,
-            alto_mm: 50,
-            company: company
-          )
-          Rails.logger.info "Print result: #{result}"
-          print_success = print_success && result
+        # Try to print
+        print_result = print_with_retry(label_content, company)
+        
+        if print_result
+          successfully_printed_items << item
+          Rails.logger.info "Item #{item.id} printed successfully"
+        else
+          failed_items << item
+          Rails.logger.error "Failed to print item #{item.id}"
         end
-      else
-        Rails.logger.info "Serial service not configured or not accessible"
-        print_success = false
-      end
-
-      # Recargar los items para obtener el estado actualizado
-      updated_items = ProductionOrderItem.where(id: item_ids)
-      
-      respond_to do |format|
-        format.turbo_stream do
-          render turbo_stream: [
-            turbo_stream.remove("confirm-print-modal"),
-            turbo_stream.append(
-              "flashes",
-              partial: "shared/toast/toast_success",
-              locals: { message: print_success ? "Items marcados como impresos y enviados a la impresora." : "Items marcados como impresos, pero hubo un problema al enviar a la impresora." }
-            )
-          ] + updated_items.map { |item|
-            turbo_stream.replace(
-              "production_order_item_#{item.id}_print_status",
-              partial: "admin/production_order_items/print_status",
-              locals: { item: item.reload } # Recargar el item para obtener el estado actualizado
-            )
-          }
-        end
-        format.json { 
-          render json: { 
-            success: true, 
-            message: print_success ? "Items marked as printed and sent to printer." : "Items marked as printed but failed to send to printer.", 
-            items: label_data,
-            print_success: print_success
-          } 
-        }
       end
     else
-      respond_to do |format|
-        format.turbo_stream do
-          render turbo_stream: [
-            turbo_stream.remove("confirm-print-modal"),
-            turbo_stream.append(
-              "flashes",
-              partial: "shared/toast/toast_danger",
-              locals: { message: "Error al marcar items como impresos." }
-            )
-          ]
-        end
-        format.json { render json: { success: false, error: "Failed to mark items as printed." }, status: :unprocessable_entity }
+      Rails.logger.info "Serial service not configured or not accessible"
+      failed_items = production_order_items.to_a
+    end
+
+    # Marcar como impresos solo los que se imprimieron correctamente
+    if successfully_printed_items.any?
+      ProductionOrderItem.where(id: successfully_printed_items.map(&:id)).update_all(print_status: :printed)
+    end
+
+    # Send response
+    all_success = failed_items.empty?
+    
+    # Recargar los items para obtener el estado actualizado
+    updated_items = ProductionOrderItem.where(id: item_ids)
+    
+    respond_to do |format|
+      format.turbo_stream do
+        render turbo_stream: [
+          turbo_stream.remove("confirm-print-modal"),
+          turbo_stream.append(
+            "flashes",
+            partial: all_success ? "shared/toast/toast_success" : "shared/toast/toast_danger",
+            locals: { message: all_success ? "Items marcados como impresos y enviados a la impresora." : "Hubo un problema al enviar a la impresora. Se imprimieron #{successfully_printed_items.count} de #{production_order_items.count} etiquetas." }
+          )
+        ] + updated_items.map { |item|
+          turbo_stream.replace(
+            "production_order_item_#{item.id}_print_status",
+            partial: "admin/production_order_items/print_status",
+            locals: { item: item.reload }
+          )
+        }
       end
+      format.json { 
+        render json: { 
+          success: all_success, 
+          message: all_success ? "Items marked as printed and sent to printer." : "Some items failed to print.", 
+          printed_count: successfully_printed_items.count,
+          failed_count: failed_items.count,
+          items: production_order_items.map(&:label_data)
+        } 
+      }
+    end
+  end
+
+  private
+
+  def print_with_retry(label_content, company)
+    # First attempt
+    result = SerialCommunicationService.print_label(
+      label_content,
+      ancho_mm: 80,
+      alto_mm: 50,
+      company: company
+    )
+    
+    return true if result
+    
+    # If failed, try to connect printer and current settings
+    Rails.logger.info "Print failed, attempting to connect printer and retry..."
+    
+    if SerialCommunicationService.connect_printer(company: company)
+      # Second attempt after connection
+      SerialCommunicationService.print_label(
+        label_content,
+        ancho_mm: 80,
+        alto_mm: 50,
+        company: company
+      )
+    else
+      false
     end
   end
 

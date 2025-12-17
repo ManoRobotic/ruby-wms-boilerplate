@@ -11,8 +11,8 @@
     </button>
 
     <!-- Sidebar -->
-    <nav data-sidebar-target="sidebar" 
-         class="fixed top-0 left-0 z-40 w-64 h-screen transition-transform -translate-x-full lg:translate-x-0" 
+    <nav data-sidebar-target="sidebar"
+         class="fixed top-0 left-0 z-40 w-64 h-screen md:h-[calc(100vh-1px)] transition-transform -translate-x-full lg:translate-x-0"
          aria-label="Sidebar">
         <div class="flex flex-col h-full px-3 py-4 bg-[var(--color-blue-gem-950)] rounded-r-lg md:rounded-none">
             <!-- Main Navigation Menu -->
@@ -35,12 +35,12 @@
             </div>
             
             <!-- Bottom Section: Notifications and User Profile -->
-            <div class="mt-auto mb-2 space-y-1 text-white flex-shrink-0">
+            <div class="mt-auto mb-2 space-y-1 text-white flex-shrink-0 min-h-0">
                 <div class="border-t border-gray-600 my-2"></div>
-                
+
                 <!-- Notifications -->
                 <%= render 'shared/notifications_dropdown' %>
-                
+
                 <!-- User Profile -->
                 <%= render 'shared/user_profile_dropdown' %>
                 </div>
