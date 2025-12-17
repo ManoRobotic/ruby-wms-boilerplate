@@ -186,7 +186,7 @@
                     <% total_metros = order.total_meters.to_f %>
                     <% if total_metros > 0 %>
                       <span class="inline-flex items-center px-2 py-1 bg-blue-gem-100 text-blue-gem-900 text-xs font-bold rounded-full">
-                        📏 <%= total_metros.round(1) %> m
+                        <%= total_metros.round(1) %> m
                       </span>
                     <% else %>
                       <span class="text-gray-400">-</span>
@@ -198,7 +198,7 @@
                     <% total_peso_bruto = order.total_gross_weight.to_f %>
                     <% if total_peso_bruto > 0 %>
                       <span class="inline-flex items-center px-2 py-1 bg-bamboo-100 text-bamboo-900 text-xs font-bold rounded-full">
-                        ⚖️ <%= total_peso_bruto.round(1) %> kg
+                       <%= total_peso_bruto.round(1) %> kg
                       </span>
                     <% else %>
                       <span class="text-gray-400">-</span>
@@ -209,8 +209,8 @@
                   <td class="px-2 py-2 text-center text-sm text-gray-500">
                     <% total_peso_neto = order.total_net_weight.to_f %>
                     <% if total_peso_neto > 0 %>
-                      <span class="inline-flex items-center px-2 py-1 text-xs font-bold rounded-full text-black" style="background-color: var(--color-dark-fern-400);">
-                        ✅ <%= total_peso_neto.round(1) %> kg
+                      <span class="inline-flex items-center px-2 py-1 bg-bamboo-100 text-bamboo-900 text-xs font-bold rounded-full">
+                        <%= total_peso_neto.round(1) %> kg
                       </span>
                     <% else %>
                       <span class="text-gray-400">-</span>
