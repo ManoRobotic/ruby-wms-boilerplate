@@ -75,13 +75,12 @@
             </div>
         </div>
 
-        <!-- Componente de Pesaje -->
         <div class="bg-[var(--color-blue-gem-50)] rounded-md p-2 mb-2 transition-opacity duration-300" 
              data-controller="consecutivo-scale" 
-             data-consecutivo-scale-base-url-value="<%= helpers.current_admin&.company&.serial_service_url %>"
+             data-consecutivo-scale-base-url-value="<%= (helpers.current_admin || helpers.current_user)&.company&.serial_service_url %>"
              data-consecutivo-scale-auto-connect-value="true"
-             data-consecutivo-scale-saved-port-value="<%= helpers.current_admin&.company&.serial_port || '' %>"
-             data-consecutivo-scale-auto-save-value="<%= helpers.current_admin&.company&.auto_save_consecutivo || false %>"
+             data-consecutivo-scale-saved-port-value="<%= (helpers.current_admin || helpers.current_user)&.company&.serial_port || '' %>"
+             data-consecutivo-scale-auto-save-value="<%= (helpers.current_admin || helpers.current_user)&.company&.auto_save_consecutivo || false %>"
              data-consecutivo-form-target="serialSection">
           <h4 class="font-medium text-[var(--color-blue-gem-900)] mb-1.5 text-sm">Control de Pesaje</h4>
           
@@ -96,13 +95,7 @@
             <div class="flex items-center justify-between mb-1.5">
               <span class="font-medium text-[var(--color-blue-gem-700)] text-sm">Peso actual:</span>
               <div class="flex gap-1">
-                <button data-consecutivo-scale-target="readBtn"
-                        data-action="click->consecutivo-scale#getWeight" 
-                        type="button"
-                        class="w-full px-4 py-2 bg-[var(--color-blue-gem-600)] text-white font-medium rounded-lg hover:bg-[var(--color-blue-gem-700)] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
-                  Leer Peso
-                </button>
-                
+                <!-- Button removed for automatic reading -->
               </div>
             </div>
             <div data-consecutivo-scale-target="weight" class="weight-display">

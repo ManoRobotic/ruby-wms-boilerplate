@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["status", "weight", "readBtn", "autoSaveCheckbox"]
+  static targets = ["status", "weight", "autoSaveCheckbox", "portSelect"]
   static values = { 
     baseUrl: String,
     savedPort: String,
@@ -9,7 +9,8 @@ export default class extends Controller {
   }
 
   connect() {
-    this.baseUrlValue = this.baseUrlValue || "http://localhost:5000"
+    // ALWAYS use the Rails API proxy to avoid CORS/Mixed Content issues and zrok interstitials
+    this.baseUrlValue = "/api/serial"
     this.isReading = false
     
     // Si hay un puerto guardado, iniciar la lectura automática inmediatamente
@@ -38,10 +39,24 @@ export default class extends Controller {
   }
 
   handleModalOpen() {
+    // Resetear estado visual y valores previos
+    this.resetState()
+    
     // Iniciar lectura automática cuando se abre el modal
-    if (this.savedPortValue && this.portSelectTarget.value === this.savedPortValue) {
+    if (this.savedPortValue && this.hasPortSelectTarget && this.portSelectTarget.value === this.savedPortValue) {
       this.startAutoReading()
     }
+  }
+
+  resetState() {
+    if (this.hasWeightTarget) {
+      this.weightTarget.innerHTML = `
+        <div class="text-xl font-bold block text-center transition-all duration-300 ease-in-out text-[var(--color-blue-gem-400)]">--</div>
+        <div class="text-xs text-[var(--color-blue-gem-500)] block text-center">--</div>
+      `
+    }
+    this.updateStatus("Iniciando...", "info")
+    this.registerWeightInForm(0)
   }
 
   handleModalClose() {
@@ -51,147 +66,140 @@ export default class extends Controller {
 
   async checkServerConnection() {
     try {
-      // Try to ping the serial server health endpoint if it exists
+      // Usar endpoint de health del proxy
       const healthUrl = `${this.baseUrlValue}/health`
-      const response = await fetch(healthUrl, {
-        method: 'GET',
-        headers: {
-          'skip_zrok_interstitial': 'true'
-        },
-        timeout: 5000 // 5 second timeout
-      })
+      const response = await fetch(healthUrl)
       
       if (response.ok) {
-        this.updateStatus("Serial server connected", "success")
-        return true
-      } else {
-        this.updateStatus("Serial server disconnected", "error")
-        return false
+        const data = await response.json()
+        if (data.status === 'healthy') {
+          this.updateStatus("Servidor serial conectado", "success")
+          return true
+        }
       }
+      this.updateStatus("Servidor serial desconectado", "error")
+      return false
     } catch (error) {
-      this.updateStatus("Serial server disconnected", "error")
+      this.updateStatus("Error de conexión", "error")
       return false
     }
   }
 
   async loadPorts() {
-    this.updateStatus("Loading ports...", "info")
+    this.updateStatus("Cargando puertos...", "info")
     try {
-      const response = await fetch(`${this.baseUrlValue}/ports`, {
-        headers: {
-          'skip_zrok_interstitial': 'true'
-        }
-      })
+      const response = await fetch(`${this.baseUrlValue}/ports`)
       const data = await response.json()
       
       if (data.status === 'success' && this.hasPortSelectTarget) {
-        this.portSelectTarget.innerHTML = '<option value="">Select port...</option>'
+        this.portSelectTarget.innerHTML = '<option value="">Seleccionar puerto...</option>'
         data.ports.forEach(port => {
           const option = document.createElement('option')
           option.value = port.device
-          option.textContent = `${port.device} - ${port.description}`
+          option.textContent = `${port.device} - ${port.description || 'Dispositivo serial'}`
           this.portSelectTarget.appendChild(option)
         })
         
         if (this.savedPortValue) {
           this.portSelectTarget.value = this.savedPortValue
         }
-        this.updateStatus("Ports loaded", "success")
+        this.updateStatus("Puertos cargados", "success")
       }
     } catch (error) {
-      // Check if it's a connection error
-      if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
-        this.updateStatus("Serial server disconnected - Check connection", "error")
-      } else {
-        this.updateStatus("Error loading ports - " + error.message, "error")
-      }
+      this.updateStatus("Error cargando puertos: " + error.message, "error")
     }
   }
 
   async startAutoReading() {
     console.log("startAutoReading called");
-    if (this.isReading) {
-      console.log("Already reading, returning");
-      return
-    }
+    if (this.isReading) return
     
     const port = this.savedPortValue
-    console.log("Using saved port:", port);
     if (!port) {
-      this.updateStatus("No saved port configuration", "error")
+      this.updateStatus("Sin configuración de puerto", "error")
       return
     }
     
     this.isReading = true
-    // Mostrar spinner inmediatamente al iniciar la lectura automática
     this.showSpinner()
-    this.updateStatus("Letendo datos de la bascula...", "info")
+    this.updateStatus("Conectando báscula...", "info")
     
     try {
-      // Conectar con la báscula
+      // Conectar con la báscula a través del proxy
       const baudrate = 115200
-      console.log("Connecting to scale at port:", port);
-      const response = await fetch(`${this.baseUrlValue}/scale/connect`, {
+      const response = await fetch(`${this.baseUrlValue}/connect_scale`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'skip_zrok_interstitial': 'true'
+          'X-CSRF-Token': this.getCSRFToken()
         },
         body: JSON.stringify({ port, baudrate })
       })
       const data = await response.json()
-      console.log("Scale connection response:", data);
       
       if (data.status !== 'success') {
-        throw new Error('Failed to connect to scale')
+        throw new Error(data.message || 'Error conectando báscula')
       }
       
-      this.updateStatus("Connected, waiting for weight...", "success")
+      this.updateStatus("Conectado, iniciando lectura...", "success")
       
       // Iniciar lectura continua
-      console.log("Starting continuous reading");
-      await fetch(`${this.baseUrlValue}/scale/start`, {
+      await fetch(`${this.baseUrlValue}/start_scale`, {
         method: 'POST',
-        headers: {
-          'skip_zrok_interstitial': 'true'
-        }
+        headers: { 'X-CSRF-Token': this.getCSRFToken() }
       })
       
-      // Iniciar polling para obtener lecturas
-      console.log("Starting polling");
+      // Iniciar polling
       this.startPolling()
     } catch (error) {
       console.error("Error in startAutoReading:", error);
       this.updateStatus(`Error: ${error.message}`, "error")
       this.isReading = false
+      this.hideSpinner()
     }
   }
 
   startPolling() {
     if (!this.isReading) return
     
-    console.log("Starting polling for weight readings...");
     this.pollingInterval = setInterval(async () => {
       try {
-        console.log("Polling for latest weight reading...");
-        const response = await fetch(`${this.baseUrlValue}/scale/latest`, {
-          headers: {
-            'skip_zrok_interstitial': 'true'
-          }
-        })
+        const response = await fetch(`${this.baseUrlValue}/latest_readings`)
         const data = await response.json()
-        console.log("Received weight data:", data);
         
         if (data.status === 'success' && data.readings.length > 0) {
           const latest = data.readings[data.readings.length - 1]
-          console.log("Updating weight with:", latest.weight, latest.timestamp);
-          this.updateWeight(latest.weight, latest.timestamp)
+          
+          // Verificar si la lectura es reciente (menos de 5 segundos)
+          // El timestamp viene del servidor, asumimos sincronización razonable o usamos tiempo relativo si es posible
+          // Si el timestamp es muy viejo, ignoramos para no mostrar datos "pegados"
+          if (this.isReadingFresh(latest.timestamp)) {
+             this.updateWeight(latest.weight, latest.timestamp)
+          } else {
+             // Opcional: Mostrar indicador de "Esperando datos frescos..." si solo llegan datos viejos
+             // Por ahora mantenemos el estado de carga o el último válido si no es muy viejo
+          }
         }
       } catch (error) {
-        console.error("Error polling for weight:", error);
-        // Silenciar errores de polling para evitar spam en logs
+        // Silenciar errores de polling momentáneos
       }
-    }, 1000) // Poll cada segundo
+    }, 1000)
+  }
+
+  isReadingFresh(timestamp) {
+    if (!timestamp) return false
+    
+    // Intentar parsear el timestamp
+    const readingTime = new Date(timestamp).getTime()
+    const now = new Date().getTime()
+    
+    // Si la lectura tiene más de 5 segundos de antigüedad, es "viejas"
+    // (Ajustar este umbral según la latencia real de la red/servidor)
+    const diff = now - readingTime
+    
+    // Aceptamos lecturas hasta 10 segundos atrás para ser permisivos con relojes desincronizados,
+    // pero descartamos datos de sesiones muy anteriores.
+    return diff < 10000 
   }
 
   stopAutoReading() {
@@ -199,33 +207,21 @@ export default class extends Controller {
     
     this.isReading = false
     
-    // Detener polling
     if (this.pollingInterval) {
       clearInterval(this.pollingInterval)
       this.pollingInterval = null
     }
     
-    // Detener lectura en el servidor
-    fetch(`${this.baseUrlValue}/scale/stop`, {
-      method: 'POST',
-      headers: {
-        'skip_zrok_interstitial': 'true'
-      }
-    }).catch(() => {
-      // Silenciar errores al detener
-    })
+    // Detener lectura y desconectar
+    const stopUrl = `${this.baseUrlValue}/stop_scale`
+    const disconnectUrl = `${this.baseUrlValue}/disconnect_scale`
+    const headers = { 'X-CSRF-Token': this.getCSRFToken() }
+
+    fetch(stopUrl, { method: 'POST', headers }).catch(() => {})
+    fetch(disconnectUrl, { method: 'POST', headers }).catch(() => {})
     
-    // Desconectar la báscula
-    fetch(`${this.baseUrlValue}/scale/disconnect`, {
-      method: 'POST',
-      headers: {
-        'skip_zrok_interstitial': 'true'
-      }
-    }).catch(() => {
-      // Silenciar errores al desconectar
-    })
-    
-    this.updateStatus("Auto reading stopped", "info")
+    this.updateStatus("Lectura detenida", "info")
+    this.hideSpinner()
   }
 
   async getWeight(event) {
@@ -233,57 +229,54 @@ export default class extends Controller {
 
     const port = this.savedPortValue
     if (!port) {
-      this.updateStatus("No saved port configuration", "error")
+      this.updateStatus("Puerto no configurado", "error")
       return
     }
 
     this.showSpinner()
-    this.readBtnTarget.disabled = true
+    // if (this.hasReadBtnTarget) this.readBtnTarget.disabled = true
 
     try {
-      // Conectar con la báscula
+      // 1. Conectar (idempotente en el backend usualmente, pero aseguramos)
       const baudrate = 115200
-      let response = await fetch(`${this.baseUrlValue}/scale/connect`, {
+      let response = await fetch(`${this.baseUrlValue}/connect_scale`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'skip_zrok_interstitial': 'true'
+          'X-CSRF-Token': this.getCSRFToken()
         },
         body: JSON.stringify({ port, baudrate })
       })
-      let data = await response.json()
-      if (data.status !== 'success') {
-        throw new Error('Failed to connect to scale')
+        
+        // Si ya está conectada puede fallar o retornar success, continuamos intentando leer
+        
+      // 2. Intentar leer con timeout usando get_weight_now
+      // timeout de 5 segundos
+      response = await fetch(`${this.baseUrlValue}/get_weight_now?timeout=5`)
+      const data = await response.json()
+      
+      if (data.status === 'success') {
+        this.updateWeight(data.weight, data.timestamp)
+        this.updateStatus("Peso leído exitosamente", "success")
+      } else {
+        throw new Error(data.message || 'Fallo al leer peso')
       }
 
-      // Leer el peso
-      response = await fetch(`${this.baseUrlValue}/scale/read`, {
-        headers: {
-          'skip_zrok_interstitial': 'true'
-        }
-      })
-      data = await response.json()
-      if (data.status !== 'success') {
-        throw new Error('Failed to read from scale')
-      }
-
-      this.hideSpinner()
-      this.updateWeight(data.weight, data.timestamp)
-      this.updateStatus("Weight read successfully", "success")
-
-      // Desconectar la báscula
-      await fetch(`${this.baseUrlValue}/scale/disconnect`, { method: 'POST' })
     } catch (error) {
-      this.hideSpinner()
-      this.updateStatus(`Error: ${error.message}`, "error")
+      this.updateStatus(`Error al leer: ${error.message}`, "error")
     } finally {
-      this.readBtnTarget.disabled = false
+      this.hideSpinner()
+      if (this.hasReadBtnTarget) this.readBtnTarget.disabled = false
     }
   }
 
   showSpinner() {
     if (this.hasWeightTarget) {
-      this.originalWeightContent = this.weightTarget.innerHTML
+      // Guardar contenido original solo si no es el spinner
+      if (!this.weightTarget.innerHTML.includes('animate-spin')) {
+          this.originalWeightContent = this.weightTarget.innerHTML
+      }
+      
       this.weightTarget.innerHTML = `
         <div class="flex flex-col items-center justify-center py-8">
           <div class="relative">
@@ -302,7 +295,12 @@ export default class extends Controller {
 
   hideSpinner() {
     if (this.hasWeightTarget && this.originalWeightContent) {
-      this.weightTarget.innerHTML = this.originalWeightContent
+        // Solo restaurar si tenemos contenido válido (no "Reading..." loop)
+        // Pero mejor aún, si ya tenemos un peso mostrado por updateWeight, no hacemos nada
+        // Si seguimos mostrando el spinner, restauramos el original
+        if (this.weightTarget.innerHTML.includes('animate-spin')) {
+            this.weightTarget.innerHTML = this.originalWeightContent
+        }
     }
   }
 
@@ -316,10 +314,9 @@ export default class extends Controller {
         info: "bg-blue-100 text-blue-800"
       }
       
-      // Add special styling for connection status
-      if (message.includes("connected")) {
+      if (message.includes("conectad") || type === 'success') {
         this.statusTarget.className = `${baseClasses} ${colorClasses.success}`
-      } else if (message.includes("disconnected") || message.includes("Error")) {
+      } else if (message.includes("Error") || type === 'error') {
         this.statusTarget.className = `${baseClasses} ${colorClasses.error}`
       } else {
         this.statusTarget.className = `${baseClasses} ${colorClasses[type] || colorClasses.info}`
@@ -328,21 +325,15 @@ export default class extends Controller {
   }
 
   updateWeight(weight, timestamp) {
-    console.log("updateWeight called with:", weight, timestamp);
     if (this.hasWeightTarget) {
       const weightValue = parseFloat(weight) || 0
-      console.log("Processed weight value:", weightValue);
       const percentage = Math.min(100, Math.max(0, weightValue))
       const strokeOffset = 100 - percentage
       
       let colorClass = "text-blue-600"
-      if (percentage > 75) {
-        colorClass = "text-red-600"
-      } else if (percentage > 50) {
-        colorClass = "text-yellow-500"
-      }
+      if (percentage > 75) colorClass = "text-red-600"
+      else if (percentage > 50) colorClass = "text-yellow-500"
 
-      // Crear el contenido HTML para el peso
       const weightHTML = `
         <div class="flex flex-col items-center justify-center">
           <div class="relative size-40">
@@ -356,82 +347,54 @@ export default class extends Controller {
           </div>
           <div class="mt-2 text-center">
             <span class="text-sm text-gray-500 block">kg</span>
-            <span class="text-xs text-gray-400 block">${timestamp}</span>
+            <span class="text-xs text-gray-400 block">${timestamp || new Date().toLocaleTimeString()}</span>
           </div>
         </div>
       `
       
-      console.log("Updating weight target with HTML");
-      // Actualizar el contenido del target de peso
       this.weightTarget.innerHTML = weightHTML
       
-      // Dispatch event to notify the form controller
-      console.log("Dispatching serial:weightRead event");
       this.element.dispatchEvent(new CustomEvent('serial:weightRead', {
         detail: { weight: weightValue, timestamp: timestamp },
         bubbles: true
       }));
 
-      // Registrar automáticamente el peso en el formulario
-      console.log("Registering weight in form");
       this.registerWeightInForm(weightValue);
 
       if (this.hasAutoSaveCheckboxTarget && this.autoSaveCheckboxTarget.checked) {
-        console.log("Auto-save enabled, submitting form");
         this.element.closest('form').requestSubmit()
       }
-    } else {
-      console.log("No weight target found");
     }
   }
 
-  // Método para registrar automáticamente el peso en el formulario
   registerWeightInForm(weightValue) {
-    // Encontrar el formulario padre
     const form = this.element.closest('form');
     if (!form) return;
     
-    // Encontrar el campo oculto de peso bruto
     const pesoBrutoInput = form.querySelector('input[name*="[peso_bruto]"]');
-    if (pesoBrutoInput) {
-      pesoBrutoInput.value = weightValue;
-    }
+    if (pesoBrutoInput) pesoBrutoInput.value = weightValue;
     
-    // También actualizar el campo de peso bruto manual si existe
     const pesoBrutoManualInput = form.querySelector('input[name*="[peso_bruto_manual]"]');
-    if (pesoBrutoManualInput) {
-      pesoBrutoManualInput.value = weightValue;
-    }
+    if (pesoBrutoManualInput) pesoBrutoManualInput.value = weightValue;
     
-    // Actualizar el peso bruto oculto
     const pesoBrutoHidden = form.querySelector('input[data-consecutivo-form-target="pesoBrutoHidden"]');
-    if (pesoBrutoHidden) {
-      pesoBrutoHidden.value = weightValue;
-    }
+    if (pesoBrutoHidden) pesoBrutoHidden.value = weightValue;
     
-    // Actualizar también el campo de peso bruto manual oculto si existe
     const pesoBrutoManualHidden = form.querySelector('input[data-consecutivo-form-target="pesoBrutoManualHidden"]');
-    if (pesoBrutoManualHidden) {
-      pesoBrutoManualHidden.value = weightValue;
-    }
+    if (pesoBrutoManualHidden) pesoBrutoManualHidden.value = weightValue;
     
-    // Forzar la actualización de los cálculos directamente
     this.updateFormCalculations(weightValue);
   }
   
-  // Método para actualizar directamente los cálculos en el formulario
   updateFormCalculations(weightValue) {
-    // Encontrar el formulario padre
     const form = this.element.closest('form');
     if (!form) return;
     
-    // Extraer micras y ancho mm desde clave producto (ej: "BOPPTRANS 35 / 420")
     const claveProducto = form.querySelector('#clave_producto')?.value || "BOPPTRANS 35 / 420";
     const matches = claveProducto.match(/(\d+)\s*\/\s*(\d+)/);
     const micras = matches ? parseInt(matches[1]) || 35 : 35;
     const anchoMm = matches ? parseInt(matches[2]) || 420 : 420;
     
-    // Tabla de pesos core
     const coreWeightTable = {
       0: 0, 70: 200, 80: 200, 90: 200, 100: 200, 110: 200, 120: 200, 
       124: 200, 130: 200, 140: 200, 142: 200, 143: 200, 150: 200, 
@@ -455,8 +418,7 @@ export default class extends Controller {
       1300: 2600, 1320: 2600, 1340: 2700, 1360: 2700, 1400: 2800
     };
     
-    // Encontrar el peso core más cercano
-    const alturaCm = 75; // Valor por defecto
+    const alturaCm = 75;
     const keys = Object.keys(coreWeightTable).map(k => parseInt(k)).sort((a, b) => a - b);
     let pesoCoreGramos = coreWeightTable[keys[0]];
     for (let i = 0; i < keys.length - 1; i++) {
@@ -466,75 +428,35 @@ export default class extends Controller {
       }
     }
     
-    // Calcular peso neto
     let pesoNeto = weightValue - (pesoCoreGramos / 1000.0);
     pesoNeto = Math.max(0, pesoNeto);
     
-    // Calcular metros lineales
     let metrosLineales = 0;
     if (pesoNeto > 0 && micras > 0 && anchoMm > 0) {
       metrosLineales = (pesoNeto * 1000000) / micras / anchoMm / 0.92;
       metrosLineales = Math.max(0, metrosLineales);
     }
     
-    // Actualizar displays visuales
     const pesoNetoDisplay = form.querySelector('[data-consecutivo-form-target="pesoNetoDisplay"]');
-    if (pesoNetoDisplay) {
-      pesoNetoDisplay.textContent = `${pesoNeto.toFixed(3)} kg`;
-    }
+    if (pesoNetoDisplay) pesoNetoDisplay.textContent = `${pesoNeto.toFixed(3)} kg`;
     
     const metrosLinealesDisplay = form.querySelector('[data-consecutivo-form-target="metrosLinealesDisplay"]');
-    if (metrosLinealesDisplay) {
-      metrosLinealesDisplay.textContent = `${metrosLineales.toFixed(4)} m`;
-    }
+    if (metrosLinealesDisplay) metrosLinealesDisplay.textContent = `${metrosLineales.toFixed(4)} m`;
     
     const pesoCoreDisplay = form.querySelector('[data-consecutivo-form-target="pesoCoreDisplay"]');
-    if (pesoCoreDisplay) {
-      pesoCoreDisplay.textContent = `${pesoCoreGramos} g`;
-    }
+    if (pesoCoreDisplay) pesoCoreDisplay.textContent = `${pesoCoreGramos} g`;
     
     const especificacionesDisplay = form.querySelector('[data-consecutivo-form-target="especificacionesDisplay"]');
-    if (especificacionesDisplay) {
-      especificacionesDisplay.textContent = `${micras}μ / ${anchoMm}mm`;
-    }
+    if (especificacionesDisplay) especificacionesDisplay.textContent = `${micras}μ / ${anchoMm}mm`;
     
-    // Actualizar campos hidden para formulario
     const pesoNetoHidden = form.querySelector('input[data-consecutivo-form-target="pesoNeto"]');
-    if (pesoNetoHidden) {
-      pesoNetoHidden.value = pesoNeto.toFixed(3);
-    }
+    if (pesoNetoHidden) pesoNetoHidden.value = pesoNeto.toFixed(3);
     
     const metrosLinealesHidden = form.querySelector('input[data-consecutivo-form-target="metrosLineales"]');
-    if (metrosLinealesHidden) {
-      metrosLinealesHidden.value = metrosLineales.toFixed(4);
-    }
-  }
-  
-  // Método para forzar el cálculo de pesos en el controlador del formulario
-  forceFormCalculation(weightValue) {
-    // Encontrar el controlador del formulario
-    const formControllerElement = this.element.closest('[data-controller="consecutivo-form"]');
-    if (formControllerElement && formControllerElement.__controllerInstance) {
-      // Acceder directamente a la instancia del controlador
-      const formController = formControllerElement.__controllerInstance;
-      if (formController) {
-        // Actualizar el peso actual y recalcular
-        formController.currentWeight = weightValue;
-        formController.calculateWeights();
-      }
-    } else {
-      // Fallback: Disparar un evento personalizado
-      const event = new CustomEvent('scale:weightUpdated', {
-        detail: { weight: weightValue },
-        bubbles: true
-      });
-      this.element.dispatchEvent(event);
-    }
+    if (metrosLinealesHidden) metrosLinealesHidden.value = metrosLineales.toFixed(4);
   }
 
-  // Método para guardar configuración usando Rails forms
   saveConfiguration(configData) {
-    // Enviar una solicitud al endpoint de auto-guardado
     fetch('/admin/configurations/auto_save', {
       method: 'POST',
       headers: {
@@ -544,25 +466,14 @@ export default class extends Controller {
       body: JSON.stringify(configData)
     })
     .then(response => response.json())
-    .then(data => {
-      if (data.success) {
-        this.log("Configuration saved successfully")
-      } else {
-        this.log(`Error saving configuration: ${data.message}`)
-      }
-    })
     .catch(error => {
-      this.log(`Error saving configuration: ${error.message}`)
+      console.error(`Error saving configuration: ${error.message}`)
     })
   }
 
   getCSRFToken() {
     const token = document.querySelector('meta[name="csrf-token"]')
     return token ? token.getAttribute('content') : ''
-  }
-
-  log(message) {
-    // console.log(`[ConsecutivoScale] ${message}`)
   }
 
   saveAutoSaveState() {
