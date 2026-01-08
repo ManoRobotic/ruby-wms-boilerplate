@@ -13,6 +13,11 @@ class Api::SerialController < ApplicationController
     end
   end
 
+  def status
+    status_data = SerialCommunicationService.status(company: current_company)
+    render json: status_data
+  end
+
   def ports
     ports = SerialCommunicationService.list_serial_ports(company: current_company)
     render json: { status: 'success', ports: ports }

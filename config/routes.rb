@@ -226,6 +226,7 @@ Rails.application.routes.draw do
     resources :serial, only: [] do
       collection do
         get :health
+        get :status
         get :ports
         post :connect_scale
         post :disconnect_scale

@@ -1,4 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
+import { io } from "socket.io-client"
 
 export default class extends Controller {
   static targets = ["status", "weight", "scalePort", "printerPort", "logs", "printerStatus", "scaleStatus", "readButton"]
@@ -25,60 +26,130 @@ export default class extends Controller {
     
     // Always use the Rails API for browser requests to avoid CORS issues
     this.baseUrlValue = "/api/serial"
-    this.pollIntervalValue = this.pollIntervalValue || 2000
+    this.pollIntervalValue = this.pollIntervalValue || 10000 // 10s default for optimization
     this.isPolling = false
-    
-    if (this.autoConnectValue) {
-      this.checkHealth()
-      // Iniciar verificación periódica del estado
-      this.startHealthCheck()
-    }
-    
-    // Add event listener for scale port selection changes
-    if (this.hasScalePortTarget) {
-      this.scalePortTarget.addEventListener('change', (event) => {
-        this.onScalePortChange(event)
-      })
-    }
-    
-    // Add event listener for printer port selection changes
-    if (this.hasPrinterPortTarget) {
-      this.printerPortTarget.addEventListener('change', (event) => {
-        this.onPrinterPortChange(event)
-      })
-    }
+    this.lastActivity = Date.now()
     
     // Setup external logs panel if it exists
     this.setupExternalLogs()
     
     // Setup external clear logs button if it exists
     this.setupExternalClearLogs()
+
+    // Add event listeners for port selection changes
+    if (this.hasScalePortTarget) {
+      this.scalePortTarget.addEventListener('change', (event) => this.onScalePortChange(event))
+    }
+    if (this.hasPrinterPortTarget) {
+      this.printerPortTarget.addEventListener('change', (event) => this.onPrinterPortChange(event))
+    }
+
+    // NEW: Optimization - Pause when tab is inactive
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === 'visible') {
+        this.log("Tab visible, resuming check...")
+        this.checkStatusAndAutoReconnect()
+      } else {
+        this.log("Tab hidden, pausing polling...")
+        this.stopPolling()
+      }
+    })
+
+    // NEW: Optimization - Pause on inactivity
+    const resetInactivity = () => { this.lastActivity = Date.now() }
+    ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(name => {
+      document.addEventListener(name, resetInactivity, { passive: true })
+    })
+
+    // NEW: Check server status and auto-reconnect
+    this.checkStatusAndAutoReconnect()
     
-    // Cargar configuración guardada
-    this.loadSavedConfiguration()
+    // NEW: Initialize WebSocket connection (Local-first)
+    this.initWebSocket()
+
+    // Iniciar verificación periódica del estado
+    this.startHealthCheck()
     
-    this.log("Serial controller initialized")
+    this.log("Serial controller initialized (Socket.IO version)")
+  }
+
+  async checkStatusAndAutoReconnect() {
+    this.updateStatus("↻ Verificando estado...", "info")
+    
+    try {
+      // 1. Cargar puertos disponibles primero
+      await this.loadPorts()
+      
+      // 2. Cargar configuración guardada del servidor (puertos preferidos)
+      await this.loadSavedConfiguration()
+
+      // 3. Consultar estado real del servidor serial
+      const response = await fetch(`${this.baseUrlValue}/status`, {
+        headers: { 'ngrok-skip-browser-warning': '1' }
+      })
+      const data = await response.json()
+      
+      if (data.status === 'healthy' || data.status === 'success') {
+        const wasManuallyDisconnected = localStorage.getItem('serial_manual_disconnect') === 'true'
+        
+        // Manejar Báscula
+        if (data.scale_connected) {
+          this.updateScaleStatus("Conectada", "success")
+          if (this.hasScalePortTarget && data.scale_port) {
+            this.scalePortTarget.value = data.scale_port
+          }
+          this.startReading()
+          this.log(`Báscula ya estaba conectada en ${data.scale_port}`)
+        } else if (this.autoConnectValue && !wasManuallyDisconnected && this.hasScalePortTarget && this.scalePortTarget.value) {
+          this.log("Intentando auto-conexión de báscula...")
+          this.connectScale({ preventDefault: () => {} })
+        }
+
+        // Manejar Impresora
+        if (data.printer_connected) {
+          this.updatePrinterStatus("Conectada", "success")
+          if (this.hasPrinterPortTarget && data.printer_port) {
+            this.printerPortTarget.value = data.printer_port
+          }
+          this.log(`Impresora ya estaba conectada en ${data.printer_port}`)
+        } else if (this.autoConnectValue && !wasManuallyDisconnected && this.hasPrinterPortTarget && this.printerPortTarget.value) {
+          this.log("Intentando auto-conexión de impresora...")
+          this.connectPrinter({ preventDefault: () => {} })
+        }
+
+        this.updateStatus("✓ Sistema listo", "success")
+      } else {
+        this.updateStatus("✗ Servidor serial no disponible", "error")
+      }
+    } catch (error) {
+      this.updateStatus("✗ Error al verificar estado", "error")
+      this.log(`Status check error: ${error.message}`)
+    }
   }
 
   // Método para cargar la configuración guardada
-  loadSavedConfiguration() {
-    // Obtener la configuración guardada del servidor a través de una API
-    fetch('/admin/configurations/saved_config')
-      .then(response => response.json())
-      .then(data => {
-        if (data.serial_port && this.hasScalePortTarget) {
-          // Establecer el puerto guardado en el select de la báscula
-          this.scalePortTarget.value = data.serial_port;
-        }
-        
-        if (data.printer_port && this.hasPrinterPortTarget) {
-          // Establecer el puerto guardado en el select de la impresora
-          this.printerPortTarget.value = data.printer_port;
+  async loadSavedConfiguration() {
+    try {
+      const response = await fetch('/admin/configurations/saved_config', {
+        headers: { 
+          'ngrok-skip-browser-warning': '1',
+          'Accept': 'application/json'
         }
       })
-      .catch(error => {
-        this.log(`Error loading saved configuration: ${error.message}`);
-      });
+      const data = await response.json()
+      
+      if (data.serial_port && this.hasScalePortTarget) {
+        this.scalePortTarget.value = data.serial_port
+      }
+      
+      if (data.printer_port && this.hasPrinterPortTarget) {
+        this.printerPortTarget.value = data.printer_port
+      }
+      return data
+    } catch (error) {
+      this.log(`Error loading saved configuration: ${error.message}`)
+      return {}
+    }
   }
 
   disconnect() {
@@ -87,10 +158,12 @@ export default class extends Controller {
   }
 
   startHealthCheck() {
-    // Verificar el estado cada 30 segundos
+    // Verificar el estado cada 5 minutos para ahorrar peticiones
     this.healthCheckInterval = setInterval(() => {
-      this.checkHealth()
-    }, 30000)
+      if (document.visibilityState === 'visible') {
+        this.checkHealth()
+      }
+    }, 300000)
   }
 
   stopHealthCheck() {
@@ -100,12 +173,84 @@ export default class extends Controller {
     }
   }
 
+  // NEW: WebSocket Initialization using Socket.IO
+  initWebSocket() {
+    if (!this.externalBaseUrl) return
+
+    this.log("Intentando conexión compatible con Socket.IO...")
+    
+    // Construct the Socket.IO URL (base URL without /weight namespace, namespace handled by client)
+    // externalBaseUrl is like "https://...ngrok-free.app", io() needs "https://...ngrok-free.app"
+    const serverUrl = this.externalBaseUrl;
+
+    try {
+      if (typeof io === 'undefined') {
+        this.log("Error: Librería socket.io-client no cargada.")
+        return
+      }
+
+      // Connect to the /weight namespace
+      this.socket = io(`${serverUrl}/weight`, {
+        transports: ['websocket', 'polling'],
+        reconnection: true,
+        reconnectionAttempts: 5,
+        reconnectionDelay: 1000
+      })
+
+      this.socket.on('connect', () => {
+        this.log("Socket.IO conectado (/weight)")
+        this.stopPolling()
+        this.isWsConnected = true
+        this.updateStatus("✓ Conectado en tiempo real", "success")
+      })
+
+      this.socket.on('weight_update', (data) => {
+        // data matches { weight: ..., timestamp: ... } from server
+        if (data.weight !== undefined) {
+          this.updateWeight(data.weight, data.timestamp || new Date().toISOString())
+        }
+      })
+
+      this.socket.on('connect_error', (error) => {
+        console.error("Socket.IO connection error:", error)
+        // Check if we are already disconnected to avoid spam
+        if (this.isWsConnected) {
+          this.log(`Socket.IO error: ${error.message}`)
+          this.isWsConnected = false
+        }
+      })
+
+      this.socket.on('disconnect', (reason) => {
+        this.log(`Socket.IO desconectado: ${reason}`)
+        this.isWsConnected = false
+        if (reason === "io server disconnect") {
+          // the disconnection was initiated by the server, you need to reconnect manually
+          this.socket.connect();
+        }
+        // Fallback to polling if needed
+        if (this.isPolling === false) { 
+             this.log("Activando polling por desconexión...")
+             this.startReading() 
+        }
+      })
+
+    } catch (e) {
+      this.log(`Error iniciando Socket.IO: ${e.message}`)
+      console.error(e)
+    }
+  }
+
+  // Legacy method removed
+  attemptWebSocket(url, isLocal) {}
+
   async checkHealth() {
     // Mostrar estado de verificación en progreso
     this.updateStatus("↻ Verificando conexión...", "info")
     
     try {
-      const response = await fetch(`${this.baseUrlValue}/health`)
+      const response = await fetch(`${this.baseUrlValue}/health`, {
+        headers: { 'ngrok-skip-browser-warning': '1' }
+      })
       const data = await response.json()
       
       if (data.status === 'healthy') {
@@ -122,7 +267,9 @@ export default class extends Controller {
 
   async loadPorts() {
     try {
-      const response = await fetch(`${this.baseUrlValue}/ports`)
+      const response = await fetch(`${this.baseUrlValue}/ports`, {
+        headers: { 'ngrok-skip-browser-warning': '1' }
+      })
       const data = await response.json()
       
       if (data.status === 'success') {
@@ -233,7 +380,10 @@ export default class extends Controller {
     try {
       const response = await fetch(`${this.baseUrlValue}/connect_scale`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': '1'
+        },
         body: JSON.stringify({ port, baudrate })
       })
       
@@ -269,7 +419,8 @@ export default class extends Controller {
       this.stopPolling()
       
       const response = await fetch(`${this.baseUrlValue}/disconnect_scale`, {
-        method: 'POST'
+        method: 'POST',
+        headers: { 'ngrok-skip-browser-warning': '1' }
       })
       
       const data = await response.json()
@@ -287,7 +438,8 @@ export default class extends Controller {
   async startReading() {
     try {
       const response = await fetch(`${this.baseUrlValue}/start_scale`, {
-        method: 'POST'
+        method: 'POST',
+        headers: { 'ngrok-skip-browser-warning': '1' }
       })
       
       const data = await response.json()
@@ -306,7 +458,8 @@ export default class extends Controller {
       this.stopPolling()
       
       const response = await fetch(`${this.baseUrlValue}/stop_scale`, {
-        method: 'POST'
+        method: 'POST',
+        headers: { 'ngrok-skip-browser-warning': '1' }
       })
       
       const data = await response.json()
@@ -334,8 +487,20 @@ export default class extends Controller {
   }
 
   async getLatestReadings() {
+    // Optimization: Check visibility and inactivity (5 minutes)
+    if (document.visibilityState !== 'visible') return
+    if (Date.now() - this.lastActivity > 300000) {
+      if (this.isPolling) {
+        this.log("Inactivity detected, stopping auto-polling")
+        this.stopPolling()
+      }
+      return
+    }
+
     try {
-      const response = await fetch(`${this.baseUrlValue}/latest_readings`)
+      const response = await fetch(`${this.baseUrlValue}/latest_readings`, {
+        headers: { 'ngrok-skip-browser-warning': '1' }
+      })
       const data = await response.json()
       
       if (data.status === 'success' && data.readings.length > 0) {
@@ -365,7 +530,9 @@ export default class extends Controller {
     }
     
     try {
-      const response = await fetch(`${this.baseUrlValue}/get_weight_now?timeout=5`)
+      const response = await fetch(`${this.baseUrlValue}/get_weight_now?timeout=5`, {
+        headers: { 'ngrok-skip-browser-warning': '1' }
+      })
       const data = await response.json()
       
       if (data.status === 'success') {
@@ -408,7 +575,10 @@ export default class extends Controller {
       
       const response = await fetch(`${this.baseUrlValue}/connect_printer`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': '1'
+        },
         body: JSON.stringify(requestBody)
       })
       
@@ -444,7 +614,10 @@ export default class extends Controller {
     try {
       const response = await fetch(`${this.baseUrlValue}/print_label`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': '1'
+        },
         body: JSON.stringify({ 
           content, 
           ancho_mm: parseInt(ancho_mm), 
@@ -478,7 +651,10 @@ export default class extends Controller {
     try {
       const response = await fetch(`${this.baseUrlValue}/test_printer`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': '1'
+        },
         body: JSON.stringify({ 
           ancho_mm: parseInt(ancho_mm), 
           alto_mm: parseInt(alto_mm) 
@@ -511,7 +687,10 @@ export default class extends Controller {
     try {
       const response = await fetch(`${this.baseUrlValue}/print_label`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': '1'
+        },
         body: JSON.stringify({ 
           content, 
           ancho_mm: parseInt(ancho_mm), 
@@ -537,7 +716,9 @@ export default class extends Controller {
   // Método para obtener peso desde otros controllers
   async getCurrentWeight(timeout = 5) {
     try {
-      const response = await fetch(`${this.baseUrlValue}/get_weight_now?timeout=${timeout}`)
+      const response = await fetch(`${this.baseUrlValue}/get_weight_now?timeout=${timeout}`, {
+        headers: { 'ngrok-skip-browser-warning': '1' }
+      })
       const data = await response.json()
       
       if (data.status === 'success') {
@@ -734,15 +915,34 @@ export default class extends Controller {
     });
 
     const formData = new FormData(form);
-    fetch(form.action, {
+    // Force .json extension to ensure Rails returns JSON
+    const actionUrl = form.action.endsWith('.json') ? form.action : `${form.action}.json`;
+
+    fetch(actionUrl, {
       method: 'POST',
       body: formData,
       headers: {
         'X-Requested-With': 'XMLHttpRequest',
-        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content,
+        'ngrok-skip-browser-warning': '1',
+        'Accept': 'application/json'
       }
     })
-    .then(response => response.json())
+    .then(async response => {
+      const contentType = response.headers.get("content-type");
+      const text = await response.text();
+      
+      if (!response.ok) {
+        throw new Error(`Server returned ${response.status} ${response.statusText}: ${text.substring(0, 200)}...`);
+      }
+      
+      // Try to parse JSON regardless of content-type, but warn if mismatch
+      try {
+        return JSON.parse(text);
+      } catch (e) {
+        throw new Error(`Invalid JSON response (CT: ${contentType}): ${text.substring(0, 200)}...`);
+      }
+    })
     .then(data => {
       if (data.success) {
         this.log(`Configuración guardada automáticamente: ${JSON.stringify(configData)}`);
@@ -753,8 +953,14 @@ export default class extends Controller {
       }
     })
     .catch(error => {
+      console.error("Auto-save error full details:", error);
+      // Clean up error message for UI
+      let uiMessage = error.message;
+      if (uiMessage.includes("Invalid JSON")) {
+        uiMessage = "Error de respuesta del servidor (Formato inválido)";
+      }
       this.log(`Error de red al guardar configuración automáticamente: ${error.message}`);
-      this.updateStatus('✗ Error de red al guardar configuración automáticamente', 'error');
+      this.updateStatus(`✗ Error: ${uiMessage.substring(0, 40)}...`, 'error');
     });
   }
 

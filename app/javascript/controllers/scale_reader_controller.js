@@ -18,6 +18,41 @@ export default class extends Controller {
     
     // Inicializar estado
     this.updateDisplay(0)
+
+    // Discovery of external service URL for WebSocket
+    const companyConfig = document.querySelector('[data-serial-company-config]')
+    if (companyConfig) {
+      try {
+        const config = JSON.parse(companyConfig.textContent)
+        if (config.serial_service_url) {
+          this.externalBaseUrl = config.serial_service_url.replace(/\/$/, '')
+        }
+      } catch (e) {
+        console.error('Error parsing company config:', e)
+      }
+    }
+
+    // Auto-conectar al cargar si no hubo desconexión manual
+    const wasManuallyDisconnected = localStorage.getItem('scale_manual_disconnect') === 'true'
+    if (!wasManuallyDisconnected) {
+      console.log("Checking for existing scale connection...")
+      this.checkStatusAndConnect()
+    }
+
+    // Initialize WebSocket if we have the external URL
+    if (this.externalBaseUrl) {
+      this.initWebSocket()
+    }
+  }
+
+  async checkStatusAndConnect() {
+    try {
+      // Intentar conectar usando los parámetros guardados
+      // El servidor Python ahora debería manejar esto de forma idempotente
+      await this.connectScale()
+    } catch (error) {
+      console.error("Auto-connect failed:", error)
+    }
   }
 
   async connectScale() {
@@ -34,8 +69,8 @@ export default class extends Controller {
         this.connectButtonTarget.disabled = true
         this.readButtonTarget.disabled = false
         
-        // Auto-leer peso cada 3 segundos
-        this.startAutoReading()
+        // Clear manual disconnect flag
+        localStorage.removeItem('scale_manual_disconnect')
         
         this.addToLog(`Báscula conectada: ${response.output}`, 'success')
       } else {
@@ -79,12 +114,12 @@ export default class extends Controller {
   }
 
   startAutoReading() {
-    // Leer peso automáticamente cada 3 segundos
+    // Leer peso automáticamente cada 10 segundos para optimizar peticiones ngrok
     this.autoReadInterval = setInterval(() => {
-      if (this.isConnected) {
+      if (this.isConnected && document.visibilityState === 'visible') {
         this.readWeight()
       }
-    }, 3000)
+    }, 10000)
   }
 
   stopAutoReading() {
@@ -162,7 +197,8 @@ export default class extends Controller {
       method: 'POST',
       body: formData,
       headers: {
-        'X-Requested-With': 'XMLHttpRequest'
+        'X-Requested-With': 'XMLHttpRequest',
+        'ngrok-skip-browser-warning': '1'
       }
     })
 
@@ -193,5 +229,61 @@ export default class extends Controller {
   disconnect() {
     console.log("Scale reader controller disconnected")
     this.stopAutoReading()
+    if (this.socket) {
+      this.socket.close()
+    }
+    // Set manual disconnect flag
+    localStorage.setItem('scale_manual_disconnect', 'true')
+  }
+
+  // NEW: WebSocket Logic for Real-Time Weight
+  initWebSocket() {
+    const localWsUrl = "ws://localhost:5000/weight"
+    this.addToLog("Iniciando conexión en tiempo real...")
+    this.attemptWebSocket(localWsUrl, true)
+  }
+
+  attemptWebSocket(url, isLocal) {
+    try {
+      this.socket = new WebSocket(url)
+      
+      this.socket.onopen = () => {
+        this.addToLog(`Conexión real-time establecida (${isLocal ? 'Local' : 'Remoto'})`, 'success')
+        this.stopAutoReading() // Detener polling si tenemos socket
+        this.isWsConnected = true
+      }
+
+      this.socket.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data)
+          if (data.weight !== undefined) {
+            this.updateDisplay(parseFloat(data.weight) || 0.0)
+          }
+        } catch (e) {
+          console.error("Error parsing WS message:", e)
+        }
+      }
+
+      this.socket.onerror = () => {
+        if (isLocal) {
+          this.addToLog("Conexión local no disponible, intentando vía túnel...", 'info')
+          this.attemptWebSocket(this.externalBaseUrl.replace(/^http/, 'ws') + "/weight", false)
+        } else {
+          this.addToLog("Conexión real-time falló, usando polling de respaldo", 'warning')
+          this.isWsConnected = false
+          this.startAutoReading()
+        }
+      }
+
+      this.socket.onclose = () => {
+        if (this.isWsConnected) {
+          this.addToLog("Conexión real-time perdida, volviendo a polling", 'warning')
+          this.isWsConnected = false
+          this.startAutoReading()
+        }
+      }
+    } catch (e) {
+      console.error("Error starting WebSocket:", e)
+    }
   }
 }

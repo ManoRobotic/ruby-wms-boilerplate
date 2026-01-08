@@ -129,6 +129,21 @@ class SerialCommunicationService
       false
     end
 
+    # Obtiene el estado actual de todas las conexiones en el servidor serial
+    def status(company: nil)
+      response = get('/health', company: company)
+      {
+        status: response['status'],
+        scale_connected: response['scale_connected'] || false,
+        printer_connected: response['printer_connected'] || false,
+        scale_port: response['scale_port'],
+        printer_port: response['printer_port']
+      }
+    rescue StandardError => e
+      Rails.logger.error "Serial server status check failed: #{e.message}"
+      { status: 'error', message: e.message, scale_connected: false, printer_connected: false }
+    end
+
     # Método para obtener peso en tiempo real con polling
     def get_weight_with_timeout(timeout_seconds: 10, company: nil)
       start_time = Time.current
@@ -154,6 +169,7 @@ class SerialCommunicationService
       
       request = Net::HTTP::Get.new(uri)
       request['Content-Type'] = 'application/json'
+      request['ngrok-skip-browser-warning'] = 'true'
       
       response = http.request(request)
       parse_response(response)
@@ -168,6 +184,7 @@ class SerialCommunicationService
       
       request = Net::HTTP::Post.new(uri)
       request['Content-Type'] = 'application/json'
+      request['ngrok-skip-browser-warning'] = 'true'
       request.body = payload.to_json unless payload.empty?
       
       response = http.request(request)
