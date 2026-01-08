@@ -27,7 +27,6 @@ export default class extends Controller {
     // Always use the Rails API for browser requests to avoid CORS issues
     this.baseUrlValue = "/api/serial"
     this.pollIntervalValue = this.pollIntervalValue || 10000 // 10s default for optimization
-    this.isPolling = false
     this.lastActivity = Date.now()
     
     // Setup external logs panel if it exists
@@ -50,8 +49,8 @@ export default class extends Controller {
         this.log("Tab visible, resuming check...")
         this.checkStatusAndAutoReconnect()
       } else {
-        this.log("Tab hidden, pausing polling...")
-        this.stopPolling()
+        this.log("Tab hidden, pausing activity checks.")
+        // No need to stop polling as it's removed. The WebSocket will stay connected.
       }
     })
 
@@ -153,8 +152,10 @@ export default class extends Controller {
   }
 
   disconnect() {
-    this.stopPolling()
     this.stopHealthCheck()
+    if (this.socket) {
+      this.socket.disconnect()
+    }
   }
 
   startHealthCheck() {
@@ -199,7 +200,6 @@ export default class extends Controller {
 
       this.socket.on('connect', () => {
         this.log("Socket.IO conectado (/weight)")
-        this.stopPolling()
         this.isWsConnected = true
         this.updateStatus("✓ Conectado en tiempo real", "success")
       })
@@ -223,15 +223,13 @@ export default class extends Controller {
       this.socket.on('disconnect', (reason) => {
         this.log(`Socket.IO desconectado: ${reason}`)
         this.isWsConnected = false
+        this.updateStatus("↻ Intentando reconectar...", "warning")
+        
         if (reason === "io server disconnect") {
-          // the disconnection was initiated by the server, you need to reconnect manually
+          // The disconnection was initiated by the server, you need to reconnect manually
           this.socket.connect();
         }
-        // Fallback to polling if needed
-        if (this.isPolling === false) { 
-             this.log("Activando polling por desconexión...")
-             this.startReading() 
-        }
+        // Do NOT fallback to polling here. Let the socket.io client handle reconnection.
       })
 
     } catch (e) {
@@ -416,8 +414,6 @@ export default class extends Controller {
     event.preventDefault()
     
     try {
-      this.stopPolling()
-      
       const response = await fetch(`${this.baseUrlValue}/disconnect_scale`, {
         method: 'POST',
         headers: { 'ngrok-skip-browser-warning': '1' }
@@ -436,6 +432,8 @@ export default class extends Controller {
   }
 
   async startReading() {
+    // This function now only tells the server to start the hardware reading loop.
+    // WebSocket events will handle the data updates.
     try {
       const response = await fetch(`${this.baseUrlValue}/start_scale`, {
         method: 'POST',
@@ -445,8 +443,7 @@ export default class extends Controller {
       const data = await response.json()
       
       if (data.status === 'success') {
-        this.startPolling()
-        this.log("Started continuous reading")
+        this.log("Started continuous reading on server.")
       }
     } catch (error) {
       this.log(`Error starting reading: ${error.message}`)
@@ -455,62 +452,19 @@ export default class extends Controller {
 
   async stopReading() {
     try {
-      this.stopPolling()
-      
+      // We no longer need to stop polling, just tell the server to stop reading.
       const response = await fetch(`${this.baseUrlValue}/stop_scale`, {
         method: 'POST',
         headers: { 'ngrok-skip-browser-warning': '1' }
       })
       
       const data = await response.json()
-      this.log("Stopped continuous reading")
+      this.log("Stopped continuous reading on server.")
     } catch (error) {
       this.log(`Error stopping reading: ${error.message}`)
     }
   }
 
-  startPolling() {
-    if (this.isPolling) return
-    
-    this.isPolling = true
-    this.pollTimer = setInterval(() => {
-      this.getLatestReadings()
-    }, this.pollIntervalValue)
-  }
-
-  stopPolling() {
-    if (this.pollTimer) {
-      clearInterval(this.pollTimer)
-      this.pollTimer = null
-    }
-    this.isPolling = false
-  }
-
-  async getLatestReadings() {
-    // Optimization: Check visibility and inactivity (5 minutes)
-    if (document.visibilityState !== 'visible') return
-    if (Date.now() - this.lastActivity > 300000) {
-      if (this.isPolling) {
-        this.log("Inactivity detected, stopping auto-polling")
-        this.stopPolling()
-      }
-      return
-    }
-
-    try {
-      const response = await fetch(`${this.baseUrlValue}/latest_readings`, {
-        headers: { 'ngrok-skip-browser-warning': '1' }
-      })
-      const data = await response.json()
-      
-      if (data.status === 'success' && data.readings.length > 0) {
-        const latest = data.readings[data.readings.length - 1]
-        this.updateWeight(latest.weight, latest.timestamp)
-      }
-    } catch (error) {
-      // Silent error to avoid log spam
-    }
-  }
 
   async readWeightNow(event) {
     event.preventDefault()

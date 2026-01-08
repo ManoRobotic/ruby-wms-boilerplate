@@ -34,6 +34,15 @@ export default class extends Controller {
   confirmPrint() {
     console.log("Confirm print button clicked", this.selectedIds);
 
+    // Dispatch event for manual printing flow (which doesn't use selectedIds)
+    const event = new CustomEvent("confirm-print-selected", {
+      detail: { 
+        selectedIds: this.selectedIds || [] 
+      }
+    });
+    document.dispatchEvent(event);
+
+    // Only call inventory codes API if checking bulk selection
     if (this.selectedIds && this.selectedIds.length > 0) {
       fetch('/admin/inventory_codes/print_selected_labels', {
         method: 'POST',

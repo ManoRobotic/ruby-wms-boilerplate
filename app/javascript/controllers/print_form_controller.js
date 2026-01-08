@@ -5,8 +5,9 @@ export default class extends Controller {
   static targets = ["weightField", "weightDisplay", "submitButton", "bagFields", "rollFields", "boxFields"];
 
   connect() {
-    console.log("Print form controller connected");
-
+    console.log("Print form controller connected - VERSION DEBUG");
+    // alert("DEBUG: Print Controller Updated!"); // Uncomment if needed, but console log is safer first
+    
     // Agregar event listeners para los radio buttons
     this.addFormatListeners();
 
@@ -178,6 +179,7 @@ export default class extends Controller {
 
   // Handle print button click - show confirmation modal
   handlePrintButtonClick() {
+    console.log("Handle print button click - setting up listener");
     // Dispatch event to open confirm print modal
     const openEvent = new CustomEvent("open-confirm-print-modal", {
       detail: {
@@ -189,10 +191,12 @@ export default class extends Controller {
 
     // Listen for the confirm print event
     const confirmHandler = (event) => {
+      console.log("Confirm print event received in print_form_controller!");
       document.removeEventListener("confirm-print-selected", confirmHandler);
       this.submitFormInternal();
     };
     document.addEventListener("confirm-print-selected", confirmHandler);
+    console.log("Listener added for confirm-print-selected");
   }
 
   // Interceptar el submit del formulario para enviar a través del servicio serial
@@ -247,41 +251,29 @@ export default class extends Controller {
     console.log("Label content:", labelContent);
 
     try {
-      // For now, we'll just show a success message without actually printing
-      this.showMessage(
-        "Etiqueta lista para imprimir (datos en consola)",
-        "success"
-      );
-      console.log("Label content that would be printed:", labelContent);
-
-      // Note: In a real implementation, we would uncomment the following code:
-      /*
-      // Obtener referencia al controlador serial
-      const serialController = this.getSerialController()
+      this.showMessage("Imprimiendo etiqueta...", "info");
       
-      if (!serialController) {
-        throw new Error('Controlador serial no disponible')
-      }
+      const response = await fetch('/admin/manual_printing/print_test', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify(printData)
+      });
       
-      // Imprimir usando el servicio Flask
-      this.showMessage('Imprimiendo etiqueta...', 'info')
-      const success = await serialController.printCustomLabel(
-        labelContent, 
-        parseInt(printData.ancho_mm), 
-        parseInt(printData.alto_mm)
-      )
+      const result = await response.json();
       
-      if (success) {
-        this.showMessage('Etiqueta impresa correctamente', 'success')
-        console.log('Label printed successfully:', labelContent)
+      if (result.success) {
+        this.showMessage(`Etiqueta impresa: ${result.message}`, "success");
+        console.log("Print success:", result);
       } else {
-        throw new Error('Error en impresión')
+        throw new Error(result.message || "Error desconocido");
       }
-      */
     } catch (error) {
       console.error("Print error:", error);
       this.showMessage(
-        `Error al preparar impresión: ${error.message}`,
+        `Error al imprimir: ${error.message}`,
         "error"
       );
     }
