@@ -260,13 +260,13 @@ class Admin::InventoryCodesController < AdminController
       "GAP 2 mm, 0 mm",
       "DIRECTION 1,0",
       "CLS",
-      "TEXT 150,20,\"3\",0,1,1,\"Orden: #{data[:no_ordp]}\"",
-      "TEXT 150,60,\"3\",0,1,1,\"Lote: #{data[:lote]}\"",
-      "TEXT 150,100,\"2\",0,1,1,\"Prod: #{data[:cve_prod]}\"",
-      "TEXT 150,140,\"2\",0,1,1,\"Comp: #{data[:cve_copr]}\"",
-      "TEXT 150,180,\"3\",0,1,1,\"Cant: #{data[:can_copr]} KG\"",
-      "TEXT 150,220,\"2\",0,1,1,\"Fecha: #{data[:fech_cto]}\"",
-      "BARCODE 150,260,\"128\",40,1,0,2,2,\"#{data[:lote]}\"",
+      "TEXT 200,20,\"3\",0,1,1,\"Orden: #{data[:no_ordp]}\"",
+      "TEXT 200,60,\"3\",0,1,1,\"Lote: #{data[:lote]}\"",
+      "TEXT 200,100,\"2\",0,1,1,\"Prod: #{data[:cve_prod]}\"",
+      "TEXT 200,140,\"2\",0,1,1,\"Comp: #{data[:cve_copr]}\"",
+      "TEXT 200,180,\"3\",0,1,1,\"Cant: #{data[:can_copr]} KG\"",
+      "TEXT 200,220,\"2\",0,1,1,\"Fecha: #{data[:fech_cto]}\"",
+      "BARCODE 200,260,\"128\",60,2,0,4,3,\"#{data[:lote]}\"",
       "PRINT 1,1"
     ]
     tspl.join("\n") + "\n"

@@ -359,15 +359,17 @@ class Admin::ProductionOrderItemsController < AdminController
       "CODEPAGE 1252"          # Página de códigos occidental
     ]
 
-    # Add content - adjust positioning as needed
-    tspl2_commands << "TEXT 160,55,\"4\",0,1,1,\"#{label_data[:name] || 'N/A'}\""
-    tspl2_commands << "TEXT 160,130,\"3\",0,1,1,\"Lote: #{label_data[:lote] || 'N/A'}\""
-    tspl2_commands << "TEXT 160,205,\"3\",0,1,1,\"Producto: #{label_data[:clave_producto] || 'N/A'}\""
-    tspl2_commands << "TEXT 160,280,\"3\",0,1,1,\"Peso Bruto: #{label_data[:peso_bruto] || 0} kg\""
-    tspl2_commands << "TEXT 160,355,\"3\",0,1,1,\"Peso Neto: #{label_data[:peso_neto] || 0} kg\""
-    tspl2_commands << "TEXT 160,430,\"2\",0,1,1,\"#{label_data[:cliente] || 'N/A'}\""
-    tspl2_commands << "TEXT 160,505,\"2\",0,1,1,\"Orden: #{label_data[:numero_de_orden] || 'N/A'}\""
-    tspl2_commands << "TEXT 160,580,\"1\",0,1,1,\"#{label_data[:fecha_creacion] || 'N/A'}\""
+    # Add content - adjust positioning to align with inventory codes format
+    tspl2_commands << "TEXT 150,20,\"4\",0,1,1,\"Consecutivo: #{label_data[:name] || 'N/A'}\""
+    tspl2_commands << "TEXT 150,60,\"3\",0,1,1,\"Lote: #{label_data[:lote] || 'N/A'}\""
+    tspl2_commands << "TEXT 150,100,\"3\",0,1,1,\"Producto: #{label_data[:clave_producto] || 'N/A'}\""
+    tspl2_commands << "TEXT 150,140,\"3\",0,1,1,\"Peso Bruto: #{label_data[:peso_bruto] || 0} kg\""
+    tspl2_commands << "TEXT 150,180,\"3\",0,1,1,\"Peso Neto: #{label_data[:peso_neto] || 0} kg\""
+    tspl2_commands << "TEXT 150,220,\"2\",0,1,1,\"#{label_data[:cliente] || 'N/A'}\""
+    tspl2_commands << "TEXT 150,260,\"2\",0,1,1,\"Orden: #{label_data[:numero_de_orden] || 'N/A'}\""
+
+    # Add barcode for the consecutive number
+    tspl2_commands << "BARCODE 150,300,\"128\",30,1,0,2,2,\"#{label_data[:folio_consecutivo] || 'N/A'}\""
 
     # Print command
     tspl2_commands << "PRINT 1,1"

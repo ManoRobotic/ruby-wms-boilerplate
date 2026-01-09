@@ -114,18 +114,27 @@ class Admin::ManualPrintingController < AdminController
     text.to_s.gsub('"', '\"')
   end
 
+  def truncate_text(text, max_length)
+    text = text.to_s
+    if text.length > max_length
+      text[0...max_length]
+    else
+      text
+    end
+  end
+
   def generate_bag_label(params, width, height, gap)
     tspl = [
       "SIZE #{width} mm, #{height} mm",
       "GAP #{gap} mm, 0 mm",
       "DIRECTION 1,0",
       "CLS",
-      "TEXT 150,10,\"3\",0,1,1,\"#{sanitize(params[:product_name])}\"",
-      "TEXT 150,50,\"2\",0,1,1,\"Tipo: #{sanitize(params[:bag_type])}\"",
-      "TEXT 150,80,\"2\",0,1,1,\"Medida: #{sanitize(params[:bag_measurement])}\"",
-      "TEXT 150,110,\"2\",0,1,1,\"Piezas: #{sanitize(params[:pieces_count])}\"",
-      "TEXT 150,140,\"2\",0,1,1,\"Peso: #{sanitize(params[:current_weight]) || '0'} kg\"",
-      "BARCODE 150,180,\"128\",50,1,0,2,2,\"#{sanitize(params[:barcode_data])}\"",
+      "TEXT 120,40,\"4\",0,1,1,\"Producto: #{truncate_text(sanitize(params[:product_name]), 10)}\"",
+      "TEXT 120,80,\"3\",0,1,1,\"Tipo: #{sanitize(params[:bag_type])}\"",
+      "TEXT 120,120,\"3\",0,1,1,\"Medida: #{sanitize(params[:bag_measurement])}\"",
+      "TEXT 120,160,\"3\",0,1,1,\"Piezas: #{sanitize(params[:pieces_count])}\"",
+      "TEXT 120,200,\"3\",0,1,1,\"Peso: #{sanitize(params[:current_weight]) || '0'} kg\"",
+      "BARCODE 120,240,\"128\",40,1,0,2,2,\"#{sanitize(params[:barcode_data])}\"",
       "PRINT 1,1"
     ]
     tspl.join("\n") + "\n"
@@ -137,12 +146,12 @@ class Admin::ManualPrintingController < AdminController
       "GAP #{gap} mm, 0 mm",
       "DIRECTION 1,0",
       "CLS",
-      "TEXT 150,10,\"3\",0,1,1,\"#{sanitize(params[:product_name])}\"",
-      "TEXT 150,50,\"2\",0,1,1,\"Rollo: #{sanitize(params[:roll_type])}\"",
-      "TEXT 150,80,\"2\",0,1,1,\"Medida: #{sanitize(params[:roll_measurement])}\"",
-      "TEXT 150,110,\"2\",0,1,1,\"Piezas: #{sanitize(params[:pieces_count_roll])}\"",
-      "TEXT 150,140,\"2\",0,1,1,\"Peso: #{sanitize(params[:current_weight]) || '0'} kg\"",
-      "BARCODE 150,180,\"128\",50,1,0,2,2,\"#{sanitize(params[:barcode_data])}\"",
+      "TEXT 120,40,\"4\",0,1,1,\"Producto: #{truncate_text(sanitize(params[:product_name]), 10)}\"",
+      "TEXT 120,80,\"3\",0,1,1,\"Rollo: #{sanitize(params[:roll_type])}\"",
+      "TEXT 120,120,\"3\",0,1,1,\"Medida: #{sanitize(params[:roll_measurement])}\"",
+      "TEXT 120,160,\"3\",0,1,1,\"Piezas: #{sanitize(params[:pieces_count_roll])}\"",
+      "TEXT 120,200,\"3\",0,1,1,\"Peso: #{sanitize(params[:current_weight]) || '0'} kg\"",
+      "BARCODE 120,240,\"128\",40,1,0,2,2,\"#{sanitize(params[:barcode_data])}\"",
       "PRINT 1,1"
     ]
     tspl.join("\n") + "\n"
@@ -155,12 +164,12 @@ class Admin::ManualPrintingController < AdminController
       "GAP #{gap} mm, 0 mm",
       "DIRECTION 1,0",
       "CLS",
-      "TEXT 150,10,\"3\",0,1,1,\"#{sanitize(params[:product_name])}\"",
-      "TEXT 150,40,\"2\",0,1,1,\"Caja - Bolsa: #{sanitize(params[:bag_type_box])} #{sanitize(params[:bag_measurement_box])}\"",
-      "TEXT 150,70,\"2\",0,1,1,\"Pzs/Caja: #{sanitize(params[:pieces_count_box])}\"",
-      "TEXT 150,100,\"2\",0,1,1,\"Paquetes: #{sanitize(params[:package_count])} x #{sanitize(params[:package_measurement])}\"",
-      "TEXT 150,130,\"2\",0,1,1,\"Peso: #{sanitize(params[:current_weight]) || '0'} kg\"",
-      "BARCODE 150,170,\"128\",50,1,0,2,2,\"#{sanitize(params[:barcode_data])}\"",
+      "TEXT 120,40,\"4\",0,1,1,\"Producto: #{truncate_text(sanitize(params[:product_name]), 10)}\"",
+      "TEXT 120,80,\"3\",0,1,1,\"Caja - Bolsa: #{sanitize(params[:bag_type_box])} #{sanitize(params[:bag_measurement_box])}\"",
+      "TEXT 120,120,\"3\",0,1,1,\"Pzs/Caja: #{sanitize(params[:pieces_count_box])}\"",
+      "TEXT 120,160,\"3\",0,1,1,\"Paquetes: #{sanitize(params[:package_count])} x #{sanitize(params[:package_measurement])}\"",
+      "TEXT 120,200,\"3\",0,1,1,\"Peso: #{sanitize(params[:current_weight]) || '0'} kg\"",
+      "BARCODE 120,240,\"128\",40,1,0,2,2,\"#{sanitize(params[:barcode_data])}\"",
       "PRINT 1,1"
     ]
     tspl.join("\n") + "\n"

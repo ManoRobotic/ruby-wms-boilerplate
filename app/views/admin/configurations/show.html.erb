@@ -113,9 +113,7 @@
           
           <div class="serial-panel"
                data-controller="serial"
-               data-serial-base-url-value="/api/serial"
-               data-serial-auto-connect-value="true"
-               data-serial-poll-interval-value="2000">
+               data-serial-device-id-value="<%= @admin.company&.serial_device_id %>">
             <%= render 'admin/serial/panel_without_logs' %>
             <div class="mt-4">
               <%= form_with model: @admin.company, url: admin_configurations_auto_save_path, method: :post, local: true, class: "space-y-4", id: "serial-config-form" do |form| %>

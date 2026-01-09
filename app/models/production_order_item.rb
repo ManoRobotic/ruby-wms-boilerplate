@@ -29,6 +29,7 @@ class ProductionOrderItem < ApplicationRecord
   # Get complete label data for printing
   def label_data
     {
+      folio_consecutivo: folio_consecutivo,
       name: folio_consecutivo&.split("-")&.last,
       lote: production_order.lote_referencia,
       clave_producto: production_order.product&.sku,
