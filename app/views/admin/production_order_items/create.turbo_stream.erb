@@ -8,15 +8,21 @@
 <%= turbo_stream.replace "consecutivo-modal-body" do %>
   <% new_item = @production_order.production_order_items.build %>
   <% new_item.folio_consecutivo = ProductionOrderItem.generate_folio_consecutivo(@production_order) %>
-  <%= render(ConsecutivoFormComponent.new(production_order: @production_order, consecutivo_form: new_item)) %>
+  <%= render(ConsecutivoFormComponent.new(production_order: @production_order, consecutivo_form: new_item, auto_print: @auto_print)) %>
 <% end %>
 
-<%# Close modal using Turbo Stream action - executes immediately %>
-<%= turbo_stream.action "close", "consecutivo-modal" %>
+<%# Close modal ONLY if auto-print is OFF %>
+<% unless @auto_print %>
+  <%= turbo_stream.action "close", "consecutivo-modal" %>
+<% end %>
 
 <script>
   console.log("🎯 TURBO STREAM IS WORKING!");
   
+  // Cleanup auto-submit indicator if exists
+  const indicator = document.getElementById('auto-submit-indicator');
+  if (indicator) indicator.remove();
+
   // Show success message
   if (window.showToast) {
     window.showToast('success', '', 'Consecutivo creado exitosamente');

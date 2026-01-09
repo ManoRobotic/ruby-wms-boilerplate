@@ -13,6 +13,7 @@ class Admin::ProductionOrderItemsController < AdminController
     @production_order_item = @production_order.production_order_items.build
     # Generar folio consecutivo automáticamente
     @production_order_item.folio_consecutivo = ProductionOrderItem.generate_folio_consecutivo(@production_order)
+    @auto_print = params[:auto_print] == "1"
 
     # Pre-llenar con datos del packing record si existe
     if @production_order.packing_records.any?
@@ -40,6 +41,21 @@ class Admin::ProductionOrderItemsController < AdminController
     end
 
     if @production_order_item.persisted?
+      # Automatic printing logic
+      if params[:auto_print] == "1"
+        company = current_admin&.company || current_user&.company
+        if company&.serial_service_url_configured?
+          label_content = generate_tspl2_label_content(@production_order_item.label_data)
+          SerialCommunicationService.print_label(
+            label_content,
+            ancho_mm: 80,
+            alto_mm: 50,
+            company: company
+          )
+          @production_order_item.update(print_status: :printed)
+        end
+      end
+
       Rails.logger.info "Production order item saved successfully, responding with turbo_stream"
       respond_to do |format|
         format.html do
@@ -54,7 +70,8 @@ class Admin::ProductionOrderItemsController < AdminController
           }
         end
         format.turbo_stream do
-          Rails.logger.info "Rendering turbo_stream template for create"
+          @auto_print = params[:auto_print] == "1"
+          render :create, locals: { auto_print: @auto_print }
         end
       end
     else
@@ -343,14 +360,14 @@ class Admin::ProductionOrderItemsController < AdminController
     ]
 
     # Add content - adjust positioning as needed
-    tspl2_commands << "TEXT 160,75,\"4\",0,1,1,\"#{label_data[:name] || 'N/A'}\""
-    tspl2_commands << "TEXT 160,150,\"3\",0,1,1,\"Lote: #{label_data[:lote] || 'N/A'}\""
-    tspl2_commands << "TEXT 160,225,\"3\",0,1,1,\"Producto: #{label_data[:clave_producto] || 'N/A'}\""
-    tspl2_commands << "TEXT 160,300,\"3\",0,1,1,\"Peso Bruto: #{label_data[:peso_bruto] || 0} kg\""
-    tspl2_commands << "TEXT 160,375,\"3\",0,1,1,\"Peso Neto: #{label_data[:peso_neto] || 0} kg\""
-    tspl2_commands << "TEXT 160,450,\"2\",0,1,1,\"#{label_data[:cliente] || 'N/A'}\""
-    tspl2_commands << "TEXT 160,525,\"2\",0,1,1,\"Orden: #{label_data[:numero_de_orden] || 'N/A'}\""
-    tspl2_commands << "TEXT 160,600,\"1\",0,1,1,\"#{label_data[:fecha_creacion] || 'N/A'}\""
+    tspl2_commands << "TEXT 160,55,\"4\",0,1,1,\"#{label_data[:name] || 'N/A'}\""
+    tspl2_commands << "TEXT 160,130,\"3\",0,1,1,\"Lote: #{label_data[:lote] || 'N/A'}\""
+    tspl2_commands << "TEXT 160,205,\"3\",0,1,1,\"Producto: #{label_data[:clave_producto] || 'N/A'}\""
+    tspl2_commands << "TEXT 160,280,\"3\",0,1,1,\"Peso Bruto: #{label_data[:peso_bruto] || 0} kg\""
+    tspl2_commands << "TEXT 160,355,\"3\",0,1,1,\"Peso Neto: #{label_data[:peso_neto] || 0} kg\""
+    tspl2_commands << "TEXT 160,430,\"2\",0,1,1,\"#{label_data[:cliente] || 'N/A'}\""
+    tspl2_commands << "TEXT 160,505,\"2\",0,1,1,\"Orden: #{label_data[:numero_de_orden] || 'N/A'}\""
+    tspl2_commands << "TEXT 160,580,\"1\",0,1,1,\"#{label_data[:fecha_creacion] || 'N/A'}\""
 
     # Print command
     tspl2_commands << "PRINT 1,1"

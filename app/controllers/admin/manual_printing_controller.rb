@@ -120,12 +120,12 @@ class Admin::ManualPrintingController < AdminController
       "GAP #{gap} mm, 0 mm",
       "DIRECTION 1,0",
       "CLS",
-      "TEXT 10,10,\"3\",0,1,1,\"#{sanitize(params[:product_name])}\"",
-      "TEXT 10,50,\"2\",0,1,1,\"Tipo: #{sanitize(params[:bag_type])}\"",
-      "TEXT 10,80,\"2\",0,1,1,\"Medida: #{sanitize(params[:bag_measurement])}\"",
-      "TEXT 10,110,\"2\",0,1,1,\"Piezas: #{sanitize(params[:pieces_count])}\"",
-      "TEXT 10,140,\"2\",0,1,1,\"Peso: #{sanitize(params[:current_weight]) || '0'} kg\"",
-      "BARCODE 10,180,\"128\",50,1,0,2,2,\"#{sanitize(params[:barcode_data])}\"",
+      "TEXT 150,10,\"3\",0,1,1,\"#{sanitize(params[:product_name])}\"",
+      "TEXT 150,50,\"2\",0,1,1,\"Tipo: #{sanitize(params[:bag_type])}\"",
+      "TEXT 150,80,\"2\",0,1,1,\"Medida: #{sanitize(params[:bag_measurement])}\"",
+      "TEXT 150,110,\"2\",0,1,1,\"Piezas: #{sanitize(params[:pieces_count])}\"",
+      "TEXT 150,140,\"2\",0,1,1,\"Peso: #{sanitize(params[:current_weight]) || '0'} kg\"",
+      "BARCODE 150,180,\"128\",50,1,0,2,2,\"#{sanitize(params[:barcode_data])}\"",
       "PRINT 1,1"
     ]
     tspl.join("\n") + "\n"
@@ -137,12 +137,12 @@ class Admin::ManualPrintingController < AdminController
       "GAP #{gap} mm, 0 mm",
       "DIRECTION 1,0",
       "CLS",
-      "TEXT 10,10,\"3\",0,1,1,\"#{sanitize(params[:product_name])}\"",
-      "TEXT 10,50,\"2\",0,1,1,\"Rollo: #{sanitize(params[:roll_type])}\"",
-      "TEXT 10,80,\"2\",0,1,1,\"Medida: #{sanitize(params[:roll_measurement])}\"",
-      "TEXT 10,110,\"2\",0,1,1,\"Piezas: #{sanitize(params[:pieces_count_roll])}\"",
-      "TEXT 10,140,\"2\",0,1,1,\"Peso: #{sanitize(params[:current_weight]) || '0'} kg\"",
-      "BARCODE 10,180,\"128\",50,1,0,2,2,\"#{sanitize(params[:barcode_data])}\"",
+      "TEXT 150,10,\"3\",0,1,1,\"#{sanitize(params[:product_name])}\"",
+      "TEXT 150,50,\"2\",0,1,1,\"Rollo: #{sanitize(params[:roll_type])}\"",
+      "TEXT 150,80,\"2\",0,1,1,\"Medida: #{sanitize(params[:roll_measurement])}\"",
+      "TEXT 150,110,\"2\",0,1,1,\"Piezas: #{sanitize(params[:pieces_count_roll])}\"",
+      "TEXT 150,140,\"2\",0,1,1,\"Peso: #{sanitize(params[:current_weight]) || '0'} kg\"",
+      "BARCODE 150,180,\"128\",50,1,0,2,2,\"#{sanitize(params[:barcode_data])}\"",
       "PRINT 1,1"
     ]
     tspl.join("\n") + "\n"
@@ -155,12 +155,12 @@ class Admin::ManualPrintingController < AdminController
       "GAP #{gap} mm, 0 mm",
       "DIRECTION 1,0",
       "CLS",
-      "TEXT 10,10,\"3\",0,1,1,\"#{sanitize(params[:product_name])}\"",
-      "TEXT 10,40,\"2\",0,1,1,\"Caja - Bolsa: #{sanitize(params[:bag_type_box])} #{sanitize(params[:bag_measurement_box])}\"",
-      "TEXT 10,70,\"2\",0,1,1,\"Pzs/Caja: #{sanitize(params[:pieces_count_box])}\"",
-      "TEXT 10,100,\"2\",0,1,1,\"Paquetes: #{sanitize(params[:package_count])} x #{sanitize(params[:package_measurement])}\"",
-      "TEXT 10,130,\"2\",0,1,1,\"Peso: #{sanitize(params[:current_weight]) || '0'} kg\"",
-      "BARCODE 10,170,\"128\",50,1,0,2,2,\"#{sanitize(params[:barcode_data])}\"",
+      "TEXT 150,10,\"3\",0,1,1,\"#{sanitize(params[:product_name])}\"",
+      "TEXT 150,40,\"2\",0,1,1,\"Caja - Bolsa: #{sanitize(params[:bag_type_box])} #{sanitize(params[:bag_measurement_box])}\"",
+      "TEXT 150,70,\"2\",0,1,1,\"Pzs/Caja: #{sanitize(params[:pieces_count_box])}\"",
+      "TEXT 150,100,\"2\",0,1,1,\"Paquetes: #{sanitize(params[:package_count])} x #{sanitize(params[:package_measurement])}\"",
+      "TEXT 150,130,\"2\",0,1,1,\"Peso: #{sanitize(params[:current_weight]) || '0'} kg\"",
+      "BARCODE 150,170,\"128\",50,1,0,2,2,\"#{sanitize(params[:barcode_data])}\"",
       "PRINT 1,1"
     ]
     tspl.join("\n") + "\n"

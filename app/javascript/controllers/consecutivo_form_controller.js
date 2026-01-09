@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["pesoNeto", "metrosLineales", "pesoBrutoInput", "pesoBrutoHidden", "pesoCoreDisplay", "pesoNetoDisplay", "metrosLinealesDisplay", "especificacionesDisplay", "manualModeCheckbox", "manualWeightSection", "scaleWeightSection", "serialSection", "backupWeighButton", "pesoBrutoManualHidden"]
+  static targets = ["pesoNeto", "metrosLineales", "pesoBrutoInput", "pesoBrutoHidden", "pesoCoreDisplay", "pesoNetoDisplay", "metrosLinealesDisplay", "especificacionesDisplay", "manualModeCheckbox", "manualWeightSection", "scaleWeightSection", "serialSection", "backupWeighButton", "pesoBrutoManualHidden", "autoPrintCheckbox"]
 
   connect() {
     console.log("Consecutivo form controller connected")
@@ -9,6 +9,13 @@ export default class extends Controller {
     this.currentWeight = null
     this.listenForWeightUpdates()
     this.isManualMode = false
+    this.lastWeights = []
+    this.hasTriggered = false
+    this.stabilityThreshold = 3
+    this.stabilityRange = 0.05
+    this.minWeight = 0.2
+    this.waitingForWeightRemoval = false
+    this.isFirstWeight = true
     
     // Escuchar el nuevo evento de peso actualizado desde la báscula
     this.element.addEventListener('scale:weightUpdated', (event) => {
@@ -123,8 +130,100 @@ export default class extends Controller {
     // Extraer el peso del evento
     const weight = event.detail.weight;
     this.currentWeight = parseFloat(weight);
+    
+    if (this.isFirstWeight) {
+      this.isFirstWeight = false;
+      // If weight is already present when connecting, we must wait for it to be removed
+      // to avoid double triggering the same item that was just saved
+      if (this.currentWeight > this.minWeight) {
+        console.log("Weight detected on start, waiting for removal");
+        this.waitingForWeightRemoval = true;
+      }
+    }
+
     console.log('Weight received and stored:', this.currentWeight);
     this.calculateWeights(); // Trigger calculations
+    
+    // New stability detection logic
+    this.checkStabilityAndTrigger(this.currentWeight);
+  }
+
+  checkStabilityAndTrigger(weightValue) {
+    // 1. Handle trigger reset when weight removed
+    if (weightValue < this.minWeight) {
+      if (this.hasTriggered || this.waitingForWeightRemoval) {
+        console.log("Weight removed or below threshold, ready for next item");
+      }
+      this.hasTriggered = false;
+      this.waitingForWeightRemoval = false;
+      this.lastWeights = [];
+      return;
+    }
+
+    // 2. Already triggered for this item or waiting for removal?
+    if (this.hasTriggered || this.waitingForWeightRemoval) return;
+
+    // 3. Track last weights
+    this.lastWeights.push(weightValue);
+    if (this.lastWeights.length > this.stabilityThreshold) {
+      this.lastWeights.shift();
+    }
+
+    // 4. Check if we have enough readings and they are stable
+    if (this.lastWeights.length === this.stabilityThreshold) {
+      const min = Math.min(...this.lastWeights);
+      const max = Math.max(...this.lastWeights);
+      const variance = max - min;
+
+      if (variance <= this.stabilityRange && weightValue >= this.minWeight) {
+        console.log(`Stability reached: ${weightValue}kg. Checking auto-print...`);
+        
+        const isAutoPrintEnabled = this.hasAutoPrintCheckboxTarget && this.autoPrintCheckboxTarget.checked;
+
+        if (isAutoPrintEnabled) {
+          console.log("Triggering auto-save and print from form controller!");
+          this.hasTriggered = true;
+          this.showAutoSubmitStatus(weightValue);
+          
+          // Use a small delay for visual feedback before submitting
+          setTimeout(() => {
+            // Find submit button and click it for guaranteed Turbo behavior
+            const submitBtn = this.element.querySelector('input[type="submit"]') || 
+                              this.element.querySelector('button[type="submit"]');
+            
+            if (submitBtn) {
+              submitBtn.click();
+            } else {
+              this.element.requestSubmit();
+            }
+          }, 500);
+        }
+      }
+    }
+  }
+
+  showAutoSubmitStatus(weight) {
+    // Show a temporary indicator that we are saving
+    const statusDiv = document.createElement('div');
+    statusDiv.id = 'auto-submit-indicator';
+    statusDiv.className = 'fixed bottom-4 right-4 bg-emerald-600 text-white px-4 py-2 rounded-lg shadow-lg z-50 flex items-center gap-2 animate-bounce';
+    statusDiv.innerHTML = `
+      <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+      <span>Estable (${weight.toFixed(2)}kg) - Guardando...</span>
+    `;
+    document.body.appendChild(statusDiv);
+    
+    // Disable submit button manually to avoid double clicks
+    const submitBtn = this.element.querySelector('input[type="submit"]') || 
+                      this.element.querySelector('button[type="submit"]');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+      submitBtn.textContent = 'Guardando...';
+    }
   }
 
   // Actualizar visualización del peso en el display
