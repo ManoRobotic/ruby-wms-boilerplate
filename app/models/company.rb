@@ -7,9 +7,12 @@ class Company < ApplicationRecord
 
   # Validations
   validates :serial_service_url, format: { with: URI::DEFAULT_PARSER.make_regexp(%w[http https]), message: "debe ser una URL válida" }, allow_blank: true
-  
+
   # Printer model enum
   validates :printer_model, inclusion: { in: %w[zebra tsc], message: "must be either 'zebra' or 'tsc'"}, allow_nil: true
+
+  # Serial device ID validation
+  validates :serial_device_id, length: { maximum: 255 }, allow_blank: true
 
   # Set default printer model
   after_initialize :set_default_printer_model

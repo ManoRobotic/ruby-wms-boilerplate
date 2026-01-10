@@ -1,38 +1,67 @@
 class SerialConnectionChannel < ApplicationCable::Channel
-  # Called when the consumer has successfully
-  # become a subscriber of this channel.
+  # Llamado cuando un cliente (JS o Python) se suscribe al canal
   def subscribed
-    # For a robust system, you would authenticate the user or device here.
-    # For now, we'll use a device_id passed from the client.
-    device_id = params[:device_id]
+    # current_user_or_admin es el objeto Company o Admin/User verificado en connection.rb
+    # Usamos el device_id para crear un stream privado.
+    # El frontend y el script de python deben usar el mismo device_id.
+    @device_id = params[:device_id]
+    stream_for @device_id
+    
+    logger.info "Cliente suscrito a SerialConnectionChannel con device_id: #{@device_id}"
 
-    if device_id.present?
-      # stream_for is a secure way to create a private stream for a specific model or ID.
-      # This ensures that data for one device isn't broadcast to another.
-      stream_for device_id
-      puts "Client subscribed to SerialConnectionChannel with device_id: #{device_id}"
-    else
-      # Reject the connection if no device_id is provided.
-      reject
-      puts "Subscription rejected. No device_id provided."
+    # Si el que se conecta es el script de Python, le enviamos la configuración guardada
+    # Asumimos que el script de Python se identifica por el objeto Company.
+    if current_user_or_admin.is_a?(Company)
+      send_initial_config(current_user_or_admin)
     end
   end
 
-  # This method is called when a client sends data to the channel.
-  # It acts as a router, forwarding messages between the Python client and the JS client.
+  # Llamado cuando el cliente de Python envía datos (actualizaciones de peso, lista de puertos, etc.)
+  # O cuando el frontend envía un comando para imprimir (aunque es mejor una acción dedicada).
   def receive(data)
-    device_id = params[:device_id]
-    
-    # We broadcast the received data to the private stream for this device.
-    # The other client connected with the same device_id will receive it.
-    # The 'data' payload should contain everything needed, like an 'action' key
-    # to differentiate between message types (e.g., 'weight_update', 'print_label').
-    SerialConnectionChannel.broadcast_to(device_id, data)
-    puts "Broadcasting data to #{device_id}: #{data.inspect}"
+    # Simplemente retransmitimos los datos a todos los clientes en el mismo stream (el frontend).
+    SerialConnectionChannel.broadcast_to(@device_id, data)
+    logger.info "Retransmitiendo datos a #{@device_id}: #{data.inspect}"
+  end
+
+  # Nueva acción, llamada por el frontend para actualizar la configuración
+  def update_config(data)
+    company = Company.find_by(serial_device_id: @device_id)
+
+    if company
+      logger.info "Actualizando configuración para la compañía #{company.name} con data: #{data.inspect}"
+      company.update(
+        serial_port: data['scale_port'],
+        printer_port: data['printer_port']
+      )
+      
+      # Después de guardar, enviamos la nueva configuración al script de Python.
+      set_config_message = { 
+        action: 'set_config', 
+        scale_port: data['scale_port'],
+        printer_port: data['printer_port']
+      }
+      SerialConnectionChannel.broadcast_to(@device_id, set_config_message)
+      
+      logger.info "Enviando nueva configuración al dispositivo #{@device_id}"
+    else
+      logger.warn "No se encontró compañía para el device_id #{@device_id} al intentar actualizar config."
+    end
   end
 
   def unsubscribed
-    # Any cleanup needed when channel is unsubscribed
-    puts "Client with device_id: #{params[:device_id]} unsubscribed."
+    logger.info "Cliente con device_id: #{@device_id} desuscrito."
+  end
+
+  private
+
+  def send_initial_config(company)
+    config = {
+      action: 'set_config',
+      scale_port: company.serial_port,
+      printer_port: company.printer_port
+    }
+    ActionCable.server.broadcast(@device_id, config)
+    logger.info "Enviada configuración inicial a #{@device_id}: #{config.inspect}"
   end
 end

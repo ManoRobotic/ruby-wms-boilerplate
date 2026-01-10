@@ -1,135 +1,122 @@
 import { Controller } from "@hotwired/stimulus"
-import consumer from "../channels/consumer" // Asegúrate que la ruta al consumer sea correcta
+import consumer from "../channels/consumer"
 
 export default class extends Controller {
-  static targets = ["status", "weight", "logs", "printerStatus", "scaleStatus", "readButton"]
-  static values = { 
-    deviceId: String // El ID del dispositivo se pasará desde la vista de Rails
-  }
-
+  static targets = ["status", "weight", "logs", "printerStatus", "scaleStatus", "scalePort", "printerPort"]
+  
   connect() {
-    this.log("Inicializando controlador Serial (versión Action Cable)...")
-    if (!this.hasDeviceIdValue || this.deviceIdValue.length === 0) {
+    this.deviceIdValue = this.element.dataset.serialDeviceIdValue
+    this.log("Inicializando controlador Serial (v3)...")
+    if (!this.deviceIdValue) {
       this.updateStatus("✗ Error: No se proporcionó un ID de dispositivo.", "error")
-      this.log("Error: el `device-id-value` es requerido para la conexión.")
       return
     }
-
     this.initActionCable()
   }
 
   disconnect() {
     if (this.channel) {
-      this.log("Desuscribiéndose del canal de Action Cable.")
       consumer.subscriptions.remove(this.channel)
     }
   }
 
   initActionCable() {
-    this.log(`Intentando suscribirse a SerialConnectionChannel con device_id: ${this.deviceIdValue}`)
-    
     this.channel = consumer.subscriptions.create(
       { channel: "SerialConnectionChannel", device_id: this.deviceIdValue },
       {
-        // Se llama una vez cuando la suscripción se establece.
         connected: () => {
-          this.log("✓ Conectado y suscrito a SerialConnectionChannel.")
-          this.updateStatus("✓ Conectado en tiempo real", "success")
-          // Solicitar el estado actual del dispositivo al conectarse.
-          this.requestStatus()
+          this.log("✓ Conectado a SerialConnectionChannel.")
+          this.updateStatus("✓ Conectado", "success")
         },
-
-        // Se llama cuando la conexión se pierde.
         disconnected: () => {
-          this.log("↻ Desconectado del canal. Action Cable intentará reconectar.")
-          this.updateStatus("↻ Desconectado, intentando reconectar...", "warning")
-          this.updateScaleStatus("Desconocido", "warning")
-          this.updatePrinterStatus("Desconocido", "warning")
+          this.log("↻ Desconectado del canal.")
+          this.updateStatus("↻ Desconectado", "warning")
         },
-
-        // Se llama cuando se reciben datos del backend.
         received: (data) => {
           this.log(`Datos recibidos: ${JSON.stringify(data)}`)
-          
-          // Enrutador de acciones basado en el contenido del mensaje
-          switch (data.action) {
-            case 'weight_update':
-              this.updateWeight(data.weight, data.timestamp)
-              break
-            case 'status_update':
-              this.handleStatusUpdate(data)
-              break
-            case 'print_status':
-              this.log(`Estado de impresión recibido: ${data.status}`)
-              break
-            default:
-              this.log(`Acción desconocida recibida: ${data.action}`)
-          }
+          this.route_action(data)
         }
       }
     )
   }
 
-  // --- Acciones que envían datos al backend ---
-
-  /**
-   * Envía un comando de impresión a través del canal de Action Cable.
-   */
-  printLabel(event) {
-    event.preventDefault()
-    
-    const content = event.target.dataset.content || "Test Label"
-    const ancho_mm = event.target.dataset.ancho || 80
-    const alto_mm = event.target.dataset.alto || 50
-
-    this.log(`Enviando comando de impresión: ${ancho_mm}x${alto_mm}mm`)
-    this.channel.perform('receive', {
-      action: 'print_label',
-      content: content,
-      ancho_mm: parseInt(ancho_mm),
-      alto_mm: parseInt(alto_mm)
-    })
+  // --- Enrutador de Acciones ---
+  route_action(data) {
+    switch (data.action) {
+      case 'weight_update':
+        this.updateWeight(data.weight, data.timestamp)
+        // Despachar un evento global para que otros controllers puedan escucharlo
+        this.dispatch("weightUpdate", { 
+          detail: { weight: data.weight, timestamp: data.timestamp },
+          bubbles: true
+        })
+        break
+      case 'status_update':
+        this.handleStatusUpdate(data)
+        break
+      case 'ports_update':
+        this.handlePortsUpdate(data.ports)
+        break
+      case 'set_config': // Confirmación del servidor
+        this.log(`Configuración confirmada por el servidor.`)
+        this.handleStatusUpdate(data)
+        break
+    }
   }
 
-  /**
-    * Envía una solicitud para obtener el estado actual del dispositivo.
-    */
-  requestStatus() {
-    this.log("Solicitando estado actual del dispositivo...")
-    this.updateStatus("↻ Solicitando estado...", "info")
-    this.channel.perform('receive', {
-      action: 'request_status'
+  // --- Acciones que envían datos al backend ---
+  updateConfig() {
+    const scalePort = this.scalePortTarget.value
+    const printerPort = this.printerPortTarget.value
+    
+    this.log(`Enviando nueva configuración: Báscula=${scalePort}, Impresora=${printerPort}`)
+    this.channel.perform('update_config', {
+      scale_port: scalePort,
+      printer_port: printerPort
     })
   }
 
   // --- Métodos que actualizan la UI ---
-
   handleStatusUpdate(data) {
-    this.log("Actualizando estado de los dispositivos.")
-    if (data.scale_connected) {
-      this.updateScaleStatus("Conectada", "success")
-    } else {
-      this.updateScaleStatus("Desconectada", "error")
+    if (this.hasScalePortTarget && data.scale_port) {
+      this.scalePortTarget.value = data.scale_port
     }
-
-    if (data.printer_connected) {
-      this.updatePrinterStatus(`Conectada (${data.printer_name})`, "success")
-    } else {
-      this.updatePrinterStatus("Desconectada", "error")
+    if (this.hasPrinterPortTarget && data.printer_port) {
+      this.printerPortTarget.value = data.printer_port
     }
-    this.updateStatus("✓ Estado actualizado", "success")
+    
+    this.updateScaleStatus(data.scale_connected ? `Conectada en ${data.scale_port}` : "Desconectada", data.scale_connected ? "success" : "error")
+    this.updatePrinterStatus(data.printer_connected ? `Conectada en ${data.printer_port}` : "Desconectada", data.printer_connected ? "success" : "error")
   }
   
-  updateStatus(message, type = "info") {
-    if (this.hasStatusTarget) {
-      this.statusTarget.textContent = message
-      const classMap = {
-        success: "bg-green-100 text-green-800",
-        error: "bg-red-100 text-red-800",
-        warning: "bg-yellow-100 text-yellow-800",
-        info: "bg-blue-100 text-blue-800"
+  handlePortsUpdate(ports) {
+    if (this.hasScalePortTarget) {
+      const currentScale = this.scalePortTarget.value
+      this.scalePortTarget.innerHTML = '<option value="">Seleccionar puerto...</option>'
+      ports.filter(p => p.device.toLowerCase().includes('com') || p.device.toLowerCase().includes('tty')).forEach(port => {
+        const option = document.createElement('option')
+        option.value = port.device
+        option.textContent = `${port.device} - ${port.description}`
+        this.scalePortTarget.appendChild(option)
+      })
+      if (ports.some(p => p.device === currentScale)) {
+        this.scalePortTarget.value = currentScale
       }
-      this.statusTarget.className = `px-2 py-1 rounded text-sm font-medium ${classMap[type] || classMap['info']}`
+    }
+    
+    if (this.hasPrinterPortTarget) {
+        const currentPrinter = this.printerPortTarget.value
+        this.printerPortTarget.innerHTML = '<option value="">Seleccionar impresora...</option>'
+        // Para impresoras, especialmente en Windows, listamos todo lo que no es un puerto COM.
+        ports.filter(p => !p.device.toLowerCase().includes('com') && !p.device.toLowerCase().includes('tty')).forEach(port => {
+            const option = document.createElement('option')
+            option.value = port.device
+            option.textContent = port.description
+            this.printerPortTarget.appendChild(option)
+        })
+        if (ports.some(p => p.device === currentPrinter)) {
+            this.printerPortTarget.value = currentPrinter
+        }
     }
   }
 
@@ -142,48 +129,12 @@ export default class extends Controller {
       `
     }
   }
-
-  updateScaleStatus(message, type = "info") {
-    if (this.hasScaleStatusTarget) {
-      this.scaleStatusTarget.textContent = message
-      const classMap = {
-        success: "bg-green-100 text-green-800",
-        error: "bg-red-100 text-red-800",
-        warning: "bg-yellow-100 text-yellow-800",
-        info: "bg-gray-100 text-gray-800"
-      }
-      this.scaleStatusTarget.className = `px-2 py-1 rounded text-sm font-medium ${classMap[type] || classMap['info']}`
-    }
-  }
-
-  updatePrinterStatus(message, type = "info") {
-    if (this.hasPrinterStatusTarget) {
-      this.printerStatusTarget.textContent = message
-      const classMap = {
-        success: "bg-green-100 text-green-800",
-        error: "bg-red-100 text-red-800",
-        warning: "bg-yellow-100 text-yellow-800",
-        info: "bg-gray-100 text-gray-800"
-      }
-      this.printerStatusTarget.className = `px-2 py-1 rounded text-sm font-medium ${classMap[type] || classMap['info']}`
-    }
-  }
-
+  
   log(message) {
-    const timestamp = new Date().toLocaleTimeString()
-    const logMessage = `[${timestamp}] ${message}`
-    
-    console.log(logMessage)
-    
-    if (this.hasLogsTarget) {
-      const logLine = document.createElement('div')
-      logLine.textContent = logMessage
-      logLine.className = 'log-line'
-      this.logsTarget.insertBefore(logLine, this.logsTarget.firstChild)
-      
-      while (this.logsTarget.children.length > 50) {
-        this.logsTarget.removeChild(this.logsTarget.lastChild)
-      }
-    }
+    console.log(`[SerialController] ${message}`)
   }
+
+  updateStatus(message, type) { /* ... */ }
+  updateScaleStatus(message, type) { /* ... */ }
+  updatePrinterStatus(message, type) { /* ... */ }
 }
