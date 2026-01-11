@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Cliente asíncrono de Action Cable para comunicación serial con báscula e impresora.
+Usa websockets directamente para mayor estabilidad.
 """
 import sys
 import os
@@ -15,7 +16,8 @@ import serial.tools.list_ports
 from datetime import datetime
 import logging
 import uuid
-import aioactioncable
+import websockets
+import base64
 
 # --- Constantes ---
 CONFIG_FILE = 'serial_config.json'
@@ -55,6 +57,13 @@ class ScaleManager:
             if self.connected:
                 return True
             try:
+                # Verificar si el puerto existe antes de intentar conectarse
+                available_ports = [p.device for p in serial.tools.list_ports.comports()]
+                if self.port not in available_ports:
+                    logger.warning(f"⚠ Puerto {self.port} no disponible en este sistema")
+                    self.connected = False
+                    return False
+
                 self.serial_connection = serial.Serial(self.port, self.baudrate, timeout=1)
                 self.connected = self.serial_connection.is_open
                 if self.connected:
@@ -62,6 +71,10 @@ class ScaleManager:
                 return self.connected
             except serial.SerialException as e:
                 logger.error(f"✗ Error de conexión serial en báscula: {e}")
+                self.connected = False
+                return False
+            except Exception as e:
+                logger.error(f"✗ Error inesperado al conectar báscula: {e}")
                 self.connected = False
                 return False
 
@@ -165,59 +178,252 @@ def load_config():
             logger.error(f"No se pudo cargar la configuración: {e}")
     return {}
 
-async def listen_for_commands(subscription, scale_manager, printer_manager):
-    logger.info("Listener de comandos iniciado.")
-    try:
-        async for message in subscription:
-            logger.info(f"Mensaje recibido: {message}")
-            action = message.get('action')
-            if action == 'set_config':
-                logger.info("Comando de configuración recibido.")
-                if message.get('scale_port'):
-                    scale_manager.set_port(message['scale_port'])
-                if message.get('printer_port'):
-                    printer_manager.set_printer(message['printer_port'])
-                save_config({
-                    'scale_port': scale_manager.port,
-                    'printer_port': printer_manager.printer_name
-                })
-    except Exception as e:
-        logger.error(f"Error en el listener de comandos: {e}")
+class SerialClient:
+    def __init__(self, url, token, device_id, scale_manager, printer_manager):
+        self.url = url
+        self.token = token
+        self.device_id = device_id
+        self.scale_manager = scale_manager
+        self.printer_manager = printer_manager
+        self.websocket = None
+        self.subscription_confirmed = False
+        self.identifier_str = None  # Almacenar el identificador exacto usado para la suscripción
+        self.message_handlers = {}
+        
+    async def connect(self):
+        """Conectar al servidor de ActionCable"""
+        try:
+            # Agregar token a la URL
+            full_url = f"{self.url}?token={self.token}"
+            logger.info(f"Conectando a {full_url}")
 
-async def stream_updates(subscription, scale_manager, printer_manager, device_id):
+            self.websocket = await websockets.connect(full_url)
+            logger.info("Conexión WebSocket establecida")
+
+            # Enviar mensaje de suscripción - usar el mismo formato que en los mensajes posteriores
+            channel_identifier = {'channel': 'SerialConnectionChannel', 'device_id': self.device_id}
+            # Asegurar que el identificador tenga el mismo formato que se usará en mensajes posteriores
+            self.identifier_str = json.dumps(channel_identifier, separators=(',', ':'))
+            subscribe_msg = {
+                'command': 'subscribe',
+                'identifier': self.identifier_str
+            }
+            await self.websocket.send(json.dumps(subscribe_msg, separators=(',', ':')))
+            logger.info(f"Suscribiendo al canal: {channel_identifier}")
+
+            return True
+        except Exception as e:
+            logger.error(f"Error conectando al servidor: {e}")
+            return False
+
+    async def send_data(self, action, data):
+        """Enviar datos al servidor"""
+        # Esperar a que la suscripción esté confirmada antes de enviar datos
+        if not self.subscription_confirmed:
+            logger.debug("Esperando confirmación de suscripción antes de enviar datos...")
+            # Esperar brevemente para permitir que se confirme la suscripción
+            await asyncio.sleep(1)
+
+        if self.websocket and self.subscription_confirmed and self.identifier_str:
+            try:
+                # Usar el identificador exacto que se usó para la suscripción
+                msg = {
+                    'command': 'message',
+                    'identifier': self.identifier_str,
+                    'data': json.dumps({'action': action, **data}, separators=(',', ':'))
+                }
+                await self.websocket.send(json.dumps(msg, separators=(',', ':')))
+            except Exception as e:
+                logger.error(f"Error enviando datos: {e}")
+
+    async def listen_for_messages(self):
+        """Escuchar mensajes del servidor"""
+        try:
+            async for message in self.websocket:
+                try:
+                    data = json.loads(message)
+
+                    # Verificar si es una confirmación de suscripción
+                    if data.get('type') == 'confirm_subscription' or (data.get('type') == 'welcome' and not self.subscription_confirmed):
+                        logger.info("Confirmación de suscripción recibida")
+                        self.subscription_confirmed = True
+
+                    # Verificar si es un mensaje del canal
+                    elif data.get('identifier') and data.get('message'):
+                        identifier = json.loads(data['identifier'])
+                        if identifier.get('channel') == 'SerialConnectionChannel' and identifier.get('device_id') == self.device_id:
+                            await self.handle_message(data['message'])
+
+                except json.JSONDecodeError:
+                    logger.error(f"No se pudo parsear el mensaje JSON: {message}")
+                except Exception as e:
+                    logger.error(f"Error procesando mensaje: {e}")
+        except websockets.exceptions.ConnectionClosed:
+            logger.warning("Conexión WebSocket cerrada")
+        except Exception as e:
+            logger.error(f"Error en la escucha de mensajes: {e}")
+
+    async def handle_message(self, message):
+        """Manejar mensajes entrantes"""
+        logger.info(f"Mensaje recibido: {message}")
+        action = message.get('action')
+        if action == 'set_config':
+            logger.info("Comando de configuración recibido.")
+            if message.get('scale_port'):
+                self.scale_manager.set_port(message['scale_port'])
+            if message.get('printer_port'):
+                self.printer_manager.set_printer(message['printer_port'])
+            save_config({
+                'scale_port': self.scale_manager.port,
+                'printer_port': self.printer_manager.printer_name
+            })
+        elif action == 'connect_scale':
+            port = message.get('port', 'COM3')
+            baudrate = message.get('baudrate', 115200)
+            logger.info(f"Comando de conexión de báscula recibido: {port}, {baudrate}")
+            self.scale_manager.set_port(port)
+            self.scale_manager.baudrate = baudrate
+            # Intentar conectar
+            self.scale_manager.connect()
+        elif action == 'disconnect_scale':
+            logger.info("Comando de desconexión de báscula recibido.")
+            self.scale_manager.disconnect()
+        elif action == 'start_scale_reading':
+            logger.info("Comando de inicio de lectura de báscula recibido.")
+            # Ya se está realizando lectura periódica en stream_updates
+        elif action == 'stop_scale_reading':
+            logger.info("Comando de detención de lectura de báscula recibido.")
+            # La lectura se detiene cuando se cierra la conexión
+        elif action == 'connect_printer':
+            logger.info("Comando de conexión de impresora recibido.")
+            # La conexión de impresora se gestiona internamente
+            self.printer_manager.connect_printer()
+        elif action == 'disconnect_printer':
+            logger.info("Comando de desconexión de impresora recibido.")
+            # No hay una desconexión explícita de impresora en el manager
+            self.printer_manager.is_connected = False
+        elif action == 'print_label':
+            content = message.get('content', '')
+            ancho_mm = message.get('ancho_mm', 80)
+            alto_mm = message.get('alto_mm', 50)
+            logger.info(f"Comando de impresión recibido: {content[:50]}...")
+            self.printer_manager.print_label(content, ancho_mm=ancho_mm, alto_mm=alto_mm)
+        elif action == 'test_printer':
+            ancho_mm = message.get('ancho_mm', 80)
+            alto_mm = message.get('alto_mm', 50)
+            logger.info(f"Comando de prueba de impresora recibido: {ancho_mm}x{alto_mm}mm")
+            # Enviar contenido de prueba
+            test_content = f"SIZE {ancho_mm} mm, {alto_mm} mm\nCLS\nTEST LABEL\nPRINT 1\n"
+            self.printer_manager.print_label(test_content, ancho_mm=ancho_mm, alto_mm=alto_mm)
+        elif action == 'ping':
+            # Enviar respuesta de pong para confirmar la conexión
+            await self.send_data('receive', {
+                'action': 'pong',
+                'timestamp': datetime.now().isoformat()
+            })
+
+    async def close(self):
+        """Cerrar la conexión"""
+        if self.websocket:
+            await self.websocket.close()
+
+
+async def stream_updates(client, scale_manager, printer_manager, device_id):
+    """Enviar actualizaciones periódicas al servidor"""
     logger.info("Stream de actualizaciones iniciado.")
+
+    # Variables para almacenar el estado anterior y evitar enviar actualizaciones innecesarias
+    previous_ports = []
+    previous_scale_status = None
+    previous_printer_status = None
+
+    # Esperar un poco para asegurar que la conexión esté completamente establecida
+    await asyncio.sleep(2)
+
+    # Enviar la lista de puertos inmediatamente al iniciar
+    try:
+        ports = await asyncio.to_thread(serial.tools.list_ports.comports)
+        port_list = [{'device': p.device, 'description': p.description} for p in ports]
+
+        if WIN32_AVAILABLE:
+            printers = await asyncio.to_thread(win32print.EnumPrinters, win32print.PRINTER_ENUM_LOCAL | win32print.PRINTER_ENUM_CONNECTIONS)
+            for p in printers:
+                port_list.append({'device': p[2], 'description': p[2]})
+
+        if client.subscription_confirmed:
+            await client.send_data('receive', {
+                'action': 'ports_update',
+                'ports': port_list,
+                'scale_port': scale_manager.port,
+                'scale_connected': scale_manager.connected,
+                'printer_port': printer_manager.printer_name,
+                'printer_connected': printer_manager.is_connected
+            })
+
+        # Actualizar valores anteriores
+        previous_ports = port_list
+        previous_scale_status = scale_manager.connected
+        previous_printer_status = printer_manager.is_connected
+
+        logger.info(f"Lista inicial de puertos enviada: {len(port_list)} dispositivos encontrados")
+    except Exception as e:
+        logger.error(f"Error al enviar la lista inicial de puertos: {e}")
+
     while True:
         try:
+            # Obtener puertos disponibles
             ports = await asyncio.to_thread(serial.tools.list_ports.comports)
             port_list = [{'device': p.device, 'description': p.description} for p in ports]
+
             if WIN32_AVAILABLE:
                 printers = await asyncio.to_thread(win32print.EnumPrinters, win32print.PRINTER_ENUM_LOCAL | win32print.PRINTER_ENUM_CONNECTIONS)
                 for p in printers:
                     port_list.append({'device': p[2], 'description': p[2]})
 
-            await subscription.send({
-                'action': 'receive',
-                'data': {
-                    'action': 'ports_update',
-                    'ports': port_list,
-                    'scale_port': scale_manager.port,
-                    'scale_connected': scale_manager.connected,
-                    'printer_port': printer_manager.printer_name,
-                    'printer_connected': printer_manager.is_connected
-                }
-            })
-            
+            # Solo enviar actualización si hay cambios o si es la primera vez que enviamos
+            if (port_list != previous_ports or
+                scale_manager.connected != previous_scale_status or
+                printer_manager.is_connected != previous_printer_status):
+
+                if client.subscription_confirmed:
+                    await client.send_data('receive', {
+                        'action': 'ports_update',
+                        'ports': port_list,
+                        'scale_port': scale_manager.port,
+                        'scale_connected': scale_manager.connected,
+                        'printer_port': printer_manager.printer_name,
+                        'printer_connected': printer_manager.is_connected
+                    })
+
+                # Actualizar valores anteriores
+                previous_ports = port_list
+                previous_scale_status = scale_manager.connected
+                previous_printer_status = printer_manager.is_connected
+
+            # Leer peso de la báscula
             reading = await asyncio.to_thread(scale_manager.read_weight)
-            if reading:
-                await subscription.send({
-                    'action': 'receive',
-                    'data': {'action': 'weight_update', 'weight': reading['weight'], 'timestamp': reading['timestamp']}
+            if reading and client.subscription_confirmed:
+                await client.send_data('receive', {
+                    'action': 'weight_update',
+                    'weight': reading['weight'],
+                    'timestamp': reading['timestamp']
                 })
-            
-            await asyncio.sleep(5) 
+
+            # Esperar antes de la próxima iteración
+            await asyncio.sleep(5)
         except Exception as e:
             logger.error(f"Error en el stream de actualizaciones: {e}")
+            # Reiniciar managers en caso de error persistente
+            try:
+                scale_manager.disconnect()
+            except:
+                pass
+            try:
+                printer_manager.connect_printer()
+            except:
+                pass
             await asyncio.sleep(5)
+
 
 async def main_loop(url, token, device_id, args):
     local_config = load_config()
@@ -226,31 +432,56 @@ async def main_loop(url, token, device_id, args):
 
     scale_manager = ScaleManager(port=initial_scale_port)
     printer_manager = PrinterManager(printer_name=initial_printer_port)
-    
-    connection_url = f"{url}?token={token}"
-    
+
+    # Parámetros para manejo de reconexiones
+    max_reconnection_delay = 60  # Máximo 60 segundos entre reconexiones
+    reconnection_delay = 5      # Iniciar con 5 segundos
+    backoff_factor = 1.5        # Factor de incremento exponencial
+
     while True:
         try:
-            logger.info(f"Intentando conectar a {url}...")
-            async with aioactioncable.connect(connection_url) as connection:
-                channel_identifier = {'channel': 'SerialConnectionChannel', 'device_id': device_id}
-                subscription = await connection.subscribe(channel_identifier)
-                logger.info(f"✓ Conexión y suscripción establecidas.")
-
-                listener_task = asyncio.create_task(listen_for_commands(subscription, scale_manager, printer_manager))
-                streamer_task = asyncio.create_task(stream_updates(subscription, scale_manager, printer_manager, device_id))
+            client = SerialClient(url, token, device_id, scale_manager, printer_manager)
+            
+            if await client.connect():
+                logger.info("✓ Conexión y suscripción establecidas.")
                 
-                done, pending = await asyncio.wait([listener_task, streamer_task], return_when=asyncio.FIRST_COMPLETED)
-                for task in pending: task.cancel()
+                # Reiniciar el retraso de reconexión cuando se establece la conexión
+                reconnection_delay = 5
+
+                # Crear tareas concurrentes
+                listen_task = asyncio.create_task(client.listen_for_messages())
+                stream_task = asyncio.create_task(stream_updates(client, scale_manager, printer_manager, device_id))
+
+                # Esperar a que alguna tarea termine
+                done, pending = await asyncio.wait([listen_task, stream_task], return_when=asyncio.FIRST_COMPLETED)
+                
+                # Cancelar tareas pendientes
+                for task in pending:
+                    task.cancel()
+                    try:
+                        await task  # Esperar a que la tarea termine la cancelación
+                    except:
+                        pass  # Ignorar excepciones durante la cancelación
+
+                logger.info("Tareas terminadas, cerrando conexión...")
+                await client.close()
+                
                 logger.warning("Una de las tareas principales ha terminado, reconectando...")
+            else:
+                logger.error("No se pudo conectar al servidor")
+                
         except Exception as e:
             logger.error(f"Error en el bucle de conexión: {type(e).__name__} - {e}")
-        logger.warning("Conexión perdida. Reintentando en 15 segundos...")
-        await asyncio.sleep(15)
+        
+        # Incrementar el retraso de reconexión con un límite máximo
+        reconnection_delay = min(reconnection_delay * backoff_factor, max_reconnection_delay)
+        logger.warning(f"Conexión perdida. Reintentando en {reconnection_delay:.1f} segundos...")
+        await asyncio.sleep(reconnection_delay)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Cliente serial para WMSys.')
-    parser.add_argument('--url', type=str, default='ws://localhost:3000/cable', help='URL del servidor.')
+    parser.add_argument('--url', type=str, default=os.getenv('SERIAL_SERVER_URL', 'ws://localhost:3000/cable'), help='URL del servidor.')
     parser.add_argument('--token', type=str, required=True, help='Token de autenticación.')
     parser.add_argument('--device-id', type=str, help='ID único del dispositivo.')
     parser.add_argument('--scale-port', type=str, default=None, help='Puerto de la báscula.')
@@ -258,7 +489,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     device_id = args.device_id or f"device-serial-{uuid.getnode()}"
-    
+
     try:
         asyncio.run(main_loop(args.url, args.token, device_id, args))
     except KeyboardInterrupt:

@@ -689,54 +689,23 @@ class Admin::ProductionOrdersController < AdminController
   end
 
   def weigh_item
-    admin = current_admin
-    if admin.serial_port.blank?
-      render json: { success: false, message: "Puerto serie no configurado." }
+    company = current_admin&.company || current_user&.company
+    if company&.serial_device_id.blank? || company&.serial_auth_token.blank?
+      render json: { success: false, message: "Configuración de dispositivo serial no encontrada." }
       return
     end
 
-    command = [
-      "python3",
-      "serial_server.py",
-      "--port", admin.serial_port,
-      "--baudrate", admin.serial_baud_rate.to_s,
-      "--parity", admin.serial_parity,
-      "--stopbits", admin.serial_stop_bits.to_s,
-      "--bytesize", admin.serial_data_bits.to_s
-    ]
+    # Usar el servicio de comunicación serial actualizado
+    reading = SerialCommunicationService.read_scale_weight(company: company)
 
-    # Check if the server is running
-    # This is a simplified check, a more robust solution would be to store the PID
-    # of the process in the database or a cache.
-    begin
-      response = Net::HTTP.get_response(URI("http://localhost:5000/health"))
-      if response.is_a?(Net::HTTPSuccess)
-        # Server is running, just read the weight
-        read_response = Net::HTTP.get_response(URI("http://localhost:5000/scale/read"))
-        if read_response.is_a?(Net::HTTPSuccess)
-          render json: JSON.parse(read_response.body)
-        else
-          render json: { success: false, message: "Error al leer el peso." }
-        end
-        return
-      end
-    rescue Errno::ECONNREFUSED
-      # Server is not running, start it
-    end
-
-    pid = Process.spawn(*command)
-    Process.detach(pid)
-    sleep 2 # Give the server some time to start
-
-    begin
-      read_response = Net::HTTP.get_response(URI("http://localhost:5000/scale/read"))
-      if read_response.is_a?(Net::HTTPSuccess)
-        render json: JSON.parse(read_response.body)
-      else
-        render json: { success: false, message: "Error al leer el peso." }
-      end
-    rescue Errno::ECONNREFUSED
-      render json: { success: false, message: "No se pudo conectar con el servidor de pesaje." }
+    if reading
+      render json: {
+        success: true,
+        weight: reading[:weight],
+        timestamp: reading[:timestamp]
+      }
+    else
+      render json: { success: false, message: "No se pudo leer el peso. Verifique la conexión de la báscula." }
     end
   end
 
