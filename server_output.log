@@ -1,4 +1,0 @@
-Traceback (most recent call last):
-  File "/Users/brito/ruby-wms-boilerplate/serial_server_prod.py", line 9, in <module>
-    from flask import Flask, request, jsonify, render_template
-ModuleNotFoundError: No module named 'flask'
