@@ -4,8 +4,15 @@ class Admin::ConfigurationsController < AdminController
 
   def show
     @admin = current_admin || current_user
+    @company = @admin.company if @admin.respond_to?(:company)
+
+    # Asegurar que la compañía tenga un serial_device_id
+    if @company && @company.serial_device_id.blank?
+      @company.update!(serial_device_id: "device-serial-#{SecureRandom.uuid.gsub('-', '')}")
+    end
+
     # Use company configuration for display
-    
+
     # Handle form submission
     if request.patch? && params[:company].present?
       handle_configuration_update

@@ -24,7 +24,19 @@ class SerialConnectionChannel < ApplicationCable::Channel
   def receive(data)
     # Simplemente retransmitimos los datos a todos los que escuchan en este stream.
     # El frontend recibirá esto y actualizará la UI.
-    ActionCable.server.broadcast("serial_channel_#{@device_id}", data.deep_symbolize_keys)
+    Rails.logger.info "SerialConnectionChannel receive called with action: #{data['action']}"
+
+    begin
+      # Only broadcast if there's actual data to send
+      if data && !data.empty?
+        # Use async broadcast to prevent blocking
+        ActionCable.server.broadcast("serial_channel_#{@device_id}", data.deep_symbolize_keys)
+        Rails.logger.info "SerialConnectionChannel broadcast successful for action: #{data['action']}"
+      end
+    rescue => e
+      Rails.logger.error "SerialConnectionChannel error broadcasting message: #{e.message}"
+      Rails.logger.error e.backtrace.join("\n")
+    end
   end
 
   # Método para manejar comandos desde el servidor Rails al cliente Python

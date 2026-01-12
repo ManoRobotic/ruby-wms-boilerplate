@@ -361,7 +361,7 @@ async def stream_updates(client, scale_manager, printer_manager, device_id):
             })
 
         # Actualizar valores anteriores
-        previous_ports = port_list
+        previous_ports = port_list.copy()  # Create a copy to avoid reference issues
         previous_scale_status = scale_manager.connected
         previous_printer_status = printer_manager.is_connected
 
@@ -380,8 +380,11 @@ async def stream_updates(client, scale_manager, printer_manager, device_id):
                 for p in printers:
                     port_list.append({'device': p[2], 'description': p[2]})
 
-            # Solo enviar actualización si hay cambios o si es la primera vez que enviamos
-            if (port_list != previous_ports or
+            # Solo enviar actualización si hay cambios significativos
+            ports_changed = len(previous_ports) != len(port_list) or \
+                           any(prev != curr for prev, curr in zip(previous_ports, port_list))
+
+            if (ports_changed or
                 scale_manager.connected != previous_scale_status or
                 printer_manager.is_connected != previous_printer_status):
 
@@ -395,8 +398,8 @@ async def stream_updates(client, scale_manager, printer_manager, device_id):
                         'printer_connected': printer_manager.is_connected
                     })
 
-                # Actualizar valores anteriores
-                previous_ports = port_list
+                # Actualizar valores anteriores solo si se envió la actualización
+                previous_ports = port_list.copy()
                 previous_scale_status = scale_manager.connected
                 previous_printer_status = printer_manager.is_connected
 
@@ -409,8 +412,8 @@ async def stream_updates(client, scale_manager, printer_manager, device_id):
                     'timestamp': reading['timestamp']
                 })
 
-            # Esperar antes de la próxima iteración
-            await asyncio.sleep(5)
+            # Esperar antes de la próxima iteración - aumentar intervalo para reducir uso
+            await asyncio.sleep(3)  # Reduced from 5 to 3 seconds for more responsive updates
         except Exception as e:
             logger.error(f"Error en el stream de actualizaciones: {e}")
             # Reiniciar managers en caso de error persistente
@@ -488,6 +491,7 @@ if __name__ == '__main__':
     parser.add_argument('--printer-port', type=str, default=None, help='Nombre de la impresora.')
     args = parser.parse_args()
 
+    # Si no se proporciona un device-id, usar uno por defecto
     device_id = args.device_id or f"device-serial-{uuid.getnode()}"
 
     try:

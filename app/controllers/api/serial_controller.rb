@@ -138,21 +138,33 @@ class Api::SerialController < ApplicationController
   # Endpoint especial para obtener peso con timeout para procesos de pesaje
   def get_weight_now
     timeout = params[:timeout]&.to_i || 10
-    
+
     reading = SerialCommunicationService.get_weight_with_timeout(timeout_seconds: timeout, company: current_company)
-    
+
     if reading
-      render json: { 
-        status: 'success', 
-        weight: reading['weight'], 
-        timestamp: reading['timestamp'] 
+      render json: {
+        status: 'success',
+        weight: reading['weight'],
+        timestamp: reading['timestamp']
       }
     else
       render json: { status: 'error', message: 'No weight reading within timeout' }, status: 408
     end
   end
 
-  private
+  # Endpoint para obtener información del dispositivo serial
+  def device_info
+    company = current_company
+    if company
+      render json: {
+        status: 'success',
+        device_id: company.serial_device_id,
+        auth_token: company.serial_auth_token
+      }
+    else
+      render json: { status: 'error', message: 'No company found' }, status: 404
+    end
+  end
 
   def current_company
     # Try to identify the company based on the current user context

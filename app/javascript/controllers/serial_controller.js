@@ -1,6 +1,8 @@
 import { Controller } from "@hotwired/stimulus"
 import { createConsumer } from "@rails/actioncable"
-const consumer = createConsumer()
+
+// Crear el consumer con la URL específica del cable
+const consumer = createConsumer("/cable")
 
 export default class extends Controller {
   static targets = ["status", "weight", "logs", "printerStatus", "scaleStatus", "scalePort", "printerPort"]
@@ -22,6 +24,11 @@ export default class extends Controller {
   }
 
   initActionCable() {
+    // Antes de crear una nueva suscripción, asegurémonos de eliminar la anterior si existe
+    if (this.channel) {
+      consumer.subscriptions.remove(this.channel);
+    }
+
     this.channel = consumer.subscriptions.create(
       { channel: "SerialConnectionChannel", device_id: this.deviceIdValue },
       {
@@ -32,6 +39,13 @@ export default class extends Controller {
         disconnected: () => {
           this.log("↻ Desconectado del canal.")
           this.updateStatus("↻ Desconectado", "warning")
+          // Intentar reconexión automática después de un breve periodo
+          setTimeout(() => {
+            if (document.visibilityState === 'visible') {
+              // Intentar reconectar sin recargar la página
+              this.initActionCable();
+            }
+          }, 5000); // Reconectar después de 5 segundos
         },
         received: (data) => {
           this.log(`Datos recibidos: ${JSON.stringify(data)}`)
@@ -43,25 +57,36 @@ export default class extends Controller {
 
   // --- Enrutador de Acciones ---
   route_action(data) {
-    switch (data.action) {
-      case 'weight_update':
-        this.updateWeight(data.weight, data.timestamp)
-        // Despachar un evento global para que otros controllers puedan escucharlo
-        this.dispatch("weightUpdate", { 
-          detail: { weight: data.weight, timestamp: data.timestamp },
-          bubbles: true
-        })
-        break
-      case 'status_update':
-        this.handleStatusUpdate(data)
-        break
-      case 'ports_update':
-        this.handlePortsUpdate(data.ports)
-        break
-      case 'set_config': // Confirmación del servidor
-        this.log(`Configuración confirmada por el servidor.`)
-        this.handleStatusUpdate(data)
-        break
+    try {
+      this.log(`Acción recibida: ${data.action}`);
+      switch (data.action) {
+        case 'weight_update':
+          this.log(`Peso recibido: ${data.weight} en ${data.timestamp}`);
+          this.updateWeight(data.weight, data.timestamp)
+          // Despachar un evento global para que otros controllers puedan escucharlo
+          this.dispatch("weightUpdate", {
+            detail: { weight: data.weight, timestamp: data.timestamp },
+            bubbles: true
+          })
+          break
+        case 'status_update':
+          this.log(`Actualización de estado recibida`);
+          this.handleStatusUpdate(data)
+          break
+        case 'ports_update':
+          this.log(`Actualización de puertos recibida:`, data);
+          this.handlePortsUpdate(data.ports)
+          break
+        case 'set_config': // Confirmación del servidor
+          this.log(`Configuración confirmada por el servidor: ${JSON.stringify(data)}`)
+          this.handleStatusUpdate(data)
+          break
+        default:
+          this.log(`Acción desconocida recibida: ${data.action}`)
+      }
+    } catch (error) {
+      this.log(`Error procesando acción '${data.action}':`, error);
+      console.error('Error in route_action:', error);
     }
   }
 
@@ -91,33 +116,99 @@ export default class extends Controller {
   }
   
   handlePortsUpdate(ports) {
+    // Defensive check to prevent errors if ports is undefined/null
+    if (!ports || !Array.isArray(ports)) {
+      this.log(`Advertencia: handlePortsUpdate recibió datos inválidos: ${typeof ports}`, ports);
+      return;
+    }
+
+    this.log(`Actualizando puertos, total de puertos: ${ports.length}`);
+
     if (this.hasScalePortTarget) {
       const currentScale = this.scalePortTarget.value
-      this.scalePortTarget.innerHTML = '<option value="">Seleccionar puerto...</option>'
-      ports.filter(p => p.device.toLowerCase().includes('com') || p.device.toLowerCase().includes('tty')).forEach(port => {
-        const option = document.createElement('option')
-        option.value = port.device
-        option.textContent = `${port.device} - ${port.description}`
-        this.scalePortTarget.appendChild(option)
-      })
-      if (ports.some(p => p.device === currentScale)) {
-        this.scalePortTarget.value = currentScale
+      // Create a document fragment for efficient DOM updates
+      const fragment = document.createDocumentFragment();
+
+      // Add default option
+      const defaultOption = document.createElement('option');
+      defaultOption.value = "";
+      defaultOption.textContent = "Seleccionar puerto...";
+      fragment.appendChild(defaultOption);
+
+      const scalePorts = ports.filter(p =>
+        p.device &&
+        (p.device.toLowerCase().includes('com') ||
+        p.device.toLowerCase().includes('tty') ||
+        p.device.toLowerCase().includes('/dev/tty') ||
+        p.device.toLowerCase().includes('/dev/cu'))
+      );
+
+      this.log(`Puertos de báscula encontrados: ${scalePorts.length}`);
+
+      scalePorts.forEach(port => {
+        if (port.device && port.description !== undefined) {
+          const option = document.createElement('option');
+          option.value = port.device;
+          option.textContent = `${port.device} - ${port.description}`;
+          fragment.appendChild(option);
+        }
+      });
+
+      // Apply all changes at once to minimize DOM reflows
+      this.scalePortTarget.innerHTML = '';
+      this.scalePortTarget.appendChild(fragment);
+
+      // Si el puerto actual está en la lista, mantenerlo seleccionado
+      if (scalePorts.some(p => p.device === currentScale)) {
+        this.scalePortTarget.value = currentScale;
+      } else if (scalePorts.length > 0) {
+        // Si hay puertos disponibles y ninguno está seleccionado, seleccionar el primero
+        this.scalePortTarget.value = scalePorts[0].device;
       }
     }
-    
+
     if (this.hasPrinterPortTarget) {
-        const currentPrinter = this.printerPortTarget.value
-        this.printerPortTarget.innerHTML = '<option value="">Seleccionar impresora...</option>'
-        // Para impresoras, especialmente en Windows, listamos todo lo que no es un puerto COM.
-        ports.filter(p => !p.device.toLowerCase().includes('com') && !p.device.toLowerCase().includes('tty')).forEach(port => {
-            const option = document.createElement('option')
-            option.value = port.device
-            option.textContent = port.description
-            this.printerPortTarget.appendChild(option)
-        })
-        if (ports.some(p => p.device === currentPrinter)) {
-            this.printerPortTarget.value = currentPrinter
+      const currentPrinter = this.printerPortTarget.value
+      // Create a document fragment for efficient DOM updates
+      const fragment = document.createDocumentFragment();
+
+      // Add default option
+      const defaultOption = document.createElement('option');
+      defaultOption.value = "";
+      defaultOption.textContent = "Seleccionar impresora...";
+      fragment.appendChild(defaultOption);
+
+      // Para impresoras, listamos todo lo que no es un puerto serial típico
+      const printerPorts = ports.filter(p =>
+        p.device &&
+        !p.device.toLowerCase().includes('com') &&
+        !p.device.toLowerCase().includes('tty') &&
+        !p.device.toLowerCase().includes('/dev/tty') &&
+        !p.device.toLowerCase().includes('/dev/cu')
+      );
+
+      this.log(`Puertos de impresora encontrados: ${printerPorts.length}`);
+
+      printerPorts.forEach(port => {
+        if (port.device && port.description !== undefined) {
+          const option = document.createElement('option');
+          option.value = port.device;
+          option.textContent = port.description;
+          fragment.appendChild(option);
         }
+      });
+
+      // Apply all changes at once to minimize DOM reflows
+      this.printerPortTarget.innerHTML = '';
+      this.printerPortTarget.appendChild(fragment);
+
+      // Si el puerto actual está en la lista, mantenerlo seleccionado
+      if (printerPorts.some(p => p.device === currentPrinter)) {
+        this.printerPortTarget.value = currentPrinter;
+      } else if (printerPorts.length > 0) {
+        // Si hay puertos disponibles y ninguno está seleccionado, seleccionar el primero
+        this.printerPortTarget.value = printerPorts[0].device;
+      }
     }
   }
 

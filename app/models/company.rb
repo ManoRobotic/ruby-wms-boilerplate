@@ -48,7 +48,7 @@ class Company < ApplicationRecord
 
   # Serial and printer configuration helpers
   def serial_configured?
-    serial_port.present? && serial_baud_rate.present?
+    serial_port.present? && serial_baud_rate.present?;
   end
 
   def printer_configured?
@@ -68,9 +68,16 @@ class Company < ApplicationRecord
     read_attribute(:serial_service_url).presence || ''
   end
 
+  # Ensure serial device ID is set
+  before_create :set_serial_device_id
+
   private
 
   def set_default_printer_model
     self.printer_model ||= 'zebra'
+  end
+
+  def set_serial_device_id
+    self.serial_device_id ||= "device-serial-#{SecureRandom.uuid.gsub('-', '')}"
   end
 end
