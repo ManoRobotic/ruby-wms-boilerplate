@@ -28,18 +28,21 @@ class ProductionOrderItem < ApplicationRecord
 
   # Get complete label data for printing
   def label_data
+    po = production_order
+    con_num = folio_consecutivo&.split("-")&.last
     {
       folio_consecutivo: folio_consecutivo,
-      name: folio_consecutivo&.split("-")&.last,
-      lote: production_order.lote_referencia,
-      clave_producto: production_order.product&.sku,
-      peso_bruto: peso_bruto || 0,
-      peso_neto: peso_neto || 0,
-      metros_lineales: metros_lineales || 0,
+      consecutivo_numero: con_num,
+      name: cliente.presence || po.notes.presence || con_num,
+      lote: po.lote_referencia,
+      clave_producto: po.clave_producto.presence || po.product_key.presence || "-",
+      peso_bruto: sprintf("%.2f", peso_bruto || 0),
+      peso_neto: sprintf("%.2f", peso_neto || 0),
+      metros_lineales: sprintf("%.2f", metros_lineales || 0),
       cliente: extract_cliente_from_notes,
-      numero_de_orden: production_order.no_opro || production_order.order_number,
-      nombre_cliente_numero_pedido: nombre_cliente_numero_pedido || "#{extract_cliente_from_notes}-#{production_order.no_opro || production_order.order_number}",
-      fecha_creacion: production_order.created_at.strftime("%d/%m/%Y"),
+      numero_de_orden: po.no_opro.presence || po.order_number,
+      nombre_cliente_numero_pedido: nombre_cliente_numero_pedido || "#{extract_cliente_from_notes}-#{po.no_opro || po.order_number}",
+      fecha_creacion: po.created_at.strftime("%d/%m/%Y"),
       ancho_mm: ancho_mm || 0,
       micras: micras || 0
     }

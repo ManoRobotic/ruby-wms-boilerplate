@@ -166,7 +166,7 @@ class SerialCommunicationService
       return false unless company&.serial_device_id
 
       # Send the message through ActionCable to the specific device
-      ActionCable.server.broadcast("serial_channel_#{company.serial_device_id}", data.deep_symbolize_keys)
+      ActionCable.server.broadcast("serial_channel_#{company.id}_#{company.serial_device_id}", data.deep_symbolize_keys)
       true
     rescue StandardError => e
       Rails.logger.error "Failed to broadcast to company #{company&.id}: #{e.message}"

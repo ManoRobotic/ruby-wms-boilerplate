@@ -197,7 +197,7 @@ class SerialClient:
         self.subscription_confirmed = False
         self.identifier_str = None  # Almacenar el identificador exacto usado para la suscripción
         self.message_handlers = {}
-
+        
     async def connect(self):
         """Conectar al servidor de ActionCable"""
         try:
@@ -351,7 +351,7 @@ async def stream_updates(client, scale_manager, printer_manager, device_id):
     # Enviar la lista de puertos inmediatamente al iniciar
     try:
         # Asegurarse de esperar a que la suscripción esté confirmada antes de enviar
-        max_attempts = 20  # Aumentar el número de intentos
+        max_attempts = 30  # Aumentar aún más el número de intentos
         attempt = 0
         while not client.subscription_confirmed and attempt < max_attempts:
             logger.info(f"Esperando confirmación de suscripción... (intento {attempt + 1}/{max_attempts})")
@@ -362,10 +362,14 @@ async def stream_updates(client, scale_manager, printer_manager, device_id):
             logger.warning("No se pudo confirmar la suscripción después de varios intentos")
             return  # Salir si no se confirma la suscripción
 
+        logger.info("La suscripción ha sido confirmada, obteniendo lista de puertos...")
+
         # Obtener puertos serie reales después de confirmar la suscripción
         ports = await asyncio.to_thread(serial.tools.list_ports.comports)
         port_list = [{'device': p.device, 'description': p.description} for p in ports]
         logger.info(f"Puertos serie detectados: {len(ports)}")
+        for p in ports:
+            logger.info(f"  - {p.device}: {p.description}")
 
         # En sistemas Unix/Linux, también incluir puertos virtuales como /dev/pts/*
         if sys.platform.startswith('linux') or sys.platform.startswith('darwin'):
@@ -399,6 +403,7 @@ async def stream_updates(client, scale_manager, printer_manager, device_id):
             except Exception as reg_error:
                 logger.info(f"No se pudieron leer puertos virtuales desde el registro: {reg_error}")
 
+        # Detectar impresoras si están disponibles
         if WIN32_AVAILABLE:
             try:
                 printers = await asyncio.to_thread(win32print.EnumPrinters, win32print.PRINTER_ENUM_LOCAL | win32print.PRINTER_ENUM_CONNECTIONS)
@@ -407,6 +412,14 @@ async def stream_updates(client, scale_manager, printer_manager, device_id):
                     logger.info(f"Añadida impresora: {p[2]}")
             except Exception as printer_error:
                 logger.warning(f"Error obteniendo impresoras: {printer_error}")
+        else:
+            # En sistemas no Windows, intentar detectar impresoras de forma diferente
+            logger.info("Sistema no Windows, detectando posibles impresoras...")
+            # En macOS/Linux, podríamos intentar detectar impresoras de otras formas
+            # Por ahora, solo agregamos la impresora configurada si existe
+            if printer_manager.printer_name:
+                port_list.append({'device': printer_manager.printer_name, 'description': f'Impresora: {printer_manager.printer_name}'})
+                logger.info(f"Añadida impresora configurada: {printer_manager.printer_name}")
 
         logger.info(f"Total de puertos detectados: {len(port_list)}")
 
@@ -421,6 +434,10 @@ async def stream_updates(client, scale_manager, printer_manager, device_id):
                 'printer_connected': printer_manager.is_connected
             })
             logger.info(f"Mensaje de puertos enviado: {len(port_list)} puertos")
+
+            # Registrar explícitamente qué datos se están enviando
+            logger.info(f"Datos enviados - Scale port: {scale_manager.port}, Scale connected: {scale_manager.connected}")
+            logger.info(f"Datos enviados - Printer port: {printer_manager.printer_name}, Printer connected: {printer_manager.is_connected}")
         else:
             logger.warning("No se pudo confirmar la suscripción después de varios intentos")
 
@@ -447,8 +464,8 @@ async def stream_updates(client, scale_manager, printer_manager, device_id):
                     'printer_port': printer_manager.printer_name,
                     'printer_connected': printer_manager.is_connected
                 })
-        except:
-            pass
+        except Exception as send_error:
+            logger.error(f"Error al enviar mensaje de puertos vacío: {send_error}")
 
     while True:
         try:
@@ -559,10 +576,10 @@ async def main_loop(url, token, device_id, args):
     while True:
         try:
             client = SerialClient(url, token, device_id, scale_manager, printer_manager)
-
+            
             if await client.connect():
                 logger.info("✓ Conexión y suscripción establecidas.")
-
+                
                 # Reiniciar el retraso de reconexión cuando se establece la conexión
                 reconnection_delay = 5
 
@@ -572,7 +589,7 @@ async def main_loop(url, token, device_id, args):
 
                 # Esperar a que alguna tarea termine
                 done, pending = await asyncio.wait([listen_task, stream_task], return_when=asyncio.FIRST_COMPLETED)
-
+                
                 # Cancelar tareas pendientes
                 for task in pending:
                     task.cancel()
@@ -583,14 +600,14 @@ async def main_loop(url, token, device_id, args):
 
                 logger.info("Tareas terminadas, cerrando conexión...")
                 await client.close()
-
+                
                 logger.warning("Una de las tareas principales ha terminado, reconectando...")
             else:
                 logger.error("No se pudo conectar al servidor")
-
+                
         except Exception as e:
             logger.error(f"Error en el bucle de conexión: {type(e).__name__} - {e}")
-
+        
         # Incrementar el retraso de reconexión con un límite máximo
         reconnection_delay = min(reconnection_delay * backoff_factor, max_reconnection_delay)
         logger.warning(f"Conexión perdida. Reintentando en {reconnection_delay:.1f} segundos...")

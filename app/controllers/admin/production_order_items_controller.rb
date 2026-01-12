@@ -44,8 +44,8 @@ class Admin::ProductionOrderItemsController < AdminController
       # Automatic printing logic
       if params[:auto_print] == "1"
         company = current_admin&.company || current_user&.company
-        if company&.serial_service_url_configured?
-          label_content = generate_tspl2_label_content(@production_order_item.label_data)
+        if SerialCommunicationService.health_check(company: company)
+          label_content = generate_label_content(@production_order_item, company)
           SerialCommunicationService.print_label(
             label_content,
             ancho_mm: 80,
@@ -211,21 +211,24 @@ class Admin::ProductionOrderItemsController < AdminController
     end
 
     # Determine the company to use for the printing service
-    company = current_admin&.company || current_user&.company
+    company = (current_admin&.company || current_user&.company)&.reload
     
     # Store successful prints to mark them later
     successfully_printed_items = []
     failed_items = []
     
     # Verify the serial service is accessible before attempting to print
-    if company&.serial_service_url_configured? && SerialCommunicationService.health_check(company: company)
-      Rails.logger.info "Serial server is accessible, proceeding with printing"
+    Rails.logger.info "[PrintDebug] Checking health for company: #{company&.name} (ID: #{company&.id})"
+    Rails.logger.info "[PrintDebug] Device ID: '#{company&.serial_device_id}', Token: '#{company&.serial_auth_token.present? ? 'PRESENT' : 'MISSING'}'"
+    
+    if SerialCommunicationService.health_check(company: company)
+      Rails.logger.info "[PrintDebug] Health check PASSED"
 
       production_order_items.each do |item|
         data = item.label_data
         
-        # Crear contenido de la etiqueta en formato TSPL2 para la impresora
-        label_content = generate_tspl2_label_content(data)
+        # Crear contenido de la etiqueta según el modelo de impresora
+        label_content = generate_label_content(item, company)
         Rails.logger.info "Generated label content for item #{item.id}: #{label_content}"
 
         # Try to print
@@ -340,44 +343,72 @@ class Admin::ProductionOrderItemsController < AdminController
     item_params.except(:peso_bruto_manual)
   end
 
-  # Generate TSPL2 label content for the printer
+  # Generate label content based on printer model
+  def generate_label_content(item, company)
+    data = item.label_data
+    if company.printer_model == 'zebra'
+      generate_zpl_label_content(data)
+    else
+      generate_tspl2_label_content(data)
+    end
+  end
+
+  # Generate ZPL label content for Zebra printers (like ZD421)
+  def generate_zpl_label_content(label_data)
+    Rails.logger.info "Generating ZPL label content with data: #{label_data}"
+    
+    # Adaptación fiel del template del usuario para la Zebra ZD421
+    # Se redujo el tamaño de fuente para evitar colisión con el logo superior izquierdo
+    zpl = <<~ZPL
+      ^XA
+      ^CI28
+      ^MMT
+      ^PW450
+      ^LL0600
+      ^LS20
+      ^FO120,70^A0N,25,25^FD #{label_data[:consecutivo_numero] || '-'}^FS
+      ^FO120,100^A0N,22,22^FDCVE_PROD: #{label_data[:clave_producto] || '-'}^FS
+      ^FO120,135^A0N,25,25^FDPB: #{label_data[:peso_bruto]} kg^FS
+      ^FO120,165^A0N,25,25^FDPN: #{label_data[:peso_neto]} kg^FS
+      ^FO120,195^A0N,25,25^FDML: #{label_data[:metros_lineales]} mts^FS
+      ^FO120,240^BY2,2
+      ^BCN,60,Y,N,N
+      ^FD#{label_data[:folio_consecutivo]}^FS
+      ^FO120,330^A0N,22,22^FDLote: #{label_data[:lote] || '-'}^FS
+      ^PQ1,0,1,Y
+      ^XZ
+    ZPL
+    
+    Rails.logger.info "Generated ZPL label content: #{zpl}"
+    zpl
+  end
+
+  # Generate TSPL2 label content for TSC printers (like TX200)
   def generate_tspl2_label_content(label_data)
     Rails.logger.info "Generating TSPL2 label content with data: #{label_data}"
 
-    # Prepare label content in TSPL2 format for TSC printers with complete initialization sequence
+    # Template robusto para TSC que imita el diseño de la Zebra
     tspl2_commands = [
-      "SIZE 80 mm, 50 mm",     # Tamaño de la etiqueta
-      "GAP 2 mm, 0 mm",        # Espacio entre etiquetas
-      "DIRECTION 1,0",         # Dirección
-      "REFERENCE 0,0",         # Punto de referencia
-      "OFFSET 0 mm",           # Offset
-      "SET PEEL OFF",          # Modo peeling desactivado
-      "SET CUTTER OFF",        # Cortador desactivado
-      "SET PARTIAL_CUTTER OFF", # Cortador parcial desactivado
-      "SET TEAR ON",           # Modo tear activado
-      "CLS",                   # Limpiar buffer de impresión
-      "CODEPAGE 1252"          # Página de códigos occidental
+      "SIZE 80 mm, 50 mm",
+      "GAP 2 mm, 0 mm",
+      "DIRECTION 0,0",
+      "REFERENCE 0,0",
+      "OFFSET 0 mm",
+      "CLS",
+      "CODEPAGE 1252",
+      # Textos
+      "TEXT 100,50,\"4\",0,1,1,\"#{label_data[:name] || '-'}\"",
+      "TEXT 100,100,\"3\",0,1,1,\"#{label_data[:clave_producto] || '-'}\"",
+      "TEXT 100,150,\"3\",0,1,1,\"PB: #{label_data[:peso_bruto]} kg\"",
+      "TEXT 100,190,\"3\",0,1,1,\"PN: #{label_data[:peso_neto]} kg\"",
+      "TEXT 100,230,\"3\",0,1,1,\"ML: #{label_data[:metros_lineales]} mts\"",
+      # Código de barras
+      "BARCODE 100,280,\"128\",60,1,0,2,2,\"#{label_data[:lote] || '-'}\"",
+      "PRINT 1,1"
     ]
-
-    # Add content - adjust positioning to align with inventory codes format
-    tspl2_commands << "TEXT 150,20,\"4\",0,1,1,\"Consecutivo: #{label_data[:name] || 'N/A'}\""
-    tspl2_commands << "TEXT 150,60,\"3\",0,1,1,\"Lote: #{label_data[:lote] || 'N/A'}\""
-    tspl2_commands << "TEXT 150,100,\"3\",0,1,1,\"Producto: #{label_data[:clave_producto] || 'N/A'}\""
-    tspl2_commands << "TEXT 150,140,\"3\",0,1,1,\"Peso Bruto: #{label_data[:peso_bruto] || 0} kg\""
-    tspl2_commands << "TEXT 150,180,\"3\",0,1,1,\"Peso Neto: #{label_data[:peso_neto] || 0} kg\""
-    tspl2_commands << "TEXT 150,220,\"2\",0,1,1,\"#{label_data[:cliente] || 'N/A'}\""
-    tspl2_commands << "TEXT 150,260,\"2\",0,1,1,\"Orden: #{label_data[:numero_de_orden] || 'N/A'}\""
-
-    # Add barcode for the consecutive number
-    tspl2_commands << "BARCODE 150,300,\"128\",30,1,0,2,2,\"#{label_data[:folio_consecutivo] || 'N/A'}\""
-
-    # Print command
-    tspl2_commands << "PRINT 1,1"
 
     label_content = tspl2_commands.join("\n") + "\n"
     Rails.logger.info "Generated TSPL2 label content: #{label_content}"
-
-    # Return the label content string
     label_content
   end
 end
