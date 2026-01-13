@@ -131,6 +131,13 @@ export default class extends Controller {
     }
   }
 
+  clearLogs() {
+    if (this.hasLogsTarget) {
+      this.logsTarget.innerHTML = '';
+      this.log("✓ Registros limpiados.");
+    }
+  }
+
   saveConfiguration(event) {
     this.log("saveConfiguration interceptado (click en botón guardar)");
     // The form will submit normally, but we can also trigger a manual config scan if we want
@@ -360,8 +367,31 @@ export default class extends Controller {
     }
   }
 
-  log(message) {
-    console.log(`[SerialController] ${message}`)
+  log(message, type = 'info') {
+    const timestamp = new Date().toLocaleTimeString();
+    console.log(`[SerialController] [${timestamp}] ${message}`);
+
+    if (this.hasLogsTarget) {
+      const logEntry = document.createElement('div');
+      
+      const colorClass = {
+        'info': 'text-green-400',
+        'success': 'text-green-300 font-bold',
+        'error': 'text-red-400 font-bold',
+        'warning': 'text-yellow-400'
+      }[type] || 'text-green-400';
+      
+      logEntry.className = `${colorClass} mb-1`;
+      logEntry.innerHTML = `<span class="opacity-50">[${timestamp}]</span> ${message}`;
+      
+      this.logsTarget.appendChild(logEntry);
+      this.logsTarget.scrollTop = this.logsTarget.scrollHeight;
+      
+      // Keep only last 100 entries
+      while (this.logsTarget.children.length > 100) {
+        this.logsTarget.removeChild(this.logsTarget.firstChild);
+      }
+    }
   }
 
   updateStatus(message, type) {

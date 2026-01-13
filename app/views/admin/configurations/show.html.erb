@@ -12,7 +12,9 @@
     </div>
 
     <!-- Formulario de Configuración -->
-    <div class="px-6 pb-6">
+    <div class="px-6 pb-6" 
+         data-controller="serial"
+         data-serial-device-id-value="<%= @admin.company&.serial_device_id %>">
       <!-- Layout 2 Columnas: Estado de Configuración y Comunicación Serial -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Columna Izquierda: Estado de Configuración -->
@@ -93,9 +95,7 @@
             </div>
           </div>
           
-          <div class="serial-panel"
-               data-controller="serial"
-               data-serial-device-id-value="<%= @admin.company&.serial_device_id %>">
+          <div class="serial-panel">
             <%= render 'admin/serial/panel_without_logs' %>
             <div class="mt-4">
               <%= form_with model: @admin.company, url: admin_configurations_auto_save_path, method: :post, local: true, class: "space-y-4", id: "serial-config-form" do |form| %>
@@ -122,11 +122,13 @@
           <div class="flex items-center justify-between mb-4">
             <h3 class="text-lg font-semibold text-gray-900">Registro de Comunicación Serial</h3>
             <button id="external-clear-logs" 
+                    data-action="click->serial#clearLogs"
                     class="px-3 py-1 bg-white text-gray-700 text-sm font-medium rounded-md border border-gray-300 hover:bg-gray-50 transition-colors">
               Limpiar
             </button>
           </div>
           <div id="external-serial-logs" 
+               data-serial-target="logs"
                class="h-32 overflow-y-auto p-3 bg-gray-900 text-green-400 text-xs font-mono rounded border border-gray-300">
           </div>
         </div>
