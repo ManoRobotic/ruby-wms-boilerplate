@@ -4,13 +4,16 @@
 #
 
 app = 'wmsys'
-primary_region = 'gdl'
+primary_region = 'dfw'
 console_command = '/rails/bin/rails console'
 
 [build]
 
 [processes]
   app = './bin/rails server'
+
+[deploy]
+  release_command = "bundle exec rails db:prepare"
 
 [http_service]
   internal_port = 3000
