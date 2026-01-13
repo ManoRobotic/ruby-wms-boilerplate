@@ -187,7 +187,7 @@ class Admin::InventoryCodesController < AdminController
     company = current_admin&.company || current_user&.company
     print_success = true
 
-    if company&.serial_service_url_configured? && SerialCommunicationService.health_check(company: company)
+    if SerialCommunicationService.health_check(company: company)
       Rails.logger.info "Serial server is accessible, proceeding with printing for #{inventory_codes.count} labels."
       
       inventory_codes.each do |code|

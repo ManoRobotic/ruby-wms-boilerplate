@@ -6,7 +6,6 @@ class Company < ApplicationRecord
   has_many :admins
 
   # Validations
-  validates :serial_service_url, format: { with: URI::DEFAULT_PARSER.make_regexp(%w[http https]), message: "debe ser una URL válida" }, allow_blank: true
 
   # Printer model enum
   validates :printer_model, inclusion: { in: %w[zebra tsc], message: "must be either 'zebra' or 'tsc'"}, allow_nil: true
@@ -59,14 +58,6 @@ class Company < ApplicationRecord
     serial_configured? && printer_configured?
   end
 
-  # Serial service URL helpers
-  def serial_service_url_configured?
-    read_attribute(:serial_service_url).present?
-  end
-
-  def serial_service_url
-    read_attribute(:serial_service_url).presence || ''
-  end
 
   # Ensure serial device ID is set
   before_create :set_serial_device_id

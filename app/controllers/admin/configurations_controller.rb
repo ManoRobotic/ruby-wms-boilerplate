@@ -26,7 +26,12 @@ class Admin::ConfigurationsController < AdminController
     end
     
     # Permit only the specific parameters we want to update
-    permitted_params = params.require(:company).permit(:name, :serial_service_url, :printer_model)
+    permitted_params = params.require(:company).permit(:name, :printer_model)
+    
+    # Restrict name update for operators
+    if (current_user&.operador? || current_admin&.respond_to?(:operador?) && current_admin&.operador?)
+      permitted_params.delete(:name)
+    end
     
     if @admin.company.update(permitted_params)
       redirect_to admin_configurations_path, notice: "Configuración actualizada exitosamente."
@@ -222,7 +227,7 @@ class Admin::ConfigurationsController < AdminController
                           :serial_port, :printer_port, :serial_baud_rate, :printer_baud_rate,
                           :serial_parity, :printer_parity, :serial_stop_bits, :printer_stop_bits,
                           :serial_data_bits, :printer_data_bits, :auto_save_consecutivo,
-                          :serial_service_url, :printer_model
+                          :printer_model
                         )
                         # Log what will be updated in company
                         Rails.logger.info "Updating company with: #{permitted_params}"
@@ -233,7 +238,7 @@ class Admin::ConfigurationsController < AdminController
                           :serial_port, :printer_port, :serial_baud_rate, :printer_baud_rate,
                           :serial_parity, :printer_parity, :serial_stop_bits, :printer_stop_bits,
                           :serial_data_bits, :printer_data_bits, :auto_save_consecutivo,
-                          :serial_service_url, :printer_model, :authenticity_token, :locale
+                          :printer_model, :authenticity_token, :locale
                         )
 
                         # Remove authenticity_token and locale if present since they're not in the model
@@ -255,10 +260,6 @@ class Admin::ConfigurationsController < AdminController
     if @admin.company.update(update_fields)
       Rails.logger.info "Successfully updated company configuration. Printer port: #{@admin.company.printer_port}, Serial port: #{@admin.company.serial_port}"
 
-      # Update admin's serial_service_url as well to ensure consistency
-      if params[:serial_service_url].present? && @admin.respond_to?(:serial_service_url=)
-        @admin.update_column(:serial_service_url, params[:serial_service_url]) if @admin.serial_service_url != params[:serial_service_url]
-      end
 
       respond_to do |format|
         format.html { redirect_back(fallback_location: admin_configurations_path, notice: "Configuración guardada automáticamente.") }

@@ -19,18 +19,6 @@ export default class extends Controller {
     // Inicializar estado
     this.updateDisplay(0)
 
-    // Discovery of external service URL for WebSocket
-    const companyConfig = document.querySelector('[data-serial-company-config]')
-    if (companyConfig) {
-      try {
-        const config = JSON.parse(companyConfig.textContent)
-        if (config.serial_service_url) {
-          this.externalBaseUrl = config.serial_service_url.replace(/\/$/, '')
-        }
-      } catch (e) {
-        console.error('Error parsing company config:', e)
-      }
-    }
 
     // Auto-conectar al cargar si no hubo desconexión manual
     const wasManuallyDisconnected = localStorage.getItem('scale_manual_disconnect') === 'true'
@@ -39,10 +27,8 @@ export default class extends Controller {
       this.checkStatusAndConnect()
     }
 
-    // Initialize WebSocket if we have the external URL
-    if (this.externalBaseUrl) {
-      this.initWebSocket()
-    }
+    // Initialize WebSocket
+    this.initWebSocket()
   }
 
   async checkStatusAndConnect() {
@@ -265,14 +251,9 @@ export default class extends Controller {
       }
 
       this.socket.onerror = () => {
-        if (isLocal) {
-          this.addToLog("Conexión local no disponible, intentando vía túnel...", 'info')
-          this.attemptWebSocket(this.externalBaseUrl.replace(/^http/, 'ws') + "/weight", false)
-        } else {
-          this.addToLog("Conexión real-time falló, usando polling de respaldo", 'warning')
-          this.isWsConnected = false
-          this.startAutoReading()
-        }
+        this.addToLog("Conexión real-time falló, usando polling de respaldo", 'warning')
+        this.isWsConnected = false
+        this.startAutoReading()
       }
 
       this.socket.onclose = () => {

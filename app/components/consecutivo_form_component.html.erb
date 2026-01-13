@@ -96,7 +96,6 @@
 
         <div class="bg-[var(--color-blue-gem-50)] rounded-md p-2 mb-2 transition-opacity duration-300" 
              data-controller="consecutivo-scale" 
-             data-consecutivo-scale-base-url-value="<%= (helpers.current_admin || helpers.current_user)&.company&.serial_service_url %>"
              data-consecutivo-scale-auto-connect-value="true"
              data-consecutivo-scale-saved-port-value="<%= (helpers.current_admin || helpers.current_user)&.company&.serial_port || '' %>"
              data-consecutivo-scale-auto-save-value="<%= (helpers.current_admin || helpers.current_user)&.company&.auto_save_consecutivo || false %>"
