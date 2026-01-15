@@ -57,7 +57,7 @@ gem "mercadopago-sdk"
 gem "rack-attack", "~> 6.8"
 
 # Money handling
-gem "money-rails", "~> 2.0"
+gem "money-rails", "~> 3.0"
 
 # Structured logging
 gem "ougai", "~> 2.0"
