@@ -108,4 +108,3 @@ This project is released under the MIT License.
 
 ---
 
-Deploy your WMS today. This system provides a professional foundation for warehouse management operations.

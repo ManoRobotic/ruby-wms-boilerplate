@@ -192,7 +192,7 @@ Rails.application.routes.draw do
     get "configurations", to: "configurations#show"
     get "configurations/saved_config", to: "configurations#saved_config"
     patch "configurations", to: "configurations#show"
-    post "configurations/auto_save", to: "configurations#auto_save"
+    match "configurations/auto_save", to: "configurations#auto_save", via: [:post, :patch]
     post "configurations/test_connection", to: "configurations#test_connection"
     post "configurations/check_changes", to: "configurations#check_changes"
     post "configurations/sync_now", to: "configurations#sync_now"
@@ -247,12 +247,14 @@ Rails.application.routes.draw do
       collection do
         post :batch
         get :last_no_opro
+        get :sync_status
       end
     end
     # API routes for inventory codes
     resources :inventory_codes, only: [:create] do
       collection do
         post :batch
+        get :sync_status
       end
     end
   end

@@ -134,7 +134,7 @@ class Admin::ManualPrintingController < AdminController
       "TEXT 120,120,\"3\",0,1,1,\"Medida: #{sanitize(params[:bag_measurement])}\"",
       "TEXT 120,160,\"3\",0,1,1,\"Piezas: #{sanitize(params[:pieces_count])}\"",
       "TEXT 120,200,\"3\",0,1,1,\"Peso: #{sanitize(params[:current_weight]) || '0'} kg\"",
-      "BARCODE 120,240,\"128\",40,1,0,2,2,\"#{sanitize(params[:barcode_data])}\"",
+      "BARCODE 220,240,\"128\",80,1,0,2,2,\"#{sanitize(params[:barcode_data])}\"",
       "PRINT 1,1"
     ]
     tspl.join("\n") + "\n"
@@ -151,7 +151,7 @@ class Admin::ManualPrintingController < AdminController
       "TEXT 120,120,\"3\",0,1,1,\"Medida: #{sanitize(params[:roll_measurement])}\"",
       "TEXT 120,160,\"3\",0,1,1,\"Piezas: #{sanitize(params[:pieces_count_roll])}\"",
       "TEXT 120,200,\"3\",0,1,1,\"Peso: #{sanitize(params[:current_weight]) || '0'} kg\"",
-      "BARCODE 120,240,\"128\",40,1,0,2,2,\"#{sanitize(params[:barcode_data])}\"",
+      "BARCODE 220,240,\"128\",80,1,0,2,2,\"#{sanitize(params[:barcode_data])}\"",
       "PRINT 1,1"
     ]
     tspl.join("\n") + "\n"
@@ -169,7 +169,7 @@ class Admin::ManualPrintingController < AdminController
       "TEXT 120,120,\"3\",0,1,1,\"Pzs/Caja: #{sanitize(params[:pieces_count_box])}\"",
       "TEXT 120,160,\"3\",0,1,1,\"Paquetes: #{sanitize(params[:package_count])} x #{sanitize(params[:package_measurement])}\"",
       "TEXT 120,200,\"3\",0,1,1,\"Peso: #{sanitize(params[:current_weight]) || '0'} kg\"",
-      "BARCODE 120,240,\"128\",40,1,0,2,2,\"#{sanitize(params[:barcode_data])}\"",
+      "BARCODE 220,240,\"128\",80,1,0,2,2,\"#{sanitize(params[:barcode_data])}\"",
       "PRINT 1,1"
     ]
     tspl.join("\n") + "\n"

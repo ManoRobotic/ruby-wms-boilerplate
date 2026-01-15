@@ -18,7 +18,9 @@
     <%= javascript_importmap_tags %>
   </head>
 
-  <body data-controller="toast" class="bg-[var(--color-blue-gem-950)]">
+  <body data-controller="toast serial" 
+        data-serial-device-id-value="<%= (current_admin&.company || current_user&.company)&.serial_device_id %>"
+        class="bg-[var(--color-blue-gem-950)]">
     <main>
       <%= render 'shared/header_admin' %>      
       <%= yield %>

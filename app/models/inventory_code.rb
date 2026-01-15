@@ -1,4 +1,6 @@
 class InventoryCode < ApplicationRecord
+  belongs_to :company, optional: true
+
   # Validations
   validates :no_ordp, presence: true
   validates :cve_copr, presence: true

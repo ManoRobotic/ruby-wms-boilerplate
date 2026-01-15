@@ -9,11 +9,12 @@ export default class extends Controller {
 
   connect() {
     this.deviceIdValue = this.element.dataset.serialDeviceIdValue
-    this.log("Inicializando controlador Serial (v3)...")
+    // this.log("Inicializando controlador Serial (v3)...")
     if (!this.deviceIdValue) {
       this.updateStatus("✗ Error: No se proporcionó un ID de dispositivo.", "error")
       return
     }
+    console.log(`[Serial] Iniciando para dispositivo: ${this.deviceIdValue}`)
 
     // Initialize state
     this.availablePorts = [];
@@ -33,11 +34,19 @@ export default class extends Controller {
     }
 
     this.initActionCable()
+
+    // Escuchar peticiones de estado de otros controladores
+    this.boundHandleRequestStatus = () => this.dispatchStatus();
+    document.addEventListener("serial:request-status", this.boundHandleRequestStatus);
+    document.addEventListener("consecutivo-scale:request-status", this.boundHandleRequestStatus);
   }
 
   disconnect() {
     if (this.channel) {
       consumer.subscriptions.remove(this.channel)
+    }
+    if (this.boundHandleRequestStatus) {
+      document.removeEventListener("serial:request-status", this.boundHandleRequestStatus);
     }
   }
 
@@ -51,8 +60,8 @@ export default class extends Controller {
       { channel: "SerialConnectionChannel", device_id: this.deviceIdValue },
       {
         connected: () => {
-          this.log("✓ Conectado a SerialConnectionChannel.")
-          this.updateStatus("✓ Conectado", "success")
+          console.log("[Serial] 🟢 Conectado al servidor ActionCable")
+          this.updateStatus("✓ Conectado al servidor", "success")
 
           // Request current configuration after connection is established
           setTimeout(() => {
@@ -71,8 +80,8 @@ export default class extends Controller {
           }, 5000); // Reconectar después de 5 segundos
         },
         received: (data) => {
-          this.log(`ActionCable RAW: ${JSON.stringify(data)}`)
-          if (data && typeof data === 'object') {
+          // this.log(`ActionCable RAW: ${JSON.stringify(data)}`)
+          if (data && typeof data === 'object' && data.action !== 'weight_update') {
             this.log(`ActionCable Action: ${data.action}`)
           }
           this.route_action(data)
@@ -92,26 +101,24 @@ export default class extends Controller {
   // --- Enrutador de Acciones ---
   route_action(data) {
     try {
-      this.log(`Acción recibida: ${data.action}`);
-      this.log(`Datos completos recibidos:`, JSON.stringify(data));
-
-      // Debugging: Log all available properties in the data
-      this.log(`Propiedades en el objeto data:`, Object.keys(data || {}));
+      // this.log(`Acción recibida: ${data.action}`);
+      // this.log(`Datos completos recibidos:`, JSON.stringify(data));
 
       switch (data.action) {
         case 'weight_update':
-          this.log(`Peso recibido: ${data.weight} en ${data.timestamp}`);
+          console.debug(`[Serial] ⚖️ Peso entrante: ${data.weight}kg`)
           this.updateWeight(data.weight, data.timestamp)
-          // Despachar un evento global para que otros controllers puedan escucharlo
-          this.dispatch("weightUpdate", {
+          this.dispatch("weight-update", {
             detail: { weight: data.weight, timestamp: data.timestamp },
             bubbles: true
           })
           break
         case 'status_update':
+          console.log(`[Serial] 📡 Estado actualizado`)
           this.handleStatusUpdate(data)
           break
         case 'ports_update':
+          console.log(`[Serial] 🔌 Puertos actualizados (${data.ports?.length || 0})`)
           this.handlePortsUpdate(data)
           break
         case 'set_config':
@@ -121,13 +128,20 @@ export default class extends Controller {
         case 'pong':
           this.log(`Respuesta de ping recibida: ${JSON.stringify(data)}`)
           break
+        case 'request_ports':
+        case 'connect_scale':
+        case 'connect_printer':
+        case 'update_config':
+          // These are echoes or confirmations from the server, we can ignore them or log them
+          this.log(`Confirmación recibida: ${data.action}`)
+          break
         default:
-          this.log(`ActionCable Unhandled: ${data.action || 'no-action'}`)
-          this.log(`ActionCable Data:`, data)
+          // this.log(`ActionCable Unhandled: ${data.action || 'no-action'}`)
+          // this.log(`ActionCable Data:`, data)
       }
     } catch (error) {
       this.log(`Error procesando acción '${data.action}':`, error);
-      console.error('Error in route_action:', error);
+      // console.error('Error in route_action:', error);
     }
   }
 
@@ -260,6 +274,20 @@ export default class extends Controller {
 
     // Trigger UI update
     this.renderDropdowns();
+    this.dispatchStatus();
+  }
+
+  dispatchStatus() {
+    // console.log(`[Serial] Despachando estado: Báscula=${this.lastScaleState ? 'SI' : 'NO'}, Impresora=${this.lastPrinterState ? 'SI' : 'NO'}`);
+    this.dispatch("status-update", {
+      detail: { 
+        scale_connected: this.lastScaleState, 
+        printer_connected: this.lastPrinterState,
+        scale_port: this.configuredScalePort,
+        printer_port: this.configuredPrinterPort
+      },
+      bubbles: true
+    })
   }
 
   handlePortsUpdate(data) {
@@ -276,14 +304,17 @@ export default class extends Controller {
 
       // Actualizar indicadores de estado si vienen en el mensaje
       if (data.hasOwnProperty('scale_connected')) {
+        this.lastScaleState = !!data.scale_connected;
         this.updateScaleStatus(data.scale_connected ? `Conectada en ${data.scale_port}` : "Desconectada", data.scale_connected ? "success" : "error");
       }
       if (data.hasOwnProperty('printer_connected')) {
+        this.lastPrinterState = !!data.printer_connected;
         this.updatePrinterStatus(data.printer_connected ? `Conectada en ${data.printer_port}` : "Desconectada", data.printer_connected ? "success" : "error");
       }
     }
     
     this.renderDropdowns();
+    this.dispatchStatus();
   }
 
   renderDropdowns() {
@@ -369,7 +400,7 @@ export default class extends Controller {
 
   log(message, type = 'info') {
     const timestamp = new Date().toLocaleTimeString();
-    console.log(`[SerialController] [${timestamp}] ${message}`);
+    // console.log(`[SerialController] [${timestamp}] ${message}`);
 
     if (this.hasLogsTarget) {
       const logEntry = document.createElement('div');

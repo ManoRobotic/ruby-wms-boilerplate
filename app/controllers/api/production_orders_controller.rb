@@ -1,11 +1,14 @@
-class Api::ProductionOrdersController < ActionController::API
-  def create
-    company = Company.find_by(name: params[:company_name])
+class Api::ProductionOrdersController < Api::BaseController
+  def sync_status
+    render json: {
+      company_name: @current_company.name,
+      production_orders_count: @current_company.production_orders.count,
+      inventory_codes_count: @current_company.inventory_codes.count,
+      last_no_opro: ProductionOrder.maximum(:no_opro).to_i
+    }
+  end
 
-    unless company
-      render json: { error: "Company not found" }, status: :not_found
-      return
-    end
+  def create
 
     # Map API parameter names to model field names
     mapped_params = map_api_params_to_model_fields(params[:production_order] || {})
@@ -20,7 +23,7 @@ class Api::ProductionOrdersController < ActionController::API
 
     # Create a new production order with the provided parameters
     @production_order = ProductionOrder.new(sanitized_params)
-    @production_order.company = company
+    @production_order.company = @current_company
 
     # Explicitly set associations if IDs are provided
     if params[:production_order]["product_id"].present?
@@ -46,7 +49,7 @@ class Api::ProductionOrdersController < ActionController::API
     end
 
     # Set admin_id to the first admin of the company if not provided
-    @production_order.admin ||= company.admins.first
+    @production_order.admin ||= @current_company.admins.first
 
     # Set default status if not provided
     @production_order.status ||= "pending"
@@ -72,7 +75,7 @@ class Api::ProductionOrdersController < ActionController::API
             company_id: @production_order.company_id,
             notification_type: "production_order_created",
             title: "Nueva orden de producción creada",
-            message: "Se ha creado la orden de producción #{@production_order.no_opro || @production_order.order_number} para el producto #{@production_order.product.name}",
+            message: "Se ha creado la orden de producción #{@production_order.no_opro || @production_order.order_number} para el producto #{@production_order.product&.name || @production_order.product_key || 'Sin producto'}",
             action_url: "/admin/production_orders/#{@production_order.id}",
             data: notification_data,
             created_at: Time.current,
@@ -115,16 +118,6 @@ class Api::ProductionOrdersController < ActionController::API
   end
 
   def batch
-    company = Company.find_by(name: params[:company_name])
-
-    unless company
-      Rails.logger.error "Company not found: #{params[:company_name]}"
-      render json: { error: "Company not found" }, status: :not_found
-      return
-    end
-
-    Rails.logger.info "Found company: #{company.name} with ID: #{company.id}"
-
     # Extract production orders from params
     orders_params = params[:production_orders] || []
 
@@ -140,7 +133,7 @@ class Api::ProductionOrdersController < ActionController::API
       Rails.logger.info "Processing order #{index + 1}: #{order_params}"
       # Create a new production order with the provided parameters
       production_order = ProductionOrder.new
-      production_order.company = company
+      production_order.company = @current_company
 
       # Map API parameter names to model field names
       mapped_params = map_api_params_to_model_fields(order_params)
@@ -196,7 +189,7 @@ class Api::ProductionOrdersController < ActionController::API
       end
 
       # Set admin_id to the first admin of the company if not provided
-      production_order.admin ||= company.admins.first
+      production_order.admin ||= @current_company.admins.first
 
       # Set default status if not provided
       production_order.status ||= "pending"
@@ -234,7 +227,7 @@ class Api::ProductionOrdersController < ActionController::API
 
     # Send a single global notification for all successfully created orders
     if success_count > 0
-      target_users = User.where(company: company, role: [ "admin", "manager", "supervisor", "operador" ])
+      target_users = User.where(company: @current_company, role: [ "admin", "manager", "supervisor", "operador" ])
 
       notification_data = {
         count: success_count,
@@ -244,7 +237,7 @@ class Api::ProductionOrdersController < ActionController::API
       notification_records = target_users.map do |user|
         {
           user_id: user.id,
-          company_id: company.id,
+          company_id: @current_company.id,
           notification_type: "production_order_created",
           title: "#{success_count} órdenes de producción creadas",
           message: "Se han creado #{success_count} órdenes de producción en lote",
@@ -271,7 +264,7 @@ class Api::ProductionOrdersController < ActionController::API
       end
 
       # Broadcast global notification
-      broadcast_global_notification(company, success_count)
+      broadcast_global_notification(@current_company, success_count)
     end
 
     # Return all results

@@ -248,8 +248,9 @@ class Admin::ConfigurationsController < AdminController
     # Update only the fields that exist and have values
     update_fields = {}
     params_to_update.each do |key, value|
-      # Only add fields if they exist in the company model and have values
-      if @admin.company.respond_to?("#{key}=") && value.present?
+      # Only add fields if they exist in the company model and are not nil
+      # We use !value.nil? instead of value.present? to allow boolean false values
+      if @admin.company.respond_to?("#{key}=") && !value.nil?
         update_fields[key.to_sym] = value
       end
     end

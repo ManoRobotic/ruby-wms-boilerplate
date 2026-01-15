@@ -1,28 +1,70 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["weight"]
+  static targets = ["weight", "status"]
 
   connect() {
-    this.log("Conectado y escuchando eventos de peso.")
-    // El bind(this) es crucial para asegurar que 'this' dentro de handleWeightUpdate
-    // se refiera a la instancia del controlador.
+    this.log("Conectado y escuchando eventos de peso y estado.")
+    this.isWeightReceived = false
     this.boundHandleWeightUpdate = this.handleWeightUpdate.bind(this)
-    document.addEventListener("serial:weightUpdate", this.boundHandleWeightUpdate)
+    this.boundHandleStatusUpdate = this.handleStatusUpdate.bind(this)
+    
+    document.addEventListener("serial:weight-update", this.boundHandleWeightUpdate)
+    document.addEventListener("serial:status-update", this.boundHandleStatusUpdate)
+
+    // Solicitar estado actual inmediatamente
+    this.requestCurrentStatus();
+  }
+
+  requestCurrentStatus() {
+    // this.log("Solicitando estado actual de la serie...");
+    this.dispatch("request-status", { prefix: "serial", bubbles: true });
+    this.dispatch("request-status", { bubbles: true }); // Keep old one just in case
   }
 
   disconnect() {
-    this.log("Desconectado, dejando de escuchar eventos de peso.")
-    document.removeEventListener("serial:weightUpdate", this.boundHandleWeightUpdate)
+    this.log("Desconectado, dejando de escuchar eventos.")
+    document.removeEventListener("serial:weight-update", this.boundHandleWeightUpdate)
+    document.removeEventListener("serial:status-update", this.boundHandleStatusUpdate)
   }
 
-  /**
-   * Este método se activa cuando el `serial_controller` emite un evento `weightUpdate`.
-   * @param {CustomEvent} event - El evento que contiene los datos del peso.
-   */
+  handleStatusUpdate(event) {
+    const { scale_connected, scale_port } = event.detail
+    // console.log(`[Scale] Estado: ${scale_connected ? 'Conectado' : 'Desconectado'} en ${scale_port}`)
+    this.updateStatusUI(scale_connected, scale_port)
+  }
+
+  updateStatusUI(connected, port) {
+    if (this.hasStatusTarget) {
+      if (connected) {
+        this.statusTarget.textContent = `Conectada en ${port}`
+        this.statusTarget.className = "px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800"
+        
+        // Si está conectada pero aún no recibimos peso, mostrar spinner
+        if (!this.isWeightReceived && this.hasWeightTarget) {
+          this.showWaitingSpinner()
+        }
+      } else {
+        this.statusTarget.textContent = "Desconectada"
+        this.statusTarget.className = "px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-800"
+        this.isWeightReceived = false // Resetear al desconectar
+      }
+    }
+  }
+
+  showWaitingSpinner() {
+    this.weightTarget.innerHTML = `
+      <div class="flex flex-col items-center justify-center py-2">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-2"></div>
+        <div class="text-xs text-blue-600 font-medium animate-pulse">Esperando peso...</div>
+      </div>
+    `
+  }
+
   handleWeightUpdate(event) {
     const { weight, timestamp } = event.detail
-    this.log(`Evento de peso recibido: ${weight}`)
+    this.isWeightReceived = true
+    console.log(`[Scale] ⚖️ Peso recibido del bus: ${weight}`)
     this.updateWeightUI(weight, timestamp)
   }
 
@@ -100,6 +142,6 @@ export default class extends Controller {
   }
 
   log(message) {
-    console.log(`[ConsecutivoScaleController] ${message}`)
+    // console.log(`[ConsecutivoScaleController] ${message}`)
   }
 }

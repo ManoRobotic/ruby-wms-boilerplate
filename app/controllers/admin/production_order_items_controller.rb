@@ -403,7 +403,7 @@ class Admin::ProductionOrderItemsController < AdminController
       "TEXT 100,190,\"3\",0,1,1,\"PN: #{label_data[:peso_neto]} kg\"",
       "TEXT 100,230,\"3\",0,1,1,\"ML: #{label_data[:metros_lineales]} mts\"",
       # Código de barras
-      "BARCODE 100,280,\"128\",60,1,0,2,2,\"#{label_data[:lote] || '-'}\"",
+      "BARCODE 220,280,\"128\",90,1,0,2,2,\"#{label_data[:lote] || '-'}\"",
       "PRINT 1,1"
     ]
 

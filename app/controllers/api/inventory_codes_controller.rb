@@ -1,4 +1,12 @@
-class Api::InventoryCodesController < ActionController::API
+class Api::InventoryCodesController < Api::BaseController
+  def sync_status
+    render json: {
+      company_name: @current_company.name,
+      production_orders_count: @current_company.production_orders.count,
+      inventory_codes_count: @current_company.inventory_codes.count
+    }
+  end
+
   def create
     # Map API parameter names to model field names
     mapped_params = map_api_params_to_model_fields(params[:inventory_code] || {})
@@ -13,6 +21,7 @@ class Api::InventoryCodesController < ActionController::API
 
     # Create a new inventory code with the provided parameters
     @inventory_code = InventoryCode.new(sanitized_params)
+    @inventory_code.company = @current_company
 
     if @inventory_code.save
       render json: { 
@@ -41,6 +50,7 @@ class Api::InventoryCodesController < ActionController::API
     codes_params.each_with_index do |code_params, index|
       # Create a new inventory code with the provided parameters
       inventory_code = InventoryCode.new
+      inventory_code.company = @current_company
 
       # Map API parameter names to model field names
       mapped_params = map_api_params_to_model_fields(code_params)

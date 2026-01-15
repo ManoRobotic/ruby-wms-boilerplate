@@ -44,31 +44,30 @@
             </div>
             
             <!-- Checkboxes for modes -->
-            <div class="flex flex-col gap-2 mt-1">
-                <label class="flex items-center cursor-pointer">
+            <div class="flex flex-row flex-wrap gap-4 mt-1 mb-2">
+                <label class="flex items-center cursor-pointer p-1">
                     <input type="checkbox" 
                            id="manual_weight_checkbox"
                            class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                            data-action="change->consecutivo-form#toggleManualMode"
                            data-consecutivo-form-target="manualModeCheckbox">
-                    <span class="ml-2 text-sm font-medium text-gray-700">Ingresar peso manualmente</span>
+                    <span class="ml-2 text-sm font-medium text-gray-700 whitespace-nowrap">Ingresar peso manualmente</span>
                 </label>
 
-                <label class="flex items-center justify-between cursor-pointer p-2 rounded-md transition-colors <%= auto_print ? 'bg-emerald-50 border border-emerald-200' : '' %>">
-                    <div class="flex items-center">
-                        <input type="checkbox" 
-                               name="auto_print"
-                               id="auto_print_checkbox"
-                               value="1"
-                               class="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded"
-                               data-consecutivo-form-target="autoPrintCheckbox"
-                               data-consecutivo-scale-target="autoPrintCheckbox"
-                               <%= (auto_print || (helpers.current_admin || helpers.current_user)&.company&.auto_save_consecutivo) ? 'checked' : '' %>>
-                        <span class="ml-2 text-sm font-medium text-gray-700">Impresión automática al pesar</span>
-                    </div>
+                <label class="flex items-center cursor-pointer p-1 rounded-md transition-colors <%= auto_print ? 'bg-emerald-50 border border-emerald-200' : '' %>">
+                    <input type="checkbox" 
+                           name="auto_print"
+                           id="auto_print_checkbox"
+                           value="1"
+                           class="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded"
+                           data-action="change->consecutivo-form#toggleAutoPrint"
+                           data-consecutivo-form-target="autoPrintCheckbox"
+                           data-consecutivo-scale-target="autoPrintCheckbox"
+                           <%= (auto_print || (helpers.current_admin || helpers.current_user)&.company&.auto_save_consecutivo) ? 'checked' : '' %>>
+                    <span class="ml-2 text-sm font-medium text-gray-700 whitespace-nowrap">Impresión automática</span>
                     <% if auto_print %>
-                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800 animate-pulse">
-                            MODO MANOS LIBRES ACTIVO
+                        <span class="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 animate-pulse">
+                            MANOS LIBRES
                         </span>
                     <% end %>
                 </label>

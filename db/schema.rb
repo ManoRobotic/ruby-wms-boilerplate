@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_01_10_205600) do
+ActiveRecord::Schema[8.1].define(version: 2026_01_13_033000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -164,6 +164,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_10_205600) do
 
   create_table "inventory_codes", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.decimal "can_copr", precision: 12, scale: 6
+    t.uuid "company_id"
     t.decimal "costo", precision: 12, scale: 8
     t.decimal "costo_rep", precision: 12, scale: 8
     t.datetime "created_at", null: false
@@ -183,6 +184,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_10_205600) do
     t.integer "trans"
     t.string "undres"
     t.datetime "updated_at", null: false
+    t.index ["company_id"], name: "index_inventory_codes_on_company_id"
     t.index ["cve_copr"], name: "index_inventory_codes_on_cve_copr"
     t.index ["cve_prod"], name: "index_inventory_codes_on_cve_prod"
     t.index ["fech_cto"], name: "index_inventory_codes_on_fech_cto"
@@ -668,6 +670,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_10_205600) do
   add_foreign_key "cycle_counts", "admins"
   add_foreign_key "cycle_counts", "locations"
   add_foreign_key "cycle_counts", "warehouses"
+  add_foreign_key "inventory_codes", "companies"
   add_foreign_key "inventory_transactions", "admins"
   add_foreign_key "inventory_transactions", "locations"
   add_foreign_key "inventory_transactions", "products"
