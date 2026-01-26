@@ -42,7 +42,7 @@ gem "bootsnap", require: false
 gem "dbf"
 
 # for user accounts managment
-gem "devise", "~> 4.9"
+gem "devise", "~> 5.0"
 
 gem "font-awesome-sass", "~> 6.7"
 
