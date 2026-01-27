@@ -356,9 +356,13 @@ class Admin::ProductionOrderItemsController < AdminController
   # Generate ZPL label content for Zebra printers (like ZD421)
   def generate_zpl_label_content(label_data)
     Rails.logger.info "Generating ZPL label content with data: #{label_data}"
-    
+
     # Adaptación fiel del template del usuario para la Zebra ZD421
     # Se redujo el tamaño de fuente para evitar colisión con el logo superior izquierdo
+    # Para alinear a la derecha el número consecutivo, usamos ^FB (Field Block) con justificación a la derecha
+    # Ahora aumentamos el tamaño del número consecutivo al doble y otros textos un poco más grandes
+    # También aseguramos que no haya texto en negrita
+    # Movemos todo el contenido un 10% hacia la derecha
     zpl = <<~ZPL
       ^XA
       ^CI28
@@ -366,19 +370,19 @@ class Admin::ProductionOrderItemsController < AdminController
       ^PW450
       ^LL0600
       ^LS20
-      ^FO120,70^A0N,25,25^FD #{label_data[:consecutivo_numero] || '-'}^FS
-      ^FO120,100^A0N,22,22^FDCVE_PROD: #{label_data[:clave_producto] || '-'}^FS
-      ^FO120,135^A0N,25,25^FDPB: #{label_data[:peso_bruto]} kg^FS
-      ^FO120,165^A0N,25,25^FDPN: #{label_data[:peso_neto]} kg^FS
-      ^FO120,195^A0N,25,25^FDML: #{label_data[:metros_lineales]} mts^FS
-      ^FO120,240^BY2,2
+      ^FO330,65^A0N,50,50^FB120,1,0,R^FD#{label_data[:consecutivo_numero] || '-'}^FS
+      ^FO165,115^A0N,28,28^FDCVE_PROD: #{label_data[:clave_producto] || '-'}^FS
+      ^FO165,150^A0N,30,30^FDPB: #{label_data[:peso_bruto]} kg^FS
+      ^FO165,185^A0N,30,30^FDPN: #{label_data[:peso_neto]} kg^FS
+      ^FO165,220^A0N,30,30^FDML: #{label_data[:metros_lineales]} mts^FS
+      ^FO165,260^BY2,2
       ^BCN,60,Y,N,N
       ^FD#{label_data[:folio_consecutivo]}^FS
-      ^FO120,330^A0N,22,22^FDLote: #{label_data[:lote] || '-'}^FS
+      ^FO165,349^A0N,26,26^FDLote: #{label_data[:lote] || '-'}^FS
       ^PQ1,0,1,Y
       ^XZ
     ZPL
-    
+
     Rails.logger.info "Generated ZPL label content: #{zpl}"
     zpl
   end

@@ -1,6 +1,10 @@
 <%# Shared form partial for creating/editing consecutivos %>
 <%= form_with model: [:admin, production_order, consecutivo_form], 
-    data: { controller: "consecutivo-form", turbo_stream: true },
+    data: { 
+      controller: "consecutivo-form", 
+      turbo_stream: true,
+      action: "turbo:submit-end->consecutivo-form#handleFormSubmit" 
+    },
     local: false,
     format: :turbo_stream,
     class: "relative border-t border-slate-200 py-2" do |form| %>

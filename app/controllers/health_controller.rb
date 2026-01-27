@@ -7,7 +7,7 @@ class HealthController < ApplicationController
     health_status = {
       status: "ok",
       timestamp: Time.current.iso8601,
-      version: Rails.application.version || "unknown",
+      version: Rails.application.config.version || "unknown",
       environment: Rails.env,
       checks: {
         database: database_status,

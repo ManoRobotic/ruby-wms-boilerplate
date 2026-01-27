@@ -25,22 +25,43 @@ class Admin::ManualPrintingController < AdminController
   def print_test
     # Parámetros del formulario
     company = current_admin&.company || current_user&.company
-    
+
     # Common params
     ancho_mm = params[:ancho_mm].presence || 80
     alto_mm = params[:alto_mm].presence || 50
     gap_mm = params[:gap_mm].presence || 2
-    
-    # Select generator based on format
+
+    # Check health first
+    unless SerialCommunicationService.health_check(company: company)
+      render json: {
+        success: false,
+        message: "Servicio de impresión no disponible o desconectado",
+        error: "Health check failed"
+      }
+      return
+    end
+
+    # Select generator based on format AND printer model
     # "bag" is default
-    label_content = case params[:format_type]
-                    when "roll"
-                      generate_roll_label(params, ancho_mm, alto_mm, gap_mm)
-                    when "box"
-                      generate_box_label(params, ancho_mm, alto_mm, gap_mm)
-                    else 
-                      generate_bag_label(params, ancho_mm, alto_mm, gap_mm)
-                    end
+    if company.printer_model == 'zebra'
+      label_content = case params[:format_type]
+                      when "roll"
+                        generate_roll_label_zpl(params, ancho_mm, alto_mm, gap_mm)
+                      when "box"
+                        generate_box_label_zpl(params, ancho_mm, alto_mm, gap_mm)
+                      else
+                        generate_bag_label_zpl(params, ancho_mm, alto_mm, gap_mm)
+                      end
+    else
+      label_content = case params[:format_type]
+                      when "roll"
+                        generate_roll_label(params, ancho_mm, alto_mm, gap_mm)
+                      when "box"
+                        generate_box_label(params, ancho_mm, alto_mm, gap_mm)
+                      else
+                        generate_bag_label(params, ancho_mm, alto_mm, gap_mm)
+                      end
+    end
 
     if SerialCommunicationService.print_label(label_content, ancho_mm: ancho_mm, alto_mm: alto_mm, company: company)
       render json: {
@@ -127,14 +148,17 @@ class Admin::ManualPrintingController < AdminController
     tspl = [
       "SIZE #{width} mm, #{height} mm",
       "GAP #{gap} mm, 0 mm",
-      "DIRECTION 1,0",
+      "DIRECTION 0,0",
+      "REFERENCE 0,0",
+      "OFFSET 0 mm",
       "CLS",
-      "TEXT 120,40,\"4\",0,1,1,\"Producto: #{truncate_text(sanitize(params[:product_name]), 10)}\"",
-      "TEXT 120,80,\"3\",0,1,1,\"Tipo: #{sanitize(params[:bag_type])}\"",
-      "TEXT 120,120,\"3\",0,1,1,\"Medida: #{sanitize(params[:bag_measurement])}\"",
-      "TEXT 120,160,\"3\",0,1,1,\"Piezas: #{sanitize(params[:pieces_count])}\"",
-      "TEXT 120,200,\"3\",0,1,1,\"Peso: #{sanitize(params[:current_weight]) || '0'} kg\"",
-      "BARCODE 220,240,\"128\",80,1,0,2,2,\"#{sanitize(params[:barcode_data])}\"",
+      "CODEPAGE 1252",
+      "TEXT 30,30,\"4\",0,1,1,\"#{truncate_text(sanitize(params[:product_name]), 20)}\"",
+      "TEXT 30,70,\"3\",0,1,1,\"Tipo: #{sanitize(params[:bag_type])}\"",
+      "TEXT 30,100,\"3\",0,1,1,\"Medida: #{sanitize(params[:bag_measurement])}\"",
+      "TEXT 30,130,\"3\",0,1,1,\"Piezas: #{sanitize(params[:pieces_count])}\"",
+      "TEXT 30,160,\"3\",0,1,1,\"Peso: #{sanitize(params[:current_weight]) || '0'} kg\"",
+      "BARCODE 30,220,\"128\",80,1,0,2,2,\"#{sanitize(params[:barcode_data])}\"",
       "PRINT 1,1"
     ]
     tspl.join("\n") + "\n"
@@ -144,14 +168,17 @@ class Admin::ManualPrintingController < AdminController
     tspl = [
       "SIZE #{width} mm, #{height} mm",
       "GAP #{gap} mm, 0 mm",
-      "DIRECTION 1,0",
+      "DIRECTION 0,0",
+      "REFERENCE 0,0",
+      "OFFSET 0 mm",
       "CLS",
-      "TEXT 120,40,\"4\",0,1,1,\"Producto: #{truncate_text(sanitize(params[:product_name]), 10)}\"",
-      "TEXT 120,80,\"3\",0,1,1,\"Rollo: #{sanitize(params[:roll_type])}\"",
-      "TEXT 120,120,\"3\",0,1,1,\"Medida: #{sanitize(params[:roll_measurement])}\"",
-      "TEXT 120,160,\"3\",0,1,1,\"Piezas: #{sanitize(params[:pieces_count_roll])}\"",
-      "TEXT 120,200,\"3\",0,1,1,\"Peso: #{sanitize(params[:current_weight]) || '0'} kg\"",
-      "BARCODE 220,240,\"128\",80,1,0,2,2,\"#{sanitize(params[:barcode_data])}\"",
+      "CODEPAGE 1252",
+      "TEXT 30,30,\"4\",0,1,1,\"#{truncate_text(sanitize(params[:product_name]), 20)}\"",
+      "TEXT 30,70,\"3\",0,1,1,\"Rollo: #{sanitize(params[:roll_type])}\"",
+      "TEXT 30,100,\"3\",0,1,1,\"Medida: #{sanitize(params[:roll_measurement])}\"",
+      "TEXT 30,130,\"3\",0,1,1,\"Piezas: #{sanitize(params[:pieces_count_roll])}\"",
+      "TEXT 30,160,\"3\",0,1,1,\"Peso: #{sanitize(params[:current_weight]) || '0'} kg\"",
+      "BARCODE 30,220,\"128\",80,1,0,2,2,\"#{sanitize(params[:barcode_data])}\"",
       "PRINT 1,1"
     ]
     tspl.join("\n") + "\n"
@@ -162,16 +189,116 @@ class Admin::ManualPrintingController < AdminController
     tspl = [
       "SIZE #{width} mm, #{height} mm",
       "GAP #{gap} mm, 0 mm",
-      "DIRECTION 1,0",
+      "DIRECTION 0,0",
+      "REFERENCE 0,0",
+      "OFFSET 0 mm",
       "CLS",
-      "TEXT 120,40,\"4\",0,1,1,\"Producto: #{truncate_text(sanitize(params[:product_name]), 10)}\"",
-      "TEXT 120,80,\"3\",0,1,1,\"Caja - Bolsa: #{sanitize(params[:bag_type_box])} #{sanitize(params[:bag_measurement_box])}\"",
-      "TEXT 120,120,\"3\",0,1,1,\"Pzs/Caja: #{sanitize(params[:pieces_count_box])}\"",
-      "TEXT 120,160,\"3\",0,1,1,\"Paquetes: #{sanitize(params[:package_count])} x #{sanitize(params[:package_measurement])}\"",
-      "TEXT 120,200,\"3\",0,1,1,\"Peso: #{sanitize(params[:current_weight]) || '0'} kg\"",
-      "BARCODE 220,240,\"128\",80,1,0,2,2,\"#{sanitize(params[:barcode_data])}\"",
+      "CODEPAGE 1252",
+      "TEXT 30,30,\"4\",0,1,1,\"#{truncate_text(sanitize(params[:product_name]), 20)}\"",
+      "TEXT 30,70,\"3\",0,1,1,\"Bolsa: #{sanitize(params[:bag_type_box])} #{sanitize(params[:bag_measurement_box])}\"",
+      "TEXT 30,100,\"3\",0,1,1,\"Pzs/Caja: #{sanitize(params[:pieces_count_box])}\"",
+      "TEXT 30,130,\"3\",0,1,1,\"Paq: #{sanitize(params[:package_count])} x #{sanitize(params[:package_measurement])}\"",
+      "TEXT 30,160,\"3\",0,1,1,\"Peso: #{sanitize(params[:current_weight]) || '0'} kg\"",
+      "BARCODE 30,220,\"128\",80,1,0,2,2,\"#{sanitize(params[:barcode_data])}\"",
       "PRINT 1,1"
     ]
     tspl.join("\n") + "\n"
+  end
+
+  private
+
+  def sanitize(text)
+    text.to_s.gsub('"', '\"')
+  end
+
+  def truncate_text(text, max_length)
+    text = text.to_s
+    if text.length > max_length
+      text[0...max_length]
+    else
+      text
+    end
+  end
+
+  # Métodos para generar etiquetas ZPL (para impresoras Zebra)
+  def generate_bag_label_zpl(params, width, height, gap)
+    # Convertir dimensiones a unidades ZPL (aproximadamente 8 dpmm para 203 dpi)
+    width_dots = (width.to_f * 8).round
+    height_dots = (height.to_f * 8).round
+
+    zpl = <<~ZPL
+      ^XA
+      ^CI28
+      ^MMT
+      ^PW#{width_dots}
+      ^LL#{height_dots}
+      ^LS0
+      ^FO240,80^A0N,35,35^FD#{truncate_text(sanitize(params[:product_name]), 20)}^FS
+      ^FO240,125^A0N,28,28^FDTipo: #{sanitize(params[:bag_type])}^FS
+      ^FO240,160^A0N,30,30^FDMedida: #{sanitize(params[:bag_measurement])}^FS
+      ^FO240,195^A0N,30,30^FDPiezas: #{sanitize(params[:pieces_count])}^FS
+      ^FO240,230^A0N,30,30^FDPeso: #{sanitize(params[:current_weight]) || '0'} kg^FS
+      ^FO240,270^BY3,3
+      ^BCN,90,Y,N,N
+      ^FD#{sanitize(params[:barcode_data])}^FS
+      ^PQ1,0,1,Y
+      ^XZ
+    ZPL
+
+    zpl
+  end
+
+  def generate_roll_label_zpl(params, width, height, gap)
+    # Convertir dimensiones a unidades ZPL (aproximadamente 8 dpmm para 203 dpi)
+    width_dots = (width.to_f * 8).round
+    height_dots = (height.to_f * 8).round
+
+    zpl = <<~ZPL
+      ^XA
+      ^CI28
+      ^MMT
+      ^PW#{width_dots}
+      ^LL#{height_dots}
+      ^LS0
+      ^FO240,80^A0N,35,35^FD#{truncate_text(sanitize(params[:product_name]), 20)}^FS
+      ^FO240,125^A0N,28,28^FDRollo: #{sanitize(params[:roll_type])}^FS
+      ^FO240,160^A0N,30,30^FDMedida: #{sanitize(params[:roll_measurement])}^FS
+      ^FO240,195^A0N,30,30^FDPiezas: #{sanitize(params[:pieces_count_roll])}^FS
+      ^FO240,230^A0N,30,30^FDPeso: #{sanitize(params[:current_weight]) || '0'} kg^FS
+      ^FO240,270^BY3,3
+      ^BCN,90,Y,N,N
+      ^FD#{sanitize(params[:barcode_data])}^FS
+      ^PQ1,0,1,Y
+      ^XZ
+    ZPL
+
+    zpl
+  end
+
+  def generate_box_label_zpl(params, width, height, gap)
+    # Convertir dimensiones a unidades ZPL (aproximadamente 8 dpmm para 203 dpi)
+    width_dots = (width.to_f * 8).round
+    height_dots = (height.to_f * 8).round
+
+    zpl = <<~ZPL
+      ^XA
+      ^CI28
+      ^MMT
+      ^PW#{width_dots}
+      ^LL#{height_dots}
+      ^LS0
+      ^FO240,80^A0N,35,35^FD#{truncate_text(sanitize(params[:product_name]), 20)}^FS
+      ^FO240,125^A0N,28,28^FDBolsa: #{sanitize(params[:bag_type_box])} #{sanitize(params[:bag_measurement_box])}^FS
+      ^FO240,160^A0N,30,30^FDPzs/Caja: #{sanitize(params[:pieces_count_box])}^FS
+      ^FO240,195^A0N,30,30^FD#{sanitize(params[:package_count])} x #{sanitize(params[:package_measurement])}^FS
+      ^FO240,230^A0N,30,30^FDPeso: #{sanitize(params[:current_weight]) || '0'} kg^FS
+      ^FO240,270^BY3,3
+      ^BCN,90,Y,N,N
+      ^FD#{sanitize(params[:barcode_data])}^FS
+      ^PQ1,0,1,Y
+      ^XZ
+    ZPL
+
+    zpl
   end
 end

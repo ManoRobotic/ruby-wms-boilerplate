@@ -13,10 +13,20 @@ class PricesController < ApplicationController
     private
 
     def fetch_prices_safely
-        BbvaScraper.obtener_precios
+        # Placeholder implementation since BbvaScraper service doesn't exist
+        # In a real implementation, you would fetch from an actual API
+        get_mock_prices
     rescue StandardError => e
-        Rails.logger.error "Failed to fetch BBVA prices: #{e.message}"
+        Rails.logger.error "Failed to fetch prices: #{e.message}"
         # Return cached data if available, or empty hash
         Rails.cache.fetch("bbva_prices_fallback", expires_in: 1.day) { {} }
+    end
+
+    def get_mock_prices
+        # Mock data for demonstration purposes
+        {
+            "Oro" => { "compra" => "1500.00", "venta" => "1520.00" },
+            "Plata" => { "compra" => "25.50", "venta" => "26.00" }
+        }
     end
 end

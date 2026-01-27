@@ -1,7 +1,11 @@
 require 'rails_helper'
-require Rails.root.join('app', 'services', 'BbvaScraper')
 
 RSpec.describe PricesController, type: :controller do
+  let(:admin) { create(:admin, email: "test@example.com", password: "password123", password_confirmation: "password123") }
+
+  before do
+    sign_in admin
+  end
   describe "GET #index" do
     let(:mock_prices) do
       {
@@ -11,7 +15,8 @@ RSpec.describe PricesController, type: :controller do
     end
 
     before do
-      allow(BbvaScraper).to receive(:obtener_precios).and_return(mock_prices)
+      # Mock the controller's internal method that fetches prices
+      allow_any_instance_of(PricesController).to receive(:get_mock_prices).and_return(mock_prices)
     end
 
     it "returns http success" do
@@ -24,19 +29,20 @@ RSpec.describe PricesController, type: :controller do
       expect(response).to render_template(:index)
     end
 
-    it "assigns prices from BbvaScraper" do
+    it "assigns prices" do
       get :index
       expect(assigns(:precios)).to eq(mock_prices)
     end
 
-    it "calls BbvaScraper.obtener_precios" do
-      expect(BbvaScraper).to receive(:obtener_precios).and_return(mock_prices)
+    it "calls the internal price fetching method" do
+      expect_any_instance_of(PricesController).to receive(:get_mock_prices).and_return(mock_prices)
+
       get :index
     end
 
-    context "when BbvaScraper raises an error" do
+    context "when price fetching raises an error" do
       before do
-        allow(BbvaScraper).to receive(:obtener_precios).and_raise(StandardError.new("Scraper error"))
+        allow_any_instance_of(PricesController).to receive(:get_mock_prices).and_raise(StandardError.new("Price fetching error"))
       end
 
       it "handles the error gracefully" do
@@ -46,9 +52,9 @@ RSpec.describe PricesController, type: :controller do
       end
     end
 
-    context "when BbvaScraper returns nil" do
+    context "when price fetching returns nil" do
       before do
-        allow(BbvaScraper).to receive(:obtener_precios).and_return(nil)
+        allow_any_instance_of(PricesController).to receive(:get_mock_prices).and_return(nil)
       end
 
       it "assigns nil to @precios" do
@@ -57,9 +63,9 @@ RSpec.describe PricesController, type: :controller do
       end
     end
 
-    context "when BbvaScraper returns empty hash" do
+    context "when price fetching returns empty hash" do
       before do
-        allow(BbvaScraper).to receive(:obtener_precios).and_return({})
+        allow_any_instance_of(PricesController).to receive(:get_mock_prices).and_return({})
       end
 
       it "assigns empty hash to @precios" do

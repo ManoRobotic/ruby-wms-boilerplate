@@ -5,7 +5,7 @@
 <% end %>
 
 <%# Reset the form %>
-<%= turbo_stream.replace "consecutivo-modal-body" do %>
+<%= turbo_stream.update "consecutivo-modal-body" do %>
   <% new_item = @production_order.production_order_items.build %>
   <% new_item.folio_consecutivo = ProductionOrderItem.generate_folio_consecutivo(@production_order) %>
   <%= render(ConsecutivoFormComponent.new(production_order: @production_order, consecutivo_form: new_item, auto_print: @auto_print)) %>

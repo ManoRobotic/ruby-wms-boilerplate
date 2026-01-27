@@ -2,18 +2,30 @@ import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
   static targets = [
-    "pesoNeto", "metrosLineales", "pesoBrutoInput", "pesoBrutoHidden", 
-    "pesoCoreDisplay", "pesoNetoDisplay", "metrosLinealesDisplay", 
-    "especificacionesDisplay", "manualModeCheckbox", "manualWeightSection", 
-    "scaleWeightSection", "serialSection", "backupWeighButton", 
+    "pesoNeto", "metrosLineales", "pesoBrutoInput", "pesoBrutoHidden",
+    "pesoCoreDisplay", "pesoNetoDisplay", "metrosLinealesDisplay",
+    "especificacionesDisplay", "manualModeCheckbox", "manualWeightSection",
+    "scaleWeightSection", "serialSection", "backupWeighButton",
     "pesoBrutoManualHidden", "autoPrintCheckbox"
   ]
 
   connect() {
-    // console.log("Consecutivo form controller connected")
+    this.instanceId = Math.random().toString(36).substr(2, 9);
+    console.log(`[Consecutivo ${this.instanceId}] 🔌 Connect`);
+
+    this.resetState()
     this.calculateWeights()
-    this.currentWeight = null
     this.listenForWeightUpdates()
+  }
+
+  // MutationObserver removed - Stimulus automatically handles disconnect/connect when DOM is replaced
+  // The modal parent lookup was failing after the second print, causing controllers to not disconnect properly
+
+
+
+  resetState() {
+    console.log(`[Consecutivo ${this.instanceId}] 🔄 Resetting state`);
+    this.currentWeight = null
     this.isManualMode = false
     this.lastWeights = []
     this.hasTriggered = false
@@ -24,11 +36,27 @@ export default class extends Controller {
     this.isFirstWeight = true
   }
 
+  // Removed handleTurboStream - MutationObserver handles form replacement
+
   disconnect() {
+    console.log(`[Consecutivo ${this.instanceId}] 🔌 Controller disconnecting | hasTriggered: ${this.hasTriggered} | waitingForRemoval: ${this.waitingForWeightRemoval}`);
+    
     if (this.boundHandleWeightUpdate) {
+      console.log(`[Consecutivo ${this.instanceId}] 🔇 Removing weight update event listener`);
       document.removeEventListener("serial:weight-update", this.boundHandleWeightUpdate);
     }
-    this.removeStatusIndicator()
+    
+    if (this.boundHandleTurboStream) {
+      console.log(`[Consecutivo ${this.instanceId}] 🔇 Removing Turbo Stream event listener`);
+      document.removeEventListener('turbo:before-stream-render', this.boundHandleTurboStream);
+    }
+    
+    this.removeStatusIndicator();
+    
+    // Clear any pending state
+    console.log(`[Consecutivo ${this.instanceId}] 🧹 Clearing state flags in disconnect`);
+    this.hasTriggered = false;
+    this.waitingForWeightRemoval = false;
   }
 
   toggleManualMode(event) {
@@ -121,6 +149,7 @@ export default class extends Controller {
 
   onWeightRead(event) {
     const weight = parseFloat(event.detail.weight);
+    // console.log(`[Consecutivo ${this.instanceId}] ⚖️ Read: ${weight}kg`);
     this.currentWeight = weight;
     
     this.calculateWeights();
@@ -130,16 +159,18 @@ export default class extends Controller {
   checkStabilityAndTrigger(weightValue) {
     if (weightValue < this.minWeight) {
       if (this.waitingForWeightRemoval) {
-        console.log("[Consecutivo] ⚖️ Peso removido. Listo para siguiente.");
+        console.log(`[Consecutivo ${this.instanceId}] ⚖️ Peso removido. Listo para siguiente.`);
         this.removeStatusIndicator();
+        this.resetState();
+      } else {
+        this.currentWeight = weightValue;
       }
-      this.hasTriggered = false;
-      this.waitingForWeightRemoval = false;
-      this.lastWeights = [];
       return;
     }
 
+    // Solo procesar si no hemos disparado aún y no estamos esperando la remoción del peso
     if (this.hasTriggered || this.waitingForWeightRemoval) {
+      this.currentWeight = weightValue;
       return;
     }
 
@@ -153,16 +184,17 @@ export default class extends Controller {
 
       if (variance <= this.stabilityRange) {
         const isAutoPrintEnabled = this.hasAutoPrintCheckboxTarget && this.autoPrintCheckboxTarget.checked;
+        
         if (isAutoPrintEnabled) {
-          console.log(`[Consecutivo] ✅ Pulso recibido: ${weightValue}kg. Guardando...`);
+          console.log(`[Consecutivo ${this.instanceId}] ✅ Pulso ${weightValue}kg. Guardando...`);
           this.hasTriggered = true;
           this.waitingForWeightRemoval = true;
           this.showStatusHint(`✅ Pulso detectado (${weightValue.toFixed(2)}kg) - Guardando...`, "bg-emerald-600", true);
-          
+
           setTimeout(() => {
             const form = this.element.closest('form') || this.element;
-            form.requestSubmit();
-          }, 300); // Reducido a 300ms para mayor rapidez
+            if (form) form.requestSubmit();
+          }, 300);
         }
       }
     }
@@ -300,12 +332,15 @@ export default class extends Controller {
   }
 
   handleFormSubmit(event) {
+    console.log(`[Consecutivo ${this.instanceId}] 📝 Form submit handler called`);
     this.calculateWeights()
     if (this.isManualMode && this.hasPesoBrutoInputTarget && this.hasPesoBrutoHiddenTarget) {
       this.pesoBrutoHiddenTarget.value = this.pesoBrutoInputTarget.value || "0"
     } else if (this.currentWeight !== null && this.hasPesoBrutoHiddenTarget) {
       this.pesoBrutoHiddenTarget.value = this.currentWeight.toString()
     }
-    // console.log('Form is being submitted via Turbo')
+    
+    // Don't reset state here - let the controller lifecycle handle it
+    // The Turbo Stream will replace the form, triggering disconnect() then connect()
   }
 }
