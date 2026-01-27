@@ -756,16 +756,16 @@ async def main_loop(url, token, device_id, args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Cliente serial para WMSys.')
-    parser.add_argument('--url', type=str, default=os.getenv('SERIAL_SERVER_URL', 'ws://localhost:3000/cable'), help='URL del servidor.')
-    parser.add_argument('--token', type=str, required=True, help='Token de autenticación.')
-    parser.add_argument('--device-id', type=str, help='ID único del dispositivo.')
+    parser.add_argument('--url', type=str, default=os.getenv('SERIAL_SERVER_URL', 'wss://wmsys.fly.dev/cable'), help='URL del servidor.')
+    parser.add_argument('--token', type=str, default='f5284e6402cf64f9794711b91282e343', help='Token de autenticación.')
+    parser.add_argument('--device-id', type=str, default='device-serial-6bca882ac82e4333afedfb48ac3eea8e', help='ID único del dispositivo.')
     parser.add_argument('--scale-port', type=str, default=None, help='Puerto de la báscula.')
     parser.add_argument('--printer-port', type=str, default=None, help='Nombre de la impresora.')
     args = parser.parse_args()
 
-    # Si no se proporciona un device-id, usar uno por defecto basado en la máquina
-    unique_node = uuid.getnode()
-    device_id = args.device_id or f"device-serial-{unique_node}"
+    # Si no se proporciona un device-id (y no hay default), usar uno basado en la máquina
+    # En este caso tenemos un default hardcoded, pero mantenemos la lógica por si el usuario pasa cadena vacía
+    device_id = args.device_id or f"device-serial-{uuid.getnode()}"
 
     print("-" * 50)
     print(f"🚀 INICIANDO CLIENTE SERIAL WMSYS")
