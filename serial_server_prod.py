@@ -19,6 +19,7 @@ import uuid
 import websockets
 import base64
 import glob
+import tempfile
 
 # Import platform-specific modules conditionally
 if sys.platform.startswith('win'):
@@ -28,7 +29,101 @@ if sys.platform.startswith('win'):
         winreg = None
 
 # --- Constantes ---
-CONFIG_FILE = 'serial_config.json'
+# Guardar config en la carpeta de usuario para evitar errores de permisos en el EXE
+CONFIG_DIR = os.path.expanduser("~")
+CONFIG_FILE = os.path.join(CONFIG_DIR, 'wms_serial_config.json')
+PID_FILE = os.path.join(CONFIG_DIR, 'wms_serial.pid')
+
+def check_single_instance():
+    """Verifica que no haya otras copias y mata TODAS las instancias previas por nombre."""
+    try:
+        import psutil
+        import tempfile
+    except ImportError:
+        logger.warning("psutil no está instalado, omitiendo verificación de instancia única")
+        return True
+
+    # Lista de nombres de scripts que podrían estar corriendo y bloqueando el puerto
+    conflicting_scripts = [
+        'serial_server_prod.py',
+        'simple_wms_serial_server.exe',
+        'final_working_serial_server.py',
+        'serial_server_windows.py'
+    ]
+
+    current_pid = os.getpid()
+
+    logger.info(f"🛡️ Verificando instancias y conflictos (PID actual: {current_pid})...")
+
+    # 1. Verificar archivo PID
+    pid_file = os.path.join(tempfile.gettempdir(), "wms_serial_server.pid")
+    if os.path.exists(pid_file):
+        try:
+            with open(pid_file, 'r') as f:
+                old_pid = int(f.read().strip())
+
+            if psutil.pid_exists(old_pid) and old_pid != current_pid:
+                logger.info(f"   ⚰️ Archivo PID encontrado ({old_pid}). Intentando limpieza...")
+                try:
+                    # Matar proceso por PID
+                    old_process = psutil.Process(old_pid)
+                    logger.warning(f"   💀 MATANDO PROCESO ZOMBIE (PID {old_pid}): {old_process.name()}")
+                    old_process.terminate()
+                    old_process.wait(timeout=5)  # Esperar hasta 5 segundos a que termine
+                except psutil.NoSuchProcess:
+                    logger.info("   ✅ Proceso ya no existe")
+                except psutil.TimeoutExpired:
+                    logger.warning(f"   ⚠️ Proceso {old_pid} no respondió, forzando terminación...")
+                    old_process.kill()  # Forzar terminación si no responde
+                except Exception as e:
+                    logger.error(f"   ❌ Error matando proceso {old_pid}: {e}")
+        except ValueError:
+            logger.warning("   ⚠️ PID inválido en archivo, borrando...")
+            try:
+                os.remove(pid_file)
+            except:
+                pass
+        except Exception as e:
+            logger.debug(f"Error en limpieza por PID: {e}")
+
+    # 2. Buscar procesos por nombre (adicional a PID)
+    try:
+        current_script_name = os.path.basename(__file__)
+        for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+            try:
+                proc_info = proc.info
+                proc_pid = proc_info['pid']
+
+                if proc_pid == current_pid:
+                    continue
+
+                # Criterio de matanza:
+                # 1. Es un EXE compilado (serial_server_prod.exe)
+                # 2. Es python corriendo ESTE script específico
+                should_kill = False
+
+                proc_cmd = ' '.join(proc_info.get('cmdline', []))
+                my_script = current_script_name
+
+                if 'serial_server_prod.exe' in proc_cmd.lower():
+                    should_kill = True
+                elif 'python' in proc_cmd.lower() and my_script.lower() in proc_cmd.lower():
+                    should_kill = True
+
+                if should_kill:
+                    logger.warning(f"   💀 MATANDO INSTANCIA ZOMBIE DETECTADA (PID {proc_pid}): {proc_cmd[:50]}...")
+                    proc.kill()
+                    time.sleep(1)
+            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                continue
+    except Exception as e:
+        logger.debug(f"Fallo al usar psutil, intentando alternativas: {e}")
+
+    # 3. Guardar PID actual
+    with open(PID_FILE, 'w') as f:
+        f.write(str(current_pid))
+
+    return True
 
 # --- Verificación de Plataforma (win32) ---
 try:
@@ -42,6 +137,33 @@ except ImportError:
 # --- Configuración de Logging ---
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+# --- Herramientas de Diagnóstico ---
+
+def log_hardware_audit():
+    """Realiza un escaneo profundo del hardware disponible y lo vuelca al log."""
+    logger.info("=== AUDITORIA DE HARDWARE INICIAL ===")
+    try:
+        ports = serial.tools.list_ports.comports()
+        if not ports:
+            logger.warning("!!! NO SE DETECTARON PUERTOS SERIALES EN EL SISTEMA !!!")
+        for p in ports:
+            logger.info(f"Puerto Serial: {p.device}")
+            logger.info(f" - Descripción: {p.description}")
+            logger.info(f" - Fabricante: {p.manufacturer}")
+            logger.info(f" - HWID: {p.hwid}")
+            logger.info(f" - VID/PID: {p.vid}/{p.pid}")
+    except Exception as e:
+        logger.error(f"Error realizando auditoría de hardware: {e}")
+    
+    if sys.platform.startswith('win'):
+        try:
+            import win32print
+            printers = [p[2] for p in win32print.EnumPrinters(win32print.PRINTER_ENUM_LOCAL | win32print.PRINTER_ENUM_CONNECTIONS)]
+            logger.info(f"Impresoras detectadas: {printers}")
+        except:
+            logger.warning("No se pudo auditar impresoras.")
+    logger.info("=====================================")
 
 # --- Clases de Gestión de Hardware ---
 
@@ -135,13 +257,15 @@ class PrinterManager:
                 logger.warning("No se ha especificado un nombre de impresora.")
                 return False
             try:
-                printers = [p[2] for p in win32print.EnumPrinters(win32print.PRINTER_ENUM_LOCAL | win32print.PRINTER_ENUM_CONNECTIONS)]
+                printers_raw = win32print.EnumPrinters(win32print.PRINTER_ENUM_LOCAL | win32print.PRINTER_ENUM_CONNECTIONS)
+                printers = [p[2] for p in printers_raw]
                 if self.printer_name in printers:
                     self.is_connected = True
                     logger.info(f"✅ Impresora lista: {self.printer_name}")
                 else:
                     self.is_connected = False
-                    logger.error(f"✗ No se encontró la impresora llamada: {self.printer_name}")
+                    logger.error(f"✗ No se encontró la impresora llamada: '{self.printer_name}'")
+                    logger.info(f"Impresoras disponibles: {printers}")
                 return self.is_connected
             except Exception as e:
                 logger.error(f"✗ Error buscando impresora: {e}")
@@ -230,27 +354,33 @@ class SerialClient:
         self.websocket = None
         self.subscription_confirmed = False
         self.configuration_received = False
+        self.last_scale_connection_attempt = 0
+        self.last_printer_connection_attempt = 0
         self.identifier_str = None  # Almacenar el identificador exacto usado para la suscripción
         self.message_handlers = {}
+        # Locks para SERIALIZAR acceso a hardware y evitar race conditions
+        self.scale_lock = asyncio.Lock()
+        self.printer_lock = asyncio.Lock()
 
     async def connect(self):
         """Conectar al servidor de ActionCable"""
         try:
             # Agregar token a la URL
             full_url = f"{self.url}?token={self.token}"
-            logger.info(f"Conectando a {full_url}")
-
+            
+            # Preparar headers para saltar aviso de ngrok
+            headers = {
+                "ngrok-skip-browser-warning": "69420",
+                "User-Agent": "WMSys-Serial-Client-Aggressive"
+            }
+            logger.info(f"Conectando a {full_url}...")
+            
             try:
-                # Intentar con extra_headers para saltar aviso de ngrok
-                self.websocket = await websockets.connect(
-                    full_url,
-                    extra_headers={
-                        "ngrok-skip-browser-warning": "any-value"
-                    }
-                )
-            except TypeError as e:
-                if "extra_headers" in str(e):
-                    logger.warning("Tu versión de websockets es antigua y no soporta 'extra_headers'. Intentando conexión simple...")
+                # La mayoría de las versiones modernas de websockets soportan extra_headers
+                self.websocket = await websockets.connect(full_url, extra_headers=headers)
+            except Exception as e:
+                if "extra_headers" in str(e) or "TypeError" in type(e).__name__:
+                    logger.warning(f"Reintentando sin extra_headers por incompatibilidad de librería: {e}")
                     self.websocket = await websockets.connect(full_url)
                 else:
                     raise
@@ -341,8 +471,13 @@ class SerialClient:
 
     async def handle_message(self, message):
         """Manejar mensajes entrantes"""
+        # Evitar loguear pings para no llenar el log
+        if message.get('type') == 'ping' or message.get('action') == 'ping':
+            return
+
         logger.info(f"Mensaje recibido: {message}")
         action = message.get('action')
+        
         if action == 'set_config':
             logger.info("Comando de configuración recibido.")
             
@@ -351,10 +486,11 @@ class SerialClient:
             new_printer_port = message.get('printer_port')
             
             if new_scale_port:
+                # Simplificado: Solo actualizar sin lógica compleja de override
                 available_ports = [p.device for p in serial.tools.list_ports.comports()]
                 if new_scale_port in available_ports:
-                    logger.info(f"Actualizando puerto de báscula a: {new_scale_port}")
-                    self.scale_manager.set_port(new_scale_port)
+                     logger.info(f"Actualizando puerto de báscula a: {new_scale_port}")
+                     self.scale_manager.set_port(new_scale_port)
                 else:
                     logger.warning(f"Puerto de báscula {new_scale_port} no disponible")
             
@@ -374,39 +510,63 @@ class SerialClient:
             logger.info("Enviando respuesta de puertos tras configuración...")
             await self.send_ports_list()
         elif action == 'connect_scale':
-            port = message.get('port')
-            baudrate = message.get('baudrate', 115200)
-            if not port:
-                logger.warning("No se especificó puerto para conectar la báscula")
-                return
-            logger.info(f"Comando de conexión de báscula recibido: {port}, {baudrate}")
-            
-            # Verificar si el puerto está disponible antes de intentar conectar
-            available_ports = [p.device for p in serial.tools.list_ports.comports()]
-            if port in available_ports:
-                self.scale_manager.set_port(port)
-                self.scale_manager.baudrate = baudrate
-                # Intentar conectar en un hilo aparte
-                await asyncio.to_thread(self.scale_manager.connect)
-            else:
-                logger.warning(f"Puerto {port} no disponible para conexión de báscula")
+            async with self.scale_lock:
+                port = message.get('port')
+                baudrate = message.get('baudrate', 115200)
+                if not port:
+                    logger.warning("⚠ connect_scale: No se especificó puerto")
+                    return
+                
+                logger.info(f"⚡ Solicitud recibida: Conectar Báscula {port} @ {baudrate}")
+                
+                 # Heurística simplificada: Buscar coincidencia exacta o prefijada
+                available = serial.tools.list_ports.comports()
+                match = None
+                p_names = []
+                for p in available:
+                    p_names.append(p.device)
+                    # Comparar exacto, o con prefijo, o case-insensitive
+                    if p.device.upper() == port.upper() or p.device.upper() == f"\\\\.\\{port.upper()}":
+                        match = p.device
+                        break
+                
+                if match:
+                    if match != port:
+                        logger.info(f"ℹ Auto-corrección: {port} -> {match}")
+                    self.scale_manager.set_port(match)
+                    self.scale_manager.baudrate = baudrate
+                    await asyncio.to_thread(self.scale_manager.connect)
+                else:
+                    # Intento directo aunque no esté en la lista (a veces pasa en virtual COM ports)
+                    logger.warning(f"Puerto '{port}' no en lista standard. Intentando directo...")
+                    self.scale_manager.set_port(port)
+                    self.scale_manager.baudrate = baudrate
+                    await asyncio.to_thread(self.scale_manager.connect)
+
         elif action == 'disconnect_scale':
-            logger.info("Comando de desconexión de báscula recibido.")
-            await asyncio.to_thread(self.scale_manager.disconnect)
+            async with self.scale_lock:
+                logger.info("Comando de desconexión de báscula recibido.")
+                await asyncio.to_thread(self.scale_manager.disconnect)
         elif action == 'start_scale_reading':
             logger.info("Comando de inicio de lectura de báscula recibido.")
-            # Ya se está realizando lectura periódica en stream_updates
+            # Ya se está realizando lectura periódica en stream_updates (lee si está conectado)
         elif action == 'stop_scale_reading':
             logger.info("Comando de detención de lectura de báscula recibido.")
-            # La lectura se detiene cuando se cierra la conexión
+            # La lectura de stream_updates se detendrá si el manager está desconectado
         elif action == 'connect_printer':
-            logger.info("Comando de conexión de impresora recibido.")
-            # La conexión de impresora se gestiona internamente
-            self.printer_manager.connect_printer()
+            async with self.printer_lock:
+                port = message.get('port')
+                if port:
+                    logger.info(f"⚡ Solicitud: Conectar Impresora {port}")
+                    self.printer_manager.set_printer(port)
+                else:
+                    logger.info("⚡ Solicitud: Conectar Impresora (nombre actual)")
+                
+                await asyncio.to_thread(self.printer_manager.connect_printer)
         elif action == 'disconnect_printer':
-            logger.info("Comando de desconexión de impresora recibido.")
-            # No hay una desconexión explícita de impresora en el manager
-            self.printer_manager.is_connected = False
+            async with self.printer_lock:
+                logger.info("Comando de desconexión de impresora recibido.")
+                self.printer_manager.is_connected = False
         elif action == 'print_label':
             content = message.get('content', '')
             ancho_mm = message.get('ancho_mm', 80)
@@ -417,24 +577,26 @@ class SerialClient:
             ancho_mm = message.get('ancho_mm', 80)
             alto_mm = message.get('alto_mm', 50)
             logger.info(f"Comando de prueba de impresora recibido: {ancho_mm}x{alto_mm}mm")
-            # Enviar contenido de prueba
-            test_content = f"SIZE {ancho_mm} mm, {alto_mm} mm\nCLS\nTEST LABEL\nPRINT 1\n"
+            # Enviar contenido de prueba (ZPL para Zebra y TSPL para otros)
+            test_content = (
+                f"^XA^FO50,50^A0N,50,50^FDTEST LABEL (ZPL)^FS^XZ"  # Zebra
+                f"\nSIZE {ancho_mm} mm, {alto_mm} mm\nCLS\nTEXT 50,50,\"3\",0,1,1,\"TEST LABEL (TSPL)\"\nPRINT 1\n" # TSPL
+            )
             await asyncio.to_thread(self.printer_manager.print_label, test_content, ancho_mm=ancho_mm, alto_mm=alto_mm)
-        elif action == 'ping' or message.get('type') == 'ping' or action == 'request_ports':
+        elif action == 'request_ports':
             logger.info(f"!!! Petición de estado '{action}' capturada !!!")
-            logger.info("Enviando pong y lista de puertos de respuesta...")
-            await self.send_data({
-                'action': 'pong',
-                'timestamp': datetime.now().isoformat()
-            })
             await self.send_ports_list()
+        elif action == 'ports_update':
+            # Ignorar este mensaje si viene del servidor como eco de nuestra propia actualización
+            pass
         else:
-            logger.warning(f"Acción no reconocida en handle_message: {action}")
+            # Si no es un mensaje de sistema tipico de ActionCable
+            if not message.get('type') in ['welcome', 'ping', 'confirm_subscription']:
+                logger.warning(f"Acción no reconocida en handle_message: {action}")
 
     async def send_ports_list(self):
         """Enviar la lista de puertos al servidor"""
         try:
-            # Quitamos el sleep agresivo
             await asyncio.sleep(0.1)
 
             # Obtener puertos serie reales
@@ -668,7 +830,10 @@ async def stream_updates(client, scale_manager, printer_manager, device_id):
                 previous_printer_status = printer_manager.is_connected
 
             # Leer peso de la báscula en un hilo aparte para no bloquear el loop
-            reading = await asyncio.to_thread(scale_manager.read_weight)
+            # Solo si hay un puerto definido para evitar logs ruidosos
+            reading = None
+            if scale_manager.port:
+                reading = await asyncio.to_thread(scale_manager.read_weight)
             
             if reading and isinstance(reading, dict) and reading.get('weight') is not None:
                 from datetime import datetime # Import datetime here to ensure it's available
@@ -695,6 +860,7 @@ async def stream_updates(client, scale_manager, printer_manager, device_id):
 
 
 async def main_loop(url, token, device_id, args):
+    log_hardware_audit()
     local_config = load_config()
     initial_scale_port = args.scale_port or local_config.get('scale_port')
     initial_printer_port = args.printer_port or local_config.get('printer_port')
@@ -753,7 +919,6 @@ async def main_loop(url, token, device_id, args):
         logger.warning(f"Conexión perdida. Reintentando en {reconnection_delay:.1f} segundos...")
         await asyncio.sleep(reconnection_delay)
 
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Cliente serial para WMSys.')
     parser.add_argument('--url', type=str, default=os.getenv('SERIAL_SERVER_URL', 'wss://wmsys.fly.dev/cable'), help='URL del servidor.')
@@ -774,10 +939,14 @@ if __name__ == '__main__':
     print(f"⚖️ Báscula: {args.scale_port or 'Pendiente'}")
     print(f"🖨️ Impresora: {args.printer_port or 'Pendiente'}")
     print("-" * 50)
+    
+    if not check_single_instance():
+        logger.error("!!! ERROR: Ya hay otra instancia de este script ejecutándose.")
+        logger.error("Por favor, cierra las ventanas negras abiertas antes de iniciar una nueva.")
+        time.sleep(5)
+        sys.exit(1)
 
     try:
         asyncio.run(main_loop(args.url, args.token, device_id, args))
     except KeyboardInterrupt:
         logger.info("Cliente cerrado.")
-
-

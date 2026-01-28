@@ -110,15 +110,18 @@ This project is released under the MIT License.
 
 Deploy your WMS today. This system provides a professional foundation for warehouse management operations.
 
-Empresa: Flexiempaques
-ID Dispositivo: device-serial-6bca882ac82e4333afedfb48ac3eea8e
-Token: f5284e6402cf64f9794711b91282e343
-
 ---
 
 Empresa: Rzavala
 ID Dispositivo: device-serial-bf05ebcf2c834539b2c63f542754282d
 Token: 74bf5e0a6ae8813dfe80593ed84a7a9c
+
+```bash
+python3 final_working_serial_server.py \
+ --url wss://25e3696d9acd.ngrok-free.app/cable \
+ --token 74bf5e0a6ae8813dfe80593ed84a7a9c \
+ --device-id device-serial-bf05ebcf2c834539b2c63f542754282d
+```
 
 ---
 
@@ -126,3 +129,7 @@ python3 new.py \
  --url wss://wms.fly.dev/cable \
  --token f5284e6402cf64f9794711b91282e343 \
  --device-id device-serial-6bca882ac82e4333afedfb48ac3eea8e
+
+python final_working_serial_server.py --url wss://9b6bb43f0aae.ngrok-free.app/cable --token f5284e6402cf64f9794711b91282e343 --device-id device-serial-6bca882ac82e4333afedfb48ac3eea8e
+
+https://
