@@ -142,11 +142,18 @@ class SerialConnectionChannel < ApplicationCable::Channel
     Rails.logger.info "Scale port: #{data['scale_port']}, Scale connected: #{data['scale_connected']}"
     Rails.logger.info "Printer port: #{data['printer_port']}, Printer connected: #{data['printer_connected']}"
 
-    # Ensure the ports array is properly formatted
-    if data['ports'].present?
-      Rails.logger.info "Ports details: #{data['ports'].map { |p| "#{p['device']}: #{p['description']}" }.join(', ')}"
-    else
-      Rails.logger.warn "Ports array is empty or nil in ports_update message"
+    # Persistimos los puertos en la base de datos si el script nos dice que están ahí.
+    # Esto evita el baile entre COM3 y COM4 si el script detectó el cambio.
+    company = Company.find_by(serial_device_id: @device_id)
+    if company
+      updates = {}
+      updates[:serial_port] = data['scale_port'] if data['scale_port'].present?
+      updates[:printer_port] = data['printer_port'] if data['printer_port'].present?
+      
+      if updates.any?
+        company.update(updates)
+        Rails.logger.info "Canal Serial: Configuración de puertos PERSISTIDA en DB para #{company.name}: #{updates}"
+      end
     end
 
     # Retransmit the message to all subscribers

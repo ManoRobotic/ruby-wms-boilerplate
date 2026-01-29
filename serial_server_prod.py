@@ -82,6 +82,7 @@ class ScaleManager:
         self.lock = threading.RLock() # Usar RLock para permitir llamadas recursivas
         self.last_weight = 0.0
         self.last_connection_attempt = 0 # Throttle para evitar spam de logs
+        self.manual_port_override = False # Indica si el usuario seleccionó un puerto manual
 
     def set_port(self, new_port):
         with self.lock:
@@ -89,6 +90,7 @@ class ScaleManager:
                 logger.info(f"Cambiando puerto de la báscula a: {new_port}")
                 self.port = new_port
                 self.last_connection_attempt = 0 # Reset throttle on port change
+                self.manual_port_override = True # Asumimos que si viene de set_port es intencional
                 self.disconnect()
 
     def connect(self, force=False) -> bool:
@@ -123,17 +125,27 @@ class ScaleManager:
                     except:
                         pass
 
-                # 2. Intento MÍNIMO (Simple Mode) - Como funcionaba antes
-                logger.info(f"Probando conexión simple (9600 baud) en {system_port}...")
+                # 2. Intento MÍNIMO (Simple Mode)
+                # En Windows, usar prefijo \\.\ es más seguro para evitar FileNotFoundError
+                simple_name = system_port
+                if sys.platform.startswith('win') and simple_name and not simple_name.startswith('\\\\.\\'):
+                    simple_name = f"\\\\.\\{simple_name}"
+                
+                logger.info(f"Probando conexión simple (9600 baud) en {simple_name}...")
                 try:
-                    self.serial_connection = serial.Serial(system_port, 9600, timeout=1)
+                    self.serial_connection = serial.Serial(simple_name, 9600, timeout=1)
                     if self.serial_connection.is_open:
-                        logger.info("✅ CONEXIÓN EXITOSA (MODO SIMPLE) @ 9600")
+                        logger.info(f"✅ CONEXIÓN EXITOSA (MODO SIMPLE) @ 9600 en {simple_name}")
                         self.connected = True
                         self.baudrate = 9600
+                        self.port = system_port # Guardar nombre limpio
                         return True
                 except Exception as e:
                     logger.debug(f"✗ Fallo modo simple: {e}")
+                    # Si da FileNotFoundError pero el puerto existe en el sistema, es un "Ghost Port"
+                    if "FileNotFoundError" in str(e) or "[Error 2]" in str(e):
+                        logger.warning(f"⚠ Detectado 'Puerto Fantasma' en {simple_name}. El driver STM32 necesita un reset físico.")
+                    
                     if self.serial_connection: self.serial_connection.close()
                     self.serial_connection = None
                     time.sleep(0.5)
@@ -203,21 +215,44 @@ class ScaleManager:
                                 # Pequeña pausa entre intentos para no saturar el driver
                                 time.sleep(0.1)
 
-                # 5. ULTIMO RECURSO: Intentar encontrar por hardware ID si el nombre falló
-                logger.info("Intentando conexión por búsqueda de Hardware ID (VID/PID)...")
+                # 5. ULTIMO RECURSO: Intentar encontrar por hardware ID si el nombre falló o no existe
+                logger.info("Buscando báscula por Hardware ID (VID:PID 0483:5740)...")
                 for p in serial.tools.list_ports.comports():
-                    if p.vid == 1155 and p.pid == 22336: # STM32 VID/PID detectado en logs
-                        logger.info(f"Detectado dispositivo STM32 en {p.device}. Intentando apertura directa...")
+                    # STM32 VID/PID detectado en logs (1155:22336 decimal == 0483:5740 hex)
+                    # Comprobamos ambos formatos por si acaso
+                    is_stm32 = (p.vid == 0x0483 and p.pid == 0x5740) or (p.vid == 1155 and p.pid == 22336)
+                    if is_stm32:
+                        port_to_try = p.device
+                        if sys.platform.startswith('win') and not port_to_try.startswith('\\\\.\\'):
+                            port_to_try = f"\\\\.\\{port_to_try}"
+                            
+                        logger.info(f"🎯 DISPOSITIVO STM32 ENCONTRADO EN {port_to_try}. Intentando re-conectar...")
                         try:
-                            self.serial_connection = serial.Serial(p.device, 115200, timeout=1)
-                            self.connected = self.serial_connection.is_open
-                            if self.connected:
-                                logger.info(f"✅ CONEXIÓN EXITOSA POR HARDWARE ID en {p.device}")
-                                return True
-                        except: pass
+                            # Intentar apertura directa con reintentos para Error 2 (Settling time)
+                            for r in range(3):
+                                try:
+                                    # Probar a 9600 y 115200 que son los más comunes
+                                    for b in [9600, 115200]:
+                                        try:
+                                            self.serial_connection = serial.Serial(port_to_try, b, timeout=1)
+                                            if self.serial_connection.is_open:
+                                                logger.info(f"✅ CONEXIÓN EXITOSA POR HARDWARE ID en {port_to_try} @ {b}")
+                                                self.port = p.device # Actualizar puerto base
+                                                self.baudrate = b
+                                                self.connected = True
+                                                return True
+                                        except: continue
+                                except Exception as inner_e:
+                                    if "FileNotFoundError" in str(inner_e) or "[Error 2]" in str(inner_e):
+                                        logger.warning(f"  Intento {r+1}/3: El puerto {port_to_try} aún no está listo. Esperando...")
+                                        time.sleep(1.5)
+                                    else:
+                                        raise
+                        except Exception as final_e:
+                            logger.error(f"  Fallo fatal abriendo dispositivo por ID: {final_e}")
 
-                logger.error(f"✗ Agotados {attempts} intentos. El puerto existe pero Windows deniega el acceso.")
-                logger.warning("TIP: Si es un adaptador USB, desconéctalo y vuelve a conectarlo.")
+                logger.error(f"✗ Agotados {attempts} intentos. El puerto no responde o está en uso.")
+                logger.warning("TIP: Desconecta y vuelve a conectar el cable USB de la báscula.")
                 return False
 
             except Exception as e:
@@ -502,8 +537,15 @@ class SerialClient:
             new_printer_port = message.get('printer_port')
             
             if new_scale_port:
-                logger.info(f"Actualizando puerto de báscula a: {new_scale_port}")
-                self.scale_manager.set_port(new_scale_port)
+                # Solo actualizar si no hay un override manual activo o si no estamos conectados
+                if not self.scale_manager.manual_port_override or not self.scale_manager.connected:
+                     logger.info(f"Actualizando puerto de báscula a: {new_scale_port}")
+                     self.scale_manager.set_port(new_scale_port)
+                     # Al venir del servidor, reseteamos el override manual para que 'mande' Rails de nuevo
+                     # a menos que falle la conexión, en cuyo caso el boscado por ID se activará.
+                     self.scale_manager.manual_port_override = False
+                else:
+                    logger.info(f"Ignorando cambio de puerto a {new_scale_port} porque hay una conexión manual activa en {self.scale_manager.port}")
             
             if new_printer_port:
                 logger.info(f"Actualizando impresora a: {new_printer_port}")
