@@ -43,6 +43,33 @@ except ImportError:
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
+# --- Herramientas de Diagnóstico ---
+
+def log_hardware_audit():
+    """Realiza un escaneo profundo del hardware disponible y lo vuelca al log."""
+    logger.info("=== AUDITORIA DE HARDWARE INICIAL ===")
+    try:
+        ports = serial.tools.list_ports.comports()
+        if not ports:
+            logger.warning("!!! NO SE DETECTARON PUERTOS SERIALES EN EL SISTEMA !!!")
+        for p in ports:
+            logger.info(f"Puerto Serial: {p.device}")
+            logger.info(f" - Descripción: {p.description}")
+            logger.info(f" - Fabricante: {p.manufacturer}")
+            logger.info(f" - HWID: {p.hwid}")
+            logger.info(f" - VID/PID: {p.vid}/{p.pid}")
+    except Exception as e:
+        logger.error(f"Error realizando auditoría de hardware: {e}")
+    
+    if sys.platform.startswith('win'):
+        try:
+            import win32print
+            printers = [p[2] for p in win32print.EnumPrinters(win32print.PRINTER_ENUM_LOCAL | win32print.PRINTER_ENUM_CONNECTIONS)]
+            logger.info(f"Impresoras detectadas: {printers}")
+        except:
+            logger.warning("No se pudo auditar impresoras.")
+    logger.info("=====================================")
+
 # --- Clases de Gestión de Hardware ---
 
 class ScaleManager:
@@ -78,9 +105,29 @@ class ScaleManager:
                 return False
             self.last_connection_attempt = now
 
+            # Asegurar reset total antes de cualquier barrido
+            self.disconnect()
             self.connected = False
+            # CRÍTICO: Pausa extendida para que Windows limpie el handle (especialmente STM32)
+            time.sleep(1.5)
+            
             try:
-                # 1. Limpiar estado previo
+                # 1. Intento MÍNIMO (Simple Mode) - Como funcionaba antes
+                logger.info(f"Probando conexión simple (9600 baud) en {system_port}...")
+                try:
+                    self.serial_connection = serial.Serial(system_port, 9600, timeout=1)
+                    if self.serial_connection.is_open:
+                        logger.info("✅ CONEXIÓN EXITOSA (MODO SIMPLE) @ 9600")
+                        self.connected = True
+                        self.baudrate = 9600
+                        return True
+                except Exception as e:
+                    logger.debug(f"✗ Fallo modo simple: {e}")
+                    if self.serial_connection: self.serial_connection.close()
+                    self.serial_connection = None
+                    time.sleep(0.5)
+
+                # 2. Limpiar estado previo para el barrido
                 if self.serial_connection:
                     try: self.serial_connection.close()
                     except: pass
@@ -108,29 +155,35 @@ class ScaleManager:
                 
                 # Velocidades: pedida por Rails, luego estándares comunes de básculas (extendido)
                 bauds_to_try = [self.baudrate]
-                for b in [9600, 4800, 2400, 19200, 1200, 115200]:
+                for b in [9600, 4800, 2400, 19200, 38400, 1200, 115200]:
                     if b not in bauds_to_try:
                         bauds_to_try.append(b)
                 
-                # Señales: False (más compatible) y True (algunos adaptadores lo necesitan)
-                signals_to_try = [False, True]
+                # Señales: Tuplas de (dsrdtr, rtscts, xonxoff)
+                # Las básculas virtuales (VCP) suelen preferir todo en False.
+                signals_to_try = [
+                    (False, False, False), # Estándar / VCP
+                    (True, True, False),   # Hardware Flow
+                    (False, False, True),  # Software Flow
+                ]
 
                 # 4. Barrido de matriz (Fuerza Bruta)
                 logger.info(f"--- Iniciando barrido matricial forzado para {system_port} ---" if force else f"--- Iniciando barrido matricial automático para {system_port} ---")
                 attempts = 0
                 for name in names_to_try:
                     for baud in bauds_to_try:
-                        for signal in signals_to_try:
+                        for signals in signals_to_try:
                             attempts += 1
+                            dtr, rts, xon = signals
                             try:
-                                logger.debug(f"[{attempts}] Probando: {name} @ {baud} baud (Handshake={signal})...")
+                                logger.debug(f"[{attempts}] Probando: {name} @ {baud} baud (DTR={dtr}, RTS={rts}, XON={xon})...")
                                 self.serial_connection = serial.Serial(
                                     name, baud, timeout=1, write_timeout=1,
-                                    dsrdtr=signal, rtscts=signal
+                                    dsrdtr=dtr, rtscts=rts, xonxoff=xon
                                 )
                                 self.connected = self.serial_connection.is_open
                                 if self.connected:
-                                    logger.info(f"✅ CONEXIÓN EXITOSA: {name} @ {baud} (Handshake={signal})")
+                                    logger.info(f"✅ CONEXIÓN EXITOSA EN EL INTENTO {attempts}: {name} @ {baud}")
                                     self.baudrate = baud
                                     return True
                             except Exception as e:
@@ -140,9 +193,24 @@ class ScaleManager:
                                     try: self.serial_connection.close()
                                     except: pass
                                 self.serial_connection = None
-                                time.sleep(0.05)
+                                # Pequeña pausa entre intentos para no saturar el driver
+                                time.sleep(0.1)
 
-                logger.error(f"✗ Agotados {attempts} intentos para {system_port}. Revisa si otra app usa el puerto.")
+                # 5. ULTIMO RECURSO: Intentar encontrar por hardware ID si el nombre falló
+                logger.info("Intentando conexión por búsqueda de Hardware ID (VID/PID)...")
+                for p in serial.tools.list_ports.comports():
+                    if p.vid == 1155 and p.pid == 22336: # STM32 VID/PID detectado en logs
+                        logger.info(f"Detectado dispositivo STM32 en {p.device}. Intentando apertura directa...")
+                        try:
+                            self.serial_connection = serial.Serial(p.device, 115200, timeout=1)
+                            self.connected = self.serial_connection.is_open
+                            if self.connected:
+                                logger.info(f"✅ CONEXIÓN EXITOSA POR HARDWARE ID en {p.device}")
+                                return True
+                        except: pass
+
+                logger.error(f"✗ Agotados {attempts} intentos. El puerto existe pero Windows deniega el acceso.")
+                logger.warning("TIP: Si es un adaptador USB, desconéctalo y vuelve a conectarlo.")
                 return False
 
             except Exception as e:
@@ -299,6 +367,9 @@ class SerialClient:
         self.last_printer_connection_attempt = 0
         self.identifier_str = None  # Almacenar el identificador exacto usado para la suscripción
         self.message_handlers = {}
+        # Locks para SERIALIZAR acceso a hardware y evitar race conditions
+        self.scale_lock = asyncio.Lock()
+        self.printer_lock = asyncio.Lock()
 
     async def connect(self):
         """Conectar al servidor de ActionCable"""
@@ -306,20 +377,19 @@ class SerialClient:
             # Agregar token a la URL
             full_url = f"{self.url}?token={self.token}"
             
+            # Preparar headers para saltar aviso de ngrok
+            headers = {
+                "ngrok-skip-browser-warning": "69420",
+                "User-Agent": "WMSys-Serial-Client-Aggressive"
+            }
+            logger.info(f"Conectando a {full_url}...")
+            
             try:
-                # Enviar headers para saltar aviso de ngrok (siempre recomendado para ngrok)
-                headers = {
-                    "ngrok-skip-browser-warning": "69420",
-                    "User-Agent": "WMSys-Serial-Client-Aggressive"
-                }
-                logger.info(f"Conectando a {full_url}...")
-                self.websocket = await websockets.connect(
-                    full_url,
-                    extra_headers=headers
-                )
-            except TypeError as e:
-                if "extra_headers" in str(e):
-                    logger.warning("Versión de websockets antigua. Usando conexión simple (sin headers bypass)...")
+                # La mayoría de las versiones modernas de websockets soportan extra_headers
+                self.websocket = await websockets.connect(full_url, extra_headers=headers)
+            except Exception as e:
+                if "extra_headers" in str(e) or "TypeError" in type(e).__name__:
+                    logger.warning(f"Reintentando sin extra_headers por incompatibilidad de librería: {e}")
                     self.websocket = await websockets.connect(full_url)
                 else:
                     raise
@@ -444,60 +514,59 @@ class SerialClient:
             logger.info("Enviando respuesta de puertos tras configuración...")
             await self.send_ports_list()
         elif action == 'connect_scale':
-            # Implementar COOLDOWN para evitar spam del servidor
-            now = time.time()
-            if now - self.last_scale_connection_attempt < 5:
-                logger.warning(f"Ignorando comando connect_scale: falta cooldown (esperar {(5 - (now - self.last_scale_connection_attempt)):.1f}s)")
-                return
-            self.last_scale_connection_attempt = now
-
-            port = message.get('port')
-            baudrate = message.get('baudrate', 115200)
-            if not port:
-                logger.warning("No se especificó puerto para conectar la báscula")
-                return
-            logger.info(f"Comando de conexión de báscula recibido: {port}, {baudrate}")
-            
-            # Intentar desconectar primero por si acaso
-            if self.scale_manager.connected:
-                 await asyncio.to_thread(self.scale_manager.disconnect)
-                 await asyncio.sleep(0.5)
-
-            self.scale_manager.set_port(port)
-            self.scale_manager.baudrate = baudrate
-            # Intentar conectar en un hilo aparte (FORCER reintento inmediato al ser comando manual)
-            await asyncio.to_thread(self.scale_manager.connect, force=True)
+            async with self.scale_lock: # Evitar que múltiples señales disparen 24 intentos al mismo tiempo
+                port = message.get('port')
+                baudrate = message.get('baudrate', 115200)
+                if not port:
+                    logger.warning("⚠ connect_scale: No se especificó puerto")
+                    return
+                
+                logger.info(f"⚡ Solicitud recibida: Conectar Báscula {port} @ {baudrate}")
+                
+                 # Heurística: Buscar el puerto real ignorando mayúsculas o prefijos
+                available = serial.tools.list_ports.comports()
+                match = None
+                p_names = []
+                for p in available:
+                    p_names.append(p.device)
+                    # Comparar exacto, o con prefijo, o case-insensitive
+                    if p.device.upper() == port.upper() or p.device.upper() == f"\\\\.\\{port.upper()}":
+                        match = p.device
+                        break
+                
+                if match:
+                    if match != port:
+                        logger.info(f"ℹ Auto-corrección: {port} -> {match}")
+                    self.scale_manager.set_port(match)
+                    self.scale_manager.baudrate = baudrate
+                    # FORCER reintento inmediato al ser comando manual
+                    await asyncio.to_thread(self.scale_manager.connect, force=True)
+                else:
+                    logger.error(f"✗ Puerto '{port}' no encontrado. Disponibles: {p_names}")
         elif action == 'disconnect_scale':
-            logger.info("Comando de desconexión de báscula recibido.")
-            await asyncio.to_thread(self.scale_manager.disconnect)
+            async with self.scale_lock:
+                logger.info("Comando de desconexión de báscula recibido.")
+                await asyncio.to_thread(self.scale_manager.disconnect)
         elif action == 'start_scale_reading':
             logger.info("Comando de inicio de lectura de báscula recibido.")
-            # Ya se está realizando lectura periódica en stream_updates
+            # Ya se está realizando lectura periódica en stream_updates (lee si está conectado)
         elif action == 'stop_scale_reading':
             logger.info("Comando de detención de lectura de báscula recibido.")
-            # La lectura se detiene cuando se cierra la conexión
+            # La lectura de stream_updates se detendrá si el manager está desconectado
         elif action == 'connect_printer':
-            # Implementar COOLDOWN
-            now = time.time()
-            if now - self.last_printer_connection_attempt < 5:
-                # Menos crítico que la báscula, pero bueno tenerlo
-                logger.debug("Omitiendo connect_printer por cooldown reciente.")
-                return
-            self.last_printer_connection_attempt = now
-
-            port = message.get('port')
-            if port:
-                logger.info(f"Comando de conexión de impresora recibido: {port}")
-                self.printer_manager.set_printer(port)
-            else:
-                logger.info("Comando de conexión de impresora recibido (usando nombre actual).")
-            
-            # Intentar conectar
-            await asyncio.to_thread(self.printer_manager.connect_printer)
+            async with self.printer_lock:
+                port = message.get('port')
+                if port:
+                    logger.info(f"⚡ Solicitud: Conectar Impresora {port}")
+                    self.printer_manager.set_printer(port)
+                else:
+                    logger.info("⚡ Solicitud: Conectar Impresora (nombre actual)")
+                
+                await asyncio.to_thread(self.printer_manager.connect_printer)
         elif action == 'disconnect_printer':
-            logger.info("Comando de desconexión de impresora recibido.")
-            # No hay una desconexión explícita de impresora en el manager
-            self.printer_manager.is_connected = False
+            async with self.printer_lock:
+                logger.info("Comando de desconexión de impresora recibido.")
+                self.printer_manager.is_connected = False
         elif action == 'print_label':
             content = message.get('content', '')
             ancho_mm = message.get('ancho_mm', 80)
@@ -791,6 +860,7 @@ async def stream_updates(client, scale_manager, printer_manager, device_id):
 
 
 async def main_loop(url, token, device_id, args):
+    log_hardware_audit()
     local_config = load_config()
     initial_scale_port = args.scale_port or local_config.get('scale_port')
     initial_printer_port = args.printer_port or local_config.get('printer_port')
