@@ -34,42 +34,67 @@ CONFIG_FILE = os.path.join(CONFIG_DIR, 'wms_serial_config.json')
 PID_FILE = os.path.join(CONFIG_DIR, 'wms_serial.pid')
 
 def check_single_instance():
-    """Verifica que no haya otras copias y trata de matar zombies."""
-    try:
-        if os.path.exists(PID_FILE):
-            with open(PID_FILE, 'r') as f:
-                content = f.read().strip()
-                if not content: return True
-                old_pid = int(content)
-            
-            # Si el PID es el de nosotros mismos (reinicios), ignorar
-            if old_pid == os.getpid(): return True
+    """Verifica que no haya otras copias y mata TODAS las instancias previas por nombre."""
+    import subprocess
+    import os
+    import time
+    
+    current_pid = os.getpid()
+    
+    logger.info(f"🛡️ Verificando instancia única (PID actual: {current_pid})...")
 
-            # Tratar de matar la instancia previa para liberar el puerto
+    try:
+        # 1. Método basado en archivo PID (Legacy pero útil)
+        if os.path.exists(PID_FILE):
             try:
-                if sys.platform.startswith('win'):
-                    import subprocess
-                    # Verificar si existe antes de matar
-                    tasks = subprocess.check_output(['tasklist', '/FI', f'PID eq {old_pid}']).decode()
-                    if str(old_pid) in tasks:
-                        logger.warning(f"💀 Detectada instancia zombie (PID {old_pid}). Intentando terminarla...")
-                        subprocess.run(['taskkill', '/F', '/PID', str(old_pid)], capture_output=True)
-                        time.sleep(2) # Esperar a que libere el hardware
-                else:
-                    os.kill(old_pid, 0) # Verificar si vive
-                    logger.warning(f"💀 Terminando instancia previa (PID {old_pid})...")
-                    os.kill(old_pid, 9)
-                    time.sleep(1)
-            except:
-                pass # Probablemente ya murió o no tenemos permiso
-        
-        # Guardar PID actual
+                with open(PID_FILE, 'r') as f:
+                    old_pid = int(f.read().strip())
+                if old_pid != current_pid:
+                    logger.info(f"   ⚰️ Archivo PID encontrado ({old_pid}). Intentando limpieza...")
+                    try:
+                        os.kill(old_pid, 9) # Unix
+                    except:
+                        if sys.platform.startswith('win'):
+                            subprocess.run(['taskkill', '/F', '/PID', str(old_pid)], capture_output=True)
+            except Exception:
+                pass # Archivo corrupto o proceso ya muerto
+
+        # 2. Método agresivo: Buscar procesos por nombre (SOLO WINDOWS/EXE)
+        # Esto es vital porque a veces el PID file queda desactualizado y el zombie sigue vivo tomando el COM4
+        if sys.platform.startswith('win'):
+            try:
+                # Obtener nombre de nuestro ejecutable
+                my_exe = os.path.basename(sys.executable)
+                
+                # Solo aplicar si estamos corriendo como EXE compilado (no python.exe genérico para no matar IDEs)
+                if my_exe.lower().endswith('.exe') and 'python' not in my_exe.lower():
+                    logger.info(f"   🔎 Buscando clones de '{my_exe}'...")
+                    # Listar procesos
+                    cmd = f'tasklist /FI "IMAGENAME eq {my_exe}" /FO CSV /NH'
+                    output = subprocess.check_output(cmd, shell=True).decode()
+                    
+                    for line in output.splitlines():
+                        if not line.strip(): continue
+                        parts = line.split(',')
+                        if len(parts) > 1:
+                            p_name = parts[0].strip('"')
+                            p_pid = int(parts[1].strip('"'))
+                            
+                            if p_pid != current_pid:
+                                logger.warning(f"   💀 MATANDO INSTANCIA ZOMBIE DETECTADA: {p_name} (PID {p_pid})")
+                                subprocess.run(['taskkill', '/F', '/PID', str(p_pid)], capture_output=True)
+                                time.sleep(1) # Dar tiempo a liberar puertos
+            except Exception as e:
+                logger.debug(f"Error en limpieza por nombre: {e}")
+
+        # 3. Guardar PID actual
         with open(PID_FILE, 'w') as f:
-            f.write(str(os.getpid()))
+            f.write(str(current_pid))
+        
         return True
     except Exception as e:
-        logger.debug(f"Error en check_single_instance: {e}")
-        return True 
+        logger.error(f"Error crítico en check_single_instance: {e}")
+        return True # Intentar seguir de todas formas 
 
 # --- Verificación de Plataforma (win32) ---
 try:
