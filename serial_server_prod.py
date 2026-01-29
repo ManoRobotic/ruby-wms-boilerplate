@@ -186,172 +186,67 @@ class ScaleManager:
 
     def connect(self, force=False) -> bool:
         with self.lock:
+            if self.connected and not force:
+                return True
+
             if not self.port:
                 self.connected = False
                 return False
 
-            # 0. Evitar re-entrada si ya se está en medio de un barrido/conexión
-            if self.is_currently_connecting:
+            if self.is_currently_connecting and not force:
                 logger.debug("Omitiendo solicitud: Ya hay un proceso de conexión en curso.")
                 return False
             
             self.is_currently_connecting = True
-            
-            # --- AUTO-CORRECCIÓN BASADA EN AUDITORIA ---
-            available = serial.tools.list_ports.comports()
-            stm32_match = next((p.device for p in available if (p.vid == 0x0483 and p.pid == 0x5740) or (p.vid == 1155 and p.pid == 22336)), None)
-            
-            if stm32_match and self.port != stm32_match:
-                logger.info(f"💡 Auditoría detectó STM32 en {stm32_match}. Corrigiendo puerto internal...")
-                self.port = stm32_match
 
-            # Throttle: Si falló recientemente, no inundar logs/hardware (bypass si es manual)
-            now = time.time()
-            if not force and now - self.last_connection_attempt < 10:
-                self.is_currently_connecting = False
-                return False
-            self.last_connection_attempt = now
-
-            # Asegurar reset total antes de cualquier barrido
-            self.disconnect()
-            self.connected = False
-            # CRÍTICO: Pausa extendida para que Windows limpie el handle (especialmente STM32)
-            time.sleep(1.5)
-            
+            # --- AUTO-CORRECCIÓN BASADA EN AUDITORIA (Mantenido por utilidad) ---
             try:
-                # 1. Identificar el puerto objetivo
-                target_port = self.port
-                if sys.platform.startswith('win') and target_port and not target_port.startswith('\\\\.\\'):
-                    try:
-                        port_num = int(target_port.replace('COM', ''))
-                        if port_num > 9:
-                            target_port = f"\\\\.\\{target_port}"
-                    except: pass
+                available = serial.tools.list_ports.comports()
+                stm32_match = next((p.device for p in available if (p.vid == 0x0483 and p.pid == 0x5740) or (p.vid == 1155 and p.pid == 22336)), None)
+                if stm32_match and self.port != stm32_match:
+                    logger.info(f"💡 Auditoría detectó STM32 en {stm32_match}. Usando este puerto.")
+                    self.port = stm32_match
+            except: pass
 
-                # 2. INTENTO A (MODO SIMPLE): Como funcionaba antes.
-                logger.info(f"Intento A (Simple) en {target_port}...")
-                try:
-                    # USAR 115200 POR DEFECTO COMO EN EL SCRIPT QUE FUNCIONA
-                    self.serial_connection = serial.Serial(target_port, 115200, timeout=1)
-                    if self.serial_connection.is_open:
-                        logger.info(f"✅ ÉXITO (SIMPLE) en {target_port} @ 115200")
-                        self.connected = True
-                        self.is_currently_connecting = False
-                        return True
-                except Exception as e:
-                    logger.debug(f"✗ Fallo Simple: {e}")
-                    if self.serial_connection: self.serial_connection.close()
-                    self.serial_connection = None
-                    time.sleep(0.5)
+            # Verificación simple (Lógica del script funcional)
+            try:
+                available_ports = [p.device for p in serial.tools.list_ports.comports()]
+                if self.port not in available_ports:
+                     if sys.platform.startswith('win') and f"\\\\.\\{self.port}" in available_ports:
+                         pass 
+                     else:
+                        logger.warning(f"⚠ Puerto {self.port} no detectado en 'list_ports'.")
+            except: pass
 
-                # 3. INTENTO B (HARDWARE ID FALLBACK): Buscar el chip STM32 específico.
-                # Esto es lo más fiable si Windows cambia el nombre o el driver se bloquea.
-                logger.info("Intento B (Re-escaneo de Hardware ID)...")
+            try:
+                if self.serial_connection and self.serial_connection.is_open:
+                    self.serial_connection.close()
                 
-                # 5-Retries con re-audit en cada ciclo por si cambia de COM4 a COM5
-                for r in range(5):
-                    # Forzamos un re-escaneo fresco de puertos en cada intento
-                    available = serial.tools.list_ports.comports()
-                    dev = next((p for p in available if (p.vid == 0x0483 and p.pid == 0x5740) or (p.vid == 1155 and p.pid == 22336)), None)
-                    
-                    if not dev:
-                        logger.warning(f"   � Intento {r+1}/5: ¡Báscula NO detectada físicamente!. Re-revisando...")
-                        time.sleep(3.0)
-                        continue
-
-                    stm32_name = dev.device
-                    logger.info(f"   🌀 Intento {r+1}/5: STM32 detectado en {stm32_name}. Abriendo...")
-
-                    try:
-                        # Probar con y sin prefijo, con y sin DTR
-                        for test_name in [stm32_name, f"\\\\.\\{stm32_name}"]:
-                            if test_name.startswith("\\\\.\\\\\\.\\"): test_name = test_name[4:] # Limpiar doble prefijo
-                            
-                            # Pequeña pausa antes de intentar abrir para no saturar al driver
-                            time.sleep(0.5)
-                            
-                            for baud in [115200]:
-                                try:
-                                    # PRIMERO PROBAR SIMPLE (SIN FLAGS DE CONTROL)
-                                    # Esto es lo que usa el script que "sí funciona"
-                                    try:
-                                        conn = serial.Serial(test_name, baud, timeout=1)
-                                        if conn.is_open:
-                                            logger.info(f"✅ ¡ÉXITO! en {test_name} @ {baud} (Simple)")
-                                            self.serial_connection = conn
-                                            self.port = dev.device
-                                            self.connected = True
-                                            self.is_currently_connecting = False
-                                            return True
-                                    except:
-                                        # Si falla simple, probamos con rtscts = True (solo si falla el simple)
-                                        if conn: conn.close()
-                                        conn = serial.Serial(test_name, baud, timeout=1, dsrdtr=True, rtscts=True)
-                                        if conn.is_open:
-                                            logger.info(f"✅ ¡ÉXITO! en {test_name} @ {baud} (Full Handshake)")
-                                            self.serial_connection = conn
-                                            self.port = dev.device
-                                            self.connected = True
-                                            self.is_currently_connecting = False
-                                            return True
-                                except Exception as e_inner:
-                                    err_msg = str(e_inner).lower()
-                                    # Diagnóstico específico
-                                    if "access is denied" in err_msg or "error 5" in err_msg:
-                                        logger.error(f"      🚫 ACCESO DENEGADO a {test_name}. ¿Otro programa (Cura, Prusa, etc) lo usa?")
-                                        raise e_inner
-                                    elif "file not found" in err_msg or "error 2" in err_msg:
-                                        # Esto pasa si el dispositivo se desconecta justo en este milisegundo
-                                        # o si Windows está "refrescando" el driver.
-                                        logger.debug(f"      👻 Puerto 'fantasma' (File Not Found) en {test_name}. Reintentando...")
-                                    
-                                    # Si es Error 2/31 etc, simplemente intentamos el siguiente baud/formato
-                                    continue
-
-                        raise Exception("Locked or Busy")
-
-                    except Exception as e:
-                        logger.warning(f"      ⚠ Driver en conflicto ({str(e)[:30]}). Esperando 4s reinicio...")
-                        time.sleep(4.0)
-
-                # 4. INTENTO C (ULTIMO RECURSO)
-                logger.info("Intento C (Fuerza Bruta final)...")
+                logger.info(f"🔌 Conectando a {self.port} @ {self.baudrate} (Directo)...")
                 
-                # 4. INTENTO C (BARRIDO MATRICIAL): Solo si los anteriores fallaron.
-                # Reducimos a bauds más probables para no estresar el chip.
-                logger.info(f"Intento C (Barrido Matricial limitado) para {target_port}...")
-                for baud in [9600, 115200, 4800, 2400]:
-                    for handshake in [(False, False, False), (True, True, False)]:
-                        try:
-                            dtr, rts, xon = handshake
-                            self.serial_connection = serial.Serial(
-                                target_port, baud, timeout=1, dsrdtr=dtr, rtscts=rts
-                            )
-                            if self.serial_connection.is_open:
-                                logger.info(f"✅ ÉXITO (BARRIDO) en {target_port} @ {baud}")
-                                self.connected = True
-                                self.is_currently_connecting = False
-                                return True
-                        except:
-                            if self.serial_connection: self.serial_connection.close()
-                            self.serial_connection = None
-                            time.sleep(0.1)
+                # CONEXIÓN DIRECTA Y SENCILLA (Sin DTR/RTS, Timeout 1s)
+                self.serial_connection = serial.Serial(self.port, self.baudrate, timeout=1)
+                
+                if self.serial_connection.is_open:
+                    logger.info(f"✅ Conexión establecida en {self.port}")
+                    self.connected = True
+                    self.is_currently_connecting = False
+                    return True
+                else:
+                    logger.error("✗ El puerto se abrió pero is_open=False")
+                    self.connected = False
+                    self.is_currently_connecting = False
+                    return False
 
-                logger.error("✗ Agotadas todas las estrategias de conexión.")
-                logger.warning("RECOMENDACIÓN: Desconecta el USB de la báscula y espera 10 segundos.")
+            except serial.SerialException as e:
+                logger.error(f"✗ Error serial en {self.port}: {e}")
                 self.connected = False
                 self.is_currently_connecting = False
                 return False
-
             except Exception as e:
-                logger.error(f"✗ Error crítico inesperado en connect(): {e}")
+                logger.error(f"✗ Error inesperado conectando báscula: {e}")
                 self.connected = False
                 self.is_currently_connecting = False
-                return False
-
-            except Exception as e:
-                logger.error(f"✗ Error crítico en connect(): {e}")
-                self.connected = False
                 return False
 
     def disconnect(self):
@@ -1093,5 +988,3 @@ if __name__ == '__main__':
         asyncio.run(main_loop(args.url, args.token, device_id, args))
     except KeyboardInterrupt:
         logger.info("Cliente cerrado.")
-
-
