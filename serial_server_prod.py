@@ -171,82 +171,38 @@ class ScaleManager:
         self.connected = False
         self.lock = threading.RLock() # Usar RLock para permitir llamadas recursivas
         self.last_weight = 0.0
-        self.last_connection_attempt = 0 # Throttle para evitar spam de logs
-        self.manual_port_override = False # Indica si el usuario seleccionó un puerto manual
-        self.is_currently_connecting = False # Evita re-entrada simultánea
 
     def set_port(self, new_port):
         with self.lock:
             if self.port != new_port:
                 logger.info(f"Cambiando puerto de la báscula a: {new_port}")
                 self.port = new_port
-                self.last_connection_attempt = 0 # Reset throttle on port change
-                self.manual_port_override = True # Asumimos que si viene de set_port es intencional
                 self.disconnect()
 
-    def connect(self, force=False) -> bool:
+    def connect(self) -> bool:
         with self.lock:
-            if self.connected and not force:
+            if self.connected:
                 return True
-
-            if not self.port:
-                self.connected = False
-                return False
-
-            if self.is_currently_connecting and not force:
-                logger.debug("Omitiendo solicitud: Ya hay un proceso de conexión en curso.")
-                return False
-            
-            self.is_currently_connecting = True
-
-            # --- AUTO-CORRECCIÓN BASADA EN AUDITORIA (Mantenido por utilidad) ---
             try:
-                available = serial.tools.list_ports.comports()
-                stm32_match = next((p.device for p in available if (p.vid == 0x0483 and p.pid == 0x5740) or (p.vid == 1155 and p.pid == 22336)), None)
-                if stm32_match and self.port != stm32_match:
-                    logger.info(f"💡 Auditoría detectó STM32 en {stm32_match}. Usando este puerto.")
-                    self.port = stm32_match
-            except: pass
-
-            # Verificación simple (Lógica del script funcional)
-            try:
+                # Verificar si el puerto existe antes de intentar conectarse
                 available_ports = [p.device for p in serial.tools.list_ports.comports()]
                 if self.port not in available_ports:
-                     if sys.platform.startswith('win') and f"\\\\.\\{self.port}" in available_ports:
-                         pass 
-                     else:
-                        logger.warning(f"⚠ Puerto {self.port} no detectado en 'list_ports'.")
-            except: pass
-
-            try:
-                if self.serial_connection and self.serial_connection.is_open:
-                    self.serial_connection.close()
-                
-                logger.info(f"🔌 Conectando a {self.port} @ {self.baudrate} (Directo)...")
-                
-                # CONEXIÓN DIRECTA Y SENCILLA (Sin DTR/RTS, Timeout 1s)
-                self.serial_connection = serial.Serial(self.port, self.baudrate, timeout=1)
-                
-                if self.serial_connection.is_open:
-                    logger.info(f"✅ Conexión establecida en {self.port}")
-                    self.connected = True
-                    self.is_currently_connecting = False
-                    return True
-                else:
-                    logger.error("✗ El puerto se abrió pero is_open=False")
+                    logger.warning(f"⚠ Puerto {self.port} no disponible en este sistema")
                     self.connected = False
-                    self.is_currently_connecting = False
                     return False
 
+                self.serial_connection = serial.Serial(self.port, self.baudrate, timeout=1)
+                self.connected = self.serial_connection.is_open
+                if self.connected:
+                    logger.info(f"✅ Conexión de báscula establecida en {self.port}")
+                return self.connected
             except serial.SerialException as e:
-                logger.error(f"✗ Error serial en {self.port}: {e}")
+                logger.error(f"✗ Error de conexión serial en báscula: {e}")
                 self.connected = False
-                self.is_currently_connecting = False
                 return False
             except Exception as e:
-                logger.error(f"✗ Error inesperado conectando báscula: {e}")
+                logger.error(f"✗ Error inesperado al conectar báscula: {e}")
                 self.connected = False
-                self.is_currently_connecting = False
                 return False
 
     def disconnect(self):
@@ -578,7 +534,7 @@ class SerialClient:
                     self.scale_manager.set_port(match)
                     self.scale_manager.baudrate = baudrate
                     # FORCER reintento inmediato al ser comando manual
-                    await asyncio.to_thread(self.scale_manager.connect, force=True)
+                    await asyncio.to_thread(self.scale_manager.connect)
                 else:
                     logger.error(f"✗ Puerto '{port}' no encontrado. Disponibles: {p_names}")
         elif action == 'disconnect_scale':
