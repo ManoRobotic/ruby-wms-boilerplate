@@ -187,6 +187,7 @@ class ScaleManager:
                         logger.info(f"🎯 Chip STM32 detectado en {stm32_name}. Intentando despertar driver...")
                         # 3-Retries con espera larga por si el driver está 'Enumerando' (Error 2)
                         for r in range(3):
+                            logger.info(f"   🌀 Intento de apertura {r+1}/3 en {stm32_name}...")
                             try:
                                 for baud in [9600, 115200]:
                                     try:
@@ -201,10 +202,12 @@ class ScaleManager:
                                 # Si llegamos aquí, ninguno de los baudrates funcionó para este intento r
                                 raise Exception("Baudrates fallidos")
                             except Exception as e:
-                                if "FileNotFoundError" in str(e) or "[Error 2]" in str(e):
-                                    logger.warning(f"  Pausa de recuperación driver (Intento {r+1}/3)...")
+                                err_str = str(e)
+                                if "FileNotFoundError" in err_str or "[Errno 2]" in err_str or "no puede encontrar" in err_str.lower():
+                                    logger.warning(f"      ⚠ Driver aún no listo (Error 2). Esperando 2s recuperación...")
                                     time.sleep(2.0)
                                 else:
+                                    logger.debug(f"      ✗ Fallo distinto a Error 2: {err_str}")
                                     break
                 
                 # 4. INTENTO C (BARRIDO MATRICIAL): Solo si los anteriores fallaron.
