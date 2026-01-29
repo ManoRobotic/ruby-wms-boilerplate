@@ -59,31 +59,56 @@ def check_single_instance():
             except Exception:
                 pass # Archivo corrupto o proceso ya muerto
 
-        # 2. Método agresivo: Buscar procesos por nombre (SOLO WINDOWS/EXE)
-        # Esto es vital porque a veces el PID file queda desactualizado y el zombie sigue vivo tomando el COM4
+        # 2. Método agresivo: Buscar procesos por nombre (SOLO WINDOWS)
         if sys.platform.startswith('win'):
             try:
                 # Obtener nombre de nuestro ejecutable
-                my_exe = os.path.basename(sys.executable)
+                my_exe = os.path.basename(sys.executable).lower()
+                my_script = os.path.basename(__file__).lower()
                 
-                # Solo aplicar si estamos corriendo como EXE compilado (no python.exe genérico para no matar IDEs)
-                if my_exe.lower().endswith('.exe') and 'python' not in my_exe.lower():
-                    logger.info(f"   🔎 Buscando clones de '{my_exe}'...")
-                    # Listar procesos
-                    cmd = f'tasklist /FI "IMAGENAME eq {my_exe}" /FO CSV /NH'
-                    output = subprocess.check_output(cmd, shell=True).decode()
+                logger.info(f"   🔎 Buscando clones de '{my_exe}' corriendo '{my_script}'...")
+                
+                # Usar WMIC para obtener command lines, es más preciso que tasklist
+                cmd = 'wmic process get processid,commandline /format:csv'
+                try:
+                    output = subprocess.check_output(cmd, shell=True).decode('utf-8', errors='ignore')
                     
                     for line in output.splitlines():
                         if not line.strip(): continue
                         parts = line.split(',')
-                        if len(parts) > 1:
-                            p_name = parts[0].strip('"')
-                            p_pid = int(parts[1].strip('"'))
+                        if len(parts) < 2: continue
+                        
+                        # WMIC CSV format: Node,CommandLine,ProcessId
+                        # A veces varía, buscamos el pid al final
+                        try:
+                            proc_pid = int(parts[-1].strip())
+                        except:
+                            continue
                             
-                            if p_pid != current_pid:
-                                logger.warning(f"   💀 MATANDO INSTANCIA ZOMBIE DETECTADA: {p_name} (PID {p_pid})")
-                                subprocess.run(['taskkill', '/F', '/PID', str(p_pid)], capture_output=True)
-                                time.sleep(1) # Dar tiempo a liberar puertos
+                        proc_cmd = parts[1].lower() if len(parts) > 1 else ""
+                        
+                        if proc_pid == current_pid: continue
+                        
+                        # Criterio de matanza:
+                        # 1. Es un EXE compilado (serial_server_prod.exe)
+                        # 2. Es python corriendo ESTE script específico
+                        should_kill = False
+                        
+                        if 'serial_server_prod.exe' in proc_cmd:
+                            should_kill = True
+                        elif 'python' in proc_cmd and my_script in proc_cmd:
+                             should_kill = True
+                             
+                        if should_kill:
+                            logger.warning(f"   💀 MATANDO INSTANCIA ZOMBIE DETECTADA (PID {proc_pid}): {proc_cmd[:50]}...")
+                            subprocess.run(['taskkill', '/F', '/PID', str(proc_pid)], capture_output=True)
+                            time.sleep(1) 
+                except Exception as e:
+                    logger.debug(f"Fallo al usar WMIC, intentando tasklist simple: {e}")
+                    # Fallback para EXEs simples si WMIC falla
+                    if my_exe.endswith('.exe') and 'python' not in my_exe:
+                        subprocess.run(f'taskkill /F /FI "IMAGENAME eq {my_exe}" /FI "PID ne {current_pid}"', shell=True, capture_output=True)
+
             except Exception as e:
                 logger.debug(f"Error en limpieza por nombre: {e}")
 
@@ -206,9 +231,10 @@ class ScaleManager:
                 # 2. INTENTO A (MODO SIMPLE): Como funcionaba antes.
                 logger.info(f"Intento A (Simple) en {target_port}...")
                 try:
-                    self.serial_connection = serial.Serial(target_port, 9600, timeout=1)
+                    # USAR 115200 POR DEFECTO COMO EN EL SCRIPT QUE FUNCIONA
+                    self.serial_connection = serial.Serial(target_port, 115200, timeout=1)
                     if self.serial_connection.is_open:
-                        logger.info(f"✅ ÉXITO (SIMPLE) en {target_port}")
+                        logger.info(f"✅ ÉXITO (SIMPLE) en {target_port} @ 115200")
                         self.connected = True
                         self.is_currently_connecting = False
                         return True
@@ -241,23 +267,43 @@ class ScaleManager:
                         for test_name in [stm32_name, f"\\\\.\\{stm32_name}"]:
                             if test_name.startswith("\\\\.\\\\\\.\\"): test_name = test_name[4:] # Limpiar doble prefijo
                             
-                            for baud in [9600, 115200]:
+                            # Pequeña pausa antes de intentar abrir para no saturar al driver
+                            time.sleep(0.5)
+                            
+                            for baud in [115200]:
                                 try:
-                                    # Intentamos apertura con señales de control explícitas
-                                    conn = serial.Serial(test_name, baud, timeout=1, dsrdtr=True, rtscts=True)
-                                    if conn.is_open:
-                                        logger.info(f"✅ ¡ÉXITO! en {test_name} @ {baud} (DTR=True)")
-                                        self.serial_connection = conn
-                                        self.port = dev.device
-                                        self.connected = True
-                                        self.is_currently_connecting = False
-                                        return True
+                                    # PRIMERO PROBAR SIMPLE (SIN FLAGS DE CONTROL)
+                                    # Esto es lo que usa el script que "sí funciona"
+                                    try:
+                                        conn = serial.Serial(test_name, baud, timeout=1)
+                                        if conn.is_open:
+                                            logger.info(f"✅ ¡ÉXITO! en {test_name} @ {baud} (Simple)")
+                                            self.serial_connection = conn
+                                            self.port = dev.device
+                                            self.connected = True
+                                            self.is_currently_connecting = False
+                                            return True
+                                    except:
+                                        # Si falla simple, probamos con rtscts = True (solo si falla el simple)
+                                        if conn: conn.close()
+                                        conn = serial.Serial(test_name, baud, timeout=1, dsrdtr=True, rtscts=True)
+                                        if conn.is_open:
+                                            logger.info(f"✅ ¡ÉXITO! en {test_name} @ {baud} (Full Handshake)")
+                                            self.serial_connection = conn
+                                            self.port = dev.device
+                                            self.connected = True
+                                            self.is_currently_connecting = False
+                                            return True
                                 except Exception as e_inner:
                                     err_msg = str(e_inner).lower()
-                                    # Si es acceso denegado (Error 5), avisar explícitamente
+                                    # Diagnóstico específico
                                     if "access is denied" in err_msg or "error 5" in err_msg:
-                                        logger.error(f"      🚫 ACCESO DENEGADO a {test_name}. ¿Otro programa lo usa?")
-                                        raise e_inner # Salir al sleep largo
+                                        logger.error(f"      🚫 ACCESO DENEGADO a {test_name}. ¿Otro programa (Cura, Prusa, etc) lo usa?")
+                                        raise e_inner
+                                    elif "file not found" in err_msg or "error 2" in err_msg:
+                                        # Esto pasa si el dispositivo se desconecta justo en este milisegundo
+                                        # o si Windows está "refrescando" el driver.
+                                        logger.debug(f"      👻 Puerto 'fantasma' (File Not Found) en {test_name}. Reintentando...")
                                     
                                     # Si es Error 2/31 etc, simplemente intentamos el siguiente baud/formato
                                     continue
