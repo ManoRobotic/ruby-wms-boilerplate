@@ -28,7 +28,8 @@ if sys.platform.startswith('win'):
         winreg = None
 
 # --- Constantes ---
-CONFIG_FILE = 'serial_config.json'
+# Guardar config en la carpeta de usuario para evitar errores de permisos en el EXE
+CONFIG_FILE = os.path.join(os.path.expanduser("~"), 'wms_serial_config.json')
 
 # --- Verificación de Plataforma (win32) ---
 try:
@@ -112,7 +113,17 @@ class ScaleManager:
             time.sleep(1.5)
             
             try:
-                # 1. Intento MÍNIMO (Simple Mode) - Como funcionaba antes
+                # 1. Identificar el puerto del sistema (Windows usa \\.\COMx para puertos altos)
+                system_port = self.port
+                if sys.platform.startswith('win') and system_port and not system_port.startswith('\\\\.\\'):
+                    try:
+                        port_num = int(system_port.replace('COM', ''))
+                        if port_num > 9:
+                            system_port = f"\\\\.\\{system_port}"
+                    except:
+                        pass
+
+                # 2. Intento MÍNIMO (Simple Mode) - Como funcionaba antes
                 logger.info(f"Probando conexión simple (9600 baud) en {system_port}...")
                 try:
                     self.serial_connection = serial.Serial(system_port, 9600, timeout=1)
@@ -133,20 +144,16 @@ class ScaleManager:
                     except: pass
                 self.serial_connection = None
 
-                # 2. Verificar presencia oficial en el sistema
+                # 3. Verificar presencia oficial en el sistema (opcional, para diagnóstico detallado)
                 available_ports = serial.tools.list_ports.comports()
                 target_port_str = str(self.port).upper().strip()
                 
-                system_port = None
-                for p in available_ports:
-                    dev = p.device.upper()
-                    if dev == target_port_str or dev == f"\\\\.\\{target_port_str}":
-                        system_port = p.device
-                        break
+                # Ya tenemos system_port definido arriba para Modo Simple, lo reutilizamos
+                found_in_list = any(p.device.upper() == target_port_str or p.device.upper() == f"\\\\.\\{target_port_str}" for p in available_ports)
                 
-                if not system_port:
-                    logger.warning(f"⚠ Puerto {target_port_str} NO detectado. Disponibles: {[p.device for p in available_ports]}")
-                    return False
+                if not found_in_list:
+                    logger.warning(f"⚠ Puerto {target_port_str} NO detectado por el sistema. Disponibles: {[p.device for p in available_ports]}")
+                    # Continuamos de todos modos por si el driver lo oculta
 
                 # 3. Definir matrices de barrido
                 names_to_try = [system_port]
