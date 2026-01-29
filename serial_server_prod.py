@@ -136,6 +136,15 @@ class ScaleManager:
             
             self.is_currently_connecting = True
             
+            # --- AUTO-CORRECCIÓN BASADA EN AUDITORIA ---
+            # Si el puerto actual no existe, pero hay un STM32 en la lista, lo usamos de una vez
+            available = serial.tools.list_ports.comports()
+            stm32_match = next((p.device for p in available if (p.vid == 0x0483 and p.pid == 0x5740) or (p.vid == 1155 and p.pid == 22336)), None)
+            
+            if stm32_match and self.port != stm32_match:
+                logger.info(f"💡 Auto-corrección Audit: Cambiando {self.port} -> {stm32_match} (STM32 detectado)")
+                self.port = stm32_match
+
             # Throttle: Si falló recientemente, no inundar logs/hardware (bypass si es manual)
             now = time.time()
             if not force and now - self.last_connection_attempt < 10:
@@ -185,27 +194,34 @@ class ScaleManager:
                             stm32_name = f"\\\\.\\{stm32_name}"
                         
                         logger.info(f"🎯 Chip STM32 detectado en {stm32_name}. Intentando despertar driver...")
-                        # 3-Retries con espera larga por si el driver está 'Enumerando' (Error 2)
-                        for r in range(3):
-                            logger.info(f"   🌀 Intento de apertura {r+1}/3 en {stm32_name}...")
+                        # 5-Retries con espera larga por si el driver está 'Enumerando' (Error 2)
+                        for r in range(5):
+                            logger.info(f"   🌀 Apertura {r+1}/5 en {stm32_name}...")
                             try:
+                                last_err = None
                                 for baud in [9600, 115200]:
                                     try:
-                                        self.serial_connection = serial.Serial(stm32_name, baud, timeout=1)
-                                        if self.serial_connection.is_open:
+                                        conn = serial.Serial(stm32_name, baud, timeout=1)
+                                        if conn.is_open:
                                             logger.info(f"✅ ÉXITO (HWID) en {stm32_name} @ {baud}")
-                                            self.port = p.device # Actualizar puerto
+                                            self.serial_connection = conn
+                                            self.port = p.device
                                             self.connected = True
                                             self.is_currently_connecting = False
                                             return True
-                                    except: continue
-                                # Si llegamos aquí, ninguno de los baudrates funcionó para este intento r
-                                raise Exception("Baudrates fallidos")
+                                    except Exception as e_baud:
+                                        last_err = e_baud
+                                        # Si es Error 2, subimos al recovery de inmediato
+                                        if "FileNotFoundError" in str(e_baud) or "[Errno 2]" in str(e_baud):
+                                            raise e_baud
+                                        continue
+                                # Si terminamos bauds sin éxito y no hubo Error 2
+                                raise last_err or Exception("Fallo apertura")
                             except Exception as e:
                                 err_str = str(e)
                                 if "FileNotFoundError" in err_str or "[Errno 2]" in err_str or "no puede encontrar" in err_str.lower():
-                                    logger.warning(f"      ⚠ Driver aún no listo (Error 2). Esperando 2s recuperación...")
-                                    time.sleep(2.0)
+                                    logger.warning(f"      ⚠ Driver bloqueado (Error 2). Recuperando en 2.5s...")
+                                    time.sleep(2.5)
                                 else:
                                     logger.debug(f"      ✗ Fallo distinto a Error 2: {err_str}")
                                     break
