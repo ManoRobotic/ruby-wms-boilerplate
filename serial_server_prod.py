@@ -482,15 +482,13 @@ class SerialClient:
             new_printer_port = message.get('printer_port')
             
             if new_scale_port:
-                # Solo actualizar si no hay un override manual activo o si no estamos conectados
-                if not self.scale_manager.manual_port_override or not self.scale_manager.connected:
+                # Simplificado: Solo actualizar sin lógica compleja de override
+                available_ports = [p.device for p in serial.tools.list_ports.comports()]
+                if new_scale_port in available_ports:
                      logger.info(f"Actualizando puerto de báscula a: {new_scale_port}")
                      self.scale_manager.set_port(new_scale_port)
-                     # Al venir del servidor, reseteamos el override manual para que 'mande' Rails de nuevo
-                     # a menos que falle la conexión, en cuyo caso el boscado por ID se activará.
-                     self.scale_manager.manual_port_override = False
                 else:
-                    logger.info(f"Ignorando cambio de puerto a {new_scale_port} porque hay una conexión manual activa en {self.scale_manager.port}")
+                    logger.warning(f"Puerto de báscula {new_scale_port} no disponible")
             
             if new_printer_port:
                 logger.info(f"Actualizando impresora a: {new_printer_port}")
@@ -508,7 +506,7 @@ class SerialClient:
             logger.info("Enviando respuesta de puertos tras configuración...")
             await self.send_ports_list()
         elif action == 'connect_scale':
-            async with self.scale_lock: # Evitar que múltiples señales disparen 24 intentos al mismo tiempo
+            async with self.scale_lock:
                 port = message.get('port')
                 baudrate = message.get('baudrate', 115200)
                 if not port:
@@ -517,7 +515,7 @@ class SerialClient:
                 
                 logger.info(f"⚡ Solicitud recibida: Conectar Báscula {port} @ {baudrate}")
                 
-                 # Heurística: Buscar el puerto real ignorando mayúsculas o prefijos
+                 # Heurística simplificada: Buscar coincidencia exacta o prefijada
                 available = serial.tools.list_ports.comports()
                 match = None
                 p_names = []
@@ -533,10 +531,14 @@ class SerialClient:
                         logger.info(f"ℹ Auto-corrección: {port} -> {match}")
                     self.scale_manager.set_port(match)
                     self.scale_manager.baudrate = baudrate
-                    # FORCER reintento inmediato al ser comando manual
                     await asyncio.to_thread(self.scale_manager.connect)
                 else:
-                    logger.error(f"✗ Puerto '{port}' no encontrado. Disponibles: {p_names}")
+                    # Intento directo aunque no esté en la lista (a veces pasa en virtual COM ports)
+                    logger.warning(f"Puerto '{port}' no en lista standard. Intentando directo...")
+                    self.scale_manager.set_port(port)
+                    self.scale_manager.baudrate = baudrate
+                    await asyncio.to_thread(self.scale_manager.connect)
+
         elif action == 'disconnect_scale':
             async with self.scale_lock:
                 logger.info("Comando de desconexión de báscula recibido.")
