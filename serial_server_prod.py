@@ -137,12 +137,11 @@ class ScaleManager:
             self.is_currently_connecting = True
             
             # --- AUTO-CORRECCIÓN BASADA EN AUDITORIA ---
-            # Si el puerto actual no existe, pero hay un STM32 en la lista, lo usamos de una vez
             available = serial.tools.list_ports.comports()
             stm32_match = next((p.device for p in available if (p.vid == 0x0483 and p.pid == 0x5740) or (p.vid == 1155 and p.pid == 22336)), None)
             
             if stm32_match and self.port != stm32_match:
-                logger.info(f"💡 Auto-corrección Audit: Cambiando {self.port} -> {stm32_match} (STM32 detectado)")
+                logger.info(f"💡 Auditoría detectó STM32 en {stm32_match}. Corrigiendo puerto internal...")
                 self.port = stm32_match
 
             # Throttle: Si falló recientemente, no inundar logs/hardware (bypass si es manual)
@@ -193,38 +192,40 @@ class ScaleManager:
                         if sys.platform.startswith('win') and not stm32_name.startswith('\\\\.\\'):
                             stm32_name = f"\\\\.\\{stm32_name}"
                         
-                        logger.info(f"🎯 Chip STM32 detectado en {stm32_name}. Intentando despertar driver...")
-                        # 5-Retries con espera larga por si el driver está 'Enumerando' (Error 2)
+                        logger.info(f"🎯 Chip STM32 detectado en {stm32_name}. Iniciando Hyper-Recuperación...")
+                        # 5-Retries con espera de choque (En Windows el driver tarda en soltar el lock)
                         for r in range(5):
-                            logger.info(f"   🌀 Apertura {r+1}/5 en {stm32_name}...")
+                            logger.info(f"   🌀 Ciclo {r+1}/5 de apertura...")
                             try:
                                 last_err = None
-                                for baud in [9600, 115200]:
-                                    try:
-                                        conn = serial.Serial(stm32_name, baud, timeout=1)
-                                        if conn.is_open:
-                                            logger.info(f"✅ ÉXITO (HWID) en {stm32_name} @ {baud}")
-                                            self.serial_connection = conn
-                                            self.port = p.device
-                                            self.connected = True
-                                            self.is_currently_connecting = False
-                                            return True
-                                    except Exception as e_baud:
-                                        last_err = e_baud
-                                        # Si es Error 2, subimos al recovery de inmediato
-                                        if "FileNotFoundError" in str(e_baud) or "[Errno 2]" in str(e_baud):
-                                            raise e_baud
-                                        continue
-                                # Si terminamos bauds sin éxito y no hubo Error 2
-                                raise last_err or Exception("Fallo apertura")
+                                # Probar con y sin prefijo, con y sin DTR (el santo grial del STM32)
+                                for name_to_use in sorted(list(set([stm32_name, p.device]))):
+                                    for baud in [9600, 115200]:
+                                        for dtr in [True, False]:
+                                            try:
+                                                # logger.debug(f"      Intentando: {name_to_use} @ {baud} (DTR={dtr})")
+                                                conn = serial.Serial(name_to_use, baud, timeout=1, dsrdtr=dtr, rtscts=dtr)
+                                                if conn.is_open:
+                                                    logger.info(f"✅ ¡CONECTADO! en {name_to_use} @ {baud} (DTR={dtr})")
+                                                    self.serial_connection = conn
+                                                    self.port = p.device
+                                                    self.connected = True
+                                                    self.is_currently_connecting = False
+                                                    return True
+                                            except Exception as e_baud:
+                                                last_err = e_baud
+                                                # El error 2/5/31 sube directo para esperar
+                                                err_msg = str(e_baud).lower()
+                                                if any(x in err_msg for x in ["errno 2", "error 2", "errno 5", "error 5", "no puede encontrar"]):
+                                                    raise e_baud
+                                                continue
+                                
+                                raise last_err or Exception("Port locked")
+
                             except Exception as e:
                                 err_str = str(e)
-                                if "FileNotFoundError" in err_str or "[Errno 2]" in err_str or "no puede encontrar" in err_str.lower():
-                                    logger.warning(f"      ⚠ Driver bloqueado (Error 2). Recuperando en 2.5s...")
-                                    time.sleep(2.5)
-                                else:
-                                    logger.debug(f"      ✗ Fallo distinto a Error 2: {err_str}")
-                                    break
+                                logger.warning(f"      ⚠ Fallo sistémico ({err_str[:40]}...). Esperando 3s para reset driver...")
+                                time.sleep(3.0)
                 
                 # 4. INTENTO C (BARRIDO MATRICIAL): Solo si los anteriores fallaron.
                 # Reducimos a bauds más probables para no estresar el chip.
