@@ -29,7 +29,36 @@ if sys.platform.startswith('win'):
 
 # --- Constantes ---
 # Guardar config en la carpeta de usuario para evitar errores de permisos en el EXE
-CONFIG_FILE = os.path.join(os.path.expanduser("~"), 'wms_serial_config.json')
+CONFIG_DIR = os.path.expanduser("~")
+CONFIG_FILE = os.path.join(CONFIG_DIR, 'wms_serial_config.json')
+PID_FILE = os.path.join(CONFIG_DIR, 'wms_serial.pid')
+
+def check_single_instance():
+    """Verifica que no haya otras copias del script ejecutándose."""
+    try:
+        if os.path.exists(PID_FILE):
+            with open(PID_FILE, 'r') as f:
+                old_pid = int(f.read().strip())
+            
+            # Verificar si el proceso sigue vivo (Windows/Unix safe-ish)
+            if sys.platform.startswith('win'):
+                import subprocess
+                tasks = subprocess.check_output(['tasklist', '/FI', f'PID eq {old_pid}']).decode()
+                if str(old_pid) in tasks:
+                    return False
+            else:
+                try:
+                    os.kill(old_pid, 0)
+                    return False
+                except OSError:
+                    pass
+        
+        # Guardar PID actual
+        with open(PID_FILE, 'w') as f:
+            f.write(str(os.getpid()))
+        return True
+    except:
+        return True # Si hay error de permisos al chequear, dejamos pasar
 
 # --- Verificación de Plataforma (win32) ---
 try:
@@ -83,6 +112,7 @@ class ScaleManager:
         self.last_weight = 0.0
         self.last_connection_attempt = 0 # Throttle para evitar spam de logs
         self.manual_port_override = False # Indica si el usuario seleccionó un puerto manual
+        self.is_currently_connecting = False # Evita re-entrada simultánea
 
     def set_port(self, new_port):
         with self.lock:
@@ -99,12 +129,17 @@ class ScaleManager:
                 self.connected = False
                 return False
 
-            if self.connected and self.serial_connection and self.serial_connection.is_open:
-                return True
-                
+            # 0. Evitar re-entrada si ya se está en medio de un barrido/conexión
+            if self.is_currently_connecting:
+                logger.debug("Omitiendo solicitud: Ya hay un proceso de conexión en curso.")
+                return False
+            
+            self.is_currently_connecting = True
+            
             # Throttle: Si falló recientemente, no inundar logs/hardware (bypass si es manual)
             now = time.time()
             if not force and now - self.last_connection_attempt < 10:
+                self.is_currently_connecting = False
                 return False
             self.last_connection_attempt = now
 
@@ -115,144 +150,93 @@ class ScaleManager:
             time.sleep(1.5)
             
             try:
-                # 1. Identificar el puerto del sistema (Windows usa \\.\COMx para puertos altos)
-                system_port = self.port
-                if sys.platform.startswith('win') and system_port and not system_port.startswith('\\\\.\\'):
+                # 1. Identificar el puerto objetivo
+                target_port = self.port
+                if sys.platform.startswith('win') and target_port and not target_port.startswith('\\\\.\\'):
                     try:
-                        port_num = int(system_port.replace('COM', ''))
+                        port_num = int(target_port.replace('COM', ''))
                         if port_num > 9:
-                            system_port = f"\\\\.\\{system_port}"
-                    except:
-                        pass
+                            target_port = f"\\\\.\\{target_port}"
+                    except: pass
 
-                # 2. Intento MÍNIMO (Simple Mode)
-                # En Windows, usar prefijo \\.\ es más seguro para evitar FileNotFoundError
-                simple_name = system_port
-                if sys.platform.startswith('win') and simple_name and not simple_name.startswith('\\\\.\\'):
-                    simple_name = f"\\\\.\\{simple_name}"
-                
-                logger.info(f"Probando conexión simple (9600 baud) en {simple_name}...")
+                # 2. INTENTO A (MODO SIMPLE): Como funcionaba antes.
+                logger.info(f"Intento A (Simple) en {target_port}...")
                 try:
-                    self.serial_connection = serial.Serial(simple_name, 9600, timeout=1)
+                    self.serial_connection = serial.Serial(target_port, 9600, timeout=1)
                     if self.serial_connection.is_open:
-                        logger.info(f"✅ CONEXIÓN EXITOSA (MODO SIMPLE) @ 9600 en {simple_name}")
+                        logger.info(f"✅ ÉXITO (SIMPLE) en {target_port}")
                         self.connected = True
-                        self.baudrate = 9600
-                        self.port = system_port # Guardar nombre limpio
+                        self.is_currently_connecting = False
                         return True
                 except Exception as e:
-                    logger.debug(f"✗ Fallo modo simple: {e}")
-                    # Si da FileNotFoundError pero el puerto existe en el sistema, es un "Ghost Port"
-                    if "FileNotFoundError" in str(e) or "[Error 2]" in str(e):
-                        logger.warning(f"⚠ Detectado 'Puerto Fantasma' en {simple_name}. El driver STM32 necesita un reset físico.")
-                    
+                    logger.debug(f"✗ Fallo Simple: {e}")
                     if self.serial_connection: self.serial_connection.close()
                     self.serial_connection = None
                     time.sleep(0.5)
 
-                # 2. Limpiar estado previo para el barrido
-                if self.serial_connection:
-                    try: self.serial_connection.close()
-                    except: pass
-                self.serial_connection = None
-
-                # 3. Verificar presencia oficial en el sistema (opcional, para diagnóstico detallado)
-                available_ports = serial.tools.list_ports.comports()
-                target_port_str = str(self.port).upper().strip()
-                
-                # Ya tenemos system_port definido arriba para Modo Simple, lo reutilizamos
-                found_in_list = any(p.device.upper() == target_port_str or p.device.upper() == f"\\\\.\\{target_port_str}" for p in available_ports)
-                
-                if not found_in_list:
-                    logger.warning(f"⚠ Puerto {target_port_str} NO detectado por el sistema. Disponibles: {[p.device for p in available_ports]}")
-                    # Continuamos de todos modos por si el driver lo oculta
-
-                # 3. Definir matrices de barrido
-                names_to_try = [system_port]
-                if sys.platform.startswith('win') and not system_port.startswith('\\\\.\\'):
-                    names_to_try.append(f"\\\\.\\{system_port}")
-                
-                # Velocidades: pedida por Rails, luego estándares comunes de básculas (extendido)
-                bauds_to_try = [self.baudrate]
-                for b in [9600, 4800, 2400, 19200, 38400, 1200, 115200]:
-                    if b not in bauds_to_try:
-                        bauds_to_try.append(b)
-                
-                # Señales: Tuplas de (dsrdtr, rtscts, xonxoff)
-                # Las básculas virtuales (VCP) suelen preferir todo en False.
-                signals_to_try = [
-                    (False, False, False), # Estándar / VCP
-                    (True, True, False),   # Hardware Flow
-                    (False, False, True),  # Software Flow
-                ]
-
-                # 4. Barrido de matriz (Fuerza Bruta)
-                logger.info(f"--- Iniciando barrido matricial forzado para {system_port} ---" if force else f"--- Iniciando barrido matricial automático para {system_port} ---")
-                attempts = 0
-                for name in names_to_try:
-                    for baud in bauds_to_try:
-                        for signals in signals_to_try:
-                            attempts += 1
-                            dtr, rts, xon = signals
-                            try:
-                                logger.debug(f"[{attempts}] Probando: {name} @ {baud} baud (DTR={dtr}, RTS={rts}, XON={xon})...")
-                                self.serial_connection = serial.Serial(
-                                    name, baud, timeout=1, write_timeout=1,
-                                    dsrdtr=dtr, rtscts=rts, xonxoff=xon
-                                )
-                                self.connected = self.serial_connection.is_open
-                                if self.connected:
-                                    logger.info(f"✅ CONEXIÓN EXITOSA EN EL INTENTO {attempts}: {name} @ {baud}")
-                                    self.baudrate = baud
-                                    return True
-                            except Exception as e:
-                                err_msg = str(e).split('\n')[0]
-                                logger.debug(f"   ✗ Fallo {type(e).__name__}: {err_msg}")
-                                if self.serial_connection:
-                                    try: self.serial_connection.close()
-                                    except: pass
-                                self.serial_connection = None
-                                # Pequeña pausa entre intentos para no saturar el driver
-                                time.sleep(0.1)
-
-                # 5. ULTIMO RECURSO: Intentar encontrar por hardware ID si el nombre falló o no existe
-                logger.info("Buscando báscula por Hardware ID (VID:PID 0483:5740)...")
+                # 3. INTENTO B (HARDWARE ID FALLBACK): Buscar el chip STM32 específico.
+                # Esto es lo más fiable si Windows cambió el nombre del puerto.
+                logger.info("Intento B (Hardware ID: 0483:5740)...")
                 for p in serial.tools.list_ports.comports():
-                    # STM32 VID/PID detectado en logs (1155:22336 decimal == 0483:5740 hex)
-                    # Comprobamos ambos formatos por si acaso
                     is_stm32 = (p.vid == 0x0483 and p.pid == 0x5740) or (p.vid == 1155 and p.pid == 22336)
                     if is_stm32:
-                        port_to_try = p.device
-                        if sys.platform.startswith('win') and not port_to_try.startswith('\\\\.\\'):
-                            port_to_try = f"\\\\.\\{port_to_try}"
-                            
-                        logger.info(f"🎯 DISPOSITIVO STM32 ENCONTRADO EN {port_to_try}. Intentando re-conectar...")
+                        stm32_name = p.device
+                        if sys.platform.startswith('win') and not stm32_name.startswith('\\\\.\\'):
+                            stm32_name = f"\\\\.\\{stm32_name}"
+                        
+                        logger.info(f"🎯 Chip STM32 detectado en {stm32_name}. Intentando despertar driver...")
+                        # 3-Retries con espera larga por si el driver está 'Enumerando' (Error 2)
+                        for r in range(3):
+                            try:
+                                for baud in [9600, 115200]:
+                                    try:
+                                        self.serial_connection = serial.Serial(stm32_name, baud, timeout=1)
+                                        if self.serial_connection.is_open:
+                                            logger.info(f"✅ ÉXITO (HWID) en {stm32_name} @ {baud}")
+                                            self.port = p.device # Actualizar puerto
+                                            self.connected = True
+                                            self.is_currently_connecting = False
+                                            return True
+                                    except: continue
+                                # Si llegamos aquí, ninguno de los baudrates funcionó para este intento r
+                                raise Exception("Baudrates fallidos")
+                            except Exception as e:
+                                if "FileNotFoundError" in str(e) or "[Error 2]" in str(e):
+                                    logger.warning(f"  Pausa de recuperación driver (Intento {r+1}/3)...")
+                                    time.sleep(2.0)
+                                else:
+                                    break
+                
+                # 4. INTENTO C (BARRIDO MATRICIAL): Solo si los anteriores fallaron.
+                # Reducimos a bauds más probables para no estresar el chip.
+                logger.info(f"Intento C (Barrido Matricial limitado) para {target_port}...")
+                for baud in [9600, 115200, 4800, 2400]:
+                    for handshake in [(False, False, False), (True, True, False)]:
                         try:
-                            # Intentar apertura directa con reintentos para Error 2 (Settling time)
-                            for r in range(3):
-                                try:
-                                    # Probar a 9600 y 115200 que son los más comunes
-                                    for b in [9600, 115200]:
-                                        try:
-                                            self.serial_connection = serial.Serial(port_to_try, b, timeout=1)
-                                            if self.serial_connection.is_open:
-                                                logger.info(f"✅ CONEXIÓN EXITOSA POR HARDWARE ID en {port_to_try} @ {b}")
-                                                self.port = p.device # Actualizar puerto base
-                                                self.baudrate = b
-                                                self.connected = True
-                                                return True
-                                        except: continue
-                                except Exception as inner_e:
-                                    if "FileNotFoundError" in str(inner_e) or "[Error 2]" in str(inner_e):
-                                        logger.warning(f"  Intento {r+1}/3: El puerto {port_to_try} aún no está listo. Esperando...")
-                                        time.sleep(1.5)
-                                    else:
-                                        raise
-                        except Exception as final_e:
-                            logger.error(f"  Fallo fatal abriendo dispositivo por ID: {final_e}")
+                            dtr, rts, xon = handshake
+                            self.serial_connection = serial.Serial(
+                                target_port, baud, timeout=1, dsrdtr=dtr, rtscts=rts
+                            )
+                            if self.serial_connection.is_open:
+                                logger.info(f"✅ ÉXITO (BARRIDO) en {target_port} @ {baud}")
+                                self.connected = True
+                                self.is_currently_connecting = False
+                                return True
+                        except:
+                            if self.serial_connection: self.serial_connection.close()
+                            self.serial_connection = None
+                            time.sleep(0.1)
 
-                logger.error(f"✗ Agotados {attempts} intentos. El puerto no responde o está en uso.")
-                logger.warning("TIP: Desconecta y vuelve a conectar el cable USB de la báscula.")
+                logger.error("✗ Agotadas todas las estrategias de conexión.")
+                logger.warning("RECOMENDACIÓN: Desconecta el USB de la báscula y espera 10 segundos.")
+                self.connected = False
+                self.is_currently_connecting = False
+                return False
+
+            except Exception as e:
+                logger.error(f"✗ Error crítico inesperado en connect(): {e}")
+                self.connected = False
+                self.is_currently_connecting = False
                 return False
 
             except Exception as e:
@@ -989,6 +973,12 @@ if __name__ == '__main__':
     print(f"⚖️ Báscula: {args.scale_port or 'Pendiente'}")
     print(f"🖨️ Impresora: {args.printer_port or 'Pendiente'}")
     print("-" * 50)
+    
+    if not check_single_instance():
+        logger.error("!!! ERROR: Ya hay otra instancia de este script ejecutándose.")
+        logger.error("Por favor, cierra las ventanas negras abiertas antes de iniciar una nueva.")
+        time.sleep(5)
+        sys.exit(1)
 
     try:
         asyncio.run(main_loop(args.url, args.token, device_id, args))
