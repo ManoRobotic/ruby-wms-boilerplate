@@ -34,31 +34,42 @@ CONFIG_FILE = os.path.join(CONFIG_DIR, 'wms_serial_config.json')
 PID_FILE = os.path.join(CONFIG_DIR, 'wms_serial.pid')
 
 def check_single_instance():
-    """Verifica que no haya otras copias del script ejecutándose."""
+    """Verifica que no haya otras copias y trata de matar zombies."""
     try:
         if os.path.exists(PID_FILE):
             with open(PID_FILE, 'r') as f:
-                old_pid = int(f.read().strip())
+                content = f.read().strip()
+                if not content: return True
+                old_pid = int(content)
             
-            # Verificar si el proceso sigue vivo (Windows/Unix safe-ish)
-            if sys.platform.startswith('win'):
-                import subprocess
-                tasks = subprocess.check_output(['tasklist', '/FI', f'PID eq {old_pid}']).decode()
-                if str(old_pid) in tasks:
-                    return False
-            else:
-                try:
-                    os.kill(old_pid, 0)
-                    return False
-                except OSError:
-                    pass
+            # Si el PID es el de nosotros mismos (reinicios), ignorar
+            if old_pid == os.getpid(): return True
+
+            # Tratar de matar la instancia previa para liberar el puerto
+            try:
+                if sys.platform.startswith('win'):
+                    import subprocess
+                    # Verificar si existe antes de matar
+                    tasks = subprocess.check_output(['tasklist', '/FI', f'PID eq {old_pid}']).decode()
+                    if str(old_pid) in tasks:
+                        logger.warning(f"💀 Detectada instancia zombie (PID {old_pid}). Intentando terminarla...")
+                        subprocess.run(['taskkill', '/F', '/PID', str(old_pid)], capture_output=True)
+                        time.sleep(2) # Esperar a que libere el hardware
+                else:
+                    os.kill(old_pid, 0) # Verificar si vive
+                    logger.warning(f"💀 Terminando instancia previa (PID {old_pid})...")
+                    os.kill(old_pid, 9)
+                    time.sleep(1)
+            except:
+                pass # Probablemente ya murió o no tenemos permiso
         
         # Guardar PID actual
         with open(PID_FILE, 'w') as f:
             f.write(str(os.getpid()))
         return True
-    except:
-        return True # Si hay error de permisos al chequear, dejamos pasar
+    except Exception as e:
+        logger.debug(f"Error en check_single_instance: {e}")
+        return True 
 
 # --- Verificación de Plataforma (win32) ---
 try:
@@ -183,49 +194,57 @@ class ScaleManager:
                     time.sleep(0.5)
 
                 # 3. INTENTO B (HARDWARE ID FALLBACK): Buscar el chip STM32 específico.
-                # Esto es lo más fiable si Windows cambió el nombre del puerto.
-                logger.info("Intento B (Hardware ID: 0483:5740)...")
-                for p in serial.tools.list_ports.comports():
-                    is_stm32 = (p.vid == 0x0483 and p.pid == 0x5740) or (p.vid == 1155 and p.pid == 22336)
-                    if is_stm32:
-                        stm32_name = p.device
-                        if sys.platform.startswith('win') and not stm32_name.startswith('\\\\.\\'):
-                            stm32_name = f"\\\\.\\{stm32_name}"
-                        
-                        logger.info(f"🎯 Chip STM32 detectado en {stm32_name}. Iniciando Hyper-Recuperación...")
-                        # 5-Retries con espera de choque (En Windows el driver tarda en soltar el lock)
-                        for r in range(5):
-                            logger.info(f"   🌀 Ciclo {r+1}/5 de apertura...")
-                            try:
-                                last_err = None
-                                # Probar con y sin prefijo, con y sin DTR (el santo grial del STM32)
-                                for name_to_use in sorted(list(set([stm32_name, p.device]))):
-                                    for baud in [9600, 115200]:
-                                        for dtr in [True, False]:
-                                            try:
-                                                # logger.debug(f"      Intentando: {name_to_use} @ {baud} (DTR={dtr})")
-                                                conn = serial.Serial(name_to_use, baud, timeout=1, dsrdtr=dtr, rtscts=dtr)
-                                                if conn.is_open:
-                                                    logger.info(f"✅ ¡CONECTADO! en {name_to_use} @ {baud} (DTR={dtr})")
-                                                    self.serial_connection = conn
-                                                    self.port = p.device
-                                                    self.connected = True
-                                                    self.is_currently_connecting = False
-                                                    return True
-                                            except Exception as e_baud:
-                                                last_err = e_baud
-                                                # El error 2/5/31 sube directo para esperar
-                                                err_msg = str(e_baud).lower()
-                                                if any(x in err_msg for x in ["errno 2", "error 2", "errno 5", "error 5", "no puede encontrar"]):
-                                                    raise e_baud
-                                                continue
-                                
-                                raise last_err or Exception("Port locked")
+                # Esto es lo más fiable si Windows cambia el nombre o el driver se bloquea.
+                logger.info("Intento B (Re-escaneo de Hardware ID)...")
+                
+                # 5-Retries con re-audit en cada ciclo por si cambia de COM4 a COM5
+                for r in range(5):
+                    # Forzamos un re-escaneo fresco de puertos en cada intento
+                    available = serial.tools.list_ports.comports()
+                    dev = next((p for p in available if (p.vid == 0x0483 and p.pid == 0x5740) or (p.vid == 1155 and p.pid == 22336)), None)
+                    
+                    if not dev:
+                        logger.warning(f"   � Intento {r+1}/5: ¡Báscula NO detectada físicamente!. Re-revisando...")
+                        time.sleep(3.0)
+                        continue
 
-                            except Exception as e:
-                                err_str = str(e)
-                                logger.warning(f"      ⚠ Fallo sistémico ({err_str[:40]}...). Esperando 3s para reset driver...")
-                                time.sleep(3.0)
+                    stm32_name = dev.device
+                    logger.info(f"   🌀 Intento {r+1}/5: STM32 detectado en {stm32_name}. Abriendo...")
+
+                    try:
+                        # Probar con y sin prefijo, con y sin DTR
+                        for test_name in [stm32_name, f"\\\\.\\{stm32_name}"]:
+                            if test_name.startswith("\\\\.\\\\\\.\\"): test_name = test_name[4:] # Limpiar doble prefijo
+                            
+                            for baud in [9600, 115200]:
+                                try:
+                                    # Intentamos apertura con señales de control explícitas
+                                    conn = serial.Serial(test_name, baud, timeout=1, dsrdtr=True, rtscts=True)
+                                    if conn.is_open:
+                                        logger.info(f"✅ ¡ÉXITO! en {test_name} @ {baud} (DTR=True)")
+                                        self.serial_connection = conn
+                                        self.port = dev.device
+                                        self.connected = True
+                                        self.is_currently_connecting = False
+                                        return True
+                                except Exception as e_inner:
+                                    err_msg = str(e_inner).lower()
+                                    # Si es acceso denegado (Error 5), avisar explícitamente
+                                    if "access is denied" in err_msg or "error 5" in err_msg:
+                                        logger.error(f"      🚫 ACCESO DENEGADO a {test_name}. ¿Otro programa lo usa?")
+                                        raise e_inner # Salir al sleep largo
+                                    
+                                    # Si es Error 2/31 etc, simplemente intentamos el siguiente baud/formato
+                                    continue
+
+                        raise Exception("Locked or Busy")
+
+                    except Exception as e:
+                        logger.warning(f"      ⚠ Driver en conflicto ({str(e)[:30]}). Esperando 4s reinicio...")
+                        time.sleep(4.0)
+
+                # 4. INTENTO C (ULTIMO RECURSO)
+                logger.info("Intento C (Fuerza Bruta final)...")
                 
                 # 4. INTENTO C (BARRIDO MATRICIAL): Solo si los anteriores fallaron.
                 # Reducimos a bauds más probables para no estresar el chip.
@@ -972,10 +991,9 @@ async def main_loop(url, token, device_id, args):
         logger.warning(f"Conexión perdida. Reintentando en {reconnection_delay:.1f} segundos...")
         await asyncio.sleep(reconnection_delay)
 
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Cliente serial para WMSys.')
-    parser.add_argument('--url', type=str, default=os.getenv('SERIAL_SERVER_URL', 'wss://6ae12a728303.ngrok-free.app/cable'), help='URL del servidor.')
+    parser.add_argument('--url', type=str, default=os.getenv('SERIAL_SERVER_URL', 'wss://25e3696d9acd.ngrok-free.app/cable'), help='URL del servidor.')
     parser.add_argument('--token', type=str, default='f5284e6402cf64f9794711b91282e343', help='Token de autenticación.')
     parser.add_argument('--device-id', type=str, default='device-serial-6bca882ac82e4333afedfb48ac3eea8e', help='ID único del dispositivo.')
     parser.add_argument('--scale-port', type=str, default=None, help='Puerto de la báscula.')
