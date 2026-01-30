@@ -30,7 +30,7 @@ jobs:
           # Build serial server executable
           # --onefile: crea un solo ejecutable
           # --name: nombre del archivo de salida
-          pyinstaller --onefile --clean --name "simple_wms_serial_server" --hidden-import=win32timezone serial_server_prod.py
+          pyinstaller --onefile --clean --name "simple_wms_serial_server" --hidden-import=win32timezone --hidden-import=win32print final_working_serial_server.py
 
           # Build DBF uploader executable
           pyinstaller --onefile --clean --name "flexiempaques_dbf_uploader" dbf_uploader.py
