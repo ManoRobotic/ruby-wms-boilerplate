@@ -35,58 +35,28 @@ PID_FILE = os.path.join(CONFIG_DIR, 'wms_serial.pid')
 
 def check_single_instance():
     """Verifica que no haya otras copias y mata TODAS las instancias previas por nombre."""
-    import subprocess
-    import os
-    import time
+    # Lista de nombres de scripts que podrían estar corriendo y bloqueando el puerto
+    conflicting_scripts = [
+        'serial_server_prod.py',
+        'simple_wms_serial_server.exe', 
+        'final_working_serial_server.py',
+        'serial_server_windows.py'
+    ]
     
     current_pid = os.getpid()
     
-    logger.info(f"🛡️ Verificando instancia única (PID actual: {current_pid})...")
+    logger.info(f"🛡️ Verificando instancias y conflictos (PID actual: {current_pid})...")
 
-    try:
-        # 1. Método basado en archivo PID (Legacy pero útil)
-        if os.path.exists(PID_FILE):
-            try:
-                with open(PID_FILE, 'r') as f:
-                    old_pid = int(f.read().strip())
-                if old_pid != current_pid:
-                    logger.info(f"   ⚰️ Archivo PID encontrado ({old_pid}). Intentando limpieza...")
-                    try:
-                        os.kill(old_pid, 9) # Unix
-                    except:
-                        if sys.platform.startswith('win'):
-                            subprocess.run(['taskkill', '/F', '/PID', str(old_pid)], capture_output=True)
-            except Exception:
-                pass # Archivo corrupto o proceso ya muerto
-
-        # 2. Método agresivo: Buscar procesos por nombre (SOLO WINDOWS)
-        if sys.platform.startswith('win'):
-            try:
-                # Obtener nombre de nuestro ejecutable
-                my_exe = os.path.basename(sys.executable).lower()
-                my_script = os.path.basename(__file__).lower()
-                
-                logger.info(f"   🔎 Buscando clones de '{my_exe}' corriendo '{my_script}'...")
-                
-                # Usar WMIC para obtener command lines, es más preciso que tasklist
-                cmd = 'wmic process get processid,commandline /format:csv'
+    # 1. Verificar archivo PID
+    pid_file = os.path.join(tempfile.gettempdir(), "wms_serial_server.pid")
+    if os.path.exists(pid_file):
+        try:
+            with open(pid_file, 'r') as f:
+                old_pid = int(f.read().strip())
+            
+            if psutil.pid_exists(old_pid) and old_pid != current_pid:
+                logger.info(f"   ⚰️ Archivo PID encontrado ({old_pid}). Intentando limpieza...")
                 try:
-                    output = subprocess.check_output(cmd, shell=True).decode('utf-8', errors='ignore')
-                    
-                    for line in output.splitlines():
-                        if not line.strip(): continue
-                        parts = line.split(',')
-                        if len(parts) < 2: continue
-                        
-                        # WMIC CSV format: Node,CommandLine,ProcessId
-                        # A veces varía, buscamos el pid al final
-                        try:
-                            proc_pid = int(parts[-1].strip())
-                        except:
-                            continue
-                            
-                        proc_cmd = parts[1].lower() if len(parts) > 1 else ""
-                        
                         if proc_pid == current_pid: continue
                         
                         # Criterio de matanza:
