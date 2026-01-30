@@ -69,6 +69,9 @@ class CorrectedSchemaUploader:
             logger.info("Fetching last NO_OPRO from API...")
             response = self.session.get(
                 API_BASE_URL + API_LAST_OPRO_ENDPOINT,
+                headers={
+                    'X-Company-Token': 'f5284e6402cf64f9794711b91282e343'  # Flexiempaques token
+                },
                 timeout=30
             )
             if response.status_code == 200:
@@ -343,7 +346,10 @@ class CorrectedSchemaUploader:
                 response = self.session.post(
                     API_BASE_URL + API_ENDPOINT,
                     json=payload,
-                    headers={'Content-Type': 'application/json'},
+                    headers={
+                        'Content-Type': 'application/json',
+                        'X-Company-Token': 'f5284e6402cf64f9794711b91282e343'  # Flexiempaques token
+                    },
                     timeout=API_TIMEOUT
                 )
                 

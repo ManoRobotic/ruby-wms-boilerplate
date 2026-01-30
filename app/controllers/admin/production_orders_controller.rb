@@ -45,9 +45,14 @@ class Admin::ProductionOrdersController < AdminController
         @production_orders = @production_orders.joins(:admin).where(admins: { super_admin_role: current_user.super_admin_role })
         Rails.logger.debug "Filtered by super_admin_role: #{current_user.super_admin_role}"
       else
-        # Operator without a super_admin_role sees no orders
-        @production_orders = ProductionOrder.none
-        Rails.logger.debug "Operator without super_admin_role, showing no orders"
+        # Operator without a super_admin_role sees orders from their own company
+        if current_user.company_id
+          @production_orders = @production_orders.where(company_id: current_user.company_id)
+          Rails.logger.debug "Filtered by operator company_id: #{current_user.company_id}"
+        else
+          @production_orders = ProductionOrder.none
+          Rails.logger.debug "Operator without company_id, showing no orders"
+        end
       end
     else
       # No authenticated user, or unknown role, show no orders
