@@ -27,19 +27,57 @@ jobs:
 
       - name: Build with PyInstaller
         run: |
-          # Build serial server executable
+          # Create separate entry point files for each company with their specific configurations
+
+          # Create Flexiempaques version
+          python -c "
+          with open('serial_server_prod.py', 'r') as f:
+              content = f.read()
+
+          # Replace the default values for Flexiempaques
+          content = content.replace('wss://wmsys.fly.dev/cable', 'wss://wmsys.fly.dev/cable')
+          content = content.replace('f5284e6402cf64f9794711b91282e343', 'f5284e6402cf64f9794711b91282e343')
+          content = content.replace('device-serial-6bca882ac82e4333afedfb48ac3eea8e', 'device-serial-6bca882ac82e4333afedfb48ac3eea8e')
+
+          with open('flexiempaques_serial_server.py', 'w') as f:
+              f.write(content)
+          "
+
+          # Create Rzavala version
+          python -c "
+          with open('serial_server_prod.py', 'r') as f:
+              content = f.read()
+
+          # Replace the default values for Rzavala
+          content = content.replace('wss://wmsys.fly.dev/cable', 'wss://wmsys.fly.dev/cable')
+          content = content.replace('f5284e6402cf64f9794711b91282e343', '74bf5e0a6ae8813dfe80593ed84a7a9c')
+          content = content.replace('device-serial-6bca882ac82e4333afedfb48ac3eea8e', 'device-serial-bf05ebcf2c834539b2c63f542754282d')
+
+          with open('rzavala_serial_server.py', 'w') as f:
+              f.write(content)
+          "
+
+          # Build serial server executables for both companies
           # --onefile: crea un solo ejecutable
           # --name: nombre del archivo de salida
-          pyinstaller --onefile --clean --name "simple_wms_serial_server" --hidden-import=win32timezone --hidden-import=win32print final_working_serial_server.py
+          pyinstaller --onefile --clean --name "flexiempaques_serial_server" --hidden-import=win32timezone --hidden-import=win32print flexiempaques_serial_server.py
+
+          pyinstaller --onefile --clean --name "rzavala_serial_server" --hidden-import=win32timezone --hidden-import=win32print rzavala_serial_server.py
 
           # Build DBF uploader executable
           pyinstaller --onefile --clean --name "flexiempaques_dbf_uploader" dbf_uploader.py
 
-      - name: Upload Serial Server Artifact
+      - name: Upload Flexiempaques Serial Server Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: serial-server-exe
-          path: dist/simple_wms_serial_server.exe
+          name: flexiempaques-serial-server-exe
+          path: dist/flexiempaques_serial_server.exe
+
+      - name: Upload Rzavala Serial Server Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rzavala-serial-server-exe
+          path: dist/rzavala_serial_server.exe
 
       - name: Upload DBF Uploader Artifact
         uses: actions/upload-artifact@v4

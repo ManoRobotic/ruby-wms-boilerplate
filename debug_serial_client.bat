@@ -9,6 +9,6 @@ echo  Tunnel URL: wss://25e3696d9acd.ngrok-free.app/cable
 echo  Token: 74bf5e0a6ae8813dfe80593ed84a7a9c
 echo ================================================================
 
-python final_working_serial_server.py --url wss://25e3696d9acd.ngrok-free.app/cable --token 74bf5e0a6ae8813dfe80593ed84a7a9c --device-id device-serial-bf05ebcf2c834539b2c63f542754282d
+python serial_server_prod.py --url wss://wmsys.fly.dev/cable --token 74bf5e0a6ae8813dfe80593ed84a7a9c --device-id device-serial-bf05ebcf2c834539b2c63f542754282d
 
 pause

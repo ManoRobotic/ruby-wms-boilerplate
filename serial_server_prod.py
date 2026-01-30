@@ -19,6 +19,7 @@ import uuid
 import websockets
 import base64
 import glob
+import tempfile
 
 # Import platform-specific modules conditionally
 if sys.platform.startswith('win'):
@@ -35,16 +36,23 @@ PID_FILE = os.path.join(CONFIG_DIR, 'wms_serial.pid')
 
 def check_single_instance():
     """Verifica que no haya otras copias y mata TODAS las instancias previas por nombre."""
+    try:
+        import psutil
+        import tempfile
+    except ImportError:
+        logger.warning("psutil no está instalado, omitiendo verificación de instancia única")
+        return True
+
     # Lista de nombres de scripts que podrían estar corriendo y bloqueando el puerto
     conflicting_scripts = [
         'serial_server_prod.py',
-        'simple_wms_serial_server.exe', 
+        'simple_wms_serial_server.exe',
         'final_working_serial_server.py',
         'serial_server_windows.py'
     ]
-    
+
     current_pid = os.getpid()
-    
+
     logger.info(f"🛡️ Verificando instancias y conflictos (PID actual: {current_pid})...")
 
     # 1. Verificar archivo PID
@@ -53,43 +61,69 @@ def check_single_instance():
         try:
             with open(pid_file, 'r') as f:
                 old_pid = int(f.read().strip())
-            
+
             if psutil.pid_exists(old_pid) and old_pid != current_pid:
                 logger.info(f"   ⚰️ Archivo PID encontrado ({old_pid}). Intentando limpieza...")
                 try:
-                        if proc_pid == current_pid: continue
-                        
-                        # Criterio de matanza:
-                        # 1. Es un EXE compilado (serial_server_prod.exe)
-                        # 2. Es python corriendo ESTE script específico
-                        should_kill = False
-                        
-                        if 'serial_server_prod.exe' in proc_cmd:
-                            should_kill = True
-                        elif 'python' in proc_cmd and my_script in proc_cmd:
-                             should_kill = True
-                             
-                        if should_kill:
-                            logger.warning(f"   💀 MATANDO INSTANCIA ZOMBIE DETECTADA (PID {proc_pid}): {proc_cmd[:50]}...")
-                            subprocess.run(['taskkill', '/F', '/PID', str(proc_pid)], capture_output=True)
-                            time.sleep(1) 
+                    # Matar proceso por PID
+                    old_process = psutil.Process(old_pid)
+                    logger.warning(f"   💀 MATANDO PROCESO ZOMBIE (PID {old_pid}): {old_process.name()}")
+                    old_process.terminate()
+                    old_process.wait(timeout=5)  # Esperar hasta 5 segundos a que termine
+                except psutil.NoSuchProcess:
+                    logger.info("   ✅ Proceso ya no existe")
+                except psutil.TimeoutExpired:
+                    logger.warning(f"   ⚠️ Proceso {old_pid} no respondió, forzando terminación...")
+                    old_process.kill()  # Forzar terminación si no responde
                 except Exception as e:
-                    logger.debug(f"Fallo al usar WMIC, intentando tasklist simple: {e}")
-                    # Fallback para EXEs simples si WMIC falla
-                    if my_exe.endswith('.exe') and 'python' not in my_exe:
-                        subprocess.run(f'taskkill /F /FI "IMAGENAME eq {my_exe}" /FI "PID ne {current_pid}"', shell=True, capture_output=True)
+                    logger.error(f"   ❌ Error matando proceso {old_pid}: {e}")
+        except ValueError:
+            logger.warning("   ⚠️ PID inválido en archivo, borrando...")
+            try:
+                os.remove(pid_file)
+            except:
+                pass
+        except Exception as e:
+            logger.debug(f"Error en limpieza por PID: {e}")
 
-            except Exception as e:
-                logger.debug(f"Error en limpieza por nombre: {e}")
+    # 2. Buscar procesos por nombre (adicional a PID)
+    try:
+        current_script_name = os.path.basename(__file__)
+        for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+            try:
+                proc_info = proc.info
+                proc_pid = proc_info['pid']
 
-        # 3. Guardar PID actual
-        with open(PID_FILE, 'w') as f:
-            f.write(str(current_pid))
-        
-        return True
+                if proc_pid == current_pid:
+                    continue
+
+                # Criterio de matanza:
+                # 1. Es un EXE compilado (serial_server_prod.exe)
+                # 2. Es python corriendo ESTE script específico
+                should_kill = False
+
+                proc_cmd = ' '.join(proc_info.get('cmdline', []))
+                my_script = current_script_name
+
+                if 'serial_server_prod.exe' in proc_cmd.lower():
+                    should_kill = True
+                elif 'python' in proc_cmd.lower() and my_script.lower() in proc_cmd.lower():
+                    should_kill = True
+
+                if should_kill:
+                    logger.warning(f"   💀 MATANDO INSTANCIA ZOMBIE DETECTADA (PID {proc_pid}): {proc_cmd[:50]}...")
+                    proc.kill()
+                    time.sleep(1)
+            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                continue
     except Exception as e:
-        logger.error(f"Error crítico en check_single_instance: {e}")
-        return True # Intentar seguir de todas formas 
+        logger.debug(f"Fallo al usar psutil, intentando alternativas: {e}")
+
+    # 3. Guardar PID actual
+    with open(PID_FILE, 'w') as f:
+        f.write(str(current_pid))
+
+    return True
 
 # --- Verificación de Plataforma (win32) ---
 try:
@@ -887,7 +921,7 @@ async def main_loop(url, token, device_id, args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Cliente serial para WMSys.')
-    parser.add_argument('--url', type=str, default=os.getenv('SERIAL_SERVER_URL', 'wss://25e3696d9acd.ngrok-free.app/cable'), help='URL del servidor.')
+    parser.add_argument('--url', type=str, default=os.getenv('SERIAL_SERVER_URL', 'wss://wmsys.fly.dev/cable'), help='URL del servidor.')
     parser.add_argument('--token', type=str, default='f5284e6402cf64f9794711b91282e343', help='Token de autenticación.')
     parser.add_argument('--device-id', type=str, default='device-serial-6bca882ac82e4333afedfb48ac3eea8e', help='ID único del dispositivo.')
     parser.add_argument('--scale-port', type=str, default=None, help='Puerto de la báscula.')
