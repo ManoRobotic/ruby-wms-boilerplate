@@ -35,21 +35,60 @@ jobs:
           (Get-Content flexiempaques_serial_server.py) -replace 'f5284e6402cf64f9794711b91282e343', 'f5284e6402cf64f9794711b91282e343' | Set-Content flexiempaques_serial_server.py
           (Get-Content flexiempaques_serial_server.py) -replace 'device-serial-6bca882ac82e4333afedfb48ac3eea8e', 'device-serial-6bca882ac82e4333afedfb48ac3eea8e' | Set-Content flexiempaques_serial_server.py
 
+          # Verify Flexiempaques file was created
+          if (Test-Path flexiempaques_serial_server.py) {
+            Write-Host "Flexiempaques server file created successfully"
+            Write-Host "Contents preview:"
+            Get-Content flexiempaques_serial_server.py | Select-Object -First 10
+          } else {
+            Write-Host "ERROR: Flexiempaques server file was not created!"
+            exit 1
+          }
+
           # Create Rzavala version
           Copy-Item serial_server_prod.py rzavala_serial_server.py
           (Get-Content rzavala_serial_server.py) -replace 'wss://wmsys.fly.dev/cable', 'wss://wmsys.fly.dev/cable' | Set-Content rzavala_serial_server.py
           (Get-Content rzavala_serial_server.py) -replace 'f5284e6402cf64f9794711b91282e343', '74bf5e0a6ae8813dfe80593ed84a7a9c' | Set-Content rzavala_serial_server.py
           (Get-Content rzavala_serial_server.py) -replace 'device-serial-6bca882ac82e4333afedfb48ac3eea8e', 'device-serial-bf05ebcf2c834539b2c63f542754282d' | Set-Content rzavala_serial_server.py
 
+          # Verify Rzavala file was created
+          if (Test-Path rzavala_serial_server.py) {
+            Write-Host "Rzavala server file created successfully"
+            Write-Host "Contents preview:"
+            Get-Content rzavala_serial_server.py | Select-Object -First 10
+          } else {
+            Write-Host "ERROR: Rzavala server file was not created!"
+            exit 1
+          }
+
           # Build serial server executables for both companies
           # --onefile: crea un solo ejecutable
           # --name: nombre del archivo de salida
+          Write-Host "Building Flexiempaques serial server..."
           pyinstaller --onefile --clean --name "flexiempaques_serial_server" --hidden-import=win32timezone --hidden-import=win32print flexiempaques_serial_server.py
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "ERROR: Failed to build Flexiempaques serial server"
+            exit 1
+          }
 
+          Write-Host "Building Rzavala serial server..."
           pyinstaller --onefile --clean --name "rzavala_serial_server" --hidden-import=win32timezone --hidden-import=win32print rzavala_serial_server.py
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "ERROR: Failed to build Rzavala serial server"
+            exit 1
+          }
 
           # Build DBF uploader executable
+          Write-Host "Building DBF uploader..."
           pyinstaller --onefile --clean --name "flexiempaques_dbf_uploader" dbf_uploader.py
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "ERROR: Failed to build DBF uploader"
+            exit 1
+          }
+
+          # Check if executables were created
+          Write-Host "Checking for generated executables..."
+          Get-ChildItem dist/ -Name
 
       - name: Upload Flexiempaques Serial Server Artifact
         uses: actions/upload-artifact@v4
