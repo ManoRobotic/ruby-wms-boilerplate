@@ -30,32 +30,16 @@ jobs:
           # Create separate entry point files for each company with their specific configurations
 
           # Create Flexiempaques version
-          python -c "
-          with open('serial_server_prod.py', 'r') as f:
-              content = f.read()
-
-          # Replace the default values for Flexiempaques
-          content = content.replace('wss://wmsys.fly.dev/cable', 'wss://wmsys.fly.dev/cable')
-          content = content.replace('f5284e6402cf64f9794711b91282e343', 'f5284e6402cf64f9794711b91282e343')
-          content = content.replace('device-serial-6bca882ac82e4333afedfb48ac3eea8e', 'device-serial-6bca882ac82e4333afedfb48ac3eea8e')
-
-          with open('flexiempaques_serial_server.py', 'w') as f:
-              f.write(content)
-          "
+          Copy-Item serial_server_prod.py flexiempaques_serial_server.py
+          (Get-Content flexiempaques_serial_server.py) -replace 'wss://wmsys.fly.dev/cable', 'wss://wmsys.fly.dev/cable' | Set-Content flexiempaques_serial_server.py
+          (Get-Content flexiempaques_serial_server.py) -replace 'f5284e6402cf64f9794711b91282e343', 'f5284e6402cf64f9794711b91282e343' | Set-Content flexiempaques_serial_server.py
+          (Get-Content flexiempaques_serial_server.py) -replace 'device-serial-6bca882ac82e4333afedfb48ac3eea8e', 'device-serial-6bca882ac82e4333afedfb48ac3eea8e' | Set-Content flexiempaques_serial_server.py
 
           # Create Rzavala version
-          python -c "
-          with open('serial_server_prod.py', 'r') as f:
-              content = f.read()
-
-          # Replace the default values for Rzavala
-          content = content.replace('wss://wmsys.fly.dev/cable', 'wss://wmsys.fly.dev/cable')
-          content = content.replace('f5284e6402cf64f9794711b91282e343', '74bf5e0a6ae8813dfe80593ed84a7a9c')
-          content = content.replace('device-serial-6bca882ac82e4333afedfb48ac3eea8e', 'device-serial-bf05ebcf2c834539b2c63f542754282d')
-
-          with open('rzavala_serial_server.py', 'w') as f:
-              f.write(content)
-          "
+          Copy-Item serial_server_prod.py rzavala_serial_server.py
+          (Get-Content rzavala_serial_server.py) -replace 'wss://wmsys.fly.dev/cable', 'wss://wmsys.fly.dev/cable' | Set-Content rzavala_serial_server.py
+          (Get-Content rzavala_serial_server.py) -replace 'f5284e6402cf64f9794711b91282e343', '74bf5e0a6ae8813dfe80593ed84a7a9c' | Set-Content rzavala_serial_server.py
+          (Get-Content rzavala_serial_server.py) -replace 'device-serial-6bca882ac82e4333afedfb48ac3eea8e', 'device-serial-bf05ebcf2c834539b2c63f542754282d' | Set-Content rzavala_serial_server.py
 
           # Build serial server executables for both companies
           # --onefile: crea un solo ejecutable
