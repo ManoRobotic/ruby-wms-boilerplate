@@ -378,7 +378,7 @@ class Admin::ProductionOrderItemsController < AdminController
       ^FO165,260^BY2,2
       ^BCN,60,Y,N,N
       ^FD#{label_data[:folio_consecutivo]}^FS
-      ^FO165,349^A0N,26,26^FDLote: #{label_data[:lote] || '-'}^FS
+      ^FO165,349^A0N,26,26^FDLote: #{label_data[:folio_consecutivo] || '-'}^FS
       ^PQ1,0,1,Y
       ^XZ
     ZPL
