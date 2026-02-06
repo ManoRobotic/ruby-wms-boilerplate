@@ -146,21 +146,9 @@
                     data-action="click->production-order#openModal">
                   <!-- No. OPRO -->
                   <td class="px-3 py-2 text-sm font-medium text-gray-900">
-                    <div>
-                      <span class="text-blue-gem-600 font-semibold">
-                        <%= order.lote_referencia.present? ? order.lote_referencia : '' %><%= order.no_opro.present? ? order.no_opro : order.order_number %>
-                      </span>
-                      <div class="text-xs text-gray-500 mt-1 space-y-1">
-                        <div>
-                          <span class="text-gray-400">Lote:</span> <%= order.lote_referencia || '-' %>
-                        </div>
-                        <div class="flex flex-wrap gap-1 sm:hidden mt-1">
-                          <span class="inline-flex items-center px-2 py-0.5 bg-gray-100 text-gray-700 text-xs rounded">
-                            <%= order.quantity_requested %> und
-                          </span>
-                        </div>
-                      </div>
-                    </div>
+                    <span class="font-mono text-xs px-2 py-1 rounded font-semibold">
+                      <%= order.no_opro %>
+                    </span>
                   </td>
 
                   <!-- CVE_PROD -->
@@ -173,7 +161,11 @@
 
                   <!-- Lote -->
                   <td class="px-2 py-2 text-sm text-gray-500 hidden md:table-cell">
-                    <%= order.lote_referencia || '-' %>
+                      <div>
+                      <span class="text-blue-gem-600 font-semibold">
+                        <%= order.lote_referencia.present? ? order.lote_referencia : '' %><%= order.no_opro.present? ? order.no_opro : order.order_number %>
+                      </span>
+                    </div>
                   </td>
 
                   <!-- Cantidad -->

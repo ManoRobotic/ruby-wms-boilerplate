@@ -104,7 +104,7 @@ class Admin::ProductionOrderItemsController < AdminController
   def update
     Rails.logger.info "Received update request for production order item: #{@production_order_item.id}"
     Rails.logger.info "Updating production order item with params: #{params.inspect}"
-    
+
     if @production_order_item.update(production_order_item_params)
       Rails.logger.info "Update successful for item: #{@production_order_item.inspect}"
       respond_to do |format|
@@ -168,30 +168,30 @@ class Admin::ProductionOrderItemsController < AdminController
 
   def show_print_confirmation
     @production_order = ProductionOrder.find(params[:production_order_id])
-    @item_ids = params[:item_ids].split(',') if params[:item_ids].present?
-    
+    @item_ids = params[:item_ids].split(",") if params[:item_ids].present?
+
     respond_to do |format|
       format.turbo_stream do
         render turbo_stream: turbo_stream.append(
           "body",
           partial: "admin/production_order_items/confirm_print_modal",
-          locals: { 
-            production_order: @production_order, 
+          locals: {
+            production_order: @production_order,
             item_ids: @item_ids || []
           }
         )
       end
       format.html do
-        render partial: "admin/production_order_items/confirm_print_modal", 
-               locals: { 
-                 production_order: @production_order, 
-                 item_ids: @item_ids || [] 
-               }, 
+        render partial: "admin/production_order_items/confirm_print_modal",
+               locals: {
+                 production_order: @production_order,
+                 item_ids: @item_ids || []
+               },
                layout: false,
-               content_type: 'text/html'
+               content_type: "text/html"
       end
       format.json do
-        render json: { 
+        render json: {
           production_order_id: @production_order.id,
           item_ids: @item_ids || []
         }
@@ -200,7 +200,7 @@ class Admin::ProductionOrderItemsController < AdminController
   end
 
   def confirm_print
-    item_ids = params[:item_ids].split(',') if params[:item_ids].present?
+    item_ids = params[:item_ids].split(",") if params[:item_ids].present?
     production_order_items = ProductionOrderItem.where(id: item_ids)
 
     # Imprimir los datos de las etiquetas en la consola
@@ -212,28 +212,28 @@ class Admin::ProductionOrderItemsController < AdminController
 
     # Determine the company to use for the printing service
     company = (current_admin&.company || current_user&.company)&.reload
-    
+
     # Store successful prints to mark them later
     successfully_printed_items = []
     failed_items = []
-    
+
     # Verify the serial service is accessible before attempting to print
     Rails.logger.info "[PrintDebug] Checking health for company: #{company&.name} (ID: #{company&.id})"
     Rails.logger.info "[PrintDebug] Device ID: '#{company&.serial_device_id}', Token: '#{company&.serial_auth_token.present? ? 'PRESENT' : 'MISSING'}'"
-    
+
     if SerialCommunicationService.health_check(company: company)
       Rails.logger.info "[PrintDebug] Health check PASSED"
 
       production_order_items.each do |item|
         data = item.label_data
-        
+
         # Crear contenido de la etiqueta según el modelo de impresora
         label_content = generate_label_content(item, company)
         Rails.logger.info "Generated label content for item #{item.id}: #{label_content}"
 
         # Try to print
         print_result = print_with_retry(label_content, company)
-        
+
         if print_result
           successfully_printed_items << item
           Rails.logger.info "Item #{item.id} printed successfully"
@@ -254,10 +254,10 @@ class Admin::ProductionOrderItemsController < AdminController
 
     # Send response
     all_success = failed_items.empty?
-    
+
     # Recargar los items para obtener el estado actualizado
     updated_items = ProductionOrderItem.where(id: item_ids)
-    
+
     respond_to do |format|
       format.turbo_stream do
         render turbo_stream: [
@@ -275,14 +275,14 @@ class Admin::ProductionOrderItemsController < AdminController
           )
         }
       end
-      format.json { 
-        render json: { 
-          success: all_success, 
-          message: all_success ? "Items marked as printed and sent to printer." : "Some items failed to print.", 
+      format.json {
+        render json: {
+          success: all_success,
+          message: all_success ? "Items marked as printed and sent to printer." : "Some items failed to print.",
           printed_count: successfully_printed_items.count,
           failed_count: failed_items.count,
           items: production_order_items.map(&:label_data)
-        } 
+        }
       }
     end
   end
@@ -297,12 +297,12 @@ class Admin::ProductionOrderItemsController < AdminController
       alto_mm: 50,
       company: company
     )
-    
+
     return true if result
-    
+
     # If failed, try to connect printer and current settings
     Rails.logger.info "Print failed, attempting to connect printer and retry..."
-    
+
     if SerialCommunicationService.connect_printer(company: company)
       # Second attempt after connection
       SerialCommunicationService.print_label(
@@ -346,7 +346,7 @@ class Admin::ProductionOrderItemsController < AdminController
   # Generate label content based on printer model
   def generate_label_content(item, company)
     data = item.label_data
-    if company.printer_model == 'zebra'
+    if company.printer_model == "zebra"
       generate_zpl_label_content(data)
     else
       generate_tspl2_label_content(data)
@@ -371,7 +371,7 @@ class Admin::ProductionOrderItemsController < AdminController
       ^LL0600
       ^LS20
       ^FO330,65^A0N,50,50^FB120,1,0,R^FD#{label_data[:consecutivo_numero] || '-'}^FS
-      ^FO165,115^A0N,28,28^FDCVE_PROD: #{label_data[:clave_producto] || '-'}^FS
+      ^FO165,115^A0N,28,28^FD #{label_data[:clave_producto] || '-'}^FS
       ^FO165,150^A0N,30,30^FDPB: #{label_data[:peso_bruto]} kg^FS
       ^FO165,185^A0N,30,30^FDPN: #{label_data[:peso_neto]} kg^FS
       ^FO165,220^A0N,30,30^FDML: #{label_data[:metros_lineales]} mts^FS
