@@ -363,22 +363,27 @@ class Admin::ProductionOrderItemsController < AdminController
     # Ahora aumentamos el tamaño del número consecutivo al doble y otros textos un poco más grandes
     # También aseguramos que no haya texto en negrita
     # Movemos todo el contenido un 10% hacia la derecha
+    
+    # Construir el código de barras concatenando lote, número de orden y consecutivo
+    # Formato: FE-CR-0502261009-1
+    barcode_content = "#{label_data[:lote]}#{label_data[:numero_de_orden]}-#{label_data[:consecutivo_numero]}"
+
     zpl = <<~ZPL
       ^XA
       ^CI28
       ^MMT
-      ^PW450
-      ^LL0600
-      ^LS20
-      ^FO330,65^A0N,50,50^FB120,1,0,R^FD#{label_data[:consecutivo_numero] || '-'}^FS
-      ^FO165,115^A0N,28,28^FD #{label_data[:clave_producto] || '-'}^FS
-      ^FO165,150^A0N,30,30^FDPB: #{label_data[:peso_bruto]} kg^FS
-      ^FO165,185^A0N,30,30^FDPN: #{label_data[:peso_neto]} kg^FS
-      ^FO165,220^A0N,30,30^FDML: #{label_data[:metros_lineales]} mts^FS
-      ^FO165,260^BY2,2
+      ^PW640
+      ^LL0406
+      ^LS0
+      ^FO500,65^A0N,50,50^FB120,1,0,R^FD#{label_data[:consecutivo_numero] || '-'}^FS
+      ^FO100,115^A0N,28,28^FD#{label_data[:clave_producto] || '-'}^FS
+      ^FO100,150^A0N,30,30^FDPB: #{label_data[:peso_bruto]} kg^FS
+      ^FO100,185^A0N,30,30^FDPN: #{label_data[:peso_neto]} kg^FS
+      ^FO100,220^A0N,30,30^FDML: #{label_data[:metros_lineales]} mts^FS
+      ^FO100,260^BY2,2
       ^BCN,60,Y,N,N
-      ^FD#{label_data[:folio_consecutivo]}^FS
-      ^FO165,349^A0N,26,26^FDLote: #{label_data[:lote] || '-'}^FS
+      ^FD#{barcode_content}^FS
+      ^FO100,349^A0N,22,22^FD#{barcode_content}^FS
       ^PQ1,0,1,Y
       ^XZ
     ZPL
