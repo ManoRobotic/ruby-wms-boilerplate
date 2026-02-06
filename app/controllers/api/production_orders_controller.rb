@@ -431,7 +431,9 @@ class Api::ProductionOrdersController < Api::BaseController
       :cantidad_liquidada,
       :hora_orden,
       :year,
-      :master_prod
+      :master_prod,
+      :carga_copr,
+      :ren_orp
     )
   end
 end

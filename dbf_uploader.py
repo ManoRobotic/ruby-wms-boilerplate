@@ -284,6 +284,10 @@ class CorrectedSchemaUploader:
                 
                 # LOTE (lote del producto)
                 "lote_referencia": cleaned.get('LOTE', ''),
+
+                # New Mappings for DBF columns
+                "carga_copr": cleaned.get('CARGA_OPRO', ''),
+                "ren_orp": cleaned.get('REN_OPRO', ''),
                 
                 # Year field
                 "ano": year,  # Using 'ano' instead of 'year' to match model field
