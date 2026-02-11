@@ -35,7 +35,7 @@ class ProductionOrderItem < ApplicationRecord
       consecutivo_numero: con_num,
       name: cliente.presence || po.notes.presence || con_num,
       lote: po.lote_referencia,
-      clave_producto: po.clave_producto.presence || po.product_key.presence || "-",
+      clave_producto: clave_producto_local.presence || po.clave_producto.presence || po.product_key.presence || "-",
       peso_bruto: sprintf("%.2f", peso_bruto || 0),
       peso_neto: sprintf("%.2f", peso_neto || 0),
       metros_lineales: sprintf("%.2f", metros_lineales || 0),

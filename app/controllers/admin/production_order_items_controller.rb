@@ -334,7 +334,8 @@ class Admin::ProductionOrderItemsController < AdminController
     item_params = params.require(:production_order_item).permit(
       :folio_consecutivo, :peso_bruto, :peso_neto, :metros_lineales,
       :peso_core_gramos, :status, :micras, :ancho_mm, :altura_cm,
-      :cliente, :numero_de_orden, :nombre_cliente_numero_pedido, :peso_bruto_manual
+      :cliente, :numero_de_orden, :nombre_cliente_numero_pedido, :peso_bruto_manual,
+      :clave_producto_local
     )
     # If peso_bruto_manual is present and not empty, use it as peso_bruto
     if item_params[:peso_bruto_manual].present?

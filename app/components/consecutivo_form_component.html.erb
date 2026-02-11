@@ -23,13 +23,12 @@
         <!-- Product Name (Pre-filled with clave_producto) -->
         <div>
             <label for="clave_producto" class="block mb-1 text-sm font-medium text-slate-700">Clave Producto</label>
-            <%= form.text_field :clave_producto_display, 
-                name: "clave_producto_display",
-                id: "clave_producto", 
+            <%= form.text_field :clave_producto_local,
+                name: "production_order_item[clave_producto_local]",
+                id: "clave_producto",
                 class: "bg-slate-50 border border-slate-300 text-slate-700 text-sm rounded-lg focus:ring-emerald-500 focus:border-emerald-500 block w-full p-2",
-                value: production_order.clave_producto || "BOPPTRANS 35 / 420",
-                placeholder: "BOPPTRANS 35 / 420",
-                readonly: false %>
+                value: consecutivo_form.clave_producto_local || production_order.clave_producto || "BOPPTRANS 35 / 420",
+                placeholder: "BOPPTRANS 35 / 420" %>
         </div>
 
         <!-- Control de modo de pesaje -->

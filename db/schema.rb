@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_11_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_11_130000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -387,6 +387,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_11_120000) do
   create_table "production_order_items", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.integer "altura_cm"
     t.integer "ancho_mm"
+    t.string "clave_producto_local"
     t.string "cliente"
     t.datetime "created_at", null: false
     t.string "folio_consecutivo"
