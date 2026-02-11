@@ -376,14 +376,13 @@ class Admin::ProductionOrderItemsController < AdminController
       ^LL0406
       ^LS0
       ^FO500,65^A0N,50,50^FB120,1,0,R^FD#{label_data[:consecutivo_numero] || '-'}^FS
-      ^FO100,115^A0N,28,28^FD#{label_data[:clave_producto] || '-'}^FS
-      ^FO100,150^A0N,30,30^FDPB: #{label_data[:peso_bruto]} kg^FS
-      ^FO100,185^A0N,30,30^FDPN: #{label_data[:peso_neto]} kg^FS
-      ^FO100,220^A0N,30,30^FDML: #{label_data[:metros_lineales]} mts^FS
-      ^FO100,260^BY2,2
+      ^FO180,115^A0N,28,28^FD#{label_data[:clave_producto] || '-'}^FS
+      ^FO180,150^A0N,30,30^FDPB: #{label_data[:peso_bruto]} kg^FS
+      ^FO180,185^A0N,30,30^FDPN: #{label_data[:peso_neto]} kg^FS
+      ^FO180,220^A0N,30,30^FDML: #{label_data[:metros_lineales]} mts^FS
+      ^FO180,260^BY2,2
       ^BCN,60,Y,N,N
       ^FD#{barcode_content}^FS
-      ^FO100,349^A0N,22,22^FD#{barcode_content}^FS
       ^PQ1,0,1,Y
       ^XZ
     ZPL
