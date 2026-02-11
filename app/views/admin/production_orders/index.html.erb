@@ -163,7 +163,7 @@
                   <td class="px-2 py-2 text-sm text-gray-500 hidden md:table-cell">
                       <div>
                       <span class="text-blue-gem-600 font-semibold">
-                        <%= order.lote_referencia.present? ? order.lote_referencia : '' %><%= order.no_opro.present? ? order.no_opro : order.order_number %>
+                        <%= order.lote_referencia.present? ? order.lote_referencia : (order.no_opro.present? ? order.no_opro : order.order_number) %>
                       </span>
                     </div>
                   </td>

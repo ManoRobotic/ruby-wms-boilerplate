@@ -152,9 +152,17 @@ class ProductionOrder < ApplicationRecord
   end
 
   def lote_referencia
-    return self[:lote_referencia] if self[:lote_referencia].present?
+    # Always generate the proper format: FE-CR-DDMMAAYYNNNN
+    # regardless of what was sent from the external source
     date_source = fecha_completa || created_at || Date.current
-    generate_lote_from_fecha(date_source)
+    date_part = generate_lote_from_fecha(date_source)
+    
+    # Extract the order number from no_opro or use order_number
+    order_num = no_opro || order_number
+    # Ensure it's in the right format (4 digits)
+    order_suffix = order_num.to_s.gsub(/\D/, '').rjust(4, '0')[-4, 4] || '0000'
+    
+    "#{date_part}#{order_suffix}"
   end
 
   def clave_producto
