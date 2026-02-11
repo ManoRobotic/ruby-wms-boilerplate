@@ -365,9 +365,10 @@ class Admin::ProductionOrderItemsController < AdminController
     # También aseguramos que no haya texto en negrita
     # Movemos todo el contenido un 10% hacia la derecha
     
-    # Construir el código de barras concatenando lote, número de orden y consecutivo
+    # Construir el código de barras usando solo el lote y el número consecutivo
+    # El lote ya incluye el número de orden en su formato (FE-CR-DDMMAAYYNNNN)
     # Formato: FE-CR-0502261009-1
-    barcode_content = "#{label_data[:lote]}#{label_data[:numero_de_orden]}-#{label_data[:consecutivo_numero]}"
+    barcode_content = "#{label_data[:lote]}-#{label_data[:consecutivo_numero]}"
 
     zpl = <<~ZPL
       ^XA
@@ -381,7 +382,7 @@ class Admin::ProductionOrderItemsController < AdminController
       ^FO180,150^A0N,30,30^FDPB: #{label_data[:peso_bruto]} kg^FS
       ^FO180,185^A0N,30,30^FDPN: #{label_data[:peso_neto]} kg^FS
       ^FO180,220^A0N,30,30^FDML: #{label_data[:metros_lineales]} mts^FS
-      ^FO180,260^BY2,2
+      ^FO180,260^BY1.5,2
       ^BCN,60,Y,N,N
       ^FD#{barcode_content}^FS
       ^PQ1,0,1,Y
@@ -411,8 +412,8 @@ class Admin::ProductionOrderItemsController < AdminController
       "TEXT 100,150,\"3\",0,1,1,\"PB: #{label_data[:peso_bruto]} kg\"",
       "TEXT 100,190,\"3\",0,1,1,\"PN: #{label_data[:peso_neto]} kg\"",
       "TEXT 100,230,\"3\",0,1,1,\"ML: #{label_data[:metros_lineales]} mts\"",
-      # Código de barras
-      "BARCODE 220,280,\"128\",90,1,0,2,2,\"#{label_data[:lote] || '-'}\"",
+      # Código de barras - usando solo el lote y el número consecutivo
+      "BARCODE 220,280,\"128\",90,1,0,1.5,2,\"#{label_data[:lote]}-#{label_data[:consecutivo_numero] || '-'}\"",
       "PRINT 1,1"
     ]
 
