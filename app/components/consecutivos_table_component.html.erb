@@ -31,7 +31,7 @@
     </thead>
     <tbody class="bg-white divide-y divide-emerald-100" id="production_order_items_table_body">
       <% if @production_order.production_order_items.any? %>
-        <%= render(ConsecutivoRowComponent.with_collection(@production_order.production_order_items.order(folio_consecutivo: :desc))) %>
+        <%= render(ConsecutivoRowComponent.with_collection(@production_order.production_order_items.order(Arel.sql("LENGTH(folio_consecutivo) DESC, folio_consecutivo DESC")))) %>
       <% else %>
         <tr id="no-consecutivos-row">
           <td colspan="10" class="text-center py-8">
