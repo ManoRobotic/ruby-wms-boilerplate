@@ -17,17 +17,19 @@ class AdminController < ApplicationController
     @recent_orders = Order.pending.recent.limit(5)
     @orders = @recent_orders # For backward compatibility with the view
 
+    company_id = current_user_or_admin&.company_id || 'all'
+
     # Cache expensive calculations
     @quick_stats = Rails.cache.fetch("admin_quick_stats_#{Date.current}", expires_in: 1.hour) do
       calculate_quick_stats
     end
 
-    @production_by_day = Rails.cache.fetch("admin_production_by_day_#{Date.current}", expires_in: 1.hour) do
-      ProductionOrderItem.count_by_day(7)
+    @production_by_day = Rails.cache.fetch("admin_production_by_day_#{company_id}_#{Date.current}", expires_in: 1.hour) do
+      production_item_base.count_by_day(7)
     end
 
-    @weight_by_day = Rails.cache.fetch("admin_weight_by_day_#{Date.current}", expires_in: 1.hour) do
-      ProductionOrderItem.weight_by_day(7)
+    @weight_by_day = Rails.cache.fetch("admin_weight_by_day_#{company_id}_#{Date.current}", expires_in: 1.hour) do
+      production_item_base.weight_by_day(7)
     end
 
     # Convert to array format for chart.js
@@ -54,6 +56,22 @@ class AdminController < ApplicationController
   end
 
   private
+
+  def production_order_base
+    if current_user_or_admin&.company_id
+      ProductionOrder.where(company_id: current_user_or_admin.company_id)
+    else
+      ProductionOrder.all
+    end
+  end
+
+  def production_item_base
+    if current_user_or_admin&.company_id
+      ProductionOrderItem.joins(:production_order).where(production_orders: { company_id: current_user_or_admin.company_id })
+    else
+      ProductionOrderItem.all
+    end
+  end
 
   def set_product_scope
     if current_user_or_admin&.company
@@ -186,9 +204,9 @@ class AdminController < ApplicationController
     month_end = Time.current.end_of_month
 
     {
-      orders_count: ProductionOrder.where(created_at: month_start..month_end).count,
-      total_net_weight: ProductionOrderItem.where(created_at: month_start..month_end).sum(:peso_neto) || 0,
-      folios_count: ProductionOrderItem.where(created_at: month_start..month_end).count
+      orders_count: production_order_base.where(created_at: month_start..month_end).count,
+      total_net_weight: production_item_base.where(production_order_items: { created_at: month_start..month_end }).sum(:peso_neto) || 0,
+      folios_count: production_item_base.where(production_order_items: { created_at: month_start..month_end }).count
     }
   end
 

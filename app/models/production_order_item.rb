@@ -203,7 +203,7 @@ class ProductionOrderItem < ApplicationRecord
     start_date = (days_back - 1).days.ago.to_date
 
     (start_date..end_date).each_with_object({}) do |date, hash|
-      hash[date] = where(created_at: date.all_day).count
+      hash[date] = where(production_order_items: { created_at: date.all_day }).count
     end
   end
 
@@ -212,7 +212,7 @@ class ProductionOrderItem < ApplicationRecord
     start_date = (days_back - 1).days.ago.to_date
 
     (start_date..end_date).each_with_object({}) do |date, hash|
-      hash[date] = where(created_at: date.all_day).sum(:peso_neto).to_f.round(2)
+      hash[date] = where(production_order_items: { created_at: date.all_day }).sum(:peso_neto).to_f.round(2)
     end
   end
 
