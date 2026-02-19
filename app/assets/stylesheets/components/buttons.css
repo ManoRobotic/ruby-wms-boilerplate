@@ -13,7 +13,9 @@
 }
 
 .btn:hover {
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 .btn:active {
@@ -126,6 +128,29 @@
 }
 
 .btn-accent:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Dark (Slate) Buttons */
+.btn-dark {
+  background-color: #334155;
+  color: white;
+}
+
+.btn-dark:hover {
+  background-color: #1e293b;
+}
+
+.btn-dark:active {
+  background-color: #0f172a;
+}
+
+.btn-dark:focus {
+  --tw-ring-color: #94a3b8;
+}
+
+.btn-dark:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
