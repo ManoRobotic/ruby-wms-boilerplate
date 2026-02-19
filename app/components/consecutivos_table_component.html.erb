@@ -30,7 +30,7 @@
     </thead>
     <tbody class="bg-white divide-y divide-emerald-100" id="production_order_items_table_body">
       <% if @production_order.production_order_items.any? %>
-        <%= render(ConsecutivoRowComponent.with_collection(@production_order.production_order_items.order(:folio_consecutivo))) %>
+        <%= render(ConsecutivoRowComponent.with_collection(@production_order.production_order_items.order(folio_consecutivo: :desc))) %>
       <% else %>
         <tr id="no-consecutivos-row">
           <td colspan="9" class="text-center py-8">

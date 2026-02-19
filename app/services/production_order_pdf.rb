@@ -28,9 +28,9 @@ class ProductionOrderPdf
         label_data[:name],
         label_data[:clave_producto],
         "#{label_data[:ancho_mm] || 0}mm / #{label_data[:micras] || 0}mic",
-        label_data[:peso_bruto] ? '%.2f' % label_data[:peso_bruto] : '0.00',
-        label_data[:peso_neto] ? '%.2f' % label_data[:peso_neto] : '0.00',
-        label_data[:metros_lineales] ? label_data[:metros_lineales].round(2) : 0.00,
+        label_data[:peso_bruto] ? '%.2f' % label_data[:peso_bruto].to_f : '0.00',
+        label_data[:peso_neto] ? '%.2f' % label_data[:peso_neto].to_f : '0.00',
+        label_data[:metros_lineales] ? label_data[:metros_lineales].to_f.round(2) : 0.00,
         label_data[:cliente] || 'N/A'
       ]
     end

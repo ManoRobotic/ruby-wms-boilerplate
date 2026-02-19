@@ -715,9 +715,15 @@ class Admin::ProductionOrdersController < AdminController
   end
 
   def print_consecutivos
+    items = if params[:item_ids].present?
+      @production_order.production_order_items.where(id: params[:item_ids])
+    else
+      @production_order.production_order_items
+    end
+
     respond_to do |format|
       format.pdf do
-        pdf = ProductionOrderPdf.new(@production_order, @production_order.production_order_items)
+        pdf = ProductionOrderPdf.new(@production_order, items)
         send_data pdf.render,
                   filename: "consecutivos_#{@production_order.order_number}.pdf",
                   type: "application/pdf",

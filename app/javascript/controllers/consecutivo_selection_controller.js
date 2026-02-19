@@ -38,18 +38,17 @@ export default class extends Controller {
   updatePrintButton() {
     const checkedCount = this.consecutivoCheckboxTargets.filter(cb => cb.checked).length
     const printButton = document.getElementById('print-labels-btn')
-    
-    if (checkedCount > 0) {
-      if (printButton) {
-        printButton.disabled = false
-        printButton.classList.remove('opacity-50', 'cursor-not-allowed')
-      }
-    } else {
-      if (printButton) {
-        printButton.disabled = true
-        printButton.classList.add('opacity-50', 'cursor-not-allowed')
-      }
-    }
+    const pdfButton = document.getElementById('download-pdf-btn')
+    const csvButton = document.getElementById('download-csv-btn')
+
+    const hasSelection = checkedCount > 0
+
+    ;[printButton, pdfButton, csvButton].forEach(btn => {
+      if (!btn) return
+      btn.disabled = !hasSelection
+      btn.classList.toggle('opacity-50', !hasSelection)
+      btn.classList.toggle('cursor-not-allowed', !hasSelection)
+    })
   }
 
   printLabels() {
@@ -159,6 +158,55 @@ export default class extends Controller {
     .catch(error => {
       console.error('Error:', error)
     })
+  }
+
+  // ----------- PDF Download -----------
+  downloadPdf(event) {
+    const selectedCheckboxes = this.consecutivoCheckboxTargets.filter(cb => cb.checked)
+    if (selectedCheckboxes.length === 0) return
+
+    const btn = event.currentTarget
+    const productionOrderId = btn.dataset.productionOrderId
+
+    const params = new URLSearchParams()
+    selectedCheckboxes.forEach(cb => params.append('item_ids[]', cb.dataset.itemId))
+
+    const url = `/admin/production_orders/${productionOrderId}/print_consecutivos.pdf?${params.toString()}`
+    window.location.href = url
+  }
+
+  // ----------- CSV Download -----------
+  downloadCsv(event) {
+    const selectedCheckboxes = this.consecutivoCheckboxTargets.filter(cb => cb.checked)
+    if (selectedCheckboxes.length === 0) return
+
+    const btn = event.currentTarget
+    const orderNumber = btn.dataset.orderNumber
+
+    const headers = ['Folio', 'Peso Bruto (kg)', 'Peso Neto (kg)', 'Metros', 'Micras', 'Ancho (mm)']
+    const rows = selectedCheckboxes.map(cb => [
+      cb.dataset.folio || '',
+      cb.dataset.pesoBruto || '',
+      cb.dataset.pesoNeto || '',
+      cb.dataset.metrosLineales || '',
+      cb.dataset.micras || '',
+      cb.dataset.anchoMm || ''
+    ])
+
+    const csvContent = [headers, ...rows]
+      .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+      .join('\n')
+
+    // BOM for Excel UTF-8 detection
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `consecutivos_${orderNumber || 'orden'}.csv`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
   }
 
   pesarItem(event) {

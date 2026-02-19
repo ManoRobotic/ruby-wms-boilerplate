@@ -54,12 +54,25 @@
                 <%= icon('fa-solid', 'print', class: 'w-4 h-4') %>
                 Imprimir Etiqueta
               </button>
-              <% if @production_order.production_order_items.any? %>
-                <%= link_to print_consecutivos_admin_production_order_path(@production_order, format: :pdf), method: :get, class: "btn btn-accent btn-sm btn-icon border border-gray-800" do %>
-                  <%= icon('fa-solid', 'file-pdf', class: 'w-4 h-4') %>
-                  Descargar PDF
-                <% end %>
-              <% end %>
+              <button id="download-pdf-btn"
+                      class="btn btn-accent btn-sm btn-icon border border-gray-800 opacity-50 cursor-not-allowed"
+                      type="button"
+                      disabled
+                      data-action="click->consecutivo-selection#downloadPdf"
+                      data-production-order-id="<%= @production_order.id %>"
+                      data-order-number="<%= @production_order.no_opro || @production_order.order_number %>">
+                <%= icon('fa-solid', 'file-pdf', class: 'w-4 h-4') %>
+                Descargar PDF
+              </button>
+              <button id="download-csv-btn"
+                      class="btn btn-secondary btn-sm btn-icon border border-gray-800 opacity-50 cursor-not-allowed"
+                      type="button"
+                      disabled
+                      data-action="click->consecutivo-selection#downloadCsv"
+                      data-order-number="<%= @production_order.no_opro || @production_order.order_number %>">
+                <%= icon('fa-solid', 'file-csv', class: 'w-4 h-4') %>
+                Descargar CSV
+              </button>
               <button data-dialog-target="consecutivo-modal" class="btn btn-secondary btn-sm btn-icon border border-gray-800" type="button">
                 <%= icon('fa-solid', 'plus', class: 'w-4 h-4') %>
                 Agregar
