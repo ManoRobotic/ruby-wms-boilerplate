@@ -5,20 +5,116 @@
 <div class="w-full px-1 mt-12 mb-16 min-h-screen flex flex-col" style="max-width: calc(100% - 0.75rem); margin-right: 0;" data-responsive-right-margin="true">
   <!-- Vista de Admin -->
   <div class="relative flex flex-col w-full px-6 text-gray-700 bg-white shadow-md lg:px-10 rounded-xl bg-clip-border flex-1">
-    <div class="relative mx-4 mt-4 mb-8 overflow-hidden text-gray-700 bg-white rounded-none bg-clip-border">
-      <div class="flex flex-col items-center justify-between gap-8 mb-4 md:flex-row md:items-center">
-        <div>
-          <h2 class="mt-12 font-sans text-2xl font-bold leading-snug tracking-normal text-center md:text-left text-blue-gem-800">
-            <%= t('admin.dashboard.sales_summary') %>
-          </h2>
+    <div class="px-4 mt-8 mb-12">
+      <div class="flex items-center gap-3 mb-6">
+        <div class="p-3 rounded-xl bg-blue-gem-600 text-white shadow-lg">
+          <%= icon('fa-solid', 'industry', class: 'text-xl') %>
         </div>
+        <div>
+          <h2 class="text-2xl font-bold text-gray-900">Resumen de Producción</h2>
+          <p class="text-sm text-gray-500">Métricas clave correspondientes al mes de <%= l(Date.current, format: "%B %Y").capitalize %></p>
+        </div>
+      </div>
+      
+      <div class="grid w-full gap-6 sm:grid-cols-1 md:grid-cols-3">
+        <% 
+          prod_stats = [
+            { 
+              title: 'Órdenes Generadas', 
+              value: @production_metrics[:orders_count] || 0, 
+              icon: 'fa-file-invoice', 
+              color: 'blue-gem',
+              description: 'Nuevas órdenes este mes'
+            },
+            { 
+              title: 'Peso Neto Total', 
+              value: "#{number_with_delimiter((@production_metrics[:total_net_weight] || 0).round(2))} kg", 
+              icon: 'fa-weight-hanging', 
+              color: 'emerald',
+              description: 'Suma de peso neto producido'
+            },
+            { 
+              title: 'Total de Cortes', 
+              value: number_with_delimiter(@production_metrics[:folios_count] || 0), 
+              icon: 'fa-scissors', 
+              color: 'amber',
+              description: 'Folios/consecutivos generados'
+            }
+          ] 
+        %>
+        
+        <% prod_stats.each do |stat| %>
+          <div class="relative flex flex-col w-full bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow p-6">
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-3">
+                <div class="p-2.5 rounded-lg bg-<%= stat[:color] %>-50 text-<%= stat[:color] %>-600">
+                  <%= icon('fa-solid', stat[:icon], class: 'text-lg') %>
+                </div>
+                <h3 class="text-base font-semibold text-gray-700"><%= stat[:title] %></h3>
+              </div>
+            </div>
+            <div class="flex flex-col">
+              <span class="text-3xl font-bold text-gray-900 tabular-nums">
+                <%= stat[:value] %>
+              </span>
+              <p class="mt-1 text-sm text-gray-500">
+                <%= stat[:description] %>
+              </p>
+            </div>
+          </div>
+        <% end %>
       </div>
     </div>
 
+    <!-- Charts Section -->
+    <% if current_admin %>
+    <div class="px-4 mb-16" data-controller="dashboard" 
+         data-dashboard-production-value="<%= @production_chart_data.to_json %>"
+         data-dashboard-weight-value="<%= @weight_chart_data.to_json %>">
+      
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Production Volume Chart -->
+        <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+          <div class="flex items-center justify-between mb-6">
+            <div>
+              <h3 class="text-lg font-bold text-gray-800">Tendencia de Cortes</h3>
+              <p class="text-xs text-gray-500">Volumen de folios en los últimos 7 días</p>
+            </div>
+            <div class="p-2 bg-indigo-50 text-indigo-600 rounded-xl">
+              <%= icon('fa-solid', 'chart-area') %>
+            </div>
+          </div>
+          <div class="h-64">
+            <canvas id="productionChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Production Weight Chart -->
+        <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+          <div class="flex items-center justify-between mb-6">
+            <div>
+              <h3 class="text-lg font-bold text-gray-800">Tendencia de Peso</h3>
+              <p class="text-xs text-gray-500">Kilogramos producidos en los últimos 7 días</p>
+            </div>
+            <div class="p-2 bg-emerald-50 text-emerald-600 rounded-xl">
+              <%= icon('fa-solid', 'weight-scale') %>
+            </div>
+          </div>
+          <div class="h-64">
+            <canvas id="weightChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+    <% end %>
+
     <!-- WMS Dashboard Section - Show to supervisors and admins -->
     <% if current_admin || current_user&.can?('read_admin_dashboard') %>
-    <div class="px-4 overflow-auto mb-8">
-      <h2 class="mb-4 text-2xl font-medium text-gray-800">Estado del Sistema WMS</h2>
+    <div class="px-4 overflow-auto mb-12">
+      <h2 class="mb-6 text-xl font-bold text-gray-800 flex items-center gap-2">
+        <%= icon('fa-solid', 'warehouse', class: 'text-gray-400') %>
+        Estado del Sistema WMS
+      </h2>
       <div class="grid w-full gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         <% wms_stats = [
           { title: 'Valor Total Inventario', value: @wms_metrics ? number_to_currency(@wms_metrics[:total_inventory_value] || 0) : '$0.00', icon: '💰' },
@@ -29,19 +125,16 @@
           { title: 'Productos Vencidos', value: @inventory_alerts ? (@inventory_alerts[:expired] || 0) : 0, icon: '🔴', alert: true },
         ] %>
         <% wms_stats.each do |stat| %>
-          <div class="relative flex flex-col w-full bg-white rounded-xl border border-blue-gem-200 shadow-sm p-6 <%= stat[:alert] && stat[:value].to_i > 0 ? 'bg-red-50' : '' %>">
+          <div class="relative flex flex-col w-full bg-white rounded-xl border border-gray-100 shadow-sm p-6 <%= stat[:alert] && stat[:value].to_i > 0 ? 'bg-red-50' : '' %>">
             <div class="flex items-center justify-between mb-4">
-              <h3 class="text-lg font-bold text-gray-900"><%= stat[:title] %></h3>
-              <div class="p-2 rounded-full bg-blue-gem-100">
+              <h3 class="text-sm font-semibold text-gray-600"><%= stat[:title] %></h3>
+              <div class="p-2 rounded-full bg-blue-gem-50">
                 <span class="text-blue-gem-600"><%= stat[:icon] %></span>
               </div>
             </div>
-            <div class="p-4">
-              <p class="mb-2 text-2xl font-bold <%= stat[:alert] && stat[:value].to_i > 0 ? 'text-red-800' : 'text-blue-gem-800' %>">
+            <div class="p-0">
+              <p class="text-2xl font-bold <%= stat[:alert] && stat[:value].to_i > 0 ? 'text-red-800' : 'text-gray-900' %>">
                 <%= stat[:value] %>
-              </p>
-              <p class="font-light leading-normal text-gray-600">
-                Estado actual del sistema WMS.
               </p>
             </div>
           </div>
@@ -50,37 +143,34 @@
     </div>
     <% end %>
 
-
-    <!-- Tabla de Ordenes de Producción - Show only to admins -->
-    <% if current_admin %>
-    <div class="w-full align-left mb-16 mt-2" style="max-width: 85%">
-      <h2 class="text-2xl font-medium text-gray-800 "><%= t('admin.dashboard.production_orders') %></h2>
-      <div class="relative w-full" data-controller="dashboard" data-dashboard-production-value="<%= @revenue_by_day_chart.to_json %>">
-        <canvas id="productionChart"></canvas>
-      </div>
-    </div>
-    <% end %>
     
     <!-- Warehouse Utilization - Show to supervisors and admins -->
     <% if (current_admin || current_user&.can?('read_warehouse')) && @warehouse_utilization && @warehouse_utilization.any? %>
-    <div class="px-4 overflow-auto mb-8">
-      <h2 class="mb-4 text-2xl font-medium text-gray-800">Utilización de Almacenes</h2>
-      <div class="grid w-full gap-4 sm:grid-cols-1 md:grid-cols-2">
+    <div class="px-4 overflow-auto mb-12">
+      <h2 class="mb-6 text-xl font-bold text-gray-800 flex items-center gap-2">
+        <%= icon('fa-solid', 'truck-ramp-box', class: 'text-gray-400') %>
+        Utilización de Almacenes
+      </h2>
+      <div class="grid w-full gap-6 sm:grid-cols-1 md:grid-cols-2">
         <% @warehouse_utilization.each do |warehouse| %>
-          <div class="relative flex flex-col w-full bg-white border rounded-lg shadow-sm border-slate-200">
-            <div class="px-4 pt-4 pb-2">
-              <h3 class="text-lg font-medium text-slate-800"><%= warehouse[:name] %></h3>
-              <div class="mt-2">
-                <div class="flex justify-between text-sm text-slate-600 mb-1">
-                  <span>Utilización</span>
-                  <span><%= warehouse[:utilization] %>%</span>
+          <div class="relative flex flex-col w-full bg-white border border-gray-100 rounded-2xl shadow-sm p-6">
+            <h3 class="text-base font-semibold text-gray-800 mb-4"><%= warehouse[:name] %></h3>
+            <div class="space-y-4">
+              <div class="flex justify-between items-end">
+                <span class="text-sm text-gray-500 font-medium">Capacidad Utilizada</span>
+                <span class="text-lg font-bold text-gray-900"><%= warehouse[:utilization] %>%</span>
+              </div>
+              <div class="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
+                <div class="<%= warehouse[:utilization] > 80 ? 'bg-red-500' : warehouse[:utilization] > 60 ? 'bg-yellow-500' : 'bg-green-500' %> h-full rounded-full transition-all duration-500" style="width: <%= warehouse[:utilization] %>%"></div>
+              </div>
+              <div class="grid grid-cols-2 gap-4 pt-2">
+                <div class="bg-gray-50 p-3 rounded-xl">
+                  <span class="text-xs text-gray-500 block mb-1">Disponibles</span>
+                  <span class="text-sm font-bold text-gray-900"><%= warehouse[:available_locations] %></span>
                 </div>
-                <div class="w-full bg-gray-200 rounded-full h-2.5">
-                  <div class="<%= warehouse[:utilization] > 80 ? 'bg-red-500' : warehouse[:utilization] > 60 ? 'bg-yellow-500' : 'bg-green-500' %> h-2.5 rounded-full" style="width: <%= warehouse[:utilization] %>%"></div>
-                </div>
-                <div class="flex justify-between text-xs text-slate-500 mt-1">
-                  <span>Disponibles: <%= warehouse[:available_locations] %></span>
-                  <span>Total: <%= warehouse[:total_locations] %></span>
+                <div class="bg-gray-50 p-3 rounded-xl">
+                  <span class="text-xs text-gray-500 block mb-1">Total</span>
+                  <span class="text-sm font-bold text-gray-900"><%= warehouse[:total_locations] %></span>
                 </div>
               </div>
             </div>
@@ -92,32 +182,37 @@
     
     <!-- Recent Transactions - Show to users with inventory permissions -->
     <% if (current_admin || current_user&.can?('read_inventory')) && @recent_transactions && @recent_transactions.any? %>
-    <div class="px-4 overflow-auto mb-8">
-      <h2 class="mb-4 text-2xl font-medium text-gray-800">Transacciones Recientes</h2>
-      <div class="bg-white border rounded-lg shadow-sm border-slate-200">
+    <div class="px-4 overflow-auto mb-12">
+      <h2 class="mb-6 text-xl font-bold text-gray-800 flex items-center gap-2">
+        <%= icon('fa-solid', 'list-check', class: 'text-gray-400') %>
+        Transacciones Recientes
+      </h2>
+      <div class="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
           <table class="w-full text-left table-auto min-w-max">
             <thead>
-              <tr class="border-b border-slate-200">
-                <th class="p-4 text-sm font-medium text-slate-700">Tipo</th>
-                <th class="p-4 text-sm font-medium text-slate-700">Producto</th>
-                <th class="p-4 text-sm font-medium text-slate-700">Cantidad</th>
-                <th class="p-4 text-sm font-medium text-slate-700">Ubicación</th>
-                <th class="p-4 text-sm font-medium text-slate-700">Fecha</th>
+              <tr class="bg-gray-50/50">
+                <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Tipo</th>
+                <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Producto</th>
+                <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Cantidad</th>
+                <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Ubicación</th>
+                <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Fecha</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody class="divide-y divide-gray-50">
               <% @recent_transactions.each do |transaction| %>
-                <tr class="border-b border-slate-100 hover:bg-slate-50">
+                <tr class="hover:bg-gray-50/50 transition-colors">
                   <td class="p-4">
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <%= transaction.is_inbound? ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' %>">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-bold <%= transaction.is_inbound? ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700' %>">
                       <%= transaction.transaction_type.humanize %>
                     </span>
                   </td>
-                  <td class="p-4 text-sm text-slate-700"><%= transaction.product.name %></td>
-                  <td class="p-4 text-sm <%= transaction.quantity > 0 ? 'text-green-600' : 'text-red-600' %>"><%=transaction.quantity > 0 ? '+' : '' %><%= transaction.quantity %></td>
-                  <td class="p-4 text-sm text-slate-700"><%= transaction.location&.coordinate_code || 'N/A' %></td>
-                  <td class="p-4 text-sm text-slate-500"><%= time_ago_in_words(transaction.created_at) %> ago</td>
+                  <td class="p-4 text-sm font-medium text-gray-700"><%= transaction.product.name %></td>
+                  <td class="p-4 text-sm font-bold text-right <%= transaction.quantity > 0 ? 'text-emerald-600' : 'text-mexican-red-600' %>">
+                    <%= transaction.quantity > 0 ? '+' : '' %><%= transaction.quantity %>
+                  </td>
+                  <td class="p-4 text-sm text-gray-600"><%= transaction.location&.coordinate_code || 'N/A' %></td>
+                  <td class="p-4 text-sm text-gray-500"><%= time_ago_in_words(transaction.created_at) %> ago</td>
                 </tr>
               <% end %>
             </tbody>
@@ -129,8 +224,8 @@
     
     <!-- Picker Dashboard - Show only to pickers -->
     <% if current_user&.picker? %>
-    <div class="px-4 overflow-auto mb-8">
-      <h2 class="mb-4 text-2xl font-medium text-gray-800">Mi Panel de Picking</h2>
+    <div class="px-4 overflow-auto mb-12">
+      <h2 class="mb-6 text-xl font-bold text-gray-800">Mi Panel de Picking</h2>
       <div class="grid w-full gap-6 sm:grid-cols-2 md:grid-cols-3">
         <% picker_stats = [
           { title: 'Mis Tareas Pendientes', value: @task_metrics ? (@task_metrics[:my_tasks] || 0) : 0, icon: '📋', link: admin_tasks_path },
@@ -138,52 +233,27 @@
           { title: 'Completadas Hoy', value: (@task_metrics ? (@task_metrics[:completed_today] || 0) : 0) + (current_user.pick_lists.completed.where(completed_at: Date.current.beginning_of_day..Date.current.end_of_day).count), icon: '✅' }
         ] %>
         <% picker_stats.each do |stat| %>
-          <div class="relative flex flex-col w-full bg-white border rounded-lg shadow-sm border-slate-200">
-            <div class="px-1 pt-3 pb-2 mx-3 mb-0 border-b border-slate-200">
-              <span class="text-sm font-medium text-slate-600">
-                <%= stat[:icon] %> <%= stat[:title] %>
+          <div class="relative flex flex-col w-full bg-white border border-gray-100 rounded-2xl shadow-sm p-6">
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-sm font-semibold text-gray-500 uppercase tracking-wider">
+                <%= stat[:title] %>
               </span>
+              <div class="text-blue-gem-500">
+                <%= stat[:icon] %>
+              </div>
             </div>
-            <div class="p-4">
-              <p class="mb-2 text-xl font-semibold text-slate-800">
+            <div>
+              <p class="text-3xl font-bold text-gray-900">
                 <%= stat[:value] %>
               </p>
               <% if stat[:link] %>
-                <%= link_to "Ver todas", stat[:link], class: "text-blue-600 hover:text-blue-800 text-sm font-medium" %>
+                <div class="mt-4">
+                  <%= link_to admin_tasks_path, class: "inline-flex items-center gap-1 text-blue-gem-600 hover:text-blue-gem-700 text-sm font-bold group" do %>
+                    Ver todas
+                    <%= icon('fa-solid', 'chevron-right', class: 'w-3 h-3 group-hover:translate-x-0.5 transition-transform') %>
+                  <% end %>
+                </div>
               <% end %>
-            </div>
-          </div>
-        <% end %>
-      </div>
-    </div>
-    <% end %>
-    
-    <!-- Original E-commerce Stats - Show to admins and supervisors -->
-    <% if current_admin || current_user&.can?('read_orders') %>
-    <div class="px-4 overflow-auto mb-8">
-      <h2 class="mb-4 text-2xl font-medium text-gray-800"><%= t('admin.dashboard.daily_status') %></h2>
-      <div class="grid w-full gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-        <% stats = [
-          { title: t('admin.dashboard.revenue'), value: @quick_stats[:revenue] ? number_to_currency(@quick_stats[:revenue]) : '$0.00' },
-          { title: t('admin.dashboard.total_sales'), value: @quick_stats[:sales] ? number_to_currency(@quick_stats[:sales]) : '$0.00' },
-          { title: t('admin.dashboard.avg_sale'), value: @quick_stats[:avg_sale] ? number_to_currency(@quick_stats[:avg_sale]) : '$0.00' },
-          { title: t('admin.dashboard.items_per_sale'), value: @quick_stats[:per_sale].to_i }
-        ] %>
-        <% stats.each do |stat| %>
-          <div class="relative flex flex-col w-full bg-white rounded-xl border border-blue-gem-200 shadow-sm p-6">
-            <div class="flex items-center justify-between mb-4">
-              <h3 class="text-lg font-bold text-gray-900"><%= stat[:title] %></h3>
-              <div class="p-2 rounded-full bg-blue-gem-100">
-                <i class="fa-solid fa-chart-line text-blue-gem-600"></i>
-              </div>
-            </div>
-            <div class="p-4">
-              <p class="mb-2 text-2xl font-bold text-blue-gem-800">
-                <%= stat[:value] %>
-              </p>
-              <p class="font-light leading-normal text-gray-600">
-                <%= t('admin.dashboard.relevant_data') %> <%= stat[:title] %>.
-              </p>
             </div>
           </div>
         <% end %>

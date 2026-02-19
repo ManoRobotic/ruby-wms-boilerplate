@@ -197,6 +197,25 @@ class ProductionOrderItem < ApplicationRecord
   # when a modified clave_producto_local is saved
   after_save :update_parent_default_clave_producto
 
+  # Class methods for analytics
+  def self.count_by_day(days_back = 7)
+    end_date = Date.current
+    start_date = (days_back - 1).days.ago.to_date
+
+    (start_date..end_date).each_with_object({}) do |date, hash|
+      hash[date] = where(created_at: date.all_day).count
+    end
+  end
+
+  def self.weight_by_day(days_back = 7)
+    end_date = Date.current
+    start_date = (days_back - 1).days.ago.to_date
+
+    (start_date..end_date).each_with_object({}) do |date, hash|
+      hash[date] = where(created_at: date.all_day).sum(:peso_neto).to_f.round(2)
+    end
+  end
+
   private
 
   def update_parent_default_clave_producto

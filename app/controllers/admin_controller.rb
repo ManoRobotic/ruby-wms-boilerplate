@@ -22,17 +22,17 @@ class AdminController < ApplicationController
       calculate_quick_stats
     end
 
-    @revenue_by_day = Rails.cache.fetch("admin_revenue_by_day_#{Date.current}", expires_in: 1.hour) do
-      Order.revenue_by_day(7)
+    @production_by_day = Rails.cache.fetch("admin_production_by_day_#{Date.current}", expires_in: 1.hour) do
+      ProductionOrderItem.count_by_day(7)
     end
 
-    # Convert to array format for chart.js - ensure we always have data
-    @revenue_by_day_chart = if @revenue_by_day && @revenue_by_day.any?
-      @revenue_by_day.map { |date, revenue| [ date.to_s, revenue || 0 ] }
-    else
-      # Generate default data with zeros for the last 7 days
-      (6.days.ago.to_date..Date.current).map { |date| [ date.to_s, 0 ] }
+    @weight_by_day = Rails.cache.fetch("admin_weight_by_day_#{Date.current}", expires_in: 1.hour) do
+      ProductionOrderItem.weight_by_day(7)
     end
+
+    # Convert to array format for chart.js
+    @production_chart_data = @production_by_day.map { |date, count| [ date.to_s, count ] }
+    @weight_chart_data = @weight_by_day.map { |date, weight| [ date.to_s, weight ] }
 
     # Additional useful metrics
     @low_stock_products = @product_scope.low_stock(5).limit(10) rescue []
@@ -44,6 +44,7 @@ class AdminController < ApplicationController
     @task_metrics = calculate_task_metrics rescue {}
     @pick_list_metrics = calculate_pick_list_metrics rescue {}
     @warehouse_utilization = calculate_warehouse_utilization rescue []
+    @production_metrics = calculate_production_metrics rescue {}
     # Filter recent transactions by user's warehouse if not admin or operador
     transactions_scope = InventoryTransaction.recent
     if current_user && current_user.warehouse_id.present? && !current_user.admin? && !current_user.operador?
@@ -178,6 +179,17 @@ class AdminController < ApplicationController
         total_locations: warehouse.total_locations
       }
     end
+  end
+
+  def calculate_production_metrics
+    month_start = Time.current.beginning_of_month
+    month_end = Time.current.end_of_month
+
+    {
+      orders_count: ProductionOrder.where(created_at: month_start..month_end).count,
+      total_net_weight: ProductionOrderItem.where(created_at: month_start..month_end).sum(:peso_neto) || 0,
+      folios_count: ProductionOrderItem.where(created_at: month_start..month_end).count
+    }
   end
 
   def authenticate_admin_or_privileged_user!
