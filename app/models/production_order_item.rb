@@ -192,4 +192,19 @@ class ProductionOrderItem < ApplicationRecord
     self.numero_de_orden = production_order.no_opro || production_order.order_number
     self.nombre_cliente_numero_pedido = "#{self.cliente}-#{self.numero_de_orden}" if self.cliente.present?
   end
+
+  # Callback to update the parent production order's default clave_producto
+  # when a modified clave_producto_local is saved
+  after_save :update_parent_default_clave_producto
+
+  private
+
+  def update_parent_default_clave_producto
+    # If clave_producto_local is present and different from the parent's default,
+    # update the parent's default for future consecutivos
+    if clave_producto_local.present? && 
+       clave_producto_local != production_order.default_clave_producto_consecutivo
+      production_order.update(default_clave_producto_consecutivo: clave_producto_local)
+    end
+  end
 end

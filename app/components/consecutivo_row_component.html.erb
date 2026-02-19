@@ -10,7 +10,7 @@
                data-item-id="<%= item.id %>"
                data-folio="<%= item.folio_consecutivo %>"
                data-lote="<%= item.production_order&.lote_referencia %>"
-               data-clave-producto="<%= item.production_order&.clave_producto || 'BOPPTRANS 35 / 420' %>"
+               data-clave-producto="<%= item.clave_producto_local || item.production_order&.clave_producto || '-' %>"
                data-peso-bruto="<%= item.peso_bruto %>"
                data-peso-neto="<%= item.peso_neto %>"
                data-metros-lineales="<%= item.metros_lineales %>"
@@ -28,6 +28,9 @@
   </td>
   <td class="px-3 py-2 text-sm font-medium text-gray-900">
     <%= item.folio_consecutivo %>
+  </td>
+  <td class="px-3 py-2 text-sm text-gray-600">
+    <%= item.clave_producto_local || item.production_order&.clave_producto || '-' %>
   </td>
   <td class="px-3 py-2 text-sm text-center text-gray-500">
     <%= item.peso_bruto&.round(2) || '-' %>

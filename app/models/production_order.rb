@@ -170,6 +170,12 @@ class ProductionOrder < ApplicationRecord
     packing_records.first&.cve_prod || product&.name || product_key || "Sin clave"
   end
 
+  def clave_producto_para_consecutivos
+    # Usar la clave predeterminada para consecutivos si está definida, 
+    # de lo contrario usar la clave estándar de la orden
+    default_clave_producto_consecutivo || clave_producto
+  end
+
   def is_emitida?
     # Solo mostrar órdenes emitidas según las especificaciones
     status == "pending" || status == "scheduled" || status == "in_progress"

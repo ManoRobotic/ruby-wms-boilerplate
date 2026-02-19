@@ -183,9 +183,11 @@ export default class extends Controller {
     const btn = event.currentTarget
     const orderNumber = btn.dataset.orderNumber
 
-    const headers = ['Folio', 'Peso Bruto (kg)', 'Peso Neto (kg)', 'Metros', 'Micras', 'Ancho (mm)']
+    const headers = ['Clave', 'Folio', 'Clave Producto', 'Peso Bruto (kg)', 'Peso Neto (kg)', 'Metros', 'Micras', 'Ancho (mm)']
     const rows = selectedCheckboxes.map(cb => [
+      cb.dataset.noOpro || '',
       cb.dataset.folio || '',
+      cb.dataset.claveProducto || '',
       cb.dataset.pesoBruto || '',
       cb.dataset.pesoNeto || '',
       cb.dataset.metrosLineales || '',

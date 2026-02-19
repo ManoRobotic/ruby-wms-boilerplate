@@ -6,7 +6,7 @@ export default class extends Controller {
     "pesoCoreDisplay", "pesoNetoDisplay", "metrosLinealesDisplay",
     "especificacionesDisplay", "manualModeCheckbox", "manualWeightSection",
     "scaleWeightSection", "serialSection", "backupWeighButton",
-    "pesoBrutoManualHidden", "autoPrintCheckbox"
+    "pesoBrutoManualHidden", "autoPrintCheckbox", "submitBtn"
   ]
 
   connect() {
@@ -292,6 +292,15 @@ export default class extends Controller {
     this.setFieldValue("peso_core_gramos", pesoCoreGramos)
     if (micras > 0) this.setFieldValue("micras", micras)
     if (anchoMm > 0) this.setFieldValue("ancho_mm", anchoMm)
+
+    // Enable/disable submit button based on whether peso bruto > 0
+    if (this.hasSubmitBtnTarget) {
+      const hasWeight = pesoBruto !== undefined && pesoBruto > 0
+      this.submitBtnTarget.disabled = !hasWeight
+      this.submitBtnTarget.classList.toggle('opacity-50', !hasWeight)
+      this.submitBtnTarget.classList.toggle('cursor-not-allowed', !hasWeight)
+      this.submitBtnTarget.classList.toggle('pointer-events-none', !hasWeight)
+    }
   }
 
   extractMicrasAndWidth() {

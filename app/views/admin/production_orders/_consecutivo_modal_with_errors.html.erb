@@ -34,6 +34,6 @@
       </div>
     <% end %>
     
-    <%= render(ConsecutivoFormComponent.new(production_order: production_order, consecutivo_form: production_order_item)) %>
+    <%= render(ConsecutivoFormComponent.new(production_order: production_order_item.production_order, consecutivo_form: production_order_item)) %>
   </div>
 </div>

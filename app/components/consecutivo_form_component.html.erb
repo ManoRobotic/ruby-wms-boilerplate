@@ -27,7 +27,7 @@
                 name: "production_order_item[clave_producto_local]",
                 id: "clave_producto",
                 class: "bg-slate-50 border border-slate-300 text-slate-700 text-sm rounded-lg focus:ring-emerald-500 focus:border-emerald-500 block w-full p-2",
-                value: consecutivo_form.clave_producto_local || production_order.clave_producto || "BOPPTRANS 35 / 420",
+                value: consecutivo_form.clave_producto_local || production_order.clave_producto_para_consecutivos || "BOPPTRANS 35 / 420",
                 placeholder: "BOPPTRANS 35 / 420" %>
         </div>
 
@@ -190,7 +190,8 @@
         Cancelar
       </button>
       <%= form.submit consecutivo_form.persisted? ? "Guardar Consecutivo" : "Crear Consecutivo", 
-          class: "rounded-md bg-[var(--color-dark-fern-600)] py-1 px-2.5 border border-transparent text-center text-sm text-white transition-all shadow hover:shadow focus:bg-[var(--color-dark-fern-700)] focus:shadow-none active:bg-[var(--color-dark-fern-700)] hover:bg-[var(--color-dark-fern-700)] active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none ml-1.5",
-          data: { "form-validation-target": "submit" } %>
+          class: "rounded-md bg-[var(--color-dark-fern-600)] py-1 px-2.5 border border-transparent text-center text-sm text-white transition-all shadow hover:shadow focus:bg-[var(--color-dark-fern-700)] focus:shadow-none active:bg-[var(--color-dark-fern-700)] hover:bg-[var(--color-dark-fern-700)] active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none ml-1.5 opacity-50 cursor-not-allowed pointer-events-none",
+          disabled: true,
+          data: { "form-validation-target": "submit", "consecutivo-form-target": "submitBtn" } %>
     </div>
 <% end %>
