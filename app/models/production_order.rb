@@ -65,6 +65,7 @@ class ProductionOrder < ApplicationRecord
 
   # Callbacks
   before_validation :generate_order_number, on: :create
+  before_validation :auto_assign_admin
   before_save :set_actual_completion
   before_save :track_status_changes
 
@@ -264,6 +265,18 @@ class ProductionOrder < ApplicationRecord
   end
 
   private
+
+  def auto_assign_admin
+    # Auto-assign admin_id if not set to ensure orders are visible in UI
+    return if admin_id.present?
+    return unless company_id.present?
+
+    first_admin = company.admins.first
+    if first_admin
+      self.admin = first_admin
+      Rails.logger.debug "Auto-assigned admin #{first_admin.id} to production order"
+    end
+  end
 
   def track_status_changes
     # Si el status cambió y no viene de sincronización del sheet, marcar para actualizar

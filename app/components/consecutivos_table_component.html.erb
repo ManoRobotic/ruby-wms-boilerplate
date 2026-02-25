@@ -26,6 +26,7 @@
         <th class="px-3 py-2 text-center text-xs font-medium text-emerald-800 uppercase tracking-wider">Micras</th>
         <th class="px-3 py-2 text-center text-xs font-medium text-emerald-800 uppercase tracking-wider">Ancho (mm)</th>
         <th class="px-3 py-2 text-center text-xs font-medium text-emerald-800 uppercase tracking-wider">Impresión</th>
+        <th class="px-3 py-2 text-center text-xs font-medium text-emerald-800 uppercase tracking-wider">Fecha</th>
         <th class="px-3 py-2 text-center text-xs font-medium text-emerald-800 uppercase tracking-wider">Acciones</th>
       </tr>
     </thead>
@@ -34,7 +35,7 @@
         <%= render(ConsecutivoRowComponent.with_collection(@production_order.production_order_items.order(Arel.sql("LENGTH(folio_consecutivo) DESC, folio_consecutivo DESC")))) %>
       <% else %>
         <tr id="no-consecutivos-row">
-          <td colspan="10" class="text-center py-8">
+          <td colspan="11" class="text-center py-8">
             <div class="text-emerald-400 mb-2">
               <%= helpers.icon('fa-solid', 'file-alt', class: 'w-12 h-12 mx-auto') %>
             </div>

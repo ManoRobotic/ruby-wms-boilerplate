@@ -67,7 +67,6 @@
     </div>
 
     <!-- Charts Section -->
-    <% if current_admin %>
     <div class="px-4 mb-16" data-controller="dashboard" 
          data-dashboard-production-value="<%= @production_chart_data.to_json %>"
          data-dashboard-weight-value="<%= @weight_chart_data.to_json %>">
@@ -106,10 +105,7 @@
         </div>
       </div>
     </div>
-    <% end %>
-
     <!-- WMS Dashboard Section - Show to supervisors and admins -->
-    <% if current_admin || current_user&.can?('read_admin_dashboard') %>
     <div class="px-4 overflow-auto mb-12">
       <h2 class="mb-6 text-xl font-bold text-gray-800 flex items-center gap-2">
         <%= icon('fa-solid', 'warehouse', class: 'text-gray-400') %>
@@ -141,11 +137,9 @@
         <% end %>
       </div>
     </div>
-    <% end %>
-
     
     <!-- Warehouse Utilization - Show to supervisors and admins -->
-    <% if (current_admin || current_user&.can?('read_warehouse')) && @warehouse_utilization && @warehouse_utilization.any? %>
+    <% if @warehouse_utilization && @warehouse_utilization.any? %>
     <div class="px-4 overflow-auto mb-12">
       <h2 class="mb-6 text-xl font-bold text-gray-800 flex items-center gap-2">
         <%= icon('fa-solid', 'truck-ramp-box', class: 'text-gray-400') %>
@@ -181,7 +175,7 @@
     <% end %>
     
     <!-- Recent Transactions - Show to users with inventory permissions -->
-    <% if (current_admin || current_user&.can?('read_inventory')) && @recent_transactions && @recent_transactions.any? %>
+    <% if @recent_transactions && @recent_transactions.any? %>
     <div class="px-4 overflow-auto mb-12">
       <h2 class="mb-6 text-xl font-bold text-gray-800 flex items-center gap-2">
         <%= icon('fa-solid', 'list-check', class: 'text-gray-400') %>
