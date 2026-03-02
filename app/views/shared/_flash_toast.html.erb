@@ -1,0 +1,14 @@
+<% if flash.any? %>
+  <div class="fixed top-4 right-4 z-50 flex flex-col gap-2">
+    <%# Manejar flash normal (persiste después de redirect) %>
+    <% if flash[:notice] %>
+      <%= render "shared/toast/toast_success", message: flash[:notice] %>
+    <% end %>
+    <% if flash[:alert] %>
+      <%= render "shared/toast/toast_danger", message: flash[:alert] %>
+    <% end %>
+    <% if flash[:warning] || flash[:warn] %>
+      <%= render "shared/toast/toast_warning", message: (flash[:warning] || flash[:warn]) %>
+    <% end %>
+  </div>
+<% end %>
