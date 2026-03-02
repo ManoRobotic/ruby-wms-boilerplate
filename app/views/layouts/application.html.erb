@@ -25,29 +25,19 @@
 <body class="h-full bg-gray-50 font-sans">
   <%# Auto-redirect authenticated users to admin dashboard %>
   <% if user_signed_in? || admin_signed_in? %>
-    <% if flash.any? %>
-      <%# Si hay flash, mostrar el toast y esperar 6 segundos antes de redirigir %>
-      <% content_for :head do %>
-        <meta http-equiv="refresh" content="6; url=<%= admin_path %>">
-      <% end %>
-      <script>
-        setTimeout(() => {
-          window.location.href = '<%= admin_path %>';
-        }, 5500);
-      </script>
-    <% else %>
-      <%# Sin flash, redirect inmediato %>
-      <% content_for :head do %>
-        <meta http-equiv="refresh" content="0; url=<%= admin_path %>">
-      <% end %>
-      <script>
-        window.location.href = '<%= admin_path %>';
-      </script>
+    <% content_for :head do %>
+      <meta http-equiv="refresh" content="0; url=<%= admin_path %>">
     <% end %>
+    <script>
+      window.location.href = '<%= admin_path %>';
+    </script>
   <% end %>
 
   <main class="flex flex-col min-h-screen">
-    <%= render "shared/flash_toast" %>
+    <%# Flash toast solo para vistas Devise (sin redirect) %>
+    <% if devise_controller? %>
+      <%= render "shared/flash_toast" %>
+    <% end %>
 
     <% unless devise_controller? %>
       <!-- WMS Landing Header -->

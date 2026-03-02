@@ -11,4 +11,7 @@
       <%= render "shared/toast/toast_warning", message: (flash[:warning] || flash[:warn]) %>
     <% end %>
   </div>
+  
+  <%# Marcar flash para descartar después de esta petición %>
+  <% flash.discard %>
 <% end %>
