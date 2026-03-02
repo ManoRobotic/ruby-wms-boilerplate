@@ -3,15 +3,9 @@ class ApplicationController < ActionController::Base
 
   before_action :set_locale
   before_action :configure_permitted_parameters, if: :devise_controller?
-  before_action :keep_flash_on_redirect, if: :user_signed_in?
   allow_browser versions: :modern
 
   protected
-
-  # Mantener el flash para que persista después del redirect al admin
-  def keep_flash_on_redirect
-    flash.keep if flash.any?
-  end
 
   def current_user_or_admin
     current_user || current_admin
