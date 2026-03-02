@@ -34,7 +34,6 @@ API_TIMEOUT = 90
 MAX_RETRIES = 3
 
 # Configuration
-BATCH_SIZE = 25
 # Configuration for file paths
 BATCH_SIZE = 25
 

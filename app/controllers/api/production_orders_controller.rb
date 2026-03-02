@@ -204,7 +204,16 @@ class Api::ProductionOrdersController < Api::BaseController
       end
 
       # Set admin_id to the first admin of the target company if not provided
-      production_order.admin ||= target_company.admins.first
+      # This ensures orders are visible in the UI for all company admins
+      if production_order.admin_id.blank?
+        first_admin = target_company.admins.first
+        if first_admin
+          production_order.admin = first_admin
+          Rails.logger.info "Auto-assigned admin_id #{first_admin.id} to production order"
+        else
+          Rails.logger.warn "No admin found for company #{target_company.name} - orders may not be visible in UI"
+        end
+      end
 
       # Set default status if not provided
       production_order.status ||= "pending"

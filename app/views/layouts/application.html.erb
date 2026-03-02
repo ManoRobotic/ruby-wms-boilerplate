@@ -34,6 +34,8 @@
   <% end %>
 
   <main class="flex flex-col min-h-screen">
+    <%= render "shared/flash_toast" %>
+
     <% unless devise_controller? %>
       <!-- WMS Landing Header -->
       <header class="bg-white shadow-sm border-b border-gray-200">

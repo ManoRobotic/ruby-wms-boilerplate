@@ -48,6 +48,9 @@
     <%= item.ancho_mm || '-' %>
   </td>
   <%= render partial: "admin/production_order_items/print_status", locals: { item: item } %>
+  <td class="px-3 py-2 text-sm text-center text-gray-500 whitespace-nowrap">
+    <%= item.created_at.strftime("%d/%m/%Y %H:%M") %>
+  </td>
   <td class="px-3 py-2 text-center text-sm font-medium">
     <%= link_to 'Editar',
         edit_admin_production_order_production_order_item_path(item.production_order, item),

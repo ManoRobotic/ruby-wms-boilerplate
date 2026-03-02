@@ -1,9 +1,5 @@
 <div class="mx-auto md:w-2/3 w-full flex">
   <div class="mx-auto">
-    <% if notice.present? %>
-      <p class="py-2 px-3 bg-green-50 mb-5 text-green-500 font-medium rounded-lg inline-block" id="notice"><%= notice %></p>
-    <% end %>
-
     <%= render @admin_stock %>
 
     <%= link_to t('admin.common.edit_this', resource: 'stock'), edit_admin_product_stock_path(@admin_stock.product, @admin_stock), class: "mt-2 rounded-lg py-3 px-5 bg-gray-100 inline-block font-medium" %>
