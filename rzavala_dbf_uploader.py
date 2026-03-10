@@ -406,14 +406,14 @@ class RzavalaDBFUploader:
 
             # Load DBF files
             logger.info(f"Opening DBF file: {OPRO_DBF_PATH}")
-            opro_dbf = DBF(OPRO_DBF_PATH, ignore_missing_memofile=False)
+            opro_dbf = DBF(OPRO_DBF_PATH, ignore_missing_memofile=True)
             opro_records = list(opro_dbf)
             logger.info(f"Loaded {len(opro_records)} records from opro.dbf")
 
             oprod_records = []
             if oprod_exists:
                 logger.info(f"Opening DBF file: {OPROD_DBF_PATH}")
-                oprod_dbf = DBF(OPROD_DBF_PATH, ignore_missing_memofile=False)
+                oprod_dbf = DBF(OPROD_DBF_PATH, ignore_missing_memofile=True)
                 oprod_records = list(oprod_dbf)
                 logger.info(f"Loaded {len(oprod_records)} records from oprod.dbf")
 
@@ -523,25 +523,25 @@ class RzavalaDBFUploader:
     # ============================================================================
 
     def map_inventory_record_to_api(self, record: Dict) -> Optional[Dict]:
-        """Map Excel record to API format for inventory codes"""
+        """Map DBF record to API format for inventory codes"""
         try:
             cleaned = {k: self.clean_value(v) for k, v in record.items()}
 
             # remd.dbf uses NO_REM instead of NO_ORDP
-            no_ordp = cleaned.get('NO_ORDP', cleaned.get('NO_REM', ''))
+            no_ordp = cleaned.get('NO_REM', cleaned.get('NO_ORDP', ''))
             cve_prod = cleaned.get('CVE_PROD', '')
             cve_copr = cleaned.get('CVE_COPR', cleaned.get('CVE_PROD', ''))
-            can_copr = cleaned.get('CAN_PROD', cleaned.get('CANT_PROD', '0'))
-            lote = cleaned.get('LOTE', '')
+            can_copr = cleaned.get('CAN_PROD', cleaned.get('CANT_PROD', cleaned.get('CANT_SURT', '0')))
+            lote = cleaned.get('LOTE', cleaned.get('REF_LOTE', ''))
             fech_cto = cleaned.get('FECH_ORDP', cleaned.get('FECH_REM', ''))
             tip_copr = 1  # Default to active
 
             if not no_ordp:
-                logger.warning("Skipping record: NO_ORDP/NO_REM is empty")
+                logger.warning("Skipping record: NO_REM/NO_ORDP is empty")
                 return None
 
             if not cve_prod:
-                logger.warning(f"Record with NO_ORDP/NO_REM {no_ordp} has empty CVE_PROD")
+                logger.warning(f"Record with NO_REM/NO_ORDP {no_ordp} has empty CVE_PROD")
                 return None
 
             parsed_date = None
@@ -660,7 +660,7 @@ class RzavalaDBFUploader:
                 logger.info("First run detected - will process all records")
 
             logger.info(f"Opening DBF file: {REMD_DBF_PATH}")
-            dbf = DBF(REMD_DBF_PATH, ignore_missing_memofile=False)
+            dbf = DBF(REMD_DBF_PATH, ignore_missing_memofile=True)
 
             # Log available fields for debugging
             logger.info(f"DBF fields: {dbf.field_names}")
