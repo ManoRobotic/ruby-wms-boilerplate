@@ -246,7 +246,7 @@ class RzavalaDBFUploader:
             return str(datetime.now().year)
 
     def map_opro_record_to_api(self, record: Dict) -> Optional[Dict]:
-        """Map Excel record to API format for production orders"""
+        """Map DBF record to API format for production orders"""
         try:
             cleaned = {k: self.clean_value(v) for k, v in record.items()}
             year = self.extract_year(cleaned)
@@ -261,9 +261,21 @@ class RzavalaDBFUploader:
             if not product_key:
                 logger.warning(f"Record with NO_OPRO {no_opro} has empty CVE_PROP")
 
+            # Map STAT_OPRO to Rails status
+            stat_opro = cleaned.get('STAT_OPRO', '').lower()
+            status_map = {
+                'emitida': 'pending',
+                'en proceso': 'in_progress',
+                'terminada': 'completed',
+                'cancelada': 'cancelled',
+                'pausada': 'paused',
+                'programada': 'scheduled'
+            }
+            status = status_map.get(stat_opro, 'pending')
+
             mapped = {
                 "product_key": product_key,
-                "quantity_requested": quantity,
+                "quantity_requested": int(quantity),  # Convert to int for API
                 "warehouse_id": WAREHOUSE_ID,
                 "priority": "medium",
                 "no_opro": no_opro,
@@ -272,14 +284,16 @@ class RzavalaDBFUploader:
                 "carga_copr": cleaned.get('CARGA_OPRO', ''),
                 "ren_orp": cleaned.get('REN_OPRO', ''),
                 "ano": year,
-                "stat_opro": cleaned.get('STAT_OPRO', '')
+                "stat_opro": cleaned.get('STAT_OPRO', ''),
+                "status": status  # Mapped status
             }
 
             mapped = {k: v for k, v in mapped.items() if v not in [None, 0] or k == 'notes'}
 
             logger.debug(f"Mapped OPRO record - NO_OPRO: {mapped.get('no_opro')}, "
                         f"Product: {mapped.get('product_key')}, "
-                        f"Quantity: {mapped.get('quantity_requested')}")
+                        f"Quantity: {mapped.get('quantity_requested')}, "
+                        f"Status: {mapped.get('status')}")
 
             return mapped
 
@@ -531,9 +545,12 @@ class RzavalaDBFUploader:
             no_ordp = cleaned.get('NO_REM', cleaned.get('NO_ORDP', ''))
             cve_prod = cleaned.get('CVE_PROD', '')
             cve_copr = cleaned.get('CVE_COPR', cleaned.get('CVE_PROD', ''))
-            can_copr = cleaned.get('CAN_PROD', cleaned.get('CANT_PROD', cleaned.get('CANT_SURT', '0')))
+            can_copr = cleaned.get('CAN_PROD', cleaned.get('CANT_SURT', '0'))
             lote = cleaned.get('LOTE', cleaned.get('REF_LOTE', ''))
             fech_cto = cleaned.get('FECH_ORDP', cleaned.get('FECH_REM', ''))
+            undres = cleaned.get('MED_PROD', '')
+            costo = cleaned.get('COST_PROM', '')
+            cve_suc = cleaned.get('CVE_SUC', '')
             tip_copr = 1  # Default to active
 
             if not no_ordp:
@@ -544,6 +561,7 @@ class RzavalaDBFUploader:
                 logger.warning(f"Record with NO_REM/NO_ORDP {no_ordp} has empty CVE_PROD")
                 return None
 
+            # Parse date if available
             parsed_date = None
             if fech_cto:
                 try:
@@ -553,9 +571,8 @@ class RzavalaDBFUploader:
                         parsed_date = fech_cto
                 except Exception:
                     parsed_date = datetime.now().strftime('%Y-%m-%d')
-            else:
-                parsed_date = datetime.now().strftime('%Y-%m-%d')
 
+            # Parse quantity
             try:
                 quantity = float(can_copr) if can_copr else 0
                 if quantity <= 0:
@@ -563,21 +580,38 @@ class RzavalaDBFUploader:
             except ValueError:
                 quantity = 1
 
+            # Parse cost if available
+            parsed_cost = None
+            if costo:
+                try:
+                    parsed_cost = float(costo)
+                except ValueError:
+                    pass
+
             mapped = {
                 "no_ordp": no_ordp,
                 "cve_prod": cve_prod,
                 "cve_copr": cve_copr,
                 "can_copr": quantity,
                 "lote": lote,
-                "fech_cto": parsed_date,
-                "tip_copr": tip_copr
+                "undres": undres,
+                "tip_copr": tip_copr,
+                "cve_suc": cve_suc
             }
 
+            # Add optional fields if they have values
+            if parsed_date:
+                mapped["fech_cto"] = parsed_date
+            if parsed_cost:
+                mapped["costo"] = parsed_cost
+
+            # Remove empty fields but keep required ones
             mapped = {k: v for k, v in mapped.items() if v not in [None, '', 0] or k in ['tip_copr', 'can_copr']}
 
-            logger.debug(f"Mapped inventory record - NO_ORDP: {mapped.get('no_ordp')}, "
+            logger.debug(f"Mapped inventory record - NO_REM: {mapped.get('no_ordp')}, "
                         f"Product: {mapped.get('cve_prod')}, "
-                        f"Quantity: {mapped.get('can_copr')}")
+                        f"Quantity: {mapped.get('can_copr')}, "
+                        f"Unit: {mapped.get('undres')}")
 
             return mapped
 
