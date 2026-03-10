@@ -86,6 +86,14 @@ jobs:
             exit 1
           }
 
+          # Build Rzavala DBF uploader executable (production orders + inventory codes)
+          Write-Host "Building Rzavala DBF uploader..."
+          pyinstaller --onefile --clean --name "rzavala_dbf_uploader" rzavala_dbf_uploader.py
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "ERROR: Failed to build Rzavala DBF uploader"
+            exit 1
+          }
+
           # Check if executables were created
           Write-Host "Checking for generated executables..."
           Get-ChildItem dist/ -Name
@@ -107,3 +115,9 @@ jobs:
         with:
           name: dbf-uploader-exe
           path: dist/flexiempaques_dbf_uploader.exe
+
+      - name: Upload Rzavala DBF Uploader Artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: rzavala-dbf-uploader-exe
+          path: dist/rzavala_dbf_uploader.exe
