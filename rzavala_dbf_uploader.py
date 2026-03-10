@@ -625,6 +625,10 @@ class RzavalaDBFUploader:
             try:
                 logger.info(f"Sending batch of {len(batch_data)} inventory codes to API")
 
+                # Log first record for debugging
+                if batch_data:
+                    logger.info(f"First record sample: {json.dumps(batch_data[0], indent=2, default=str)}")
+
                 payload = {
                     "company_name": COMPANY_NAME,
                     "inventory_codes": batch_data
@@ -642,11 +646,12 @@ class RzavalaDBFUploader:
 
                 logger.info(f"API Response Status: {response.status_code}")
 
+                # Log response content for debugging
                 try:
                     response_content = response.json()
-                    logger.debug(f"API Response Content: {json.dumps(response_content, indent=2)}")
+                    logger.error(f"API Response Content: {json.dumps(response_content, indent=2)}")
                 except:
-                    logger.debug(f"API Response Text: {response.text}")
+                    logger.error(f"API Response Text: {response.text[:500]}")
                     response_content = {}
 
                 if response.status_code == 200:
@@ -664,7 +669,7 @@ class RzavalaDBFUploader:
                         logger.info(f"Batch sent successfully but error parsing response: {e}")
                         return {"success": True, "data": {}}
                 else:
-                    logger.warning(f"API error {response.status_code}: {response.text}")
+                    logger.warning(f"API error {response.status_code}: {response.text[:200]}")
                     if attempt < MAX_RETRIES - 1:
                         time.sleep(2 ** attempt)
 
