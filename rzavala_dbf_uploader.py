@@ -137,8 +137,9 @@ class RzavalaDBFUploader:
             if os.path.exists(INVENTORY_STATE_FILE):
                 with open(INVENTORY_STATE_FILE, 'r', encoding='utf-8') as f:
                     state = json.load(f)
+                    # Support both NO_ORDP and NO_REM for backwards compatibility
                     if 'last_processed_no_ordp' not in state:
-                        state['last_processed_no_ordp'] = 0
+                        state['last_processed_no_ordp'] = state.get('last_processed_no_rem', 0)
                     return state
         except Exception as e:
             logger.warning(f"Could not load inventory state file: {e}")
@@ -526,20 +527,21 @@ class RzavalaDBFUploader:
         try:
             cleaned = {k: self.clean_value(v) for k, v in record.items()}
 
-            no_ordp = cleaned.get('NO_ORDP', '')
+            # remd.dbf uses NO_REM instead of NO_ORDP
+            no_ordp = cleaned.get('NO_ORDP', cleaned.get('NO_REM', ''))
             cve_prod = cleaned.get('CVE_PROD', '')
             cve_copr = cleaned.get('CVE_COPR', cleaned.get('CVE_PROD', ''))
             can_copr = cleaned.get('CAN_PROD', cleaned.get('CANT_PROD', '0'))
             lote = cleaned.get('LOTE', '')
-            fech_cto = cleaned.get('FECH_ORDP', '')
+            fech_cto = cleaned.get('FECH_ORDP', cleaned.get('FECH_REM', ''))
             tip_copr = 1  # Default to active
 
             if not no_ordp:
-                logger.warning("Skipping record: NO_ORDP is empty")
+                logger.warning("Skipping record: NO_ORDP/NO_REM is empty")
                 return None
 
             if not cve_prod:
-                logger.warning(f"Record with NO_ORDP {no_ordp} has empty CVE_PROD")
+                logger.warning(f"Record with NO_ORDP/NO_REM {no_ordp} has empty CVE_PROD")
                 return None
 
             parsed_date = None
@@ -660,8 +662,12 @@ class RzavalaDBFUploader:
             logger.info(f"Opening DBF file: {REMD_DBF_PATH}")
             dbf = DBF(REMD_DBF_PATH, ignore_missing_memofile=False)
 
+            # Log available fields for debugging
+            logger.info(f"DBF fields: {dbf.field_names}")
+
             all_records = []
             processed_count = 0
+            skipped_count = 0
 
             for record in dbf:
                 record_dict = dict(record)
@@ -669,11 +675,13 @@ class RzavalaDBFUploader:
                 if mapped_record:
                     all_records.append(mapped_record)
                     processed_count += 1
+                else:
+                    skipped_count += 1
 
                     if processed_count % 100 == 0:
                         logger.info(f"Processed {processed_count} records so far...")
 
-            logger.info(f"Prepared {len(all_records)} valid inventory records for sending")
+            logger.info(f"Prepared {len(all_records)} valid inventory records for sending (skipped {skipped_count})")
 
             all_records.sort(key=lambda x: str(x.get('no_ordp', '0')))
 
@@ -704,11 +712,12 @@ class RzavalaDBFUploader:
             logger.info(f"Total inventory codes sent: {successful_sends}/{total_records}")
 
             if all_records:
-                max_no_ordp = max([int(r['no_ordp']) for r in all_records if str(r['no_ordp']).isdigit()], default=0)
-                if max_no_ordp > self.inventory_state.get('last_processed_no_ordp', 0):
-                    self.inventory_state['last_processed_no_ordp'] = max_no_ordp
+                # Use NO_REM for state tracking (remd.dbf uses NO_REM)
+                max_no_rem = max([int(r['no_ordp']) for r in all_records if str(r['no_ordp']).isdigit()], default=0)
+                if max_no_rem > self.inventory_state.get('last_processed_no_ordp', 0):
+                    self.inventory_state['last_processed_no_ordp'] = max_no_rem
                     self.save_inventory_state()
-                    logger.info(f"Updated last_processed_no_ordp to {max_no_ordp}")
+                    logger.info(f"Updated last_processed_no_ordp to {max_no_rem}")
 
             self.save_last_modified_state()
             self.first_run = False
