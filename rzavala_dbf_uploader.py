@@ -585,6 +585,10 @@ class RzavalaDBFUploader:
             if costo:
                 try:
                     parsed_cost = float(costo)
+                    # Validate cost is within database limits (DECIMAL(12,8) = max 9999.99)
+                    if parsed_cost >= 10000:
+                        logger.warning(f"Cost {parsed_cost} too large, skipping (max 9999.99)")
+                        parsed_cost = None
                 except ValueError:
                     pass
 
