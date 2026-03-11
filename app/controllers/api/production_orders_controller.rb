@@ -4,7 +4,7 @@ class Api::ProductionOrdersController < Api::BaseController
       company_name: @current_company.name,
       production_orders_count: @current_company.production_orders.count,
       inventory_codes_count: @current_company.inventory_codes.count,
-      last_no_opro: ProductionOrder.maximum(:no_opro).to_i
+      last_no_opro: @current_company.production_orders.maximum(:no_opro).to_i
     }
   end
 
@@ -301,7 +301,7 @@ class Api::ProductionOrdersController < Api::BaseController
   end
 
   def last_no_opro
-    last = ProductionOrder.maximum(:no_opro).to_i
+    last = @current_company.production_orders.maximum(:no_opro).to_i
     render json: { last_no_opro: last }
   end
 
