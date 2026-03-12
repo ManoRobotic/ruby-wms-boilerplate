@@ -407,13 +407,13 @@ class Admin::ProductionOrderItemsController < AdminController
       "CLS",
       "CODEPAGE 1252",
       # Textos
-      "TEXT 100,50,\"4\",0,1,1,\"#{label_data[:name] || '-'}\"",
-      "TEXT 100,100,\"3\",0,1,1,\"#{label_data[:clave_producto] || '-'}\"",
-      "TEXT 100,150,\"3\",0,1,1,\"PB: #{label_data[:peso_bruto]} kg\"",
-      "TEXT 100,190,\"3\",0,1,1,\"PN: #{label_data[:peso_neto]} kg\"",
-      "TEXT 100,230,\"3\",0,1,1,\"ML: #{label_data[:metros_lineales]} mts\"",
+      "TEXT 30,50,\"4\",0,1,1,\"#{label_data[:name] || '-'}\"",
+      "TEXT 30,100,\"3\",0,1,1,\"#{label_data[:clave_producto] || '-'}\"",
+      "TEXT 30,150,\"3\",0,1,1,\"PB: #{label_data[:peso_bruto]} kg\"",
+      "TEXT 30,190,\"3\",0,1,1,\"PN: #{label_data[:peso_neto]} kg\"",
+      "TEXT 30,230,\"3\",0,1,1,\"ML: #{label_data[:metros_lineales]} mts\"",
       # Código de barras - usando solo el lote y el número consecutivo
-      "BARCODE 220,280,\"128\",90,1,0,1.5,2,\"#{label_data[:lote]}-#{label_data[:consecutivo_numero] || '-'}\"",
+      "BARCODE 30,280,\"128\",90,1,0,1.5,2,\"#{label_data[:lote]}-#{label_data[:consecutivo_numero] || '-'}\"",
       "PRINT 1,1"
     ]
 
