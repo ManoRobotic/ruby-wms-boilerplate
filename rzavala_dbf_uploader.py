@@ -66,6 +66,10 @@ OPRO_STATE_FILE = os.path.join(application_path, "rzavala_opro_state.json")
 INVENTORY_STATE_FILE = os.path.join(application_path, "rzavala_inventory_state.json")
 LAST_MODIFIED_FILE = os.path.join(application_path, "rzavala_modified_state.json")
 
+# Persistent mode configuration
+PERSISTENT_MODE = True  # Set to True to keep running in a loop
+CHECK_INTERVAL_SECONDS = 300  # Check every 5 minutes
+
 
 class RzavalaDBFUploader:
     def __init__(self):
@@ -775,34 +779,68 @@ class RzavalaDBFUploader:
 
 
 def main():
+    """Main entry point - runs in persistent mode by default"""
+    
+    print("=" * 70)
+    print("RZAVALA DBF UPLOADER - Modo Persistente")
+    print("=" * 70)
+    print(f"Company: {COMPANY_NAME}")
+    print(f"Check interval: {CHECK_INTERVAL_SECONDS} seconds")
+    print(f"Log file: {log_filepath}")
+    print("=" * 70)
+    print()
+    
     logger.info("=" * 60)
-    logger.info("ZAVALA DBF UPLOADER - Starting")
+    logger.info("ZAVALA DBF UPLOADER - Starting in PERSISTENT MODE")
     logger.info(f"Company: {COMPANY_NAME}")
     logger.info(f"Token: {COMPANY_TOKEN[:8]}...")
+    logger.info(f"Check interval: {CHECK_INTERVAL_SECONDS} seconds")
     logger.info("=" * 60)
-
+    
     uploader = RzavalaDBFUploader()
     
-    success_opro = uploader.process_production_orders()
-    success_inventory = uploader.process_inventory_codes()
-
-    if success_opro and success_inventory:
-        logger.info("=" * 60)
-        logger.info("ZAVALA DBF UPLOADER completed successfully")
-        logger.info("=" * 60)
-        print("\n✅ Proceso completado exitosamente!")
-        print("Revisa el archivo rzavala_dbf_uploader.log para más detalles")
-    else:
-        logger.error("=" * 60)
-        logger.error("ZAVALA DBF UPLOADER completed with errors")
-        logger.error("=" * 60)
-        print("\n❌ Proceso completado con errores")
-        print("Revisa el archivo rzavala_dbf_uploader.log para más detalles")
+    iteration = 0
     
-    # Keep window open for 5 seconds so user can see the message
-    print("\nLa ventana se cerrará en 5 segundos...")
-    time.sleep(5)
-    sys.exit(0 if (success_opro and success_inventory) else 1)
+    try:
+        while PERSISTENT_MODE:
+            iteration += 1
+            logger.info(f"\n{'='*60}")
+            logger.info(f"ITERATION {iteration} - {datetime.now().isoformat()}")
+            logger.info(f"{'='*60}")
+            
+            print(f"\n[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Iteration {iteration}...")
+            
+            success_opro = uploader.process_production_orders()
+            success_inventory = uploader.process_inventory_codes()
+            
+            if success_opro and success_inventory:
+                logger.info(f"Iteration {iteration} completed successfully")
+                print(f"  ✅ Success - Next check in {CHECK_INTERVAL_SECONDS}s")
+            else:
+                logger.error(f"Iteration {iteration} completed with errors")
+                print(f"  ⚠️ Completed with errors - Next check in {CHECK_INTERVAL_SECONDS}s")
+            
+            if PERSISTENT_MODE:
+                logger.info(f"Sleeping for {CHECK_INTERVAL_SECONDS} seconds...")
+                print(f"  💤 Sleeping for {CHECK_INTERVAL_SECONDS} seconds... (Press Ctrl+C to stop)")
+                time.sleep(CHECK_INTERVAL_SECONDS)
+                
+    except KeyboardInterrupt:
+        logger.info("Received shutdown signal (Ctrl+C)")
+        print("\n\n⚠️  Shutting down...")
+        logger.info("=" * 60)
+        logger.info("ZAVALA DBF UPLOADER - Shutdown complete")
+        logger.info("=" * 60)
+        sys.exit(0)
+    except Exception as e:
+        logger.error(f"Fatal error: {e}")
+        print(f"\n❌ Fatal error: {e}")
+        print("Check log file for details")
+        logger.error("=" * 60)
+        logger.error("ZAVALA DBF UPLOADER - Fatal error occurred")
+        logger.error("=" * 60)
+        time.sleep(5)
+        sys.exit(1)
 
 
 if __name__ == "__main__":
