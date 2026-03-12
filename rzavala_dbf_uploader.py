@@ -38,7 +38,7 @@ logger = logging.getLogger('RzavalaDBFUploader')
 # Company configuration
 COMPANY_NAME = "Rzavala"
 COMPANY_TOKEN = "74bf5e0a6ae8813dfe80593ed84a7a9c"
-WAREHOUSE_ID = "f7a1f77a-0802-49e3-871e-55bc917094f9"
+WAREHOUSE_ID = "13070edc-019a-4b79-96a2-dc9e68746a4b"  # Zavala Warehouse
 
 # API configuration
 API_BASE_URL = "https://wmsys.fly.dev"
