@@ -42,7 +42,7 @@ class ProductionOrder < ApplicationRecord
   validates :quantity_produced, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
   validates :pieces_count, numericality: { greater_than: 0 }, allow_nil: true
   validates :package_count, numericality: { greater_than: 0 }, allow_nil: true
-  validates :no_opro, uniqueness: true, allow_blank: true
+  validates :no_opro, uniqueness: { scope: :company_id }, allow_blank: true
 
   # Enums
   STATUSES = %w[pending scheduled in_progress paused completed cancelled].freeze
