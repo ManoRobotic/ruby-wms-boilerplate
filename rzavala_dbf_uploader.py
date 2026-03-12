@@ -790,12 +790,19 @@ def main():
         logger.info("=" * 60)
         logger.info("ZAVALA DBF UPLOADER completed successfully")
         logger.info("=" * 60)
-        sys.exit(0)
+        print("\n✅ Proceso completado exitosamente!")
+        print("Revisa el archivo rzavala_dbf_uploader.log para más detalles")
     else:
         logger.error("=" * 60)
         logger.error("ZAVALA DBF UPLOADER completed with errors")
         logger.error("=" * 60)
-        sys.exit(1)
+        print("\n❌ Proceso completado con errores")
+        print("Revisa el archivo rzavala_dbf_uploader.log para más detalles")
+    
+    # Keep window open for 5 seconds so user can see the message
+    print("\nLa ventana se cerrará en 5 segundos...")
+    time.sleep(5)
+    sys.exit(0 if (success_opro and success_inventory) else 1)
 
 
 if __name__ == "__main__":
